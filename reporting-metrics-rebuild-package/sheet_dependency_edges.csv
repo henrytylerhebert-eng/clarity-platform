@@ -1,0 +1,157 @@
+from_sheet,to_sheet,formula_refs
+2012 YTD Summary,Daily Census IP 2012,67
+Ancil Invoices,2012 YTD Summary,48
+Staffing August,Daily Census IP 2012,37
+Staffing December,Daily Census IP 2012,37
+Staffing January,Daily Census IP 2012,37
+Staffing July,Daily Census IP 2012,37
+Staffing March,Daily Census IP 2012,37
+Staffing May,Daily Census IP 2012,37
+Staffing October,Daily Census IP 2012,37
+2012 YTD Summary,Daily Census IOP 2012,36
+Staffing April,Daily Census IP 2012,36
+Staffing June,Daily Census IP 2012,36
+Staffing November,Daily Census IP 2012,36
+Staffing September,Daily Census IP 2012,36
+Staffing February,Daily Census IP 2012,35
+2012 YTD Summary,Admissions,24
+Budget vs Actual,2012 YTD Summary,24
+2012 YTD Summary,Staffing April,14
+2012 YTD Summary,Staffing August,14
+2012 YTD Summary,Staffing December,14
+2012 YTD Summary,Staffing February,14
+2012 YTD Summary,Staffing January,14
+2012 YTD Summary,Staffing July,14
+2012 YTD Summary,Staffing June,14
+2012 YTD Summary,Staffing March,14
+2012 YTD Summary,Staffing May,14
+2012 YTD Summary,Staffing November,14
+2012 YTD Summary,Staffing October,14
+2012 YTD Summary,Staffing September,14
+Admissions,2012 YTD Summary,12
+2012 YTD Summary,May Revenue  ,5
+2012 YTD Summary,Apr Revenue ,4
+2012 YTD Summary,Aug Revenue,4
+2012 YTD Summary,Feb Revenue ,4
+2012 YTD Summary,Jan Revenue  ,4
+2012 YTD Summary,July Revenue  ,4
+2012 YTD Summary,June Revenue,4
+2012 YTD Summary,Mar Revenue  ,4
+2012 YTD Summary,Apr IOP Attend,3
+2012 YTD Summary,August IOP Attend,3
+2012 YTD Summary,Feb IOP 2012 Attend ,3
+2012 YTD Summary,Jan IOP 2012 Attend,3
+2012 YTD Summary,July IOP Attend,3
+2012 YTD Summary,June IOP Attend,3
+2012 YTD Summary,Mar IOP Attend,3
+2012 YTD Summary,May IOP Attend,3
+Apr Revenue,Daily Census IP 2012,3
+Aug Revenue,Daily Census IP 2012,3
+Daily Census IP 2012,2012 YTD Summary,3
+Dec Revenue,Daily Census IP 2012,3
+Feb Revenue,Daily Census IP 2012,3
+Jan Revenue,Daily Census IP 2012,3
+July Revenue,Daily Census IP 2012,3
+June Revenue,Daily Census IP 2012,3
+Mar Revenue,Daily Census IP 2012,3
+May Revenue,Daily Census IP 2012,3
+Nov Revenue,Daily Census IP 2012,3
+Oct Revenue,Daily Census IP 2012,3
+Sep Revenue,Daily Census IP 2012,3
+2012 YTD Summary,Dec IOP Attend,2
+2012 YTD Summary,Dec Revenue ,2
+2012 YTD Summary,Nov IOP Attend ,2
+2012 YTD Summary,Nov Revenue   ,2
+2012 YTD Summary,Oct IOP Attend,2
+2012 YTD Summary,Oct Revenue  ,2
+2012 YTD Summary,Sep Revenue ,2
+2012 YTD Summary,Sept IOP Attend,2
+Ancil Invoices,Daily Census IP 2012,2
+Apr IOP Attend,Daily Census IP 2012,2
+August IOP Attend,Daily Census IP 2012,2
+Dec IOP Attend,Daily Census IP 2012,2
+Feb IOP 2012 Attend,Daily Census IP 2012,2
+Jan IOP 2012 Attend,Daily Census IP 2012,2
+July IOP Attend,Daily Census IP 2012,2
+July Revenue,Staffing July,2
+June IOP Attend,Daily Census IP 2012,2
+Mar IOP Attend,Daily Census IP 2012,2
+May IOP Attend,Daily Census IP 2012,2
+Nov IOP Attend,Daily Census IP 2012,2
+Oct IOP Attend,Daily Census IP 2012,2
+Sept IOP Attend,Daily Census IP 2012,2
+Staffing April,2012 YTD Summary,2
+Staffing August,2012 YTD Summary,2
+Staffing December,2012 YTD Summary,2
+Staffing February,2012 YTD Summary,2
+Staffing January,2012 YTD Summary,2
+Staffing July,2012 YTD Summary,2
+Staffing July,REF,2
+Staffing June,2012 YTD Summary,2
+Staffing June,REF,2
+Staffing March,2012 YTD Summary,2
+Staffing May,2012 YTD Summary,2
+Staffing November,2012 YTD Summary,2
+Staffing October,2012 YTD Summary,2
+Staffing September,2012 YTD Summary,2
+Apr IOP Attend,Jan IOP 2012 Attend,1
+Apr IOP Attend,Staffing April,1
+Apr Revenue,Staffing April,1
+Apr Revenue,Staffing July,1
+Aug Revenue,Staffing August,1
+Aug Revenue,Staffing July,1
+August IOP Attend,Jan IOP 2012 Attend,1
+August IOP Attend,Staffing August,1
+Budget vs Actual,Daily Census IP 2012,1
+Daily Census IOP 2012,Daily Census IP 2012,1
+Daily Census IP 2012,Apr Revenue ,1
+Daily Census IP 2012,Aug Revenue,1
+Daily Census IP 2012,Dec Revenue ,1
+Daily Census IP 2012,July Revenue  ,1
+Daily Census IP 2012,June Revenue,1
+Daily Census IP 2012,May Revenue  ,1
+Daily Census IP 2012,Nov Revenue   ,1
+Daily Census IP 2012,Oct Revenue  ,1
+Daily Census IP 2012,Sep Revenue ,1
+Daily Census IP 2012,[1]Feb Revenue ,1
+Daily Census IP 2012,[1]Jan Revenue  ,1
+Daily Census IP 2012,[1]Mar Revenue  ,1
+Dec IOP Attend,Jan IOP 2012 Attend,1
+Dec IOP Attend,Staffing December,1
+Dec Revenue,Staffing December,1
+Dec Revenue,Staffing July,1
+Feb IOP 2012 Attend,Jan IOP 2012 Attend,1
+Feb IOP 2012 Attend,Staffing February,1
+Feb Revenue,Staffing February,1
+Feb Revenue,Staffing July,1
+Jan IOP 2012 Attend,Staffing January,1
+Jan Revenue,Staffing January,1
+Jan Revenue,Staffing July,1
+July IOP Attend,Jan IOP 2012 Attend,1
+July IOP Attend,Staffing July,1
+June IOP Attend,Jan IOP 2012 Attend,1
+June IOP Attend,Staffing June,1
+June Revenue,Staffing July,1
+June Revenue,Staffing June,1
+Mar IOP Attend,Jan IOP 2012 Attend,1
+Mar IOP Attend,Staffing March,1
+Mar Revenue,Staffing July,1
+Mar Revenue,Staffing March,1
+May IOP Attend,Jan IOP 2012 Attend,1
+May IOP Attend,Staffing May,1
+May Revenue,Staffing July,1
+May Revenue,Staffing May,1
+Nov IOP Attend,Jan IOP 2012 Attend,1
+Nov IOP Attend,Staffing November,1
+Nov Revenue,Staffing July,1
+Nov Revenue,Staffing November,1
+Oct IOP Attend,Jan IOP 2012 Attend,1
+Oct IOP Attend,Staffing October,1
+Oct Revenue,Staffing July,1
+Oct Revenue,Staffing October,1
+Sep Revenue,Staffing July,1
+Sep Revenue,Staffing September,1
+Sept IOP Attend,Jan IOP 2012 Attend,1
+Sept IOP Attend,Staffing September,1
+Staffing April,REF,1
+Staffing August,REF,1

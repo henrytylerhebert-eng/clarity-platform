@@ -1,0 +1,33 @@
+# Clarity Crisis Ops Prototype (v0.2)
+
+Local React + TypeScript prototype of the Clarity behavioral-health crisis platform. It demonstrates the full demo journey from the handoff spec: guided intake → medical necessity and legal drafts → hash-sealed referral packet → simulated facility routing → central intake command center → milieu-aware bedboard, with every material step written to a hash-chained custody ledger.
+
+## Run
+
+```bash
+npm install
+npm run dev      # http://127.0.0.1:5173
+npm test         # vitest unit tests (domain logic)
+npm run smoke    # playwright end-to-end suite (desktop + mobile)
+npm run build    # typecheck + production build
+```
+
+## Scope and guardrails
+
+- **Demo data only. No production PHI.** All cases, facilities, and occupants are fake. State lives in `localStorage`; "Reset demo data" reseeds.
+- **Legal clocks are configurable demo values, not statutory truth.** Louisiana PEC/OPC/CEC language and timing require counsel validation before any enforcement in software.
+- **Clinical outputs are review-gated drafts.** The prohibited-language guard blocks claims like "meets InterQual" or "admission is medically necessary" without qualified human review.
+- **Bed availability is not safe placement.** Bedboard compatibility rules are demo heuristics pending clinical validation; the charge nurse decision is final and overrides require a documented reason.
+- No authentication, backend, or integrations — deliberately out of scope for the prototype (see `../docs/04-build-roadmap.md` parking lot).
+
+## Stakeholder segments
+
+The sidebar "Viewing as" selector scopes workspaces per stakeholder role, defined in `src/domain/roles.ts`: field responder, central intake coordinator, clinician reviewer, receiving facility, and charge nurse (plus an unscoped demo view). Adding or reshaping a segment is a config change in that one file — workspaces are self-contained components, so no workspace code changes are needed. This is demo role modeling per the handoff spec, **not** authentication; production RBAC/RLS stays in the parking lot.
+
+## Layout
+
+- `src/domain/` — canonical case spine: types, seed scenarios, hash-chained custody ledger, pitfall guard engine, compliance clocks, packet builder, bedboard placement rules. Unit-tested.
+- `src/workspaces/` — one component per workspace (queue, command center, intake, medical necessity, legal, packet, routing, bedboard, ledger).
+- `smoke/` — Playwright specs covering the closed-loop journey.
+
+Baseline transfer timing, acceptance rates, and packet completeness rates: **No measurements found** — these remain unknown until piloted.

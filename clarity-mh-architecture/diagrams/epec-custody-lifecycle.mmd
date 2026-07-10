@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant Caller as Referral Source
+    participant Intake as Intake User
+    participant Clinician as Clinician Reviewer
+    participant Legal as Legal Instrument Layer
+    participant Ledger as Custody Ledger
+    participant Facility as Receiving Facility
+
+    Caller->>Intake: Referral / crisis details
+    Intake->>Ledger: Case created event
+    Intake->>Clinician: Assessment draft
+    Clinician->>Ledger: Assessment reviewed event
+    Clinician->>Legal: OPC/PEC/CEC draft if applicable
+    Legal->>Ledger: Legal draft created
+    Legal->>Legal: Authorized signature / attestation
+    Legal->>Ledger: Signed + hash-sealed event
+    Intake->>Facility: Packet transmitted
+    Ledger->>Ledger: Transmission event hash
+    Facility->>Intake: Accept / decline / more info
+    Facility->>Ledger: Response receipt event
+    Intake->>Ledger: Verify chain

@@ -1,0 +1,23 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Test artifacts
+app/test-results/
+playwright-report/
+
+# OS metadata
+.DS_Store
+
+# Environment and secrets — never commit credentials
+.env
+.env.*
+!.env.example
+
+# Prisma generated client
+generated/

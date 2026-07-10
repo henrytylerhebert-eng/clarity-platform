@@ -1,0 +1,1484 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrganizationType {
+  SENDING_FACILITY
+  RECEIVING_FACILITY
+  HOSPITAL_SYSTEM
+  CRISIS_PROVIDER
+  TRANSPORT_PROVIDER
+  PAYER
+  ADMINISTRATIVE
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+enum UserRole {
+  SYSTEM_ADMIN
+  ORGANIZATION_ADMIN
+  INTAKE_COORDINATOR
+  CLINICAL_REVIEWER
+  PHYSICIAN_REVIEWER
+  UTILIZATION_REVIEWER
+  LEGAL_REVIEWER
+  BENEFITS_VERIFICATION_SPECIALIST
+  AUTHORIZATION_SPECIALIST
+  FACILITY_REVIEWER
+  TRANSPORT_COORDINATOR
+  COMPLIANCE_REVIEWER
+  READ_ONLY_AUDITOR
+}
+
+enum CaseStatus {
+  DRAFT
+  INTAKE_IN_PROGRESS
+  DOCUMENTS_PENDING
+  DOCUMENTS_RECEIVED
+  EVIDENCE_PROCESSING
+  EVIDENCE_REVIEW
+  INFORMATION_INCOMPLETE
+  CLINICAL_REVIEW
+  LEGAL_REVIEW
+  BENEFITS_REVIEW
+  AUTHORIZATION_PREPARATION
+  PACKET_PREPARATION
+  READY_FOR_ROUTING
+  ROUTING_IN_PROGRESS
+  FACILITY_RESPONSE_PENDING
+  ACCEPTED
+  TRANSPORT_PENDING
+  HANDOFF_IN_PROGRESS
+  TRANSFER_COMPLETE
+  CLOSED
+  CANCELLED
+  WITHDRAWN
+  NO_PLACEMENT_FOUND
+  REFERRED_TO_ALTERNATIVE_LEVEL
+  MEDICAL_TRANSFER_REQUIRED
+  RETURNED_FOR_MORE_INFORMATION
+}
+
+enum ParallelWorkstreamStatus {
+  NOT_STARTED
+  READY
+  IN_PROGRESS
+  PENDING_REVIEW
+  COMPLETE
+  BLOCKED
+  NOT_APPLICABLE
+}
+
+enum UrgencyLevel {
+  ROUTINE
+  URGENT
+  EMERGENT
+}
+
+enum LevelOfCare {
+  INPATIENT_PSYCHIATRIC
+  CRISIS_STABILIZATION
+  RESIDENTIAL
+  PARTIAL_HOSPITALIZATION
+  INTENSIVE_OUTPATIENT
+  OUTPATIENT
+  MEDICAL_ADMISSION_WITH_PSYCHIATRIC_CONSULT
+  SUBSTANCE_USE_DETOX
+  SUBSTANCE_USE_RESIDENTIAL
+  UNKNOWN
+}
+
+enum LegalStatusType {
+  VOLUNTARY
+  INVOLUNTARY_EMERGENCY
+  COURT_ORDERED
+  PROTECTIVE_CUSTODY
+  GUARDIAN_CONSENT
+  MINOR_CONSENT
+  CORRECTIONAL_CUSTODY
+  UNKNOWN
+}
+
+enum DocumentType {
+  REFERRAL_FORM
+  EMERGENCY_DEPARTMENT_NOTE
+  PSYCHIATRIC_EVALUATION
+  NURSING_NOTE
+  LAB_REPORT
+  MEDICATION_LIST
+  LEGAL_HOLD_DOCUMENT
+  INSURANCE_CARD
+  BENEFITS_VERIFICATION
+  AUTHORIZATION_RECORD
+  DISCHARGE_SUMMARY
+  TRANSPORT_RECORD
+  OTHER
+}
+
+enum DocumentClassificationStatus {
+  PENDING
+  CLASSIFIED
+  NEEDS_REVIEW
+  REJECTED
+}
+
+enum EvidenceStatus {
+  CANDIDATE
+  APPROVED
+  REJECTED
+  NEEDS_CLARIFICATION
+  SUPERSEDED
+}
+
+enum EvidenceCategory {
+  PRESENTING_PROBLEM
+  SUICIDE_RISK
+  VIOLENCE_RISK
+  PSYCHOSIS
+  MANIA
+  SUBSTANCE_USE
+  WITHDRAWAL
+  COGNITION
+  MEDICAL
+  MEDICATION
+  ALLERGY
+  LEGAL_STATUS
+  CUSTODY
+  INSURANCE
+  AUTHORIZATION
+  GUARDIANSHIP
+  PLACEMENT
+  TRANSPORT
+  OTHER
+}
+
+enum ReviewObjectType {
+  EVIDENCE
+  SUMMARY
+  MEDICAL_NECESSITY
+  LEGAL_STATUS
+  BENEFITS_VERIFICATION
+  AUTHORIZATION
+  FACILITY_MATCH
+  PACKET
+  CUSTODY_HANDOFF
+}
+
+enum ReviewDecision {
+  APPROVED
+  APPROVED_WITH_EDITS
+  REJECTED
+  NEEDS_MORE_INFORMATION
+}
+
+enum RuleDomain {
+  LEGAL
+  CLINICAL
+  PAYER
+  FACILITY
+  WORKFLOW
+}
+
+enum RuleSetStatus {
+  DRAFT
+  APPROVED
+  RETIRED
+}
+
+enum RuleOutcome {
+  PASS
+  WARNING
+  BLOCK
+  REQUIRES_REVIEW
+  NOT_APPLICABLE
+}
+
+enum Severity {
+  INFORMATIONAL
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum CoverageOrder {
+  PRIMARY
+  SECONDARY
+  TERTIARY
+}
+
+enum CoverageType {
+  MEDICARE
+  MEDICAID
+  MEDICARE_ADVANTAGE
+  COMMERCIAL
+  SUPPLEMENTAL
+  TRICARE
+  SELF_PAY
+  OTHER
+  UNKNOWN
+}
+
+enum SubscriberRelationship {
+  SELF
+  SPOUSE
+  PARENT
+  GUARDIAN
+  OTHER
+  UNKNOWN
+}
+
+enum CoverageStatus {
+  UNVERIFIED
+  ACTIVE
+  INACTIVE
+  UNCLEAR
+  UNABLE_TO_VERIFY
+}
+
+enum VerificationMethod {
+  PORTAL
+  ELECTRONIC_TRANSACTION
+  PHONE
+  FAX
+  MANUAL
+  OTHER
+}
+
+enum EligibilityStatus {
+  PENDING
+  ACTIVE_CONFIRMED
+  INACTIVE
+  UNCLEAR
+  FAILED
+}
+
+enum ServiceType {
+  INPATIENT_PSYCHIATRIC
+  PARTIAL_HOSPITALIZATION
+  INTENSIVE_OUTPATIENT
+  OUTPATIENT_BEHAVIORAL_HEALTH
+  SUBSTANCE_USE
+  OTHER
+}
+
+enum NetworkStatus {
+  IN_NETWORK
+  OUT_OF_NETWORK
+  UNKNOWN
+}
+
+enum DisclaimerStatus {
+  REQUIRED
+  PROVIDED
+}
+
+enum AuthorizationStatus {
+  NOT_STARTED
+  PREPARING
+  SUBMITTED
+  PENDING
+  APPROVED
+  PARTIALLY_APPROVED
+  DENIED
+  NOT_REQUIRED
+  UNABLE_TO_COMPLETE
+}
+
+enum EducationRecipientType {
+  PATIENT
+  SPOUSE
+  PARENT
+  GUARDIAN
+  LEGAL_REPRESENTATIVE
+  OTHER
+}
+
+enum EducationMethod {
+  IN_PERSON
+  PHONE
+  VIDEO
+  ELECTRONIC
+  WRITTEN
+}
+
+enum AcknowledgementStatus {
+  ACKNOWLEDGED
+  DECLINED
+  UNABLE
+  DEFERRED
+}
+
+enum ReferralStatus {
+  DRAFT
+  READY
+  SENT
+  PENDING
+  MORE_INFORMATION_REQUESTED
+  ACCEPTED
+  DENIED
+  NO_BED
+  CANCELLED
+}
+
+enum CustodyPartyType {
+  HOSPITAL
+  LAW_ENFORCEMENT
+  EMS
+  TRANSPORT_VENDOR
+  FAMILY
+  RECEIVING_FACILITY
+  OTHER
+}
+
+enum AuditActorType {
+  USER
+  SYSTEM
+  AGENT
+  INTEGRATION
+}
+
+model Organization {
+  id                String             @id @default(cuid())
+  name              String
+  type              OrganizationType
+  status            OrganizationStatus @default(ACTIVE)
+  jurisdictionCodes String[]
+  users             User[]
+  cases             BehavioralHealthCase[]
+  facilities        FacilityProfile[]
+  payerProfiles     PayerProfile[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model User {
+  id             String      @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  email          String      @unique
+  displayName    String
+  roles          UserRole[]
+  status         UserStatus  @default(ACTIVE)
+  lastLoginAt    DateTime?
+  assignedCases  BehavioralHealthCase[] @relation("AssignedCases")
+  reviews        HumanReview[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([organizationId])
+}
+
+model PatientToken {
+  id                       String   @id @default(cuid())
+  organizationId           String
+  externalPatientReference String?
+  dateOfBirth              DateTime?
+  age                      Int?
+  sex                      String?
+  preferredLanguage        String?
+  guardianStatus           String?
+  privacyFlags             String[]
+  cases                    BehavioralHealthCase[]
+  coverages                InsuranceCoverage[]
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+model BehavioralHealthCase {
+  id                         String      @id @default(cuid())
+  organizationId             String
+  organization               Organization @relation(fields: [organizationId], references: [id])
+  patientTokenId             String
+  patientToken               PatientToken @relation(fields: [patientTokenId], references: [id])
+  assignedUserId             String?
+  assignedUser               User?       @relation("AssignedCases", fields: [assignedUserId], references: [id])
+  status                     CaseStatus   @default(DRAFT)
+  urgency                    UrgencyLevel @default(ROUTINE)
+  currentLocation            String?
+  requestedLevelOfCare       LevelOfCare?
+  currentLegalStatus         LegalStatusType?
+  clinicalStatus             ParallelWorkstreamStatus @default(NOT_STARTED)
+  legalReviewStatus          ParallelWorkstreamStatus @default(NOT_STARTED)
+  medicalScreeningStatus     ParallelWorkstreamStatus @default(NOT_STARTED)
+  benefitsStatus             ParallelWorkstreamStatus @default(NOT_STARTED)
+  authorizationStatus        ParallelWorkstreamStatus @default(NOT_STARTED)
+  placementStatus            ParallelWorkstreamStatus @default(NOT_STARTED)
+  transportationStatus       ParallelWorkstreamStatus @default(NOT_STARTED)
+  patientEducationStatus     ParallelWorkstreamStatus @default(NOT_STARTED)
+  openedAt                   DateTime    @default(now())
+  closedAt                   DateTime?
+  documents                  SourceDocument[]
+  evidenceItems              EvidenceItem[]
+  reviews                    HumanReview[]
+  legalStatuses              LegalStatusRecord[]
+  medicalNecessityReviews    MedicalNecessityReview[]
+  coverages                  InsuranceCoverage[]
+  authorizations             Authorization[]
+  financialEducationRecords  FinancialEducationRecord[]
+  referrals                  Referral[]
+  custodyEvents              CustodyEvent[]
+  auditEvents                AuditEvent[]
+  createdAt                  DateTime    @default(now())
+  updatedAt                  DateTime    @updatedAt
+
+  @@index([organizationId, status])
+  @@index([assignedUserId])
+  @@index([patientTokenId])
+}
+
+model SourceDocument {
+  id                   String   @id @default(cuid())
+  caseId               String
+  case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organizationId       String
+  documentType         DocumentType
+  filename             String
+  mimeType             String
+  storageKey           String
+  sha256               String
+  sourceOrganization   String?
+  authorName           String?
+  serviceDate          DateTime?
+  uploadedBy           String
+  uploadedAt           DateTime @default(now())
+  classificationStatus DocumentClassificationStatus @default(PENDING)
+  version              Int      @default(1)
+  evidenceItems        EvidenceItem[]
+  benefitSources       BenefitVerificationSource[]
+  eligibilityProofs    EligibilityProof[]
+  createdAt            DateTime @default(now())
+
+  @@unique([caseId, sha256, version])
+  @@index([organizationId, caseId])
+}
+
+model EvidenceItem {
+  id                    String   @id @default(cuid())
+  caseId                String
+  case                  BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  documentId            String
+  document              SourceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  category              EvidenceCategory
+  subcategory           String?
+  originalText          String
+  normalizedValue       Json?
+  pageNumber            Int?
+  sectionLabel          String?
+  sourceAuthor          String?
+  sourceTimestamp       DateTime?
+  extractionConfidence  Float?
+  status                EvidenceStatus @default(CANDIDATE)
+  contradictionGroupId  String?
+  reviewedBy            String?
+  reviewedAt            DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([caseId, category, status])
+  @@index([documentId])
+}
+
+model HumanReview {
+  id           String   @id @default(cuid())
+  caseId       String
+  case         BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  objectType   ReviewObjectType
+  objectId     String
+  reviewerId   String
+  reviewer     User     @relation(fields: [reviewerId], references: [id])
+  decision     ReviewDecision
+  rationale    String?
+  reviewedAt   DateTime @default(now())
+
+  @@index([caseId, objectType])
+  @@index([reviewerId])
+}
+
+model LegalStatusRecord {
+  id                   String   @id @default(cuid())
+  caseId               String
+  case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  jurisdiction         String
+  statusType           LegalStatusType
+  authorizingAuthority String?
+  initiatedAt          DateTime?
+  expiresAt            DateTime?
+  formDocumentId       String?
+  signatureStatus      String?
+  reviewStatus         ParallelWorkstreamStatus @default(NOT_STARTED)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([caseId, jurisdiction])
+}
+
+model MedicalNecessityReview {
+  id                  String   @id @default(cuid())
+  caseId              String
+  case                BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  requestedLevel      LevelOfCare
+  criteriaSetId       String
+  criteriaVersion     String
+  supportingEvidence Json
+  missingEvidence     Json
+  contradictions      Json
+  draftNarrative      String?
+  reviewerId          String?
+  decision            ReviewDecision?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([caseId])
+}
+
+model RuleSet {
+  id                String        @id @default(cuid())
+  name              String
+  domain            RuleDomain
+  jurisdiction      String?
+  issuingAuthority  String?
+  version           String
+  effectiveDate     DateTime
+  reviewDate        DateTime?
+  status            RuleSetStatus @default(DRAFT)
+  sourceDocumentIds String[]
+  approvedBy        String?
+  approvedAt        DateTime?
+  rules             Rule[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([name, version])
+}
+
+model Rule {
+  id                   String      @id @default(cuid())
+  ruleSetId            String
+  ruleSet              RuleSet     @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+  code                 String
+  title                String
+  description          String
+  conditionExpression  Json
+  outcome              RuleOutcome
+  messageTemplate      String
+  citationReference    String?
+  severity             Severity
+  createdAt            DateTime @default(now())
+
+  @@unique([ruleSetId, code])
+}
+
+model PayerProfile {
+  id                         String   @id @default(cuid())
+  organizationId             String
+  organization               Organization @relation(fields: [organizationId], references: [id])
+  legalName                  String
+  aliases                    String[]
+  portalUrlLabel             String?
+  eligibilityPhone           String?
+  authorizationPhone         String?
+  faxNumber                  String?
+  behavioralHealthCarveOut   String?
+  typicalVerificationMinutes Int?
+  typicalAuthorizationHours  Int?
+  commonPendReasons          String[]
+  commonDenialReasons        String[]
+  lastVerifiedAt             DateTime?
+  planProfiles               PlanProfile[]
+  coverages                  InsuranceCoverage[]
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  @@index([organizationId, legalName])
+}
+
+model PlanProfile {
+  id                       String   @id @default(cuid())
+  payerProfileId           String
+  payerProfile             PayerProfile @relation(fields: [payerProfileId], references: [id], onDelete: Cascade)
+  name                     String
+  planType                 CoverageType
+  knownNetworkRelationship NetworkStatus @default(UNKNOWN)
+  commonBenefitStructure   Json?
+  authorizationPattern     Json?
+  commonExclusions         String[]
+  historicalReimbursement Json?
+  confidenceLevel          Float?
+  lastValidatedAt          DateTime?
+  coverages                InsuranceCoverage[]
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([payerProfileId, name])
+}
+
+model InsuranceSubscriber {
+  id                    String   @id @default(cuid())
+  caseId                String
+  fullName              String?
+  dateOfBirth           DateTime?
+  relationshipToPatient SubscriberRelationship
+  employerName          String?
+  sourceDocumentIds     String[]
+  coverages             InsuranceCoverage[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([caseId])
+}
+
+model InsuranceCoverage {
+  id                     String   @id @default(cuid())
+  caseId                 String
+  case                   BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  patientTokenId         String
+  patientToken           PatientToken @relation(fields: [patientTokenId], references: [id])
+  coverageOrder          CoverageOrder
+  payerProfileId         String?
+  payerProfile           PayerProfile? @relation(fields: [payerProfileId], references: [id])
+  planProfileId          String?
+  planProfile            PlanProfile? @relation(fields: [planProfileId], references: [id])
+  payerNameRaw           String?
+  planNameRaw            String?
+  memberIdEncrypted      String?
+  groupNumberEncrypted   String?
+  policyNumberEncrypted  String?
+  coverageType           CoverageType
+  subscriberRelationship SubscriberRelationship
+  subscriberId           String?
+  subscriber             InsuranceSubscriber? @relation(fields: [subscriberId], references: [id])
+  status                 CoverageStatus @default(UNVERIFIED)
+  sourceDocumentIds      String[]
+  reviewedBy             String?
+  reviewedAt             DateTime?
+  eligibilityChecks      EligibilityVerification[]
+  benefitVerifications   BenefitVerification[]
+  authorizations         Authorization[]
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([caseId, coverageOrder])
+  @@index([payerProfileId])
+}
+
+model EligibilityVerification {
+  id                  String   @id @default(cuid())
+  insuranceCoverageId String
+  insuranceCoverage   InsuranceCoverage @relation(fields: [insuranceCoverageId], references: [id], onDelete: Cascade)
+  method              VerificationMethod
+  status              EligibilityStatus
+  effectiveDate       DateTime?
+  terminationDate     DateTime?
+  verifiedAt          DateTime?
+  verifiedBy          String?
+  payerRepresentative String?
+  referenceNumber     String?
+  notes               String?
+  proofs              EligibilityProof[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([insuranceCoverageId, verifiedAt])
+}
+
+model EligibilityProof {
+  id                        String   @id @default(cuid())
+  eligibilityVerificationId String
+  eligibilityVerification   EligibilityVerification @relation(fields: [eligibilityVerificationId], references: [id], onDelete: Cascade)
+  documentId                String
+  document                  SourceDocument @relation(fields: [documentId], references: [id])
+  createdAt                 DateTime @default(now())
+
+  @@unique([eligibilityVerificationId, documentId])
+}
+
+model BenefitVerification {
+  id                       String   @id @default(cuid())
+  insuranceCoverageId      String
+  insuranceCoverage        InsuranceCoverage @relation(fields: [insuranceCoverageId], references: [id], onDelete: Cascade)
+  serviceType              ServiceType
+  networkStatus            NetworkStatus @default(UNKNOWN)
+  deductibleAmountCents    Int?
+  deductibleMetCents       Int?
+  coinsurancePercent       Float?
+  copayAmountCents         Int?
+  outOfPocketMaxCents      Int?
+  outOfPocketMetCents      Int?
+  authorizationRequired    Boolean?
+  notificationRequired     Boolean?
+  coverageLimit            String?
+  exclusions               String[]
+  quotedAt                 DateTime?
+  verificationReference    String?
+  disclaimerStatus         DisclaimerStatus @default(REQUIRED)
+  sources                  BenefitVerificationSource[]
+  educationRecords         FinancialEducationRecord[]
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([insuranceCoverageId, serviceType])
+}
+
+model BenefitVerificationSource {
+  id                    String   @id @default(cuid())
+  benefitVerificationId String
+  benefitVerification   BenefitVerification @relation(fields: [benefitVerificationId], references: [id], onDelete: Cascade)
+  documentId            String
+  document              SourceDocument @relation(fields: [documentId], references: [id])
+  createdAt             DateTime @default(now())
+
+  @@unique([benefitVerificationId, documentId])
+}
+
+model Authorization {
+  id                       String   @id @default(cuid())
+  caseId                   String
+  case                     BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  insuranceCoverageId      String
+  insuranceCoverage        InsuranceCoverage @relation(fields: [insuranceCoverageId], references: [id])
+  requestedLevelOfCare     LevelOfCare
+  status                   AuthorizationStatus @default(NOT_STARTED)
+  authorizationNumber      String?
+  requestedAt              DateTime?
+  decisionAt               DateTime?
+  approvedStartDate        DateTime?
+  approvedEndDate          DateTime?
+  approvedUnits            Int?
+  nextReviewDate           DateTime?
+  denialReason             String?
+  appealStatus             String?
+  assignedUserId           String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([caseId, status])
+  @@index([insuranceCoverageId])
+}
+
+model FinancialEducationRecord {
+  id                      String   @id @default(cuid())
+  caseId                  String
+  case                    BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  benefitVerificationId   String?
+  benefitVerification     BenefitVerification? @relation(fields: [benefitVerificationId], references: [id])
+  recipientType           EducationRecipientType
+  recipientName           String?
+  method                  EducationMethod
+  language                String?
+  interpreterUsed         Boolean @default(false)
+  topicsReviewed          String[]
+  uncertaintiesDisclosed  String[]
+  acknowledgementStatus   AcknowledgementStatus
+  educatedBy              String
+  educatedAt              DateTime @default(now())
+
+  @@index([caseId, educatedAt])
+}
+
+model FacilityProfile {
+  id                   String   @id @default(cuid())
+  organizationId       String
+  organization         Organization @relation(fields: [organizationId], references: [id])
+  name                 String
+  programs             LevelOfCare[]
+  acceptedAges         Json?
+  acceptedCoverageTypes CoverageType[]
+  medicalCapabilities  String[]
+  exclusionCriteria    String[]
+  legalStatusCapabilities LegalStatusType[]
+  transportationRules  String[]
+  referralRequirements String[]
+  lastVerifiedAt       DateTime?
+  referrals            Referral[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([organizationId, name])
+}
+
+model Referral {
+  id                    String   @id @default(cuid())
+  caseId                String
+  case                  BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  facilityId            String
+  facility              FacilityProfile @relation(fields: [facilityId], references: [id])
+  packetVersion         Int
+  sentAt                DateTime?
+  status                ReferralStatus @default(DRAFT)
+  responseAt            DateTime?
+  responseReason        String?
+  requestedInformation  String[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([caseId, status])
+  @@index([facilityId])
+}
+
+model CustodyEvent {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  fromPartyType      CustodyPartyType
+  fromPartyName      String?
+  toPartyType        CustodyPartyType
+  toPartyName        String?
+  authority          String?
+  location           String?
+  occurredAt         DateTime
+  transportProvider  String?
+  documentationIds   String[]
+  createdAt          DateTime @default(now())
+
+  @@index([caseId, occurredAt])
+}
+
+model AuditEvent {
+  id                String   @id @default(cuid())
+  organizationId    String
+  caseId            String?
+  case              BehavioralHealthCase? @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  actorType         AuditActorType
+  actorId           String
+  action            String
+  objectType        String
+  objectId          String?
+  previousStateHash String?
+  newStateHash      String?
+  reason            String?
+  modelMetadata     Json?
+  timestamp         DateTime @default(now())
+  ipAddressHash     String?
+
+  @@index([organizationId, timestamp])
+  @@index([caseId, timestamp])
+}
+// -----------------------------------------------------------------------------
+// Target architecture extensions
+// Status: design draft; validate inside the actual repository before migration.
+// Scalar foreign-key fields are intentionally used for several extension models
+// to avoid implying final cascade and tenancy choices before technical review.
+// -----------------------------------------------------------------------------
+
+enum WorkflowTaskType {
+  INTAKE
+  DOCUMENT_REQUEST
+  EVIDENCE_REVIEW
+  CLINICAL_REVIEW
+  LEGAL_REVIEW
+  MEDICAL_SCREENING
+  ELIGIBILITY_VERIFICATION
+  BENEFITS_VERIFICATION
+  AUTHORIZATION
+  PATIENT_EDUCATION
+  PACKET_REVIEW
+  FACILITY_FOLLOW_UP
+  TRANSPORT
+  CUSTODY_HANDOFF
+  CONCURRENT_REVIEW
+  AUDIT_REMEDIATION
+  OTHER
+}
+
+enum WorkflowTaskStatus {
+  OPEN
+  IN_PROGRESS
+  BLOCKED
+  PENDING_REVIEW
+  COMPLETE
+  CANCELLED
+}
+
+enum SummaryStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  SUPERSEDED
+}
+
+enum AgentType {
+  DOCUMENT_CLASSIFICATION
+  EVIDENCE_EXTRACTION
+  INSURANCE_EXTRACTION
+  CONTRADICTION_DETECTION
+  MISSING_INFORMATION
+  TIMELINE
+  CASE_SUMMARY
+  MEDICAL_NECESSITY
+  MEDICAL_SCREENING
+  LEGAL_STATUS
+  VERIFICATION_PREPARATION
+  PAYER_MEMORY
+  AUTHORIZATION_PREPARATION
+  PATIENT_EDUCATION_DRAFTING
+  FACILITY_MATCHING
+  PACKET_BUILDING
+  COMMUNICATION_DRAFTING
+  AUDIT_REVIEW
+  REFERRAL_OPERATIONS_REVIEW
+  KNOWLEDGE_CURATION
+}
+
+enum AgentRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  BLOCKED
+}
+
+enum PromptStatus {
+  DRAFT
+  TESTING
+  APPROVED
+  RETIRED
+}
+
+enum KnowledgeSourceType {
+  LAW
+  REGULATION
+  COURT_ORDER
+  OFFICIAL_GUIDANCE
+  CLINICAL_GUIDANCE
+  PAYER_POLICY
+  FACILITY_POLICY
+  ORGANIZATIONAL_POLICY
+  WORKFLOW_PROCEDURE
+  CONTRACT
+  RATE_SHEET
+  HISTORICAL_OPERATIONAL_NOTE
+  OTHER
+}
+
+enum KnowledgeAuthorityLevel {
+  PRIMARY_GOVERNING
+  OFFICIAL_POLICY
+  APPROVED_GUIDANCE
+  ORGANIZATIONAL_STANDARD
+  HISTORICAL_REFERENCE
+  INFORMAL_NOTE
+}
+
+enum KnowledgeSourceStatus {
+  DRAFT
+  APPROVED
+  EXPIRED
+  RETIRED
+}
+
+enum PacketStatus {
+  DRAFT
+  READY_FOR_REVIEW
+  APPROVED
+  EXPORTED
+  SENT
+  SUPERSEDED
+}
+
+enum PacketItemType {
+  COVER_SHEET
+  SOURCE_DOCUMENT
+  GENERATED_SUMMARY
+  LEGAL_DOCUMENT
+  INSURANCE_PROOF
+  AUTHORIZATION_RECORD
+  MEDICATION_RECORD
+  LAB_RESULT
+  OTHER
+}
+
+enum FacilityMatchCategory {
+  LIKELY_FIT
+  POSSIBLE_FIT_WITH_CLARIFICATION
+  UNLIKELY_FIT
+  UNABLE_TO_ASSESS
+}
+
+enum CommunicationChannel {
+  PHONE
+  SECURE_EMAIL
+  FAX
+  PAYER_PORTAL
+  FACILITY_PORTAL
+  EHR
+  API
+  IN_PERSON
+  INTERNAL_NOTE
+  OTHER
+}
+
+enum CommunicationDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+enum CommunicationStatus {
+  DRAFT
+  SENT
+  RECEIVED
+  FAILED
+  CANCELLED
+}
+
+enum DecisionType {
+  ADVANCE
+  HOLD
+  ESCALATE
+  REROUTE
+  ACCEPT
+  DECLINE
+  WITHDRAW
+  AUTHORIZE_TRANSPORT
+  CLOSE
+  OTHER
+}
+
+enum DecisionOutcome {
+  PENDING
+  COMPLETED
+  REVERSED
+  SUPERSEDED
+}
+
+enum PriorityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+  UNKNOWN
+}
+
+enum PayerContactPurpose {
+  ELIGIBILITY
+  BENEFITS
+  NETWORK_STATUS
+  AUTHORIZATION
+  CONCURRENT_REVIEW
+  APPEAL
+  CLAIM_FOLLOW_UP
+  OTHER
+}
+
+enum IntegrationType {
+  EHR
+  CLEARINGHOUSE
+  PAYER_PORTAL
+  SECURE_EMAIL
+  FAX
+  HIE
+  DOCUMENT_MANAGEMENT
+  IDENTITY
+  ANALYTICS
+  OTHER
+}
+
+enum IntegrationStatus {
+  DRAFT
+  ACTIVE
+  DEGRADED
+  DISABLED
+}
+
+model WorkflowTask {
+  id                     String             @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  taskType               WorkflowTaskType
+  status                 WorkflowTaskStatus @default(OPEN)
+  title                  String
+  description            String?
+  assignedUserId         String?
+  requiredRole           UserRole?
+  dueAt                  DateTime?
+  blockingReason         String?
+  sourceRuleId           String?
+  completedBy            String?
+  completedAt            DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@index([organizationId, status, dueAt])
+  @@index([caseId, status])
+  @@index([assignedUserId, status])
+}
+
+model CaseSummary {
+  id                     String        @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  version                Int           @default(1)
+  status                 SummaryStatus @default(DRAFT)
+  content                Json
+  evidenceItemIds        String[]
+  contradictionGroupIds  String[]
+  missingInformation     String[]
+  generatedByAgentRunId  String?
+  approvedBy             String?
+  approvedAt             DateTime?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  @@unique([caseId, version])
+  @@index([organizationId, caseId, status])
+}
+
+model PromptRecord {
+  id                     String       @id @default(cuid())
+  agentType              AgentType
+  version                String
+  status                 PromptStatus @default(DRAFT)
+  contentHash            String
+  outputSchemaId         String
+  approvedModels         String[]
+  requiredInputs         String[]
+  prohibitedActions      String[]
+  authoredBy             String
+  approvedBy             String?
+  approvedAt             DateTime?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  @@unique([agentType, version])
+  @@index([status, agentType])
+}
+
+model AgentRun {
+  id                     String         @id @default(cuid())
+  organizationId         String
+  caseId                 String?
+  agentType              AgentType
+  agentVersion           String
+  modelProvider          String
+  modelName              String
+  modelVersion           String?
+  promptRecordId         String?
+  promptVersion          String
+  inputHash              String
+  outputHash             String?
+  status                 AgentRunStatus @default(QUEUED)
+  retrievedSourceIds     String[]
+  ruleSetIds             String[]
+  validationResults      Json?
+  warnings               String[]
+  requestedBy            String
+  startedAt              DateTime?
+  completedAt            DateTime?
+  createdAt              DateTime       @default(now())
+
+  @@index([organizationId, caseId, createdAt])
+  @@index([agentType, status])
+}
+
+model KnowledgeSource {
+  id                     String                  @id @default(cuid())
+  organizationId         String?
+  title                  String
+  sourceType             KnowledgeSourceType
+  authorityLevel         KnowledgeAuthorityLevel
+  jurisdiction           String?
+  issuingAuthority       String?
+  version                String
+  effectiveDate          DateTime?
+  expirationDate         DateTime?
+  reviewDate             DateTime?
+  status                 KnowledgeSourceStatus   @default(DRAFT)
+  sourceDocumentId       String?
+  officialLocation       String?
+  approvedUse            String?
+  ownerUserId            String?
+  approvedBy             String?
+  approvedAt             DateTime?
+  contentHash            String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  @@index([organizationId, sourceType, status])
+  @@index([jurisdiction, effectiveDate])
+}
+
+model CitationRecord {
+  id                     String   @id @default(cuid())
+  organizationId         String
+  caseId                 String?
+  outputObjectType       String
+  outputObjectId         String
+  sourceDocumentId       String?
+  evidenceItemId         String?
+  knowledgeSourceId      String?
+  pageNumber             Int?
+  sectionLabel           String?
+  excerpt                String?
+  excerptHash            String?
+  createdAt              DateTime @default(now())
+
+  @@index([organizationId, outputObjectType, outputObjectId])
+  @@index([caseId])
+}
+
+model RuleEvaluation {
+  id                     String      @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  ruleId                 String
+  ruleSetVersion         String
+  outcome                RuleOutcome
+  supportingEvidenceIds  String[]
+  missingInputs          String[]
+  message                String
+  evaluatedByAgentRunId  String?
+  reviewedBy             String?
+  reviewedAt             DateTime?
+  createdAt              DateTime    @default(now())
+
+  @@index([organizationId, caseId, createdAt])
+  @@index([ruleId, ruleSetVersion])
+}
+
+model ReferralPacket {
+  id                     String       @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  version                Int          @default(1)
+  templateVersion        String
+  status                 PacketStatus @default(DRAFT)
+  coverSheet             Json?
+  missingItems           String[]
+  outdatedItems          String[]
+  generatedBy            String
+  generatedByAgentRunId  String?
+  approvedBy             String?
+  approvedAt             DateTime?
+  exportedAt             DateTime?
+  sentAt                 DateTime?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  @@unique([caseId, version])
+  @@index([organizationId, caseId, status])
+}
+
+model PacketItem {
+  id                     String         @id @default(cuid())
+  packetId               String
+  itemType               PacketItemType
+  documentId             String?
+  generatedObjectType    String?
+  generatedObjectId      String?
+  position               Int
+  included               Boolean        @default(true)
+  inclusionReason        String?
+  createdAt              DateTime       @default(now())
+
+  @@index([packetId, position])
+}
+
+model FacilityMatch {
+  id                     String                @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  facilityId             String
+  category               FacilityMatchCategory
+  matchingFactors        Json
+  possibleExclusions     Json
+  missingInformation     Json
+  facilityProfileAgeDays Int?
+  generatedByAgentRunId  String?
+  reviewedBy             String?
+  reviewedAt             DateTime?
+  createdAt              DateTime              @default(now())
+
+  @@index([organizationId, caseId])
+  @@index([facilityId, category])
+}
+
+model CommunicationRecord {
+  id                     String                 @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  channel                CommunicationChannel
+  direction              CommunicationDirection
+  status                 CommunicationStatus   @default(DRAFT)
+  purpose                String
+  sender                 String?
+  recipient              String?
+  recipientOrganization  String?
+  subject                String?
+  bodyEncrypted          String?
+  attachmentDocumentIds  String[]
+  referenceNumber        String?
+  relatedObjectType      String?
+  relatedObjectId        String?
+  occurredAt             DateTime?
+  followUpAt             DateTime?
+  draftedByAgentRunId    String?
+  createdBy              String
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  @@index([organizationId, caseId, createdAt])
+  @@index([status, followUpAt])
+}
+
+model DecisionRecord {
+  id                     String          @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  decisionType           DecisionType
+  outcome                DecisionOutcome @default(COMPLETED)
+  decisionMakerId        String
+  clinicalFactors        Json?
+  legalFactors           Json?
+  medicalFactors         Json?
+  facilityFactors        Json?
+  benefitsFactors        Json?
+  capacityFactors        Json?
+  unresolvedIssues       Json?
+  rationale              String
+  supervisorReviewerId   String?
+  supervisorReviewedAt   DateTime?
+  createdAt              DateTime        @default(now())
+
+  @@index([organizationId, caseId, createdAt])
+  @@index([decisionMakerId, createdAt])
+}
+
+model RetrospectiveReview {
+  id                     String   @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  metrics                Json
+  strengths              String[]
+  efficiencyGaps         String[]
+  recommendations        String[]
+  generatedByAgentRunId  String?
+  reviewedBy             String?
+  reviewedAt             DateTime?
+  createdAt              DateTime @default(now())
+
+  @@index([organizationId, caseId])
+}
+
+model ReferralPriorityAssessment {
+  id                     String        @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  clinicalUrgency        PriorityLevel
+  operationalReadiness   PriorityLevel
+  placementReadiness     PriorityLevel
+  financialReadiness     PriorityLevel
+  explanation            Json
+  sourceEvidenceIds      String[]
+  generatedByAgentRunId  String?
+  confirmedBy            String?
+  confirmedAt            DateTime?
+  createdAt              DateTime      @default(now())
+
+  @@index([organizationId, caseId, createdAt])
+}
+
+model PayerContactEvent {
+  id                     String              @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  insuranceCoverageId    String?
+  payerProfileId         String?
+  purpose                PayerContactPurpose
+  channel                CommunicationChannel
+  contactedBy            String
+  startedAt              DateTime
+  completedAt            DateTime?
+  waitSeconds            Int?
+  representative         String?
+  referenceNumber        String?
+  questions              Json?
+  answers                Json?
+  unresolvedItems        String[]
+  proofDocumentIds       String[]
+  followUpAt             DateTime?
+  createdAt              DateTime            @default(now())
+
+  @@index([organizationId, caseId, startedAt])
+  @@index([payerProfileId, purpose])
+}
+
+model ContractRateRecord {
+  id                     String        @id @default(cuid())
+  organizationId         String
+  payerProfileId         String
+  planProfileId          String?
+  facilityProfileId      String?
+  serviceType            ServiceType
+  networkStatus          NetworkStatus
+  effectiveDate          DateTime
+  expirationDate         DateTime?
+  rateMethodology        String
+  allowedAmountCents     Int?
+  terms                  Json?
+  sourceDocumentId       String?
+  accessClassification   String        @default("RESTRICTED_FINANCE")
+  approvedBy             String?
+  approvedAt             DateTime?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  @@index([organizationId, payerProfileId, serviceType])
+}
+
+model ClaimOutcome {
+  id                     String   @id @default(cuid())
+  organizationId         String
+  caseId                 String
+  insuranceCoverageId    String?
+  authorizationId        String?
+  billedAmountCents      Int?
+  expectedAllowedCents   Int?
+  actualAllowedCents     Int?
+  payerPaidCents         Int?
+  patientResponsibilityCents Int?
+  deniedAmountCents      Int?
+  denialCodes            String[]
+  appealRecoveredCents   Int?
+  adjudicatedAt          DateTime?
+  sourceDocumentIds      String[]
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([organizationId, caseId])
+}
+
+model IntegrationEndpoint {
+  id                     String            @id @default(cuid())
+  organizationId         String
+  integrationType        IntegrationType
+  name                   String
+  status                 IntegrationStatus @default(DRAFT)
+  configurationEncrypted String?
+  scopes                 String[]
+  lastSuccessAt          DateTime?
+  lastFailureAt          DateTime?
+  lastFailureReason      String?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  @@index([organizationId, integrationType, status])
+}

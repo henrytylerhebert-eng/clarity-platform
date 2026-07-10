@@ -1,0 +1,103 @@
+Let’s go ahead and do some
+Research around the existing solutions once we define the problem and research it
+
+So one aspect of the bed board here is for there to be some recommendations to be made as each patient makes their journey through their treatment. You’re gonna have patience that affect the overall milieu the unit, and so bad assignments based on patient’s acuity could be an interesting feature, especially if rooms are shared for example having a patient that is acutely paranoid next to a patient that is a wanderer and has lost touch of reality, mixed units that have older patients and younger patients, some maybe angrier than others some may have hygiene issues and so there are a number of issues that need to be considered in the system as the unit is being managed, and all of this would roll up into consideration for the patient and the staff to make the decisions based on having these considerations to review
+
+This is the feature where your 16 years of inpatient ops becomes the moat — nobody designing from the software side would know that milieu composition is unit management. Let me structure what you just described.
+
+The data model it implies. Each patient carries a living acuity profile that starts at intake (you already captured paranoia, hallucinations, orientation, aggression risk during the guided screening — continuity from the front door) and updates through the stay: precaution levels (SI, elopement, assault, fall, sexual acting-out), observation status (q15, line-of-sight, 1:1), behavioral events, age band, mobility, hygiene/self-care status, and trajectory — is this patient stabilizing or escalating day over day.
+
+Three layers of recommendation logic:
+
+Roommate compatibility — pairwise rules: acutely paranoid patient + confused wanderer who enters other people's rooms is a predictable patient-on-patient incident. Predatory history + vulnerable patient. Fall risk + bed far from the nursing station. The system flags conflicts and suggests swaps.
+Adjacency and geography — who's next door and across the hall matters, not just who shares the room. High-stimulation patients near the dayroom vs. patients who decompensate with noise. Elopement risks away from exit-adjacent rooms.
+Unit-level milieu composition — the roll-up: aggregate acuity load, age mix, count of patients on enhanced observation. This is where it connects to staffing — a unit at high aggregate acuity with three 1:1s is a different shift than the census number suggests, and charge nurses argue this to staffing offices every day with no data behind them. Giving them a defensible acuity score is a gift.
+Trigger points for re-recommendation: every admission (where does the new patient go, and what does adding them do to the milieu), every precaution change, every behavioral event, every discharge (does this open a better configuration).
+
+Same governance stance as the intake coach: the system surfaces considerations; the charge nurse decides. Every recommendation shown, accepted, or overridden gets logged — which quietly builds the evidence base for the next feature, and protects the nurse ("the risk was documented and reviewed") rather than second-guessing them.
+
+The sales story writes itself: patient-on-patient assaults, falls, elopements, seclusion/restraint episodes, and staff injuries are all reportable quality metrics that hospitals are scored and sued on. A bedboard that demonstrably reduces those events isn't a convenience tool — it's a risk-management purchase, which is a different (bigger) budget line than an efficiency tool.
+
+One design question worth settling early: do we anchor the acuity vocabulary to standard precaution categories hospitals already use (so it drops into existing policy without retraining), and let facilities add custom attributes on top? That keeps the Julota-style configurability without the consulting trap.
+
+Want me to add this as a module in the synthesis doc, or jump straight to building the milieu bedboard view into the prototype so you can see a unit with live compatibility flags?
+
+
+CIA Comp initial Assesment guidance .md
+md
+
+here is a basis for the intake assessment used in order to have as context for the design and should be used as a guide that can be an example for police that dont have a standard guide , most hospitals have their own version of this assessment
+
+
+Viewed 2 files
+Viewed 2 files
+This document is exactly the spine the intake coach needed — and it's strong source material (CMS conditions of participation, APA, AACAP, real payer criteria). Here's how it translates directly into design decisions:
+
+1. One data model, two capture depths. The doc's universal domains (legal status → presenting problem → medical review → meds → psych history → substance use → MSE → risk → function → social determinants → collateral → medical necessity statement → plan) become the canonical schema. Field mode (police, FAEs, mobile crisis) captures the shallow slice — observed risk behaviors, statutory grounds, precipitating events — in plain language, since as you said, they have no standard guide; this document becomes their default. Clinical mode (ED/central intake) expands the same record to full CMS/APA depth. The field capture pre-populates the hospital assessment, so the ER isn't starting from zero — that's the continuity nobody else has.
+
+2. Age-stratified branching off DOB. Adult is the base path. Geriatric adds the delirium screen (CAM), decision-specific capacity documentation with surrogate identification, polypharmacy review, and the "abrupt change from cognitive baseline" framing. Adolescent/child forces multi-informant collateral (caregiver + school), guardian consent tracking, developmental MSE, and the environmental-safety-capacity element. The checklist table at the end of your doc is essentially the branching spec.
+
+3. The pitfalls become the coaching rules. This is the gold in the document. "SI/HI denied" entered without a risk formulation → coach prompts for ideation/plan/intent/means/protective factors. Geriatric patient with acute onset → delirium differential prompt before a purely psychiatric note gets written. Youth disposition without third-party verification and means-restriction counseling → hard flag. New grads get these as teaching moments; seasoned clinicians get them as toggleable, with the drift report going to the administrator per your governance design.
+
+4. The medical necessity generator has its structure. The doc's four-part logic — acute syndrome and imminent risk → functional consequence → why 24-hour structure specifically → expected improvement from active treatment — plus the age-specific exemplar language, answering the one question every reviewer asks: why can't this patient be safely treated at a lower level of care today? That's the auto-drafted summary, clinician-edited, hash-sealed.
+
+5. More statutory-style clocks. CMS initial eval within 24h (hard stop 60h), treatment plan by day 3, recertification by day 12 then every 30 days — same live-clock UI pattern as the 72-hour CEC countdown. The compliance clock becomes a house style.
+
+6. Template governance solves the "every hospital has their own" problem. Ship this synthesis as the reference assessment; facilities upload their own versions as versioned form packs mapped to the same canonical schema. Configurability without the Julota consulting trap.
+
+Want me to build this as the guided intake module on the prototype — field mode and clinical mode, age branching, a couple of live pitfall guards, and the necessity-summary generator — so the demo now runs from first phone call through PEC through transfer? The milieu bedboard stays queued as the module after.
+
+Consolidated feature adoption map
+From XFERALL: multi-facility broadcast · 1-click facility response · mobile-crisis/social-worker/CIT sender roles · accept-deny analytics · discharge step-down routing From OpenBeds: closed-loop referral status · statewide gap analytics for OBH/funders · public treatment-finder front door (Treatment Connection analog) · outpatient appointment referrals, not just beds From iCarol: counselor-editable form builder · multi-channel intake (call/text/chat) · follow-up scheduler · resource directory · funder-grade reporting · volunteer/staff ops for nonprofit centers From Julota: 42 CFR Part 2 consent engine · CAD/RMS/EHR/HIE connectors · grant outcomes dashboards From InterQual/MCG practice: payer criteria packs (per-plan crosswalks incl. CMS NCD/LCD → custom criteria → ASAM fallback logic) · auth tracking with expiry alerts · denial-letter feedback loop · concurrent review support Clarity-only (defensible core): guided intake coaching with patient advocacy stance · one-capture/four-outputs · statutory instrument execution (LA first, state packs later) · hash-chained custody ledger end to end · collateral-informant ground-truthing workflow
+5. Users this now serves
+Police officers · field assessment specialists · mobile crisis clinicians · social workers · home-visit nurses · 988/crisis-line counselors · ED intake · behavioral hospital central intake/admissions · UR teams · coroners · treatment teams post-admission.
+
+Show more
+That map holding up under your read is a good sign — it's effectively the product scope now. Let me arrange it into a build order, because those features sort into three layers that get built very differently:
+
+Layer 1 — Product (buildable now, single-facility value): guided intake with the CIA assessment spine · age branching · pitfall guards · necessity-summary generator · statutory instrument execution · custody ledger · compliance clocks · form-pack governance · milieu bedboard. One hospital or one coroner's office gets full value with zero network effects. This is the pilot product and the demo.
+
+Layer 2 — Platform (Supabase build, multi-party): broadcast transfer with 1-click responses · closed-loop referral status · ADT-derived bed state · auth tracking with expiry alerts · consent engine (42 CFR Part 2) · accept/deny and gap analytics · collateral-informant workflow across the stay. Needs two-plus organizations on the system, which is exactly what the coroner-plus-one-hospital pilot gives you.
+
+Layer 3 — Network (partnership/state-scale): statewide OBH analytics · public treatment-finder front door · CAD/RMS/EHR/HIE connectors · payer criteria packs beyond the public ones · denial-letter feedback loop · state packs beyond Louisiana. These are roadmap slides for the LDH/legislative conversation, not near-term builds.
+
+The strategic logic: Layer 1 sells without asking anyone to join a network (the OpenBeds adoption lesson in reverse — value before network), Layer 2 turns the pilot into a moat, Layer 3 is the state contract.
+
+One user note on your list: UR teams and coroners are the two buyers everyone else ignores — every competitor sells to crisis programs or hospitals. A coroner-first and UR-aware product enters through doors with no incumbent standing in them.
+
+Proceeding with the guided intake module build onto the prototype — field mode → clinical mode, age branching, live pitfall guards, necessity generator feeding the PEC. Confirm and I'll build it now.
+
+
+Centralized Behavioral Health Intake SOP Manual.docx
+docx
+
+here is the procedural guide to be vetted for adoption, for central intake
+
+
+Ran 5 commands
+Ran 5 commands
+Read it end to end. Verdict: adopt with three corrections and one structural change — this is a genuinely strong operational document, and its 10-step process maps almost one-to-one onto what we've already designed. Here's the vet:
+
+What adopts cleanly. The 10-step process becomes the product's case pipeline: referral entry → legal status (our custody module, already built) → nurse-to-nurse clearance → "laying eyes" screening (the guided intake module) → psychiatric review → benefit verification → packet completion → bed assignment (Step 8 independently validates the milieu bedboard — gender/roommate safety, age category, acuity, ADA, isolation) → transport → handoff. The four roles become permission tiers with their own workspaces. And the KPI targets are a gift — referral-to-screening ≤1hr, intake-to-admission ≤4hrs, insurance verification ≤15min, ≥95% packet completeness, ≥85% conversion — because they slot straight into the live-clock house style. Every case gets SLA timers; the three scorecards (team monthly, individual quarterly, executive quarterly) are literally dashboard specs.
+
+Correction 1 — the statutory deadline language needs tightening before it's encoded. Step 2 says "PEC expires after 72 hours; OPC must result in action within 12 hours of custody." The 72-hour figures in Title 28 attach to different things — exam-before-signing window, OPC validity, CEC-after-admission deadline — and the 12-hour exam-on-arrival rule is separate. In a paper SOP, loose phrasing is survivable; in software that enforces clocks, it isn't. This needs counsel to specify each clock's trigger event and duration precisely, then we encode exactly that.
+
+Correction 2 — EMTALA demands a sequencing change. The SOP presents steps linearly, with benefit verification as Step 6. But its own risk section correctly notes that declining or delaying a psychiatric screening over insurance is an EMTALA violation. The software should run clinical (Steps 3–5) and financial (Step 6) as parallel lanes with a hard rule: financial status can never gate clinical progression. The business office's 15-minute SLA starts at referral entry, not after psych approval. That's an improvement software makes structurally that policy can only exhort.
+
+Correction 3 — Step 5's psychiatrist approval needs a documented-decision artifact. The SOP says document the recommendation and name; in Clarity that becomes a ledger event with the psychiatrist's attestation, which is what survives a payer audit or a Title 28 challenge.
+
+The structural insight: the SOP's own "what's missing" list is the software's feature list. Escalation matrix → automated SLA-breach routing (2-hour delay auto-notifies the Intake Director). Technology appendix → Clarity is the system of record. Forms repository → versioned form packs. Command-center script and color-coded bed status → the live dashboard. Payer-specific quirks → the criteria packs. Surge protocol → a declarable high-volume mode that relaxes routing and activates overflow queues. Every gap the document identifies in itself is something policy can't fix but product can.
+
+Two additions I'd make in the adoption version: fold the collateral-informant workflow into Steps 4 and 10 (it's in our design, absent here), and add the denial feedback loop as Section 5's missing KPI — process-related denials are tracked on the executive dashboard but nothing routes the denial letter's lessons back into screening templates.
+
+Want the annotated adoption version as a doc (SOP v2, corrections inline, each step mapped to its Clarity module and ledger events) — or proceed straight to the intake module build with this process as the pipeline spine?
+
+
+Louisiana Inpatient Psychiatry Assessment and Crisis Platform Feasibility Report.md
+md
+
+use this for future context but in the mean time lets take what it is that we have built include the documents that ive provided and lets please create the archetechtue for the project so that we can have substance and make it downloadable so that i can feed it to claude code the next session
+
+
+Thinking about synthesizing project components into downloadable architecture documentation
+Thinking about synthesizing project components into downloadable architecture documentation

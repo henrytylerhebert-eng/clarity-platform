@@ -1,0 +1,488 @@
+// Starting Prisma schema for Clarity MH.
+// Adapt to the existing repo stack. This is a domain model blueprint, not a mandate.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AgeGroup {
+  CHILD
+  ADOLESCENT
+  ADULT
+  GERIATRIC
+  UNKNOWN
+}
+
+enum CaseStatus {
+  DRAFT
+  ACTIVE
+  NEEDS_CLINICAL_REVIEW
+  NEEDS_MORE_INFO
+  READY_FOR_ROUTING
+  ROUTING
+  ACCEPTED
+  DECLINED
+  ADMITTED
+  CLOSED
+  VOIDED
+}
+
+enum LegalStatus {
+  UNKNOWN
+  VOLUNTARY
+  VOLUNTARY_CONTESTED
+  OPC_PENDING
+  OPC_ACTIVE
+  PEC_DRAFT
+  PEC_SIGNED
+  CEC_PENDING
+  CEC_SIGNED
+  COURT_COMMITTED
+}
+
+enum EncounterType {
+  PHONE_INTAKE
+  WALK_IN
+  ED_REFERRAL
+  MOBILE_CRISIS
+  LAW_ENFORCEMENT
+  INPATIENT_ADMISSION
+  OUTPATIENT_SESSION
+  CARE_COORDINATION
+  FOLLOW_UP
+}
+
+enum SourceType {
+  PATIENT_REPORT
+  FAMILY_COLLATERAL
+  LAW_ENFORCEMENT
+  EMS
+  ED_STAFF
+  OUTPATIENT_PROVIDER
+  PRIOR_RECORD
+  SCHOOL
+  COURT
+  CLINICIAN_OBSERVATION
+  LAB_RESULT
+  MEDICATION_RECORD
+  PAYER_DOCUMENT
+  REFERRAL_DOCUMENT
+  MEDIA_REFERENCE
+  AI_DRAFT
+}
+
+enum ReviewStatus {
+  DRAFT
+  NEEDS_MORE_INFORMATION
+  READY_FOR_CLINICIAN_REVIEW
+  CLINICIAN_REVIEWED
+  SIGNED_LOCKED
+  VOIDED
+}
+
+enum RiskType {
+  SUICIDE_SELF_HARM
+  VIOLENCE_HOMICIDE
+  GRAVE_DISABILITY
+  SUBSTANCE_WITHDRAWAL
+  MEDICAL_INSTABILITY
+  ELOPEMENT
+  ABUSE_NEGLECT
+  SELF_NEGLECT
+}
+
+enum ClinicianRiskLevel {
+  NOT_ASSESSED
+  LOW
+  MODERATE
+  HIGH
+  IMMINENT
+  CLINICIAN_OVERRIDE
+}
+
+enum LegalInstrumentType {
+  OPC
+  PEC
+  CEC
+  VOLUNTARY_CONSENT
+  LEGAL_STATUS_NOTE
+}
+
+enum CustodyEventType {
+  CASE_CREATED
+  SOURCE_ATTACHED
+  ASSESSMENT_CREATED
+  ASSESSMENT_SIGNED
+  LEGAL_DRAFT_CREATED
+  LEGAL_INSTRUMENT_SIGNED
+  PACKET_HASH_SEALED
+  TRANSMITTED
+  FACILITY_RESPONSE_RECEIVED
+  ACCEPTANCE_RECEIPT_ISSUED
+  REDACTION_CREATED
+  EXPORT_GENERATED
+  CHAIN_VERIFIED
+  VOIDED
+}
+
+enum TransmissionStatus {
+  DRAFT
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum FacilityResponseType {
+  ACCEPT
+  DECLINE
+  REQUEST_MORE_INFO
+  HOLD_PENDING_REVIEW
+  NO_RESPONSE_TIMEOUT
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  facilities  Facility[]
+  users       User[]
+  patients    Patient[]
+  cases       IntakeCase[]
+}
+
+model Facility {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  facilityType   String?
+  capabilityJson Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  users          User[]
+  cases          IntakeCase[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  facilityId     String?
+  facility       Facility? @relation(fields: [facilityId], references: [id])
+  email          String   @unique
+  name           String
+  role           String
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  auditLogs      AuditLog[]
+}
+
+model Patient {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  displayName    String
+  dob            DateTime?
+  ageGroup       AgeGroup @default(UNKNOWN)
+  genderIdentity String?
+  guardianStatus String?
+  privacyFlags   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  cases          IntakeCase[]
+  lifeDomains    LifeDomain[]
+}
+
+model IntakeCase {
+  id                 String     @id @default(cuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id])
+  facilityId          String?
+  facility            Facility? @relation(fields: [facilityId], references: [id])
+  patientId           String
+  patient             Patient @relation(fields: [patientId], references: [id])
+  status              CaseStatus @default(DRAFT)
+  legalStatus         LegalStatus @default(UNKNOWN)
+  currentLocation     String?
+  referralSourceName  String?
+  referralSourceRole  String?
+  referralSourcePhone String?
+  presentingConcern   String?
+  acuity              String?
+  assignedOwnerId     String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  encounters          Encounter[]
+  assessments         Assessment[]
+  legalInstruments    LegalInstrument[]
+  transmissions       Transmission[]
+  custodyEvents       CustodyLedgerEvent[]
+  referralPackets     ReferralPacket[]
+}
+
+model Encounter {
+  id           String @id @default(cuid())
+  caseId       String
+  case         IntakeCase @relation(fields: [caseId], references: [id])
+  type         EncounterType
+  startedAt    DateTime @default(now())
+  endedAt      DateTime?
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Assessment {
+  id             String @id @default(cuid())
+  caseId         String
+  case           IntakeCase @relation(fields: [caseId], references: [id])
+  reviewStatus   ReviewStatus @default(DRAFT)
+  presentingProblem String?
+  crisisTimeline String?
+  precipitatingEvents String?
+  mentalStatusJson Json?
+  medicalClearanceJson Json?
+  substanceUseJson Json?
+  functionalStatusJson Json?
+  ageSpecificJson Json?
+  formulationDraft String?
+  clinicianRecommendation String?
+  signedByUserId String?
+  signedAt       DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  sections       AssessmentSection[]
+  riskFindings   RiskFinding[]
+  sourceReferences SourceReference[]
+  medicalNecessitySnapshot MedicalNecessitySnapshot?
+  aiOutputs      AIOutput[]
+}
+
+model AssessmentSection {
+  id           String @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  sectionKey   String
+  structuredJson Json?
+  freeText     String?
+  missingData  Boolean @default(false)
+  reviewStatus ReviewStatus @default(DRAFT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model RiskFinding {
+  id              String @id @default(cuid())
+  assessmentId    String
+  assessment      Assessment @relation(fields: [assessmentId], references: [id])
+  riskType        RiskType
+  observedBehavior String?
+  patientStatement String?
+  collateralStatement String?
+  clinicianObservation String?
+  timeframe       String?
+  clinicianRiskLevel ClinicianRiskLevel @default(NOT_ASSESSED)
+  protectiveFactors String?
+  accessToMeans   String?
+  mitigationSteps String?
+  sourceRefsJson  Json?
+  reviewStatus    ReviewStatus @default(DRAFT)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model MedicalNecessitySnapshot {
+  id                  String @id @default(cuid())
+  assessmentId         String @unique
+  assessment           Assessment @relation(fields: [assessmentId], references: [id])
+  riskOfHarmEvidence   Json?
+  functionalImpairment Json?
+  treatmentHistory     Json?
+  environmentalStressors Json?
+  engagementInCare     Json?
+  graveDisability      Json?
+  lowerLocConsidered   Json?
+  needFor24HourCare    Json?
+  medicalSuitability   Json?
+  missingItems         Json?
+  draftNarrative       String?
+  reviewStatus         ReviewStatus @default(DRAFT)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model SourceReference {
+  id             String @id @default(cuid())
+  assessmentId   String?
+  assessment     Assessment? @relation(fields: [assessmentId], references: [id])
+  caseId         String?
+  sourceType     SourceType
+  sourceNameOrRole String?
+  linkedFieldPath String?
+  confidence     String?
+  note           String?
+  quoteExcerpt   String?
+  artifactId     String?
+  timestamp      DateTime @default(now())
+  createdAt      DateTime @default(now())
+}
+
+model LegalInstrument {
+  id             String @id @default(cuid())
+  caseId         String
+  case           IntakeCase @relation(fields: [caseId], references: [id])
+  type           LegalInstrumentType
+  status         ReviewStatus @default(DRAFT)
+  formVersion    String?
+  payloadJson    Json
+  currentHash    String?
+  signedByUserId String?
+  signedAt       DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  versions       LegalInstrumentVersion[]
+}
+
+model LegalInstrumentVersion {
+  id                String @id @default(cuid())
+  legalInstrumentId String
+  legalInstrument   LegalInstrument @relation(fields: [legalInstrumentId], references: [id])
+  versionNumber     Int
+  payloadJson       Json
+  artifactHash      String?
+  createdByUserId   String?
+  createdAt         DateTime @default(now())
+}
+
+model EvidenceArtifact {
+  id             String @id @default(cuid())
+  caseId         String
+  artifactType   String
+  storageUri     String?
+  externalUri    String?
+  contentHash    String
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+}
+
+model CustodyLedgerEvent {
+  id             String @id @default(cuid())
+  caseId         String
+  case           IntakeCase @relation(fields: [caseId], references: [id])
+  eventType      CustodyEventType
+  actorUserId    String?
+  actorRole      String?
+  payloadJson    Json
+  artifactHashes Json?
+  previousHash   String?
+  eventHash      String
+  createdAt      DateTime @default(now())
+}
+
+model Transmission {
+  id             String @id @default(cuid())
+  caseId         String
+  case           IntakeCase @relation(fields: [caseId], references: [id])
+  destinationName String
+  destinationType String
+  method         String
+  status         TransmissionStatus @default(DRAFT)
+  packetHash     String?
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime @default(now())
+  responses      FacilityResponse[]
+}
+
+model FacilityResponse {
+  id             String @id @default(cuid())
+  transmissionId String
+  transmission   Transmission @relation(fields: [transmissionId], references: [id])
+  responseType   FacilityResponseType
+  reasonCode     String?
+  responseNote   String?
+  responderName  String?
+  responderRole  String?
+  respondedAt    DateTime @default(now())
+}
+
+model ReferralPacket {
+  id             String @id @default(cuid())
+  caseId         String
+  case           IntakeCase @relation(fields: [caseId], references: [id])
+  status         ReviewStatus @default(DRAFT)
+  packetJson     Json
+  packetHash     String?
+  exportedUri    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model LifeDomain {
+  id             String @id @default(cuid())
+  patientId      String
+  patient        Patient @relation(fields: [patientId], references: [id])
+  domainKey      String
+  stabilityRating Int?
+  stressLevel    Int?
+  activeConcerns Json?
+  protectiveFactors Json?
+  barriers       Json?
+  notes          String?
+  lastReviewedAt DateTime?
+  stressors      LifeStressor[]
+}
+
+model LifeStressor {
+  id             String @id @default(cuid())
+  lifeDomainId   String
+  lifeDomain     LifeDomain @relation(fields: [lifeDomainId], references: [id])
+  title          String
+  description    String?
+  acuity         String?
+  burdenScore    Int?
+  uncertaintyScore Int?
+  patientPriority Int?
+  clinicianPriority Int?
+  status         String @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model AIOutput {
+  id             String @id @default(cuid())
+  assessmentId   String?
+  assessment     Assessment? @relation(fields: [assessmentId], references: [id])
+  outputType     String
+  generatedText  String
+  sourceRefsJson Json?
+  missingDataFlags Json?
+  confidenceNotes String?
+  requiresClinicianReview Boolean @default(true)
+  reviewStatus   ReviewStatus @default(DRAFT)
+  createdAt      DateTime @default(now())
+}
+
+model AuditLog {
+  id             String @id @default(cuid())
+  organizationId String
+  actorUserId    String?
+  actor          User? @relation(fields: [actorUserId], references: [id])
+  action         String
+  entityType     String
+  entityId       String
+  previousHash   String?
+  newHash        String?
+  reason         String?
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+}

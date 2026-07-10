@@ -1,0 +1,577 @@
+{
+  "/Users/tylerhebert/Documents/clarity-platform/app/package.json": {
+    "mtime": 1783539818.263921,
+    "ast_hash": "ac86c06ba17c188aa3645193fcb846da",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/tsconfig.json": {
+    "mtime": 1783528256.955143,
+    "ast_hash": "032321ac6ef3899dd41b97065987a140",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/playwright.config.ts": {
+    "mtime": 1783528932.0044987,
+    "ast_hash": "c56dabf7f03ab7bdee71b8333d9178a4",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/vite.config.ts": {
+    "mtime": 1783528725.5386324,
+    "ast_hash": "4cf535be727a856bfa6bc00f6f463e12",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/smoke/clarity-v01.spec.ts": {
+    "mtime": 1783545100.644882,
+    "ast_hash": "52f758c94ec82910949efac496af93c1",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/test-results/.last-run.json": {
+    "mtime": 1783545117.244444,
+    "ast_hash": "f196824657d8858bc7fa44eecbba38b1",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/App.tsx": {
+    "mtime": 1783544970.769512,
+    "ast_hash": "eea30a8eed3d2b782f61107178f228d6",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/main.tsx": {
+    "mtime": 1783528460.9080486,
+    "ast_hash": "fe16cd47d10e8ca39d5a6b446e09c2c9",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/App.test.tsx": {
+    "mtime": 1783528560.8824396,
+    "ast_hash": "d180a8c501ffc295cc8ed1990adababe",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/test/setup.ts": {
+    "mtime": 1783528256.9553692,
+    "ast_hash": "5380e1ce4a4cda50372eda3ae6b17e04",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/CommandCenter.tsx": {
+    "mtime": 1783539598.9768338,
+    "ast_hash": "ac25b298cdbc2deecbcf2e95b58e87bc",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/Bedboard.tsx": {
+    "mtime": 1783539598.9778132,
+    "ast_hash": "6638f9fbb4c98efc27b1b14ecf7fc194",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/LegalStatus.tsx": {
+    "mtime": 1783529224.9093227,
+    "ast_hash": "9e981a7ecd26946bf1215d395694fad2",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/CustodyLedger.tsx": {
+    "mtime": 1783529266.0194917,
+    "ast_hash": "e1d4603b1260da687503440e397d1d0b",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/CaseOverview.tsx": {
+    "mtime": 1783529318.6163552,
+    "ast_hash": "705d8ede583e60fb90c71abf80bdcda5",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/CaseQueue.tsx": {
+    "mtime": 1783529186.6680086,
+    "ast_hash": "6bbd056424c01189d23bc00cf4650321",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/NewCase.tsx": {
+    "mtime": 1783529145.8946965,
+    "ast_hash": "50f851a4a3b4e71fa6067d0baa08c009",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/PacketPreview.tsx": {
+    "mtime": 1783539598.9786203,
+    "ast_hash": "13e9ca5a1370da093cd8063c2fe21e2e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/GuidedIntake.tsx": {
+    "mtime": 1783545012.187734,
+    "ast_hash": "e4cdbe7f9efad99ddc2d424d226d4f57",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/MedicalNecessity.tsx": {
+    "mtime": 1783529211.6743884,
+    "ast_hash": "d8c99357845d2d1351ba86306a335dfb",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/RoutingResponse.tsx": {
+    "mtime": 1783529246.9822774,
+    "ast_hash": "214db8ad77caac7ad797ee4af3e455e8",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/components/StatusBadge.tsx": {
+    "mtime": 1783528293.0384269,
+    "ast_hash": "fb936b08ad1be3809d2c59680c2a401c",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/packets.ts": {
+    "mtime": 1783539401.1293082,
+    "ast_hash": "42f549c7934b4c675fc66002c7b166bb",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/hashLedger.ts": {
+    "mtime": 1783528546.519902,
+    "ast_hash": "b98f706771e36b573af1ba83cf0055b5",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/clocks.ts": {
+    "mtime": 1783539360.9755588,
+    "ast_hash": "506ec84a0f597c94f108d33155aa2aa2",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/packets.test.ts": {
+    "mtime": 1783539656.285296,
+    "ast_hash": "f5f5a68854283d76de6d1b43b00e5a8e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/storage.ts": {
+    "mtime": 1783539446.4574485,
+    "ast_hash": "942bf9197f96527f4d2788f5e034d80c",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/clocks.test.ts": {
+    "mtime": 1783539630.6639247,
+    "ast_hash": "346b8a6cc9b81397c9ebba1883dd6f06",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/guardrails.ts": {
+    "mtime": 1783529070.872295,
+    "ast_hash": "07f84e261d929f266a32d241cb0c2c64",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/seed.ts": {
+    "mtime": 1783539436.3322167,
+    "ast_hash": "f60c1643544c863d7b70945e3fb3c6d7",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/bedboard.test.ts": {
+    "mtime": 1783539646.0219154,
+    "ast_hash": "ebe3f833a219375a7546e8ccf35818d8",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/analyticsEvents.ts": {
+    "mtime": 1783529067.1371713,
+    "ast_hash": "a5b51bfeb4df9d8f64fbbba10ab9f0c6",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/types.ts": {
+    "mtime": 1783539349.5991266,
+    "ast_hash": "d6bb8c04a69ac9cef9cb15cd4eeb19ee",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/selectors.ts": {
+    "mtime": 1783528256.956431,
+    "ast_hash": "2a165610469d892636e813b9029f8bdd",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/bedboard.ts": {
+    "mtime": 1783539382.4310493,
+    "ast_hash": "a31aef5e6a3725c09a814c6dfa86b4db",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/guardrails.test.ts": {
+    "mtime": 1783529285.223173,
+    "ast_hash": "4d97d3769f411b838cbda97dfb575f39",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/storage.test.ts": {
+    "mtime": 1783528487.5105588,
+    "ast_hash": "563353999e01ea5cb59e0024b819f902",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/hashLedger.test.ts": {
+    "mtime": 1783529266.0197773,
+    "ast_hash": "4ef5ae8774e83c6c5a4e6a07c4534ae6",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/custodyLedger.ts": {
+    "mtime": 1783529067.136785,
+    "ast_hash": "1783d3d87a660b0649b6f0ab307ba7b6",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/reporting-metrics-rebuild-package/SCHEMA_BLUEPRINT.sql": {
+    "mtime": 1783544144.0,
+    "ast_hash": "a1ac86ea1faa7763a95897dcb365bb8e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/reporting-metrics-rebuild-package/analysis_summary.json": {
+    "mtime": 1783544144.0,
+    "ast_hash": "3634aa60d488ca1a28989ca06b83bb83",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/.claude/launch.json": {
+    "mtime": 1783539757.3598394,
+    "ast_hash": "fa0a4b2353490e47ee3f62677fd470ad",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/Clarity MH /clarity-epec.jsx": {
+    "mtime": 1783523437.881684,
+    "ast_hash": "72583662729bc572ccc1b26b665f45e0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/database/supabase-rls.sql": {
+    "mtime": 1783542778.0,
+    "ast_hash": "c386434ada8d80a03a1a9c64ff2c5140",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/types/clarity-mh.types.ts": {
+    "mtime": 1783542778.0,
+    "ast_hash": "0b4589655ae43739e45274de615b74f5",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prototype/clarity-epec.prototype.jsx": {
+    "mtime": 1783542504.0,
+    "ast_hash": "72583662729bc572ccc1b26b665f45e0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/schema/demo-seed.json": {
+    "mtime": 1783542778.0,
+    "ast_hash": "fe4b6bcebf488801dcaee80bb7aa2e4b",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/sources/clarity-epec.jsx": {
+    "mtime": 1783542504.0,
+    "ast_hash": "72583662729bc572ccc1b26b665f45e0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/README.md": {
+    "mtime": 1783545082.3838763,
+    "ast_hash": "2420fa3694276f0ccfe74b9a3e24ed9f",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/index.html": {
+    "mtime": 1783528256.955011,
+    "ast_hash": "33eb8e1463a64b0ddd46b78816374ae1",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/README.md": {
+    "mtime": 1783543892.802,
+    "ast_hash": "6253c381a755d96fd12f76843f8e8b64",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/reporting-metrics-rebuild-package/DASHBOARD_MODULES.md": {
+    "mtime": 1783544144.0,
+    "ast_hash": "734dfb3f102b4e412a0654ef2d1bac09",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/reporting-metrics-rebuild-package/REPORTING_METRICS_REVERSE_ENGINEERING.md": {
+    "mtime": 1783544144.0,
+    "ast_hash": "048eecb0d9c9942b19df8d1a8b6eaeeb",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/reporting-metrics-rebuild-package/SUSTAINABLE_MODEL_ARCHITECTURE.md": {
+    "mtime": 1783544144.0,
+    "ast_hash": "0c51f0fd3f315d28148b35dad0ed0618",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/reporting-metrics-rebuild-package/MIGRATION_PLAN.md": {
+    "mtime": 1783544144.0,
+    "ast_hash": "148fec601945a0e11c6cb3ff53b7f7ed",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/reporting-metrics-rebuild-package/README.md": {
+    "mtime": 1783544144.0,
+    "ast_hash": "8f36c85604cd4e4662d956161f6cbb2c",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/reporting-metrics-rebuild-package/CODEX_REBUILD_PROMPT.md": {
+    "mtime": 1783544144.0,
+    "ast_hash": "b9ca6ca8016a62641ee3032315a2d45f",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/reporting-metrics-rebuild-package/METRIC_DEFINITIONS.md": {
+    "mtime": 1783544144.0,
+    "ast_hash": "d070337efa2cebe3734bf33afe5947ff",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/03-data-model.md": {
+    "mtime": 1783523910.681846,
+    "ast_hash": "d6b09863db4ecbfb94401ba1bf44f141",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/08-reporting-metrics-rebuilder.md": {
+    "mtime": 1783527603.8910663,
+    "ast_hash": "eae9d44fed41902881f45a38cd37c546",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/04-build-roadmap.md": {
+    "mtime": 1783527615.2231908,
+    "ast_hash": "bd678773902aadc8f62e415d9c9532a6",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/02-claude-code-handoff.md": {
+    "mtime": 1783523910.6815794,
+    "ast_hash": "fd148ab707bb14d3ea1454b9f1a29e9f",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/00-architecture-index.md": {
+    "mtime": 1783527615.2229614,
+    "ast_hash": "5132bc271e74e7094e76fdae715a32b1",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/05-source-document-index.md": {
+    "mtime": 1783527634.8912964,
+    "ast_hash": "cd0cff2baa451ef1538139a373dac6fe",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/06-architecture-review.md": {
+    "mtime": 1783526690.1683197,
+    "ast_hash": "0e8e29506281abb7567dedda2a10afb8",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/07-redundancy-priority-map.md": {
+    "mtime": 1783527634.8918266,
+    "ast_hash": "55d35560098f3e79bf4868ab65cb2e27",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/01-project-architecture.md": {
+    "mtime": 1783523910.6811445,
+    "ast_hash": "8e4651648eb05845aac117e4138acb50",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/Clarity MH /clarity-holistic-synthesis.md": {
+    "mtime": 1783523454.271991,
+    "ast_hash": "0c7bb8e98a2105648eee2e9e565403b8",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/Clarity MH /CIA Comp initial Assesment guidance .md": {
+    "mtime": 1783519216.2259889,
+    "ast_hash": "8599189ccae2742d9f4da36a6adbfc19",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/Clarity MH /clarity-competitive-landscape-epec.md": {
+    "mtime": 1783523419.6591978,
+    "ast_hash": "ef81f6f5ef2297cac4e63ff852f97499",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/Clarity MH /Louisiana Inpatient Psychiatry Assessment and Crisis Platform Feasibility Report.md": {
+    "mtime": 1783521594.2257693,
+    "ast_hash": "728ba7a41e82af853ebe1e3b4ba74be0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/source-notes/mental-health-clarity-chain-of-custody-thread.txt": {
+    "mtime": 1783523917.7997901,
+    "ast_hash": "d722a5d2e39d017a2005ed7d8aa02069",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/source-notes/research-product-scope-thread.txt": {
+    "mtime": 1783523917.8124692,
+    "ast_hash": "05489ad56c80dd50d4fc1aa922ddec43",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/CODEX_QUICKSTART.md": {
+    "mtime": 1783542910.0,
+    "ast_hash": "4f6a5da2b73855732167c6d5bb3754ce",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/CODEX_MASTER_PROMPT.md": {
+    "mtime": 1783542910.0,
+    "ast_hash": "b6a252b53d727d6f177874d29871b2f8",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/README.md": {
+    "mtime": 1783542910.0,
+    "ast_hash": "ac3c0ee03b0c17505a39acb9a562f96e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/MANIFEST.md": {
+    "mtime": 1783525977.077784,
+    "ast_hash": "d58473125baa35c3941fd5749555c3ba",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/source-index.md": {
+    "mtime": 1783525977.07818,
+    "ast_hash": "064168089e583c89e87df2e8509097ec",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/workflows/assessment-training-protocol.md": {
+    "mtime": 1783525977.0772696,
+    "ast_hash": "78274b856b729f63df70bcc1d64e2ec0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/workflows/epec-chain-of-custody-workflow.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "c3cc6323f3532b19e3feaaf7b1f904ed",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/workflows/request-broadcast-routing.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "c9e948e97695dfe63f6789da7d30e922",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/workflows/clinical-intake-workflow.md": {
+    "mtime": 1783525977.0786574,
+    "ast_hash": "b6f13652475a54837da99177a3cf0e86",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/product/01-module-architecture.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "dde727387b0ba116276b6e37bcba91c1",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/product/00-product-thesis.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "330615e94a1d25fbbb809b8c9a9ed201",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/product/02-ui-routes.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "7a7229e829e3c8fa797f7d8367dd47da",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/product/03-mvp-scope.md": {
+    "mtime": 1783542920.0,
+    "ast_hash": "c95f24909d7572d3847290d113768d23",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/compliance/rbac-audit-custody.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "8882c913e33fea243e21fb9fd92c7413",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/compliance/emtala-parallel-financial-lane.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "50bc11610dc7ca2a676172dc2be7ae0e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/docs/compliance/clinical-safety-guardrails.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "a35532642f482f4fc98ae5a2cfe6daff",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/implementation/acceptance-tests.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "e0bd4effa36ce69767110f37f0e2e22e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/implementation/epics-and-issues.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "b04b51de012cd5f4e362bd8dc190cd44",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/codex/02-phase-2-ui-workflow.prompt.md": {
+    "mtime": 1783542910.0,
+    "ast_hash": "9418d5dd531553f762f32c1d31222f20",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/codex/01-phase-1-data-spine.prompt.md": {
+    "mtime": 1783542910.0,
+    "ast_hash": "fa79e47a0d4f4774e9901e1874d9cbf1",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/codex/00-repo-orientation.prompt.md": {
+    "mtime": 1783542910.0,
+    "ast_hash": "86caa05a6669d1b4027b26460a84ed3e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/codex/04-medical-necessity-workbench.prompt.md": {
+    "mtime": 1783542910.0,
+    "ast_hash": "808ae068a293963704add7a1e8d2f9d3",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/codex/03-epec-custody-integration.prompt.md": {
+    "mtime": 1783542910.0,
+    "ast_hash": "8d53c5929e8538d9b1060eb226d915e1",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/codex/05-request-broadcast-routing.prompt.md": {
+    "mtime": 1783542910.0,
+    "ast_hash": "3c342ab73ef77c6a1e4d17f130e733de",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/clarity-mh/legal-instrument-review.prompt.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "fc68fdbff13ee2ff4b6f740f8f66983d",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/clarity-mh/assessment-summary.prompt.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "0fbe7fe08fae44896f6193460810e548",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/clarity-mh/medical-necessity-draft.prompt.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "29424546d61b6964d8a509908f10f006",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/clarity-mh/missing-fields-review.prompt.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "22e9c75ebc0be6b42dad69cb1ef2a223",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/clarity-mh/denial-letter-mining.prompt.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "202e4c14de3acc1a0fbea24ac86112ba",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/clarity-mh/collateral-question-generator.prompt.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "ca91ca743fc95401de4fe2193998d397",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/prompts/clarity-mh/referral-packet-draft.prompt.md": {
+    "mtime": 1783542778.0,
+    "ast_hash": "ce78925a196622ee11efdb1ddc8a187b",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/sources/clarity-holistic-synthesis.md": {
+    "mtime": 1783542504.0,
+    "ast_hash": "0c7bb8e98a2105648eee2e9e565403b8",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/sources/intake-assessment-policy-procedure-manual.txt": {
+    "mtime": 1783525938.5630682,
+    "ast_hash": "f0cc727e6b11808d9fe080be3daf5c01",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/sources/Pasted text.txt": {
+    "mtime": 1783542504.0,
+    "ast_hash": "6561eaed743d1d890416d2b3b352e6cd",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/sources/CIA Comp initial Assesment guidance .md": {
+    "mtime": 1783542504.0,
+    "ast_hash": "8599189ccae2742d9f4da36a6adbfc19",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/sources/clarity-competitive-landscape-epec.md": {
+    "mtime": 1783542504.0,
+    "ast_hash": "ef81f6f5ef2297cac4e63ff852f97499",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/clarity-mh-architecture/sources/Louisiana Inpatient Psychiatry Assessment and Crisis Platform Feasibility Report.md": {
+    "mtime": 1783542504.0,
+    "ast_hash": "728ba7a41e82af853ebe1e3b4ba74be0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/roles.test.ts": {
+    "mtime": 1783543815.846888,
+    "ast_hash": "14f664ae3b7a2d22d0e5e963f079cd9a",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/roles.ts": {
+    "mtime": 1783544919.1874683,
+    "ast_hash": "4a38a7d5f767c40658395d30e4c9ee1d",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/roleFocus.test.ts": {
+    "mtime": 1783545089.922709,
+    "ast_hash": "4cf49e3c53f11425d52a9734bf03a6ce",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/roleFocus.ts": {
+    "mtime": 1783544945.269909,
+    "ast_hash": "cf196867fe882c7bbc1b052114b899e0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/09-personas-and-role-ux.md": {
+    "mtime": 1783545073.2964509,
+    "ast_hash": "7a097799b5bd96575cff60dae004f33c",
+    "semantic_hash": ""
+  }
+}

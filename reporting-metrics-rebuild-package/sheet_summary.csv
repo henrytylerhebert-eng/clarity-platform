@@ -1,0 +1,45 @@
+sheet,index,address,rows,cols,category,formula_count,error_count,has_phi_risk
+Ancil Invoices,0,A1:N94,94,14,Ancillary invoice cost rollup,86,0,No
+Aug Revenue,1,A1:AI69,69,35,Monthly IP revenue / UR / payer mix,83,12,Yes
+Budget vs Actual,2,A1:H48,48,8,Budget vs actual rollup,37,0,No
+Staffing January,3,A1:AH85,85,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",75,0,No
+Staffing February,4,A1:AH84,84,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",73,0,No
+Staffing March,5,A1:AH84,84,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",75,0,No
+Staffing April,6,A1:AH85,85,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",80,3,No
+Staffing May,7,A1:AH81,81,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",75,0,No
+Staffing June,8,A1:AG84,84,33,"Monthly staffing, census ratios, agency/PTO/1:1 cost",79,6,No
+Staffing July,9,A1:AH84,84,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",80,6,No
+Staffing August,10,A1:AH80,80,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",75,2,No
+Staffing September,11,A1:AH83,83,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",73,15,No
+Staffing October,12,A1:AH83,83,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",74,18,No
+Staffing November,13,A1:AH83,83,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",73,18,No
+Staffing December,14,A1:AH83,83,34,"Monthly staffing, census ratios, agency/PTO/1:1 cost",74,18,No
+2012 YTD Summary,15,A1:O55,55,15,YTD executive KPI rollup,392,35,No
+Admissions,16,A1:N216,216,14,Admissions origin detail,36,0,Yes
+Daily Census IP 2012,17,A1:AK53,53,37,IP daily census/admit/discharge rollup,108,7,No
+Jan Revenue,18,A1:AG69,69,33,Monthly IP revenue / UR / payer mix,78,10,Yes
+Feb Revenue,19,A1:AG69,69,33,Monthly IP revenue / UR / payer mix,77,10,Yes
+Mar Revenue,20,A1:AG68,68,33,Monthly IP revenue / UR / payer mix,78,10,Yes
+Apr Revenue,21,A1:AG69,69,33,Monthly IP revenue / UR / payer mix,81,13,Yes
+May Revenue,22,A1:AG70,70,33,Monthly IP revenue / UR / payer mix,82,11,Yes
+June Revenue,23,A1:AI70,70,35,Monthly IP revenue / UR / payer mix,84,12,Yes
+July Revenue,24,A1:AI69,69,35,Monthly IP revenue / UR / payer mix,85,12,Yes
+Sep Revenue,25,A1:AG73,73,33,Monthly IP revenue / UR / payer mix,81,13,Yes
+Oct Revenue,26,A1:AG73,73,33,Monthly IP revenue / UR / payer mix,81,13,Yes
+Nov Revenue,27,A1:AG73,73,33,Monthly IP revenue / UR / payer mix,81,13,Yes
+Dec Revenue,28,A1:AG73,73,33,Monthly IP revenue / UR / payer mix,81,13,Yes
+Daily Census IOP 2012,29,A1:AH50,50,34,IOP daily census/attendance rollup,37,8,No
+Jan IOP 2012 Attend,30,A1:AJ92,92,36,Monthly IOP attendance detail,98,0,Yes
+Feb IOP 2012 Attend,31,A1:AI92,92,35,Monthly IOP attendance detail,131,0,Yes
+Mar IOP Attend,32,A1:AK92,92,37,Monthly IOP attendance detail,102,0,Yes
+Apr IOP Attend,33,A1:AJ108,108,36,Monthly IOP attendance detail,116,0,Yes
+May IOP Attend,34,A1:AJ126,126,36,Monthly IOP attendance detail,137,0,Yes
+June IOP Attend,35,A1:AI148,148,35,Monthly IOP attendance detail,155,0,Yes
+July IOP Attend,36,A1:AJ82,82,36,Monthly IOP attendance detail,89,0,Yes
+August IOP Attend,37,A1:AJ90,90,36,Monthly IOP attendance detail,97,0,Yes
+Sept IOP Attend,38,A1:AI92,92,35,Monthly IOP attendance detail,98,0,Yes
+Oct IOP Attend,39,A1:AJ90,90,36,Monthly IOP attendance detail,97,0,Yes
+Nov IOP Attend,40,A1:AJ112,112,36,Monthly IOP attendance detail,120,0,Yes
+Dec IOP Attend,41,A1:AJ112,112,36,Monthly IOP attendance detail,119,0,Yes
+Sheet1,42,,,,Blank/unused sheet,0,0,No
+Sheet2,43,,,,Blank/unused sheet,0,0,No

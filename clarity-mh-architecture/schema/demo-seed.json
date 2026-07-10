@@ -1,0 +1,69 @@
+{
+  "organizations": [
+    {
+      "id": "org_demo",
+      "name": "Demo Behavioral Health Network"
+    }
+  ],
+  "facilities": [
+    {
+      "id": "fac_demo_ed",
+      "organizationId": "org_demo",
+      "name": "Demo General Hospital ED",
+      "facilityType": "ed"
+    },
+    {
+      "id": "fac_demo_psych",
+      "organizationId": "org_demo",
+      "name": "Demo Psychiatric Hospital",
+      "facilityType": "inpatient_psych",
+      "capabilities": {
+        "ageGroups": [
+          "adult",
+          "geriatric"
+        ],
+        "acceptsInvoluntary": true,
+        "medicalExclusions": [
+          "oxygen_dependent_unstable",
+          "active_seizure_uncontrolled"
+        ]
+      }
+    },
+    {
+      "id": "fac_demo_crc",
+      "organizationId": "org_demo",
+      "name": "Demo Crisis Receiving Center",
+      "facilityType": "crisis_receiving_center",
+      "capabilities": {
+        "ageGroups": [
+          "adult"
+        ],
+        "acceptsVoluntary": true
+      }
+    }
+  ],
+  "patients": [
+    {
+      "id": "pat_demo_001",
+      "organizationId": "org_demo",
+      "displayName": "Demo Patient A",
+      "ageGroup": "adult",
+      "privacyFlags": {
+        "demo": true
+      }
+    }
+  ],
+  "case": {
+    "id": "case_demo_001",
+    "organizationId": "org_demo",
+    "patientId": "pat_demo_001",
+    "status": "active",
+    "legalStatus": "unknown",
+    "currentLocation": "Demo ED",
+    "referralSourceName": "Demo Family Caller",
+    "referralSourceRole": "family",
+    "presentingConcern": "Caller reports escalating suicidal statements and inability to maintain safety at home.",
+    "acuity": "high"
+  },
+  "note": "Demo seed only. No real PHI."
+}

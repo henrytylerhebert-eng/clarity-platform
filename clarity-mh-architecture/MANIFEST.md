@@ -1,0 +1,48 @@
+# Package Manifest
+
+- `CODEX_MASTER_PROMPT.md`
+- `CODEX_QUICKSTART.md`
+- `README.md`
+- `database/supabase-rls.sql`
+- `diagrams/epec-custody-lifecycle.mmd`
+- `diagrams/system-architecture.mmd`
+- `docs/compliance/clinical-safety-guardrails.md`
+- `docs/compliance/emtala-parallel-financial-lane.md`
+- `docs/compliance/rbac-audit-custody.md`
+- `docs/product/00-product-thesis.md`
+- `docs/product/01-module-architecture.md`
+- `docs/product/02-ui-routes.md`
+- `docs/product/03-mvp-scope.md`
+- `docs/source-index.md`
+- `docs/workflows/clinical-intake-workflow.md`
+- `docs/workflows/assessment-training-protocol.md`
+- `docs/workflows/epec-chain-of-custody-workflow.md`
+- `docs/workflows/request-broadcast-routing.md`
+- `implementation/acceptance-tests.md`
+- `implementation/epics-and-issues.md`
+- `prompts/clarity-mh/assessment-summary.prompt.md`
+- `prompts/clarity-mh/collateral-question-generator.prompt.md`
+- `prompts/clarity-mh/denial-letter-mining.prompt.md`
+- `prompts/clarity-mh/legal-instrument-review.prompt.md`
+- `prompts/clarity-mh/medical-necessity-draft.prompt.md`
+- `prompts/clarity-mh/missing-fields-review.prompt.md`
+- `prompts/clarity-mh/referral-packet-draft.prompt.md`
+- `prototype/clarity-epec.prototype.jsx`
+- `schema/demo-seed.json`
+- `schema/prisma.schema.prisma`
+- `sources/CIA Comp initial Assesment guidance .md`
+- `sources/Centralized Behavioral Health Intake SOP Manual.docx`
+- `sources/intake-assessment-policy-procedure-manual.txt`
+- `sources/Louisiana Inpatient Psychiatry Assessment and Crisis Platform Feasibility Report.md`
+- `sources/Pasted text.txt`
+- `sources/clarity-competitive-landscape-epec.md`
+- `sources/clarity-epec.jsx`
+- `sources/clarity-holistic-synthesis.md`
+- `types/clarity-mh.types.ts`
+
+- `prompts/codex/00-repo-orientation.prompt.md`
+- `prompts/codex/01-phase-1-data-spine.prompt.md`
+- `prompts/codex/02-phase-2-ui-workflow.prompt.md`
+- `prompts/codex/03-epec-custody-integration.prompt.md`
+- `prompts/codex/04-medical-necessity-workbench.prompt.md`
+- `prompts/codex/05-request-broadcast-routing.prompt.md`

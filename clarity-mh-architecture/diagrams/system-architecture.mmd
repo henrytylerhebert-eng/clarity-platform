@@ -1,0 +1,22 @@
+flowchart TD
+    A[Referral Sources: 988 / ED / Family / Police / Mobile Crisis] --> B[Guided Intake Coach]
+    B --> C[Structured Assessment]
+    C --> D[Medical Necessity Workbench]
+    C --> E[Legal Instrument Layer OPC/PEC/CEC]
+    D --> F[Referral Packet Builder]
+    E --> F
+    F --> G[Request Broadcast Routing]
+    G --> H[Facility Accept / Decline / More Info]
+    H --> I[Transport + Admission Handoff]
+    C --> J[Treatment Continuity]
+    J --> K[Concurrent Review + Discharge Stepdown]
+    B --> L[Source Provenance]
+    C --> L
+    E --> M[Custody Ledger]
+    F --> M
+    G --> M
+    H --> M
+    N[AI/MCP Layer] --> C
+    N --> D
+    N --> F
+    N --> J
