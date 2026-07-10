@@ -2,6 +2,8 @@
 
 Date: 2026-07-08
 
+> **Path-migration note (2026-07-10 integration):** this index predates the master-package integration. Paths it references have moved: `clarity-mh-architecture/` → `reference/source-packages/clarity-mh-architecture/`; `Clarity MH /` → `reference/source-documents/clarity-mh-sources/`; `source-notes/` → `reference/source-documents/source-notes/`. The authority order below now sits **beneath** the integrated canonical docs in `docs/product/`, `docs/architecture/`, and peers — see `docs/repository-audit/06_POST_INTEGRATION_REPOSITORY_MAP.md` and `06_FILE_MOVE_MAP.md`. Document text below is preserved unedited as a historical record.
+
 ## Purpose
 
 This index controls how the Clarity platform documents should be used.
