@@ -1,0 +1,11 @@
+{
+  "name": "@clarity/domain-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Contracts only: domain types, Zod schemas, state machines, audit helper, feature flags. No business logic, no I/O, no integrations.",
+  "dependencies": {
+    "zod": "^3.24.1"
+  }
+}
