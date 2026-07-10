@@ -1,0 +1,110 @@
+{
+  "caseKey": "synthetic-er-commercial-primary",
+  "description": "Adult emergency-department referral with commercial primary coverage, active benefits, authorization required, and secondary supplemental coverage.",
+  "patientToken": {
+    "externalPatientReference": "SYN-001",
+    "dateOfBirth": "1984-03-12",
+    "age": 42,
+    "sex": "female",
+    "preferredLanguage": "English",
+    "privacyFlags": [
+      "SYNTHETIC_ONLY"
+    ]
+  },
+  "case": {
+    "status": "EVIDENCE_REVIEW",
+    "urgency": "EMERGENT",
+    "currentLocation": "Synthetic Regional Medical Center ED",
+    "requestedLevelOfCare": "INPATIENT_PSYCHIATRIC",
+    "currentLegalStatus": "INVOLUNTARY_EMERGENCY",
+    "clinicalStatus": "IN_PROGRESS",
+    "legalReviewStatus": "PENDING_REVIEW",
+    "medicalScreeningStatus": "COMPLETE",
+    "benefitsStatus": "IN_PROGRESS",
+    "authorizationStatus": "NOT_STARTED",
+    "placementStatus": "NOT_STARTED",
+    "transportationStatus": "NOT_STARTED",
+    "patientEducationStatus": "NOT_STARTED"
+  },
+  "documents": [
+    {
+      "documentType": "EMERGENCY_DEPARTMENT_NOTE",
+      "filename": "synthetic-ed-note.pdf"
+    },
+    {
+      "documentType": "PSYCHIATRIC_EVALUATION",
+      "filename": "synthetic-psych-eval.pdf"
+    },
+    {
+      "documentType": "LAB_REPORT",
+      "filename": "synthetic-labs.pdf"
+    },
+    {
+      "documentType": "LEGAL_HOLD_DOCUMENT",
+      "filename": "synthetic-hold.pdf"
+    },
+    {
+      "documentType": "INSURANCE_CARD",
+      "filename": "synthetic-primary-card.pdf"
+    },
+    {
+      "documentType": "INSURANCE_CARD",
+      "filename": "synthetic-secondary-card.pdf"
+    }
+  ],
+  "coverages": [
+    {
+      "coverageOrder": "PRIMARY",
+      "payerNameRaw": "Synthetic Commercial Health",
+      "planNameRaw": "Preferred PPO",
+      "coverageType": "COMMERCIAL",
+      "subscriberRelationship": "SELF",
+      "status": "ACTIVE"
+    },
+    {
+      "coverageOrder": "SECONDARY",
+      "payerNameRaw": "Synthetic Supplemental Plan",
+      "planNameRaw": "Hospital Supplement",
+      "coverageType": "SUPPLEMENTAL",
+      "subscriberRelationship": "SELF",
+      "status": "UNVERIFIED"
+    }
+  ],
+  "eligibility": {
+    "method": "PORTAL",
+    "status": "ACTIVE_CONFIRMED",
+    "effectiveDate": "2026-01-01",
+    "verifiedAt": "2026-07-10T15:05:00-05:00",
+    "referenceNumber": "SYN-ELIG-001"
+  },
+  "benefits": {
+    "serviceType": "INPATIENT_PSYCHIATRIC",
+    "networkStatus": "IN_NETWORK",
+    "deductibleAmountCents": 200000,
+    "deductibleMetCents": 125000,
+    "coinsurancePercent": 20,
+    "outOfPocketMaxCents": 600000,
+    "outOfPocketMetCents": 275000,
+    "authorizationRequired": true,
+    "notificationRequired": true,
+    "quotedAt": "2026-07-10T15:12:00-05:00",
+    "verificationReference": "SYN-BEN-001",
+    "disclaimerStatus": "PROVIDED"
+  },
+  "authorization": {
+    "requestedLevelOfCare": "INPATIENT_PSYCHIATRIC",
+    "status": "PREPARING"
+  },
+  "expectedAuditEvents": [
+    "CASE_CREATED",
+    "DOCUMENT_UPLOADED",
+    "INSURANCE_DATA_EXTRACTED",
+    "INSURANCE_DATA_APPROVED",
+    "ELIGIBILITY_VERIFICATION_STARTED",
+    "ELIGIBILITY_VERIFICATION_COMPLETED",
+    "BENEFITS_VERIFICATION_STARTED",
+    "BENEFITS_VERIFICATION_COMPLETED",
+    "BENEFIT_DISCLAIMER_PROVIDED",
+    "AUTHORIZATION_PREPARATION_STARTED"
+  ]
+}

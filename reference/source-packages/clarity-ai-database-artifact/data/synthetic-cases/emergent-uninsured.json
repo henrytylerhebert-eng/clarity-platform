@@ -1,0 +1,36 @@
+{
+  "caseKey": "synthetic-emergent-uninsured",
+  "description": "Emergent referral with no verified coverage. Clinical review proceeds while financial assistance workflow begins.",
+  "patientToken": {
+    "externalPatientReference": "SYN-003",
+    "dateOfBirth": "1998-06-04",
+    "age": 28,
+    "sex": "female",
+    "preferredLanguage": "Spanish",
+    "privacyFlags": [
+      "SYNTHETIC_ONLY"
+    ]
+  },
+  "case": {
+    "status": "CLINICAL_REVIEW",
+    "urgency": "EMERGENT",
+    "currentLocation": "Synthetic Parish ED",
+    "requestedLevelOfCare": "INPATIENT_PSYCHIATRIC",
+    "currentLegalStatus": "PROTECTIVE_CUSTODY",
+    "clinicalStatus": "IN_PROGRESS",
+    "legalReviewStatus": "PENDING_REVIEW",
+    "medicalScreeningStatus": "COMPLETE",
+    "benefitsStatus": "BLOCKED",
+    "authorizationStatus": "NOT_APPLICABLE",
+    "placementStatus": "IN_PROGRESS",
+    "transportationStatus": "NOT_STARTED",
+    "patientEducationStatus": "READY"
+  },
+  "coverages": [],
+  "expectedOperationalFinding": "Financial readiness must not block emergency clinical and placement review.",
+  "expectedAuditEvents": [
+    "CASE_CREATED",
+    "INSURANCE_DATA_EXTRACTED",
+    "FINANCIAL_EDUCATION_DRAFTED"
+  ]
+}

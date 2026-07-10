@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Clarity AI Master Architecture</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Clarity AI Master Architecture</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#clarity-ai-master-architecture"
+id="toc-clarity-ai-master-architecture">Clarity AI Master
+Architecture</a>
+<ul>
+<li><a href="#vision" id="toc-vision">1. Vision</a></li>
+<li><a href="#product-thesis" id="toc-product-thesis">2. Product
+thesis</a></li>
+<li><a href="#product-promise" id="toc-product-promise">3. Product
+promise</a></li>
+<li><a href="#core-questions" id="toc-core-questions">4. Core
+questions</a></li>
+<li><a href="#platform-layers" id="toc-platform-layers">5. Platform
+layers</a>
+<ul>
+<li><a href="#controlled-knowledge"
+id="toc-controlled-knowledge">Controlled knowledge</a></li>
+<li><a href="#case-intelligence" id="toc-case-intelligence">Case
+intelligence</a></li>
+<li><a href="#bounded-reasoning" id="toc-bounded-reasoning">Bounded
+reasoning</a></li>
+<li><a href="#workflow-orchestration"
+id="toc-workflow-orchestration">Workflow orchestration</a></li>
+<li><a href="#user-workspaces" id="toc-user-workspaces">User
+workspaces</a></li>
+<li><a href="#governance" id="toc-governance">Governance</a></li>
+</ul></li>
+<li><a href="#core-operating-spine" id="toc-core-operating-spine">6.
+Core operating spine</a></li>
+<li><a href="#parallel-workstreams" id="toc-parallel-workstreams">7.
+Parallel workstreams</a></li>
+<li><a href="#emergency-and-fairness-rule"
+id="toc-emergency-and-fairness-rule">8. Emergency and fairness
+rule</a></li>
+<li><a href="#document-and-evidence-architecture"
+id="toc-document-and-evidence-architecture">9. Document and evidence
+architecture</a></li>
+<li><a href="#clinical-intelligence" id="toc-clinical-intelligence">10.
+Clinical intelligence</a></li>
+<li><a href="#legal-status-intelligence"
+id="toc-legal-status-intelligence">11. Legal-status
+intelligence</a></li>
+<li><a href="#benefits-verification" id="toc-benefits-verification">12.
+Benefits verification</a></li>
+<li><a href="#payer-memory" id="toc-payer-memory">13. Payer
+memory</a></li>
+<li><a href="#authorization" id="toc-authorization">14.
+Authorization</a></li>
+<li><a href="#patient-financial-education"
+id="toc-patient-financial-education">15. Patient financial
+education</a></li>
+<li><a href="#facility-intelligence-and-routing"
+id="toc-facility-intelligence-and-routing">16. Facility intelligence and
+routing</a></li>
+<li><a href="#packet-and-communication"
+id="toc-packet-and-communication">17. Packet and communication</a></li>
+<li><a href="#custody-and-transport" id="toc-custody-and-transport">18.
+Custody and transport</a></li>
+<li><a href="#agent-architecture" id="toc-agent-architecture">19. Agent
+architecture</a></li>
+<li><a href="#knowledge-rules-and-retrieval"
+id="toc-knowledge-rules-and-retrieval">20. Knowledge, rules, and
+retrieval</a></li>
+<li><a href="#data-architecture" id="toc-data-architecture">21. Data
+architecture</a></li>
+<li><a href="#security-and-privacy" id="toc-security-and-privacy">22.
+Security and privacy</a></li>
+<li><a href="#user-experience" id="toc-user-experience">23. User
+experience</a></li>
+<li><a href="#evaluation" id="toc-evaluation">24. Evaluation</a></li>
+<li><a href="#roadmap" id="toc-roadmap">25. Roadmap</a></li>
+<li><a href="#commercial-model" id="toc-commercial-model">26. Commercial
+model</a></li>
+<li><a href="#immediate-next-step" id="toc-immediate-next-step">27.
+Immediate next step</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="clarity-ai-master-architecture">Clarity AI Master
+Architecture</h1>
+<h2 id="vision">1. Vision</h2>
+<p>Clarity AI is a proposed behavioral-health case-intelligence and
+access-orchestration platform.</p>
+<p>It is designed for the operational space between referral receipt and
+care transition: document intake, evidence review, clinical and legal
+support, benefits verification, authorization, placement, transport,
+custody, communication, and audit.</p>
+<p>The product does not replace professional judgment. It creates a
+structured environment in which qualified people can see the source,
+uncertainty, rule, owner, deadline, and history behind each material
+action.</p>
+<h2 id="product-thesis">2. Product thesis</h2>
+<p>Behavioral-health access problems rarely come from one missing
+decision.</p>
+<p>They frequently come from fragmented information and fragmented
+ownership:</p>
+<ul>
+<li>records arrive by multiple channels</li>
+<li>facts conflict</li>
+<li>legal status is time-sensitive</li>
+<li>facilities have different capabilities</li>
+<li>benefits require separate verification</li>
+<li>authorization may depend on a complete clinical narrative</li>
+<li>transport and custody require coordination</li>
+<li>staff change across shifts</li>
+<li>phone and portal work is difficult to reconstruct</li>
+<li>final outcomes are not connected back to the initial process</li>
+</ul>
+<p>Clarity turns those fragments into one auditable case.</p>
+<h2 id="product-promise">3. Product promise</h2>
+<blockquote>
+<p>Clarity turns fragmented behavioral-health referrals into structured,
+source-linked, clinically reviewable, legally traceable, and financially
+informed care pathways.</p>
+</blockquote>
+<h2 id="core-questions">4. Core questions</h2>
+<p>For every case, Clarity should answer:</p>
+<ol type="1">
+<li>What is documented?</li>
+<li>What is the source?</li>
+<li>What is missing, stale, or contradictory?</li>
+<li>What can proceed now?</li>
+<li>What is blocked?</li>
+<li>Which rule or requirement creates the block?</li>
+<li>Who owns the next action?</li>
+<li>Which qualified person must approve it?</li>
+<li>What happened after the decision?</li>
+<li>What can the organization learn?</li>
+</ol>
+<h2 id="platform-layers">5. Platform layers</h2>
+<h3 id="controlled-knowledge">Controlled knowledge</h3>
+<ul>
+<li>clinical guidance</li>
+<li>legal authorities</li>
+<li>payer policies</li>
+<li>facility criteria</li>
+<li>organizational procedures</li>
+<li>contract information</li>
+<li>historical operational memory</li>
+</ul>
+<h3 id="case-intelligence">Case intelligence</h3>
+<ul>
+<li>documents</li>
+<li>candidate evidence</li>
+<li>source links</li>
+<li>timeline</li>
+<li>contradictions</li>
+<li>missing information</li>
+<li>structured summaries</li>
+</ul>
+<h3 id="bounded-reasoning">Bounded reasoning</h3>
+<ul>
+<li>medical necessity</li>
+<li>medical screening</li>
+<li>legal status</li>
+<li>eligibility and benefits</li>
+<li>authorization</li>
+<li>facility matching</li>
+<li>packet readiness</li>
+</ul>
+<h3 id="workflow-orchestration">Workflow orchestration</h3>
+<ul>
+<li>overall case state</li>
+<li>parallel workstreams</li>
+<li>tasks</li>
+<li>deadlines</li>
+<li>blockers</li>
+<li>escalation</li>
+<li>approvals</li>
+</ul>
+<h3 id="user-workspaces">User workspaces</h3>
+<ul>
+<li>case queue</li>
+<li>case overview</li>
+<li>evidence</li>
+<li>clinical</li>
+<li>legal</li>
+<li>benefits</li>
+<li>authorization</li>
+<li>packet</li>
+<li>routing</li>
+<li>custody</li>
+<li>audit</li>
+<li>analytics</li>
+</ul>
+<h3 id="governance">Governance</h3>
+<ul>
+<li>permissions</li>
+<li>source versions</li>
+<li>rule versions</li>
+<li>prompt and model versions</li>
+<li>human review</li>
+<li>audit</li>
+<li>evaluations</li>
+<li>incident response</li>
+</ul>
+<h2 id="core-operating-spine">6. Core operating spine</h2>
+<p>The base architecture is:</p>
+<pre class="text"><code>Case
+Documents
+Evidence
+Review
+Rules
+Workflow
+Audit</code></pre>
+<p>The expanded domain architecture is:</p>
+<pre class="text"><code>Case
+Documents
+Evidence
+Clinical Review
+Legal Review
+Medical Screening
+Insurance
+Eligibility
+Benefits Verification
+Authorization
+Placement
+Custody
+Communication
+Workflow
+Audit
+Intelligence</code></pre>
+<p>The expansion does not discard prior work. Each added domain uses the
+same source, evidence, rule, workflow, review, and audit primitives.</p>
+<h2 id="parallel-workstreams">7. Parallel workstreams</h2>
+<p>One linear status cannot represent real intake work.</p>
+<p>Clarity therefore maintains:</p>
+<ul>
+<li>an overall case status</li>
+<li>clinical status</li>
+<li>legal status</li>
+<li>medical-screening status</li>
+<li>benefits status</li>
+<li>authorization status</li>
+<li>placement status</li>
+<li>transportation status</li>
+<li>patient-education status</li>
+</ul>
+<p>A case may be:</p>
+<ul>
+<li>clinically in progress</li>
+<li>legal review pending</li>
+<li>medically complete</li>
+<li>benefits in progress</li>
+<li>placement ready</li>
+</ul>
+<p>at the same time.</p>
+<h2 id="emergency-and-fairness-rule">8. Emergency and fairness rule</h2>
+<p>Financial readiness remains separate from clinical urgency.</p>
+<p>Clarity must not:</p>
+<ul>
+<li>delay emergency review solely because insurance is unknown</li>
+<li>hide payer weighting inside a priority score</li>
+<li>recommend the financially strongest referral as the clinically
+highest priority</li>
+<li>use reimbursement as a substitute for care need</li>
+</ul>
+<p>Clarity may show financial readiness so staff can start verification
+and authorization earlier.</p>
+<h2 id="document-and-evidence-architecture">9. Document and evidence
+architecture</h2>
+<p>Original documents are preserved with metadata, version, checksum,
+source, and access classification.</p>
+<p>Agents may create candidate evidence containing:</p>
+<ul>
+<li>original source text</li>
+<li>normalized value</li>
+<li>category</li>
+<li>source page or section</li>
+<li>author and time</li>
+<li>extraction confidence</li>
+</ul>
+<p>Qualified users approve, correct, reject, or request
+clarification.</p>
+<p>Rejected or superseded evidence remains auditable but cannot support
+approved output.</p>
+<h2 id="clinical-intelligence">10. Clinical intelligence</h2>
+<p>The clinical layer organizes:</p>
+<ul>
+<li>referral reason</li>
+<li>current symptoms</li>
+<li>risk indicators</li>
+<li>protective factors</li>
+<li>psychiatric history</li>
+<li>substance-use considerations</li>
+<li>medications</li>
+<li>medical concerns</li>
+<li>legal and custody status</li>
+<li>disposition objective</li>
+<li>unresolved questions</li>
+</ul>
+<p>It also supports:</p>
+<ul>
+<li>contradiction grouping</li>
+<li>timeline</li>
+<li>missing information</li>
+<li>medical-necessity criteria mapping</li>
+<li>medical-screening gap detection</li>
+</ul>
+<p>It does not diagnose, declare safety, approve admission, or declare
+medical clearance.</p>
+<h2 id="legal-status-intelligence">11. Legal-status intelligence</h2>
+<p>The legal layer:</p>
+<ul>
+<li>selects the approved jurisdictional rule set</li>
+<li>identifies the documented legal-status type</li>
+<li>checks forms, signatures, dates, and required elements</li>
+<li>calculates configured deadlines</li>
+<li>distinguishes law, policy, and operational practice</li>
+<li>shows source authority and version</li>
+</ul>
+<p>It does not declare a hold valid, decide competency, or authorize
+transfer.</p>
+<h2 id="benefits-verification">12. Benefits verification</h2>
+<p>Benefits verification begins as soon as reliable identity and
+insurance information is available.</p>
+<p>The workflow separates:</p>
+<ul>
+<li>data extraction</li>
+<li>subscriber relationship</li>
+<li>coverage order</li>
+<li>eligibility</li>
+<li>service-specific benefits</li>
+<li>network status</li>
+<li>authorization requirement</li>
+<li>patient education</li>
+<li>claim outcome</li>
+</ul>
+<p>Clarity records verification method, proof, representative,
+reference, time, and unresolved questions.</p>
+<p>A benefit quote is not a payment guarantee.</p>
+<h2 id="payer-memory">13. Payer memory</h2>
+<p>Clarity may retain organization-specific historical knowledge:</p>
+<ul>
+<li>payer aliases</li>
+<li>portal instructions</li>
+<li>contact numbers</li>
+<li>carve-outs</li>
+<li>common requirements</li>
+<li>pend and denial patterns</li>
+<li>typical verification time</li>
+<li>typical authorization time</li>
+</ul>
+<p>This information is labeled historical and unconfirmed for the
+current patient.</p>
+<h2 id="authorization">14. Authorization</h2>
+<p>The authorization workflow tracks:</p>
+<ul>
+<li>preparation</li>
+<li>submission</li>
+<li>pending</li>
+<li>approval</li>
+<li>partial approval</li>
+<li>denial</li>
+<li>appeal</li>
+<li>approved dates or units</li>
+<li>concurrent review</li>
+</ul>
+<p>Agents may prepare materials. An authorized human records or
+initiates external action.</p>
+<p>Authorization does not guarantee reimbursement.</p>
+<h2 id="patient-financial-education">15. Patient financial
+education</h2>
+<p>Clarity may prepare a plain-language benefit summary that
+separates:</p>
+<ul>
+<li>verified fact</li>
+<li>estimate</li>
+<li>unresolved uncertainty</li>
+<li>final claim outcome</li>
+</ul>
+<p>The record includes recipient, language, interpreter, method,
+acknowledgement, and staff member.</p>
+<h2 id="facility-intelligence-and-routing">16. Facility intelligence and
+routing</h2>
+<p>Facility profiles contain:</p>
+<ul>
+<li>programs</li>
+<li>ages</li>
+<li>legal-status capabilities</li>
+<li>medical capabilities</li>
+<li>payer relationships</li>
+<li>exclusions</li>
+<li>transport requirements</li>
+<li>referral requirements</li>
+<li>verification date</li>
+</ul>
+<p>Facility matching returns:</p>
+<ul>
+<li>likely fit</li>
+<li>possible fit with clarification</li>
+<li>unlikely fit</li>
+<li>unable to assess</li>
+</ul>
+<p>It never guarantees acceptance.</p>
+<h2 id="packet-and-communication">17. Packet and communication</h2>
+<p>A referral packet is versioned and approved before export or
+transmission.</p>
+<p>It may contain:</p>
+<ul>
+<li>cover sheet</li>
+<li>source-linked summary</li>
+<li>clinical records</li>
+<li>legal documents</li>
+<li>insurance proof</li>
+<li>authorization status</li>
+<li>unresolved issues</li>
+</ul>
+<p>Communications are recorded across phone, secure email, fax, portal,
+EHR, API, and internal notes.</p>
+<p>Agents may draft; authorized humans send.</p>
+<h2 id="custody-and-transport">18. Custody and transport</h2>
+<p>The custody ledger tracks:</p>
+<ul>
+<li>legal custodian</li>
+<li>physical custodian</li>
+<li>location</li>
+<li>authority</li>
+<li>transport provider</li>
+<li>from and to parties</li>
+<li>time</li>
+<li>supporting documents</li>
+</ul>
+<p>Closure is blocked when required handoff data is missing.</p>
+<h2 id="agent-architecture">19. Agent architecture</h2>
+<p>Clarity uses specialized agents:</p>
+<ul>
+<li>document classification</li>
+<li>evidence extraction</li>
+<li>insurance extraction</li>
+<li>contradiction detection</li>
+<li>missing information</li>
+<li>timeline</li>
+<li>case summary</li>
+<li>medical necessity</li>
+<li>medical screening</li>
+<li>legal status</li>
+<li>verification preparation</li>
+<li>payer memory</li>
+<li>authorization preparation</li>
+<li>patient education</li>
+<li>facility matching</li>
+<li>packet building</li>
+<li>communication drafting</li>
+<li>audit review</li>
+<li>retrospective operations review</li>
+</ul>
+<p>Each agent has a contract, allowlisted tools, output schema, source
+requirements, prohibited actions, validation, and human-review rule.</p>
+<h2 id="knowledge-rules-and-retrieval">20. Knowledge, rules, and
+retrieval</h2>
+<p>Controlled sources are separated into collections and tagged with
+authority, jurisdiction, effective date, version, owner, and status.</p>
+<p>Retrieval is:</p>
+<ul>
+<li>organization-scoped</li>
+<li>case-scoped for patient data</li>
+<li>permission-aware</li>
+<li>date-aware</li>
+<li>source-type-aware</li>
+<li>citation-producing</li>
+<li>auditable</li>
+</ul>
+<p>Deterministic rules handle explicit requirements and block only the
+dependent step.</p>
+<h2 id="data-architecture">21. Data architecture</h2>
+<p>The data model covers:</p>
+<ul>
+<li>tenant and identity</li>
+<li>case and workflow</li>
+<li>documents and evidence</li>
+<li>clinical and legal review</li>
+<li>insurance and payer</li>
+<li>placement and custody</li>
+<li>AI and knowledge</li>
+<li>governance and audit</li>
+</ul>
+<p>Sensitive identifiers and contract data receive restricted access and
+stronger protection.</p>
+<p>The package includes a foundation schema and an expanded target
+draft. Both require developer validation.</p>
+<h2 id="security-and-privacy">22. Security and privacy</h2>
+<p>Required controls include:</p>
+<ul>
+<li>authentication and MFA</li>
+<li>least privilege</li>
+<li>tenant isolation</li>
+<li>case permissions</li>
+<li>encryption</li>
+<li>secrets management</li>
+<li>object-store controls</li>
+<li>field masking</li>
+<li>audit</li>
+<li>backup and restore</li>
+<li>model-provider governance</li>
+<li>prompt-injection defense</li>
+<li>incident response</li>
+</ul>
+<p>No real patient data should enter the prototype.</p>
+<h2 id="user-experience">23. User experience</h2>
+<p>The UI must show:</p>
+<ul>
+<li>draft versus approved</li>
+<li>source links</li>
+<li>missing information</li>
+<li>contradictions</li>
+<li>profile age</li>
+<li>rule version</li>
+<li>model contribution</li>
+<li>reviewer</li>
+<li>workstream status</li>
+<li>owner and next action</li>
+</ul>
+<p>It must not show a generic confidence number as if it were clinical
+truth.</p>
+<h2 id="evaluation">24. Evaluation</h2>
+<p>The evaluation strategy includes:</p>
+<ul>
+<li>extraction accuracy</li>
+<li>citation support</li>
+<li>contradiction detection</li>
+<li>legal and clinical prohibited-language tests</li>
+<li>benefits and payment-language tests</li>
+<li>tenant isolation</li>
+<li>prompt injection</li>
+<li>workflow integrity</li>
+<li>human factors</li>
+<li>fairness</li>
+</ul>
+<p>Synthetic cases cover commercial, Medicare Advantage, traditional
+Medicare, supplemental, uninsured, minors, coordination of benefits,
+medical exclusion, legal deadlines, and no-bed scenarios.</p>
+<h2 id="roadmap">25. Roadmap</h2>
+<p>The build sequence is:</p>
+<ol type="1">
+<li>foundation</li>
+<li>case spine</li>
+<li>workflow</li>
+<li>documents</li>
+<li>evidence</li>
+<li>case intelligence</li>
+<li>clinical and legal</li>
+<li>insurance and eligibility</li>
+<li>benefits and education</li>
+<li>authorization</li>
+<li>packet and facility</li>
+<li>custody and communication</li>
+<li>analytics</li>
+<li>hardening</li>
+<li>controlled pilot</li>
+</ol>
+<h2 id="commercial-model">26. Commercial model</h2>
+<p>Initial positioning:</p>
+<blockquote>
+<p>Behavioral-health case intelligence and access orchestration.</p>
+</blockquote>
+<p>Potential packaging:</p>
+<ul>
+<li>Core</li>
+<li>Professional</li>
+<li>Enterprise</li>
+</ul>
+<p>Value should be measured through time, touches, rework, verification,
+authorization, packet quality, access, denials, and audit.</p>
+<p>Pricing and ROI remain hypotheses until validated.</p>
+<h2 id="immediate-next-step">27. Immediate next step</h2>
+<p>Create the repository and validate the schema.</p>
+<p>Then implement:</p>
+<ul>
+<li>tenant-scoped repositories</li>
+<li>case state machine</li>
+<li>parallel statuses</li>
+<li>workflow tasks</li>
+<li>audit helper</li>
+<li>synthetic fixtures</li>
+<li>unit and workflow tests</li>
+</ul>
+<p>Do not begin with live agents or real patient data.</p>
+</body>
+</html>

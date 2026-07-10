@@ -1,0 +1,49 @@
+{
+  "caseKey": "synthetic-medicare-advantage-spouse-subscriber",
+  "description": "Older adult referral with Medicare Advantage coverage where spouse is subscriber and additional subscriber data is required.",
+  "patientToken": {
+    "externalPatientReference": "SYN-002",
+    "dateOfBirth": "1957-09-21",
+    "age": 68,
+    "sex": "male",
+    "preferredLanguage": "English",
+    "privacyFlags": [
+      "SYNTHETIC_ONLY"
+    ]
+  },
+  "case": {
+    "status": "INFORMATION_INCOMPLETE",
+    "urgency": "URGENT",
+    "currentLocation": "Synthetic Community Hospital ED",
+    "requestedLevelOfCare": "INPATIENT_PSYCHIATRIC",
+    "currentLegalStatus": "VOLUNTARY",
+    "clinicalStatus": "PENDING_REVIEW",
+    "legalReviewStatus": "COMPLETE",
+    "medicalScreeningStatus": "IN_PROGRESS",
+    "benefitsStatus": "BLOCKED",
+    "authorizationStatus": "NOT_STARTED",
+    "placementStatus": "NOT_STARTED",
+    "transportationStatus": "NOT_STARTED",
+    "patientEducationStatus": "NOT_STARTED"
+  },
+  "coverages": [
+    {
+      "coverageOrder": "PRIMARY",
+      "payerNameRaw": "Synthetic Medicare Advantage",
+      "planNameRaw": "Regional MA HMO",
+      "coverageType": "MEDICARE_ADVANTAGE",
+      "subscriberRelationship": "SPOUSE",
+      "status": "UNCLEAR",
+      "missingFields": [
+        "subscriberDateOfBirth",
+        "groupNumber"
+      ]
+    }
+  ],
+  "expectedOperationalFinding": "Benefits verification cannot begin until required subscriber information is confirmed.",
+  "expectedAuditEvents": [
+    "CASE_CREATED",
+    "INSURANCE_DATA_EXTRACTED",
+    "SUBSCRIBER_RELATIONSHIP_CONFIRMED"
+  ]
+}
