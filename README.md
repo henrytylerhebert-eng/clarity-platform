@@ -1,53 +1,42 @@
-# Clarity Crisis Platform Architecture Packet
+# Clarity Platform
 
-This packet converts the prior Clarity / Blue Partner behavioral-health crisis platform conversation into a buildable project architecture for a Claude Code or Codex implementation session.
+Behavioral-health **case intelligence and access orchestration** — an architecture-and-prototype repository, **not a deployed clinical system**. Synthetic data only.
 
-## What This Project Is
+Clarity helps qualified professionals convert fragmented referrals, assessments, legal documents, payer information, facility criteria, and operational communications into structured, source-linked, human-reviewed workflows: intake → evidence → parallel clinical/legal/benefits workstreams → packet → routing → custody → audit.
 
-Clarity is a behavioral-health crisis intake, statutory custody, transfer, and inpatient operations platform. The near-term product is not a generic bed board. It is a guided intake and legal/clinical documentation system that follows a patient from first contact through PEC/OPC/EC execution, hospital referral, acceptance, admission, and inpatient bed placement.
+## Repository map
 
-The defensible core is:
+| Path | What it is |
+|---|---|
+| `app/` | Working prototype (Vite + React + TS): guided intake, medical-necessity/legal drafts, hash-chained custody ledger, packet builder, simulated routing, bedboard. `cd app && npm run dev` |
+| `packages/domain-contracts/` | Domain types, Zod schemas, state machines, audit helper, feature flags — contracts only |
+| `prisma/` | Canonical foundation schema (validated; initial migration generated) — ADR-0002 |
+| `data/synthetic-cases/` | Validated synthetic fixtures (3 of a planned 10) |
+| `docs/` | Canonical documentation: `product/`, `architecture/` (incl. ADRs), `workflows/`, `clinical/`, `legal/`, `payer-and-benefits/`, `governance/`, `security/`, `testing/`, `roadmap/`, `developer-handoff/`, `decisions/` |
+| `docs/00–09*.md` | Historical Jul 8 crisis-platform docs (preserved; see path-migration note in `00-architecture-index.md`) |
+| `docs/repository-audit/` | Full integration audit trail: inventories, integration matrix, conflict register, gap analysis, schema validation, file move map |
+| `reporting-metrics-rebuild-package/` | Reporting-metrics reverse-engineering analysis (metrics substrate) |
+| `reference/source-packages/` | **Immutable** source packages (master architecture v0.2.0 partial, database artifact, Jul 8 package) — never edit, never treat as canonical |
+| `reference/source-documents/` | Original research/source materials |
+| `scripts/`, `tests/` | Seed script (contract-level) and safety/workflow baseline tests |
 
-- Guided intake coaching with field and clinical modes.
-- Louisiana-first statutory instrument execution.
-- One-capture / many-output case packet generation.
-- Hash-chained custody and decision ledger.
-- Secure referral, transfer, and acceptance workflow.
-- Compliance clocks and escalation routing.
-- Milieu-aware inpatient bed assignment recommendations.
+## Quick start
 
-## Packet Contents
+```bash
+npm install            # root workspace (app + packages)
+npm test               # root safety/workflow suites (vitest)
+cd app && npm test     # prototype domain tests
+cd app && npm run dev  # http://127.0.0.1:5173
+npx prisma validate    # canonical schema
+```
 
-- `docs/00-architecture-index.md` - authority order for canonical docs, generated package, source context, and prototype references.
-- `docs/01-project-architecture.md` - canonical architecture and module map.
-- `docs/02-claude-code-handoff.md` - paste-ready handoff for the next build session.
-- `docs/03-data-model.md` - first-pass entity model and relationships.
-- `docs/04-build-roadmap.md` - priority roadmap, market-informed later work, and parking lot.
-- `docs/05-source-document-index.md` - read-only source materials, availability, and product-claim status register.
-- `docs/06-architecture-review.md` - architecture review and implementation risks.
-- `docs/07-redundancy-priority-map.md` - duplication/complementarity analysis and feature priority map.
-- `docs/08-reporting-metrics-rebuilder.md` - company-agnostic reporting metrics module oriented around utilization review excellence.
-- `docs/09-personas-and-role-ux.md` - canonical stakeholder personas, per-role UX customizations, and the role-adaptive UX design rules implemented in `app/`.
+## Ground rules
 
-## Current Evidence Status
+- **Synthetic data only.** No real PHI/PII anywhere, ever, until formal security review (`SECURITY.md`).
+- **Human gates stay intact.** No autonomous clinical, legal, admission, placement, or authorization decisions (`GOVERNANCE.md`).
+- **Benefits quotes are not payment guarantees; payer memory is historical and unconfirmed; financial readiness never blocks emergency clinical review.** These are tested invariants, not slogans.
+- The master architecture package is only **partially present** (15 of 87 files) — see `docs/repository-audit/02_MASTER_PACKAGE_INVENTORY.md` and open decision OD-1.
 
-Confirmed from provided thread/docs:
+## Status
 
-- The platform concept includes intake, legal custody documentation, transfer, bedboard, UR/payer support, and reporting.
-- Louisiana PEC/OPC/CEC/statutory-clock handling is central, but exact statutory trigger/duration language still requires counsel review before enforcement in software.
-- Central intake SOP and clinical assessment guidance map cleanly into the product workflow.
-
-Unknown:
-
-- Exact current Louisiana statutory wording and official form requirements.
-- Current hospital-specific assessment forms.
-- Current payer criteria packs and facility-specific authorization rules.
-- Live competitor feature state beyond the prior thread synthesis.
-
-No measurements found:
-
-- Baseline transfer timing.
-- First-submission acceptance rates.
-- Current packet completeness rate.
-- Documentation-error rate.
-- Pilot outcome measurements.
+See `IMPLEMENTATION_STATUS.md` for the honest breakdown (completed / scaffolded / documented-only / blocked) and `docs/decisions/OPEN_DECISIONS.md` for what needs a human decision.
