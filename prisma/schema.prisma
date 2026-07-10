@@ -354,38 +354,38 @@ enum AuditActorType {
 }
 
 model Organization {
-  id                String             @id @default(cuid())
+  id                String                 @id @default(cuid())
   name              String
   type              OrganizationType
-  status            OrganizationStatus @default(ACTIVE)
+  status            OrganizationStatus     @default(ACTIVE)
   jurisdictionCodes String[]
   users             User[]
   cases             BehavioralHealthCase[]
   facilities        FacilityProfile[]
   payerProfiles     PayerProfile[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
 }
 
 model User {
-  id             String      @id @default(cuid())
+  id             String                 @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  email          String      @unique
+  organization   Organization           @relation(fields: [organizationId], references: [id])
+  email          String                 @unique
   displayName    String
   roles          UserRole[]
-  status         UserStatus  @default(ACTIVE)
+  status         UserStatus             @default(ACTIVE)
   lastLoginAt    DateTime?
   assignedCases  BehavioralHealthCase[] @relation("AssignedCases")
   reviews        HumanReview[]
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
 
   @@index([organizationId])
 }
 
 model PatientToken {
-  id                       String   @id @default(cuid())
+  id                       String                 @id @default(cuid())
   organizationId           String
   externalPatientReference String?
   dateOfBirth              DateTime?
@@ -396,48 +396,48 @@ model PatientToken {
   privacyFlags             String[]
   cases                    BehavioralHealthCase[]
   coverages                InsuranceCoverage[]
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
 
   @@index([organizationId])
 }
 
 model BehavioralHealthCase {
-  id                         String      @id @default(cuid())
-  organizationId             String
-  organization               Organization @relation(fields: [organizationId], references: [id])
-  patientTokenId             String
-  patientToken               PatientToken @relation(fields: [patientTokenId], references: [id])
-  assignedUserId             String?
-  assignedUser               User?       @relation("AssignedCases", fields: [assignedUserId], references: [id])
-  status                     CaseStatus   @default(DRAFT)
-  urgency                    UrgencyLevel @default(ROUTINE)
-  currentLocation            String?
-  requestedLevelOfCare       LevelOfCare?
-  currentLegalStatus         LegalStatusType?
-  clinicalStatus             ParallelWorkstreamStatus @default(NOT_STARTED)
-  legalReviewStatus          ParallelWorkstreamStatus @default(NOT_STARTED)
-  medicalScreeningStatus     ParallelWorkstreamStatus @default(NOT_STARTED)
-  benefitsStatus             ParallelWorkstreamStatus @default(NOT_STARTED)
-  authorizationStatus        ParallelWorkstreamStatus @default(NOT_STARTED)
-  placementStatus            ParallelWorkstreamStatus @default(NOT_STARTED)
-  transportationStatus       ParallelWorkstreamStatus @default(NOT_STARTED)
-  patientEducationStatus     ParallelWorkstreamStatus @default(NOT_STARTED)
-  openedAt                   DateTime    @default(now())
-  closedAt                   DateTime?
-  documents                  SourceDocument[]
-  evidenceItems              EvidenceItem[]
-  reviews                    HumanReview[]
-  legalStatuses              LegalStatusRecord[]
-  medicalNecessityReviews    MedicalNecessityReview[]
-  coverages                  InsuranceCoverage[]
-  authorizations             Authorization[]
-  financialEducationRecords  FinancialEducationRecord[]
-  referrals                  Referral[]
-  custodyEvents              CustodyEvent[]
-  auditEvents                AuditEvent[]
-  createdAt                  DateTime    @default(now())
-  updatedAt                  DateTime    @updatedAt
+  id                        String                     @id @default(cuid())
+  organizationId            String
+  organization              Organization               @relation(fields: [organizationId], references: [id])
+  patientTokenId            String
+  patientToken              PatientToken               @relation(fields: [patientTokenId], references: [id])
+  assignedUserId            String?
+  assignedUser              User?                      @relation("AssignedCases", fields: [assignedUserId], references: [id])
+  status                    CaseStatus                 @default(DRAFT)
+  urgency                   UrgencyLevel               @default(ROUTINE)
+  currentLocation           String?
+  requestedLevelOfCare      LevelOfCare?
+  currentLegalStatus        LegalStatusType?
+  clinicalStatus            ParallelWorkstreamStatus   @default(NOT_STARTED)
+  legalReviewStatus         ParallelWorkstreamStatus   @default(NOT_STARTED)
+  medicalScreeningStatus    ParallelWorkstreamStatus   @default(NOT_STARTED)
+  benefitsStatus            ParallelWorkstreamStatus   @default(NOT_STARTED)
+  authorizationStatus       ParallelWorkstreamStatus   @default(NOT_STARTED)
+  placementStatus           ParallelWorkstreamStatus   @default(NOT_STARTED)
+  transportationStatus      ParallelWorkstreamStatus   @default(NOT_STARTED)
+  patientEducationStatus    ParallelWorkstreamStatus   @default(NOT_STARTED)
+  openedAt                  DateTime                   @default(now())
+  closedAt                  DateTime?
+  documents                 SourceDocument[]
+  evidenceItems             EvidenceItem[]
+  reviews                   HumanReview[]
+  legalStatuses             LegalStatusRecord[]
+  medicalNecessityReviews   MedicalNecessityReview[]
+  coverages                 InsuranceCoverage[]
+  authorizations            Authorization[]
+  financialEducationRecords FinancialEducationRecord[]
+  referrals                 Referral[]
+  custodyEvents             CustodyEvent[]
+  auditEvents               AuditEvent[]
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
 
   @@index([organizationId, status])
   @@index([assignedUserId])
@@ -445,9 +445,9 @@ model BehavioralHealthCase {
 }
 
 model SourceDocument {
-  id                   String   @id @default(cuid())
+  id                   String                       @id @default(cuid())
   caseId               String
-  case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  case                 BehavioralHealthCase         @relation(fields: [caseId], references: [id], onDelete: Cascade)
   organizationId       String
   documentType         DocumentType
   filename             String
@@ -458,64 +458,64 @@ model SourceDocument {
   authorName           String?
   serviceDate          DateTime?
   uploadedBy           String
-  uploadedAt           DateTime @default(now())
+  uploadedAt           DateTime                     @default(now())
   classificationStatus DocumentClassificationStatus @default(PENDING)
-  version              Int      @default(1)
+  version              Int                          @default(1)
   evidenceItems        EvidenceItem[]
   benefitSources       BenefitVerificationSource[]
   eligibilityProofs    EligibilityProof[]
-  createdAt            DateTime @default(now())
+  createdAt            DateTime                     @default(now())
 
   @@unique([caseId, sha256, version])
   @@index([organizationId, caseId])
 }
 
 model EvidenceItem {
-  id                    String   @id @default(cuid())
-  caseId                String
-  case                  BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  documentId            String
-  document              SourceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  category              EvidenceCategory
-  subcategory           String?
-  originalText          String
-  normalizedValue       Json?
-  pageNumber            Int?
-  sectionLabel          String?
-  sourceAuthor          String?
-  sourceTimestamp       DateTime?
-  extractionConfidence  Float?
-  status                EvidenceStatus @default(CANDIDATE)
-  contradictionGroupId  String?
-  reviewedBy            String?
-  reviewedAt            DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                   String               @id @default(cuid())
+  caseId               String
+  case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  documentId           String
+  document             SourceDocument       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  category             EvidenceCategory
+  subcategory          String?
+  originalText         String
+  normalizedValue      Json?
+  pageNumber           Int?
+  sectionLabel         String?
+  sourceAuthor         String?
+  sourceTimestamp      DateTime?
+  extractionConfidence Float?
+  status               EvidenceStatus       @default(CANDIDATE)
+  contradictionGroupId String?
+  reviewedBy           String?
+  reviewedAt           DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
   @@index([caseId, category, status])
   @@index([documentId])
 }
 
 model HumanReview {
-  id           String   @id @default(cuid())
-  caseId       String
-  case         BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  objectType   ReviewObjectType
-  objectId     String
-  reviewerId   String
-  reviewer     User     @relation(fields: [reviewerId], references: [id])
-  decision     ReviewDecision
-  rationale    String?
-  reviewedAt   DateTime @default(now())
+  id         String               @id @default(cuid())
+  caseId     String
+  case       BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  objectType ReviewObjectType
+  objectId   String
+  reviewerId String
+  reviewer   User                 @relation(fields: [reviewerId], references: [id])
+  decision   ReviewDecision
+  rationale  String?
+  reviewedAt DateTime             @default(now())
 
   @@index([caseId, objectType])
   @@index([reviewerId])
 }
 
 model LegalStatusRecord {
-  id                   String   @id @default(cuid())
+  id                   String                   @id @default(cuid())
   caseId               String
-  case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  case                 BehavioralHealthCase     @relation(fields: [caseId], references: [id], onDelete: Cascade)
   jurisdiction         String
   statusType           LegalStatusType
   authorizingAuthority String?
@@ -524,27 +524,27 @@ model LegalStatusRecord {
   formDocumentId       String?
   signatureStatus      String?
   reviewStatus         ParallelWorkstreamStatus @default(NOT_STARTED)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
 
   @@index([caseId, jurisdiction])
 }
 
 model MedicalNecessityReview {
-  id                  String   @id @default(cuid())
-  caseId              String
-  case                BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  requestedLevel      LevelOfCare
-  criteriaSetId       String
-  criteriaVersion     String
+  id                 String               @id @default(cuid())
+  caseId             String
+  case               BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  requestedLevel     LevelOfCare
+  criteriaSetId      String
+  criteriaVersion    String
   supportingEvidence Json
-  missingEvidence     Json
-  contradictions      Json
-  draftNarrative      String?
-  reviewerId          String?
-  decision            ReviewDecision?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  missingEvidence    Json
+  contradictions     Json
+  draftNarrative     String?
+  reviewerId         String?
+  decision           ReviewDecision?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 
   @@index([caseId])
 }
@@ -563,33 +563,33 @@ model RuleSet {
   approvedBy        String?
   approvedAt        DateTime?
   rules             Rule[]
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   @@unique([name, version])
 }
 
 model Rule {
-  id                   String      @id @default(cuid())
-  ruleSetId            String
-  ruleSet              RuleSet     @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
-  code                 String
-  title                String
-  description          String
-  conditionExpression  Json
-  outcome              RuleOutcome
-  messageTemplate      String
-  citationReference    String?
-  severity             Severity
-  createdAt            DateTime @default(now())
+  id                  String      @id @default(cuid())
+  ruleSetId           String
+  ruleSet             RuleSet     @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+  code                String
+  title               String
+  description         String
+  conditionExpression Json
+  outcome             RuleOutcome
+  messageTemplate     String
+  citationReference   String?
+  severity            Severity
+  createdAt           DateTime    @default(now())
 
   @@unique([ruleSetId, code])
 }
 
 model PayerProfile {
-  id                         String   @id @default(cuid())
+  id                         String              @id @default(cuid())
   organizationId             String
-  organization               Organization @relation(fields: [organizationId], references: [id])
+  organization               Organization        @relation(fields: [organizationId], references: [id])
   legalName                  String
   aliases                    String[]
   portalUrlLabel             String?
@@ -604,34 +604,34 @@ model PayerProfile {
   lastVerifiedAt             DateTime?
   planProfiles               PlanProfile[]
   coverages                  InsuranceCoverage[]
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
+  createdAt                  DateTime            @default(now())
+  updatedAt                  DateTime            @updatedAt
 
   @@index([organizationId, legalName])
 }
 
 model PlanProfile {
-  id                       String   @id @default(cuid())
+  id                       String              @id @default(cuid())
   payerProfileId           String
-  payerProfile             PayerProfile @relation(fields: [payerProfileId], references: [id], onDelete: Cascade)
+  payerProfile             PayerProfile        @relation(fields: [payerProfileId], references: [id], onDelete: Cascade)
   name                     String
   planType                 CoverageType
-  knownNetworkRelationship NetworkStatus @default(UNKNOWN)
+  knownNetworkRelationship NetworkStatus       @default(UNKNOWN)
   commonBenefitStructure   Json?
   authorizationPattern     Json?
   commonExclusions         String[]
-  historicalReimbursement Json?
+  historicalReimbursement  Json?
   confidenceLevel          Float?
   lastValidatedAt          DateTime?
   coverages                InsuranceCoverage[]
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
 
   @@index([payerProfileId, name])
 }
 
 model InsuranceSubscriber {
-  id                    String   @id @default(cuid())
+  id                    String                 @id @default(cuid())
   caseId                String
   fullName              String?
   dateOfBirth           DateTime?
@@ -639,23 +639,23 @@ model InsuranceSubscriber {
   employerName          String?
   sourceDocumentIds     String[]
   coverages             InsuranceCoverage[]
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 
   @@index([caseId])
 }
 
 model InsuranceCoverage {
-  id                     String   @id @default(cuid())
+  id                     String                    @id @default(cuid())
   caseId                 String
-  case                   BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  case                   BehavioralHealthCase      @relation(fields: [caseId], references: [id], onDelete: Cascade)
   patientTokenId         String
-  patientToken           PatientToken @relation(fields: [patientTokenId], references: [id])
+  patientToken           PatientToken              @relation(fields: [patientTokenId], references: [id])
   coverageOrder          CoverageOrder
   payerProfileId         String?
-  payerProfile           PayerProfile? @relation(fields: [payerProfileId], references: [id])
+  payerProfile           PayerProfile?             @relation(fields: [payerProfileId], references: [id])
   planProfileId          String?
-  planProfile            PlanProfile? @relation(fields: [planProfileId], references: [id])
+  planProfile            PlanProfile?              @relation(fields: [planProfileId], references: [id])
   payerNameRaw           String?
   planNameRaw            String?
   memberIdEncrypted      String?
@@ -664,25 +664,25 @@ model InsuranceCoverage {
   coverageType           CoverageType
   subscriberRelationship SubscriberRelationship
   subscriberId           String?
-  subscriber             InsuranceSubscriber? @relation(fields: [subscriberId], references: [id])
-  status                 CoverageStatus @default(UNVERIFIED)
+  subscriber             InsuranceSubscriber?      @relation(fields: [subscriberId], references: [id])
+  status                 CoverageStatus            @default(UNVERIFIED)
   sourceDocumentIds      String[]
   reviewedBy             String?
   reviewedAt             DateTime?
   eligibilityChecks      EligibilityVerification[]
   benefitVerifications   BenefitVerification[]
   authorizations         Authorization[]
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
 
   @@index([caseId, coverageOrder])
   @@index([payerProfileId])
 }
 
 model EligibilityVerification {
-  id                  String   @id @default(cuid())
+  id                  String             @id @default(cuid())
   insuranceCoverageId String
-  insuranceCoverage   InsuranceCoverage @relation(fields: [insuranceCoverageId], references: [id], onDelete: Cascade)
+  insuranceCoverage   InsuranceCoverage  @relation(fields: [insuranceCoverageId], references: [id], onDelete: Cascade)
   method              VerificationMethod
   status              EligibilityStatus
   effectiveDate       DateTime?
@@ -693,166 +693,166 @@ model EligibilityVerification {
   referenceNumber     String?
   notes               String?
   proofs              EligibilityProof[]
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   @@index([insuranceCoverageId, verifiedAt])
 }
 
 model EligibilityProof {
-  id                        String   @id @default(cuid())
+  id                        String                  @id @default(cuid())
   eligibilityVerificationId String
   eligibilityVerification   EligibilityVerification @relation(fields: [eligibilityVerificationId], references: [id], onDelete: Cascade)
   documentId                String
-  document                  SourceDocument @relation(fields: [documentId], references: [id])
-  createdAt                 DateTime @default(now())
+  document                  SourceDocument          @relation(fields: [documentId], references: [id])
+  createdAt                 DateTime                @default(now())
 
   @@unique([eligibilityVerificationId, documentId])
 }
 
 model BenefitVerification {
-  id                       String   @id @default(cuid())
-  insuranceCoverageId      String
-  insuranceCoverage        InsuranceCoverage @relation(fields: [insuranceCoverageId], references: [id], onDelete: Cascade)
-  serviceType              ServiceType
-  networkStatus            NetworkStatus @default(UNKNOWN)
-  deductibleAmountCents    Int?
-  deductibleMetCents       Int?
-  coinsurancePercent       Float?
-  copayAmountCents         Int?
-  outOfPocketMaxCents      Int?
-  outOfPocketMetCents      Int?
-  authorizationRequired    Boolean?
-  notificationRequired     Boolean?
-  coverageLimit            String?
-  exclusions               String[]
-  quotedAt                 DateTime?
-  verificationReference    String?
-  disclaimerStatus         DisclaimerStatus @default(REQUIRED)
-  sources                  BenefitVerificationSource[]
-  educationRecords         FinancialEducationRecord[]
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  id                    String                      @id @default(cuid())
+  insuranceCoverageId   String
+  insuranceCoverage     InsuranceCoverage           @relation(fields: [insuranceCoverageId], references: [id], onDelete: Cascade)
+  serviceType           ServiceType
+  networkStatus         NetworkStatus               @default(UNKNOWN)
+  deductibleAmountCents Int?
+  deductibleMetCents    Int?
+  coinsurancePercent    Float?
+  copayAmountCents      Int?
+  outOfPocketMaxCents   Int?
+  outOfPocketMetCents   Int?
+  authorizationRequired Boolean?
+  notificationRequired  Boolean?
+  coverageLimit         String?
+  exclusions            String[]
+  quotedAt              DateTime?
+  verificationReference String?
+  disclaimerStatus      DisclaimerStatus            @default(REQUIRED)
+  sources               BenefitVerificationSource[]
+  educationRecords      FinancialEducationRecord[]
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
 
   @@index([insuranceCoverageId, serviceType])
 }
 
 model BenefitVerificationSource {
-  id                    String   @id @default(cuid())
+  id                    String              @id @default(cuid())
   benefitVerificationId String
   benefitVerification   BenefitVerification @relation(fields: [benefitVerificationId], references: [id], onDelete: Cascade)
   documentId            String
-  document              SourceDocument @relation(fields: [documentId], references: [id])
-  createdAt             DateTime @default(now())
+  document              SourceDocument      @relation(fields: [documentId], references: [id])
+  createdAt             DateTime            @default(now())
 
   @@unique([benefitVerificationId, documentId])
 }
 
 model Authorization {
-  id                       String   @id @default(cuid())
-  caseId                   String
-  case                     BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  insuranceCoverageId      String
-  insuranceCoverage        InsuranceCoverage @relation(fields: [insuranceCoverageId], references: [id])
-  requestedLevelOfCare     LevelOfCare
-  status                   AuthorizationStatus @default(NOT_STARTED)
-  authorizationNumber      String?
-  requestedAt              DateTime?
-  decisionAt               DateTime?
-  approvedStartDate        DateTime?
-  approvedEndDate          DateTime?
-  approvedUnits            Int?
-  nextReviewDate           DateTime?
-  denialReason             String?
-  appealStatus             String?
-  assignedUserId           String?
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  id                   String               @id @default(cuid())
+  caseId               String
+  case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  insuranceCoverageId  String
+  insuranceCoverage    InsuranceCoverage    @relation(fields: [insuranceCoverageId], references: [id])
+  requestedLevelOfCare LevelOfCare
+  status               AuthorizationStatus  @default(NOT_STARTED)
+  authorizationNumber  String?
+  requestedAt          DateTime?
+  decisionAt           DateTime?
+  approvedStartDate    DateTime?
+  approvedEndDate      DateTime?
+  approvedUnits        Int?
+  nextReviewDate       DateTime?
+  denialReason         String?
+  appealStatus         String?
+  assignedUserId       String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
   @@index([caseId, status])
   @@index([insuranceCoverageId])
 }
 
 model FinancialEducationRecord {
-  id                      String   @id @default(cuid())
-  caseId                  String
-  case                    BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  benefitVerificationId   String?
-  benefitVerification     BenefitVerification? @relation(fields: [benefitVerificationId], references: [id])
-  recipientType           EducationRecipientType
-  recipientName           String?
-  method                  EducationMethod
-  language                String?
-  interpreterUsed         Boolean @default(false)
-  topicsReviewed          String[]
-  uncertaintiesDisclosed  String[]
-  acknowledgementStatus   AcknowledgementStatus
-  educatedBy              String
-  educatedAt              DateTime @default(now())
+  id                     String                 @id @default(cuid())
+  caseId                 String
+  case                   BehavioralHealthCase   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  benefitVerificationId  String?
+  benefitVerification    BenefitVerification?   @relation(fields: [benefitVerificationId], references: [id])
+  recipientType          EducationRecipientType
+  recipientName          String?
+  method                 EducationMethod
+  language               String?
+  interpreterUsed        Boolean                @default(false)
+  topicsReviewed         String[]
+  uncertaintiesDisclosed String[]
+  acknowledgementStatus  AcknowledgementStatus
+  educatedBy             String
+  educatedAt             DateTime               @default(now())
 
   @@index([caseId, educatedAt])
 }
 
 model FacilityProfile {
-  id                   String   @id @default(cuid())
-  organizationId       String
-  organization         Organization @relation(fields: [organizationId], references: [id])
-  name                 String
-  programs             LevelOfCare[]
-  acceptedAges         Json?
-  acceptedCoverageTypes CoverageType[]
-  medicalCapabilities  String[]
-  exclusionCriteria    String[]
+  id                      String            @id @default(cuid())
+  organizationId          String
+  organization            Organization      @relation(fields: [organizationId], references: [id])
+  name                    String
+  programs                LevelOfCare[]
+  acceptedAges            Json?
+  acceptedCoverageTypes   CoverageType[]
+  medicalCapabilities     String[]
+  exclusionCriteria       String[]
   legalStatusCapabilities LegalStatusType[]
-  transportationRules  String[]
-  referralRequirements String[]
-  lastVerifiedAt       DateTime?
-  referrals            Referral[]
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  transportationRules     String[]
+  referralRequirements    String[]
+  lastVerifiedAt          DateTime?
+  referrals               Referral[]
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
 
   @@index([organizationId, name])
 }
 
 model Referral {
-  id                    String   @id @default(cuid())
-  caseId                String
-  case                  BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  facilityId            String
-  facility              FacilityProfile @relation(fields: [facilityId], references: [id])
-  packetVersion         Int
-  sentAt                DateTime?
-  status                ReferralStatus @default(DRAFT)
-  responseAt            DateTime?
-  responseReason        String?
-  requestedInformation  String[]
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                   String               @id @default(cuid())
+  caseId               String
+  case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  facilityId           String
+  facility             FacilityProfile      @relation(fields: [facilityId], references: [id])
+  packetVersion        Int
+  sentAt               DateTime?
+  status               ReferralStatus       @default(DRAFT)
+  responseAt           DateTime?
+  responseReason       String?
+  requestedInformation String[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
   @@index([caseId, status])
   @@index([facilityId])
 }
 
 model CustodyEvent {
-  id                 String   @id @default(cuid())
-  caseId             String
-  case               BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  fromPartyType      CustodyPartyType
-  fromPartyName      String?
-  toPartyType        CustodyPartyType
-  toPartyName        String?
-  authority          String?
-  location           String?
-  occurredAt         DateTime
-  transportProvider  String?
-  documentationIds   String[]
-  createdAt          DateTime @default(now())
+  id                String               @id @default(cuid())
+  caseId            String
+  case              BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  fromPartyType     CustodyPartyType
+  fromPartyName     String?
+  toPartyType       CustodyPartyType
+  toPartyName       String?
+  authority         String?
+  location          String?
+  occurredAt        DateTime
+  transportProvider String?
+  documentationIds  String[]
+  createdAt         DateTime             @default(now())
 
   @@index([caseId, occurredAt])
 }
 
 model AuditEvent {
-  id                String   @id @default(cuid())
+  id                String                @id @default(cuid())
   organizationId    String
   caseId            String?
   case              BehavioralHealthCase? @relation(fields: [caseId], references: [id], onDelete: Cascade)
@@ -865,7 +865,7 @@ model AuditEvent {
   newStateHash      String?
   reason            String?
   modelMetadata     Json?
-  timestamp         DateTime @default(now())
+  timestamp         DateTime              @default(now())
   ipAddressHash     String?
 
   @@index([organizationId, timestamp])

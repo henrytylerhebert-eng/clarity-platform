@@ -1,0 +1,36 @@
+{
+  "name": "clarity-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Clarity behavioral-health case intelligence and workflow platform (synthetic data only; not a deployed clinical system)",
+  "workspaces": [
+    "app",
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "vitest run --dir tests --dir packages",
+    "test:app": "npm --workspace app test",
+    "prisma:format": "prisma format",
+    "prisma:validate": "prisma validate",
+    "prisma:generate": "prisma generate"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prisma": "^6.1.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "zod": "^3.24.1"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.21.5": true,
+    "@prisma/client@7.8.0": true
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
+  }
+}
