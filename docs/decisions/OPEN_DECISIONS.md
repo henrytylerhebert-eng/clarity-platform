@@ -1,0 +1,29 @@
+---
+status: Living document
+owner: TBD
+version: 1.0.0
+last_integrated: 2026-07-10
+source_artifacts:
+  - docs/06-architecture-review.md (Jul 8 findings + unknowns)
+  - docs/repository-audit/03_CONFLICT_REGISTER.md, 03_GAP_ANALYSIS.md
+unresolved_conflicts: "Package 18-open-decisions-and-risks/OPEN_DECISIONS.md missing — this file re-seeds it"
+related_requirements: —
+related_adrs: ADR-0001, ADR-0002
+---
+
+# Open Decisions
+
+| # | Decision needed | Owner type | Blocking |
+|---|---|---|---|
+| OD-1 | Obtain the full master package v0.2.0 (72 files missing); re-run comparison for 12 summary-graded domains | Product owner | Canonical status of agent/API/UI/eval/commercial domains |
+| OD-2 | Louisiana statutory wording, official forms, trigger/duration language | Counsel | Any legal-clock or instrument enforcement |
+| OD-3 | Clinical criteria licensing (InterQual/MCG or payer-specific) and clinician governance of assessment content | Clinical + legal | Medical-necessity criteria mapping |
+| OD-4 | Product naming: "Clarity", "Clarity MH", "Clarity AI", "Clarity Crisis Platform" all appear; pick one | Product owner | Branding in docs/UI |
+| OD-5 | Backend/API architecture (no local spec from either generation) | Tech lead | Stage-2+ platform build |
+| OD-6 | Database hosting + RLS strategy (re-derive from canonical schema; Supabase starter superseded) | Tech lead + security | Migrations, tenancy tests against a real DB |
+| OD-7 | pnpm/Turborepo migration timing (deferred by ADR-0001) | Tech lead | None immediately |
+| OD-8 | Expanded 43-model schema adoption path (which models graduate when) | Tech lead | ADR-0002 follow-up |
+| OD-9 | Node version pin + lint/format toolchain + CI | Tech lead | Stage-1 completion |
+| OD-10 | The 7 missing synthetic cases (recreate vs. obtain) | Product owner | Evaluation coverage |
+| OD-11 | Payer criteria packs and facility authorization rules (unknown in both generations) | Revenue cycle | Benefits/auth workflows beyond schema |
+| OD-12 | Baseline operational measurements (transfer timing, acceptance rate, packet completeness) | Product owner | ROI claims, pilot design |
