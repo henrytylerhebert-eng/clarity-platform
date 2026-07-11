@@ -1,8 +1,10 @@
 # Implementation Status
 
-**As of 2026-07-10** (post-integration). A capability appears in exactly one bucket. "Verified" means it ran in this session.
+**As of 2026-07-11** (post case-repository implementation). A capability appears in exactly one bucket. "Verified" means it ran in this session.
 
 ## Completed (verified working)
+
+- **Tenant-scoped case repository** (`packages/case-repository`, branch `feat/tenant-scoped-case-repository`): Prisma-backed `CaseRepository` with organization scoping in every query/write predicate, atomic case-mutation + audit-event transactions, append-only audit writes with the restricted-identifier guard, optimistic concurrency on state transitions. Verified against local `clarity_dev`: 30/30 integration tests, 69/69 full root suite, cleanup leaves zero synthetic rows. See `docs/implementation/CASE_REPOSITORY_IMPLEMENTATION.md` and `docs/testing/CASE_REPOSITORY_TEST_MANIFEST.md`. **Audit integration: implemented** for case mutations (no DB-level immutability enforcement yet; no state hashes).
 
 - `app/` crisis-path prototype: guided intake, drafts with prohibited-language guards, hash-chained custody ledger, compliance clocks (demo values), packet builder, simulated routing, bedboard, role-adaptive UX — unit tests 37/37, Playwright smoke 16/16, typecheck + production build pass. Frontend demo only (localStorage).
 - Canonical foundation Prisma schema: `prisma format` / `validate` / `generate` passed; migration `20260710233252_initial_clarity_foundation` generated and applied to local PostgreSQL 18.4.
@@ -12,7 +14,7 @@
 
 ## Scaffolded (contracts exist; no runtime behind them)
 
-- `packages/domain-contracts`: workstream + case state machines, append-only audit helper with restricted-identifier guard, benefits/eligibility/authorization contracts, payer-memory labeling, separate readiness dimensions, 6 dark feature flags, seed loader, org-scope repository interface.
+- `packages/domain-contracts`: workstream + case state machines, append-only audit helper with restricted-identifier guard, benefits/eligibility/authorization contracts, payer-memory labeling, separate readiness dimensions, 6 dark feature flags, seed loader. The `CaseRepository` interface now has a real implementation (see Completed); the benefits/eligibility/authorization contracts still have none.
 
 ## Documented only (no code)
 
@@ -46,4 +48,6 @@
 
 ## Next recommended action
 
-**Issue: "Implement tenant-scoped case repository against the migrated schema."** Build a `CaseRepository` implementation (Prisma client, `clarity_dev`) satisfying `packages/domain-contracts/src/organizationScope.ts`, wire `AppendOnlyAuditLog` semantics to an `AuditEvent` table writer, and port the 39 baseline tests to run against the database (integration tier). This converts the validated schema + contracts into the first real platform capability without touching UI or agents.
+~~Implement tenant-scoped case repository~~ **done** (`feat/tenant-scoped-case-repository`).
+
+**Issue: "Implement the document domain: tenant-scoped SourceDocument persistence with checksums and audit."** Persist `SourceDocument` rows through the same repository pattern (organization-scoped predicates, atomic `DOCUMENT_UPLOADED`/`DOCUMENT_CLASSIFIED` audit events per REQ-005/006), compute and store SHA-256 checksums for synthetic document fixtures, and gate classification status changes on the existing enum. This is the next spine step (documents feed evidence), reuses the proven harness, and still requires no UI, agents, or external services.

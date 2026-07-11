@@ -335,13 +335,13 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/tsconfig.json": {
-    "mtime": 1783726719.2706363,
-    "ast_hash": "0c2bab34ba72ebd97bfdb2548ce65f66",
+    "mtime": 1783727850.6436338,
+    "ast_hash": "9d7657e628b78ba030e02c846918a2c0",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/vitest.config.ts": {
-    "mtime": 1783726720.9837337,
-    "ast_hash": "2c7536ea102228b88bd4cfa31770c1c4",
+    "mtime": 1783727848.764331,
+    "ast_hash": "9266c00aefc18db3ef5a15e4a48f79d1",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/prisma/migrations/20260710233252_initial_clarity_foundation/migration.sql": {
@@ -405,8 +405,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/organizationScope.ts": {
-    "mtime": 1783726619.48263,
-    "ast_hash": "66e247d7b17b29a08ec009cf231b1d0c",
+    "mtime": 1783727742.5196388,
+    "ast_hash": "da3f726eca87ed952c4a2313d247b8ff",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/caseStateMachine.ts": {
@@ -455,8 +455,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/audit.ts": {
-    "mtime": 1783726549.0005696,
-    "ast_hash": "95d048eb235ff0b94e46ddb30da9661b",
+    "mtime": 1783727734.415216,
+    "ast_hash": "326d5209c106c7b2105aaa596abb0b8d",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/payerMemory.ts": {
@@ -530,8 +530,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/IMPLEMENTATION_STATUS.md": {
-    "mtime": 1783726986.2609494,
-    "ast_hash": "d7cb7fc55c47e37107527cb3072aef2e",
+    "mtime": 1783775913.9596004,
+    "ast_hash": "a862af41b48ec2b8737d7e1d3212e033",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/ARCHITECTURE.md": {
@@ -1037,6 +1037,71 @@
   "/Users/tylerhebert/Documents/clarity-platform/reference/source-packages/clarity-mh-architecture/sources/Louisiana Inpatient Psychiatry Assessment and Crisis Platform Feasibility Report.md": {
     "mtime": 1783542504.0,
     "ast_hash": "728ba7a41e82af853ebe1e3b4ba74be0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/tests/integration/tenant-isolation.test.ts": {
+    "mtime": 1783775701.4262328,
+    "ast_hash": "d07698964ee70eacb0a1e0af9b461c1c",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/tests/integration/case-repository.test.ts": {
+    "mtime": 1783775678.8911242,
+    "ast_hash": "a50b0910a639a92e5cd806db8c1f8305",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/tests/integration/synthetic-seed.test.ts": {
+    "mtime": 1783775741.735325,
+    "ast_hash": "462e05afc352bedc487fba467145b6e4",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/tests/integration/audit-persistence.test.ts": {
+    "mtime": 1783775724.626027,
+    "ast_hash": "0227afafda0345c0a34ea4664f086290",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/tests/integration/helpers/harness.ts": {
+    "mtime": 1783727914.844888,
+    "ast_hash": "bc0ef9491b3ce02409490e94d8e7643d",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/package.json": {
+    "mtime": 1783727761.468707,
+    "ast_hash": "03c57e0344d01b6af4242523401e8087",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/mappers.ts": {
+    "mtime": 1783727789.509569,
+    "ast_hash": "e3d75e1fa1332638a002a6a2029b79cb",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/prismaClient.ts": {
+    "mtime": 1783727765.8958323,
+    "ast_hash": "104b71b351b4f44b28e813b1639ff8cd",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/prismaCaseRepository.ts": {
+    "mtime": 1783727840.4023004,
+    "ast_hash": "baaebbe3f6aafbcdd3f2f5217ec905ea",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/index.ts": {
+    "mtime": 1783727840.9216466,
+    "ast_hash": "99b4b7abeb52785a3d2424bab1750883",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/auditWriter.ts": {
+    "mtime": 1783727797.3440547,
+    "ast_hash": "37b97da9e5b209672170b375872573a6",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/testing/CASE_REPOSITORY_TEST_MANIFEST.md": {
+    "mtime": 1783775882.5896301,
+    "ast_hash": "bb0a581effb46998a317056a69721a1e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/implementation/CASE_REPOSITORY_IMPLEMENTATION.md": {
+    "mtime": 1783775829.714047,
+    "ast_hash": "cc73e489e8a5dade8909aa392af2538c",
     "semantic_hash": ""
   }
 }
