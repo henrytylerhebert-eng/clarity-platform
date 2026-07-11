@@ -425,6 +425,9 @@ model BehavioralHealthCase {
   patientEducationStatus    ParallelWorkstreamStatus   @default(NOT_STARTED)
   openedAt                  DateTime                   @default(now())
   closedAt                  DateTime?
+  /// Optimistic-concurrency token: incremented by every mutation; commands
+  /// carry an expectedVersion and fail safely when it is stale.
+  version                   Int                        @default(0)
   documents                 SourceDocument[]
   evidenceItems             EvidenceItem[]
   reviews                   HumanReview[]
@@ -870,4 +873,20 @@ model AuditEvent {
 
   @@index([organizationId, timestamp])
   @@index([caseId, timestamp])
+}
+
+/// Idempotency guard for retried case commands. One row per
+/// (organization, idempotencyKey); replays return the recorded outcome
+/// instead of re-executing the command. Rows are append-only.
+model CommandIdempotencyRecord {
+  id             String   @id @default(cuid())
+  organizationId String
+  idempotencyKey String
+  commandType    String
+  caseId         String?
+  resultVersion  Int?
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, createdAt])
 }
