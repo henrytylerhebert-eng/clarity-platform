@@ -4,3 +4,5 @@ export * from "./auditWriter.js";
 export * from "./prismaCaseRepository.js";
 export * from "./stateHash.js";
 export * from "./caseCommandGateway.js";
+export * from "./documentMappers.js";
+export * from "./documentGateway.js";
