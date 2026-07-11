@@ -10,15 +10,20 @@
   "scripts": {
     "test": "vitest run",
     "test:app": "npm --workspace app test",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "prisma:format": "prisma format",
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.10.2",
+    "eslint": "^10.7.0",
     "jsdom": "^25.0.1",
     "prisma": "^6.1.0",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.63.0",
     "vitest": "^2.1.8",
     "zod": "^3.24.1"
   },

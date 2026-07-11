@@ -17,7 +17,7 @@ async function main() {
     }
   });
 
-  const user = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: "synthetic.intake@example.invalid" },
     update: {},
     create: {

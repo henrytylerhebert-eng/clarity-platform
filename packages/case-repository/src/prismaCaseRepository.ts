@@ -91,7 +91,7 @@ export class PrismaCaseRepository implements CaseRepository<PersistedCase> {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
         // Deliberately does not confirm where the key is in use (no cross-tenant leak).
-        throw new Error(`Case key "${data.caseKey}" is unavailable`);
+        throw new Error(`Case key "${data.caseKey}" is unavailable`, { cause: e });
       }
       throw e;
     }

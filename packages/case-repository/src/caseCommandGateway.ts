@@ -197,7 +197,7 @@ export class PrismaCaseCommandGateway {
         if (record) return this.replayFromRecord(record, organizationId, commandType);
       }
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-        throw new Error(`Case key "${params.data.caseKey}" is unavailable`);
+        throw new Error(`Case key "${params.data.caseKey}" is unavailable`, { cause: e });
       }
       throw e;
     }
