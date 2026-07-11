@@ -10,6 +10,9 @@ export default defineConfig({
       "@clarity/case-repository": fileURLToPath(
         new URL("./packages/case-repository/src/index.ts", import.meta.url),
       ),
+      "@clarity/case-service": fileURLToPath(
+        new URL("./packages/case-service/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {

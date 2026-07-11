@@ -1,0 +1,13 @@
+{
+  "name": "@clarity/case-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Tenant-scoped case command service and audited workflow transition engine. The single controlled path for every case action: permission checks, state machines, rationale rules, optimistic concurrency, idempotency. No Prisma outside the approved gateway adapter; no UI; no AI.",
+  "dependencies": {
+    "@clarity/case-repository": "*",
+    "@clarity/domain-contracts": "*",
+    "zod": "^3.24.1"
+  }
+}
