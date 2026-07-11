@@ -1,0 +1,13 @@
+{
+  "name": "@clarity/document-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Tenant-scoped document command service: synthetic storage-backed upload with SHA-256 duplicate detection, classification state machine, case-ownership checks, and audited document access. The single controlled path for every document action. No Prisma outside the approved gateway adapter; no OCR/AI extraction.",
+  "dependencies": {
+    "@clarity/case-repository": "*",
+    "@clarity/domain-contracts": "*",
+    "zod": "^3.24.1"
+  }
+}

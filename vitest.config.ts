@@ -13,6 +13,9 @@ export default defineConfig({
       "@clarity/case-service": fileURLToPath(
         new URL("./packages/case-service/src/index.ts", import.meta.url),
       ),
+      "@clarity/document-service": fileURLToPath(
+        new URL("./packages/document-service/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {
