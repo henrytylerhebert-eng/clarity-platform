@@ -135,7 +135,11 @@ export class PrismaCaseRepository implements CaseRepository<PersistedCase> {
       }
       const updated = await tx.behavioralHealthCase.updateMany({
         where: { id: caseKey, organizationId, status: current.status },
-        data: { status: target, ...(target === "CLOSED" ? { closedAt: this.now() } : {}) },
+        data: {
+          status: target,
+          version: { increment: 1 },
+          ...(target === "CLOSED" ? { closedAt: this.now() } : {}),
+        },
       });
       if (updated.count !== 1) {
         throw new Error(`Case "${caseKey}" was modified concurrently; transition aborted`);
@@ -188,7 +192,7 @@ export class PrismaCaseRepository implements CaseRepository<PersistedCase> {
       }
       const updated = await tx.behavioralHealthCase.updateMany({
         where: { id: caseKey, organizationId, [column]: from },
-        data: { [column]: target },
+        data: { [column]: target, version: { increment: 1 } },
       });
       if (updated.count !== 1) {
         throw new Error(`Case "${caseKey}" was modified concurrently; workstream update aborted`);

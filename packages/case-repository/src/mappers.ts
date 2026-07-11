@@ -23,8 +23,12 @@ import {
  */
 export interface PersistedCase extends ClarityCase {
   readonly patientTokenId: string;
+  readonly assignedUserId?: string | null;
+  readonly currentLocation?: string | null;
   readonly openedAt?: Date;
   readonly closedAt?: Date | null;
+  /** Optimistic-concurrency token; incremented by every mutation. */
+  readonly version?: number;
 }
 
 /** Column names for the eight parallel workstreams, in contract order. */
@@ -55,11 +59,14 @@ export function rowToDomain(row: CaseRow): PersistedCase {
     caseKey: row.id,
     organizationId: row.organizationId,
     patientTokenId: row.patientTokenId,
+    assignedUserId: row.assignedUserId,
+    currentLocation: row.currentLocation,
     status: parseEnum<CaseStatus>(row.status, CASE_STATUSES, "status"),
     urgency: parseEnum<UrgencyLevel>(row.urgency, URGENCY_LEVELS, "urgency"),
     workstreams,
     openedAt: row.openedAt,
     closedAt: row.closedAt,
+    version: row.version,
   };
 }
 
@@ -79,6 +86,8 @@ export function domainToCreateRow(
     id: data.caseKey,
     organizationId,
     patientTokenId: data.patientTokenId,
+    assignedUserId: data.assignedUserId ?? null,
+    currentLocation: data.currentLocation ?? null,
     status: data.status,
     urgency: data.urgency,
     ...workstreamColumns,

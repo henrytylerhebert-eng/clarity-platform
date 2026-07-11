@@ -1,4 +1,5 @@
 export * from "./workstreams.js";
+export * from "./roles.js";
 export * from "./caseStateMachine.js";
 export * from "./audit.js";
 export * from "./benefits.js";

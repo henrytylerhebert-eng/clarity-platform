@@ -92,6 +92,17 @@ export interface ClarityCase {
   workstreams: WorkstreamStatuses;
 }
 
+/**
+ * Reopening is NOT a normal transition: canTransitionCase deliberately
+ * rejects everything out of a terminal state. Reopen is an explicitly
+ * permitted, role-gated, rationale-required exception path handled by the
+ * command service. It may only land on an active (non-terminal,
+ * non-exception) state.
+ */
+export function canReopenCase(from: CaseStatus, to: CaseStatus): boolean {
+  return TERMINAL.includes(from) && ACTIVE_ORDER.includes(to) && to !== "CLOSED";
+}
+
 export function transitionCase(c: ClarityCase, to: CaseStatus): ClarityCase {
   if (!canTransitionCase(c.status, to)) {
     throw new Error(`Invalid case transition: ${c.status} -> ${to}`);

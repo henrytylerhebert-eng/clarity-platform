@@ -1,0 +1,19 @@
+/**
+ * User roles. Values mirror prisma/schema.prisma enum UserRole — keep in sync.
+ */
+export const USER_ROLES = [
+  "SYSTEM_ADMIN",
+  "ORGANIZATION_ADMIN",
+  "INTAKE_COORDINATOR",
+  "CLINICAL_REVIEWER",
+  "PHYSICIAN_REVIEWER",
+  "UTILIZATION_REVIEWER",
+  "LEGAL_REVIEWER",
+  "BENEFITS_VERIFICATION_SPECIALIST",
+  "AUTHORIZATION_SPECIALIST",
+  "FACILITY_REVIEWER",
+  "TRANSPORT_COORDINATOR",
+  "COMPLIANCE_REVIEWER",
+  "READ_ONLY_AUDITOR",
+] as const;
+export type UserRole = (typeof USER_ROLES)[number];

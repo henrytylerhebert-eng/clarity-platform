@@ -13,6 +13,8 @@ export interface CaseAuditRecord {
   readonly objectId: string;
   readonly reason?: string;
   readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly previousStateHash?: string;
+  readonly newStateHash?: string;
   readonly occurredAt: Date;
 }
 
@@ -45,6 +47,8 @@ export class PrismaCaseAuditWriter implements CaseAuditWriter {
         objectId: record.objectId,
         reason: record.reason,
         modelMetadata: record.metadata as Prisma.InputJsonValue | undefined,
+        previousStateHash: record.previousStateHash,
+        newStateHash: record.newStateHash,
         timestamp: record.occurredAt,
       },
     });
