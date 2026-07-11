@@ -56,6 +56,14 @@ export interface ClarityDocument extends OrgScoped {
   readonly mimeType: string;
   readonly storageKey: string;
   readonly sha256: string;
+  /** Actual byte length, measured from the stored bytes (never caller-reported). */
+  readonly fileSizeBytes: number;
+  /**
+   * Version-family root (= the first version's document id). All versions of
+   * the same logical document share it; the current version is the family's
+   * highest `version`.
+   */
+  readonly documentFamilyId: string;
   readonly classificationStatus: DocumentClassificationStatus;
   readonly version: number;
   readonly uploadedBy: string;
@@ -63,6 +71,23 @@ export interface ClarityDocument extends OrgScoped {
   readonly sourceOrganization?: string | null;
   readonly authorName?: string | null;
   readonly serviceDate?: Date | null;
+}
+
+/**
+ * Filenames are caller-supplied and may embed identifiers (e.g.
+ * "doe-jane-dob-1990.pdf"), so raw filenames never enter audit metadata.
+ * This keeps only the extension (vocabulary, not identity) plus a bounded
+ * sanitized stem, strips any path components, and collapses everything
+ * outside [A-Za-z0-9_-] so control characters and separators cannot survive.
+ */
+export function sanitizeFilenameForAudit(filename: string): string {
+  const basename = filename.split(/[/\\]/).pop() ?? "";
+  const dot = basename.lastIndexOf(".");
+  const stem = dot > 0 ? basename.slice(0, dot) : basename;
+  const ext = dot > 0 ? basename.slice(dot + 1) : "";
+  const safeStem = stem.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 24);
+  const safeExt = ext.replace(/[^A-Za-z0-9]/g, "").slice(0, 8).toLowerCase();
+  return safeExt ? `${safeStem || "file"}.${safeExt}` : safeStem || "file";
 }
 
 /**
@@ -84,4 +109,7 @@ export interface StoredDocument {
 export interface DocumentStorage {
   put(caseId: string, content: Uint8Array): Promise<StoredDocument>;
   get(storageKey: string): Promise<Uint8Array>;
+  /** Idempotent: deleting a missing key is a no-op (used by compensation). */
+  delete(storageKey: string): Promise<void>;
+  exists(storageKey: string): Promise<boolean>;
 }

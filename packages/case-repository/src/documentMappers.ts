@@ -22,6 +22,8 @@ export function documentRowToDomain(row: DocumentRow): ClarityDocument {
     mimeType: row.mimeType,
     storageKey: row.storageKey,
     sha256: row.sha256,
+    fileSizeBytes: row.fileSizeBytes,
+    documentFamilyId: row.documentFamilyId,
     classificationStatus: parseEnum<DocumentClassificationStatus>(
       row.classificationStatus,
       DOCUMENT_CLASSIFICATION_STATUSES,

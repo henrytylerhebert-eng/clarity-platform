@@ -457,6 +457,13 @@ model SourceDocument {
   mimeType             String
   storageKey           String
   sha256               String
+  /// Actual byte length of the stored content, measured from the bytes
+  /// themselves at upload time (never caller-reported).
+  fileSizeBytes        Int
+  /// Version-family root: equals the first version's id. All versions of the
+  /// same logical document share it; the current version is the family's
+  /// highest `version`. (ADR-0007)
+  documentFamilyId     String
   sourceOrganization   String?
   authorName           String?
   serviceDate          DateTime?
@@ -471,6 +478,7 @@ model SourceDocument {
 
   @@unique([caseId, sha256, version])
   @@index([organizationId, caseId])
+  @@index([documentFamilyId])
 }
 
 model EvidenceItem {
