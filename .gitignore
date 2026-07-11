@@ -21,3 +21,6 @@ playwright-report/
 
 # Prisma generated client
 generated/
+
+# Local development object storage (synthetic document bytes; never commit)
+.local-object-storage/
