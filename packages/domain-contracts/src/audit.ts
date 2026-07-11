@@ -31,7 +31,7 @@ export const RESTRICTED_AUDIT_FIELDS = [
   "credential",
 ] as const;
 
-function assertNoRestrictedFields(value: unknown, path = "payload"): void {
+export function assertNoRestrictedFields(value: unknown, path = "payload"): void {
   if (value === null || typeof value !== "object") return;
   for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
     const lower = k.toLowerCase();
