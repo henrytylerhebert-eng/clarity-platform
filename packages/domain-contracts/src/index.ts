@@ -10,3 +10,6 @@ export * from "./featureFlags.js";
 export * from "./syntheticCase.js";
 export * from "./seedLoader.js";
 export * from "./organizationScope.js";
+export * from "./actor.js";
+export * from "./commandErrors.js";
+export * from "./documents.js";

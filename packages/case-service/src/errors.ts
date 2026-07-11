@@ -1,18 +1,8 @@
-/** Actor's roles do not permit the command. */
-export class PermissionDeniedError extends Error {
-  constructor(command: string, roles: readonly string[]) {
-    super(`Roles [${roles.join(", ") || "none"}] are not permitted to execute ${command}`);
-    this.name = "PermissionDeniedError";
-  }
-}
-
-/** A high-impact command was issued without the required rationale. */
-export class RationaleRequiredError extends Error {
-  constructor(command: string) {
-    super(`${command} requires a reason/rationale`);
-    this.name = "RationaleRequiredError";
-  }
-}
+/**
+ * PermissionDeniedError / RationaleRequiredError live in @clarity/domain-contracts
+ * (shared by every command service); re-exported here for backward compatibility.
+ */
+export { PermissionDeniedError, RationaleRequiredError } from "@clarity/domain-contracts";
 
 /** The case is in a terminal state; only ReopenCase may touch it. */
 export class TerminalCaseError extends Error {

@@ -1,8 +1,8 @@
 import { z } from "zod";
 import {
   CASE_STATUSES,
+  CommandActorSchema,
   URGENCY_LEVELS,
-  USER_ROLES,
   WORKSTREAM_STATUSES,
   WORKSTREAMS,
 } from "@clarity/domain-contracts";
@@ -11,18 +11,12 @@ import {
  * Command envelopes. Every command carries tenant, actor identity + roles,
  * optional correlation/idempotency, optional reason, and (for mutations of an
  * existing case) the case key and optional expected version.
- * Actor roles are supplied by the caller: authentication/authorization
- * infrastructure is upstream and does not exist yet — documented assumption.
+ * CommandActorSchema/CommandActor live in @clarity/domain-contracts (shared by
+ * every command service); re-exported here for backward compatibility.
  */
 
-export const CommandActorSchema = z
-  .object({
-    actorId: z.string().min(1),
-    actorType: z.enum(["USER", "AGENT", "SYSTEM"]).default("USER"),
-    roles: z.array(z.enum(USER_ROLES)).default([]),
-  })
-  .strict();
-export type CommandActor = z.input<typeof CommandActorSchema>;
+export { CommandActorSchema };
+export type { CommandActor } from "@clarity/domain-contracts";
 
 const baseEnvelope = {
   organizationId: z.string().min(1),
