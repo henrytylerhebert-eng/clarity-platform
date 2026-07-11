@@ -51,9 +51,31 @@ export const AccessDocumentCommandSchema = z
     ...baseEnvelope,
     caseId: z.string().min(1),
     documentId: z.string().min(1),
+    /**
+     * Recorded in the DOCUMENT_ACCESSED audit event's metadata. VIEW and
+     * DOWNLOAD are the same read at this layer; the distinction exists for
+     * the audit trail (maps the required DOCUMENT_VIEWED / DOCUMENT_DOWNLOADED
+     * vocabulary onto the canonical DOCUMENT_ACCESSED action).
+     */
+    accessMode: z.enum(["VIEW", "DOWNLOAD"]).default("VIEW"),
   })
   .strict();
 export type AccessDocumentCommand = z.input<typeof AccessDocumentCommandSchema>;
+
+export const CreateDocumentVersionCommandSchema = z
+  .object({
+    ...baseEnvelope,
+    caseId: z.string().min(1),
+    /** Any existing version of the family being corrected/updated. */
+    documentId: z.string().min(1),
+    filename: z.string().min(1),
+    mimeType: z.string().min(1),
+    content: z.custom<Uint8Array>((v) => v instanceof Uint8Array, { message: "content must be a Uint8Array" }),
+    /** Mandatory: why the document needed a new version. */
+    reason: z.string().min(1),
+  })
+  .strict();
+export type CreateDocumentVersionCommand = z.input<typeof CreateDocumentVersionCommandSchema>;
 
 /**
  * Rejecting a document (permanent, terminal) is a high-impact classification

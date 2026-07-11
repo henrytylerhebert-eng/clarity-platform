@@ -25,6 +25,18 @@ export const DOCUMENT_ROLE_POLICY = {
     "TRANSPORT_COORDINATOR",
   ],
   ClassifyDocument: ["INTAKE_COORDINATOR", "ORGANIZATION_ADMIN", "CLINICAL_REVIEWER", "PHYSICIAN_REVIEWER"],
+  // Correcting a document is an upload-shaped act: same roles as UploadDocument.
+  CreateDocumentVersion: [
+    "INTAKE_COORDINATOR",
+    "ORGANIZATION_ADMIN",
+    "CLINICAL_REVIEWER",
+    "PHYSICIAN_REVIEWER",
+    "LEGAL_REVIEWER",
+    "BENEFITS_VERIFICATION_SPECIALIST",
+    "AUTHORIZATION_SPECIALIST",
+    "FACILITY_REVIEWER",
+    "TRANSPORT_COORDINATOR",
+  ],
   AccessDocument: [
     "ORGANIZATION_ADMIN",
     "INTAKE_COORDINATOR",
