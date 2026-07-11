@@ -28,7 +28,7 @@ import {
   type UpdateWorkstreamStatusCommand,
 } from "./commands.js";
 import { assertPermitted, assertWorkstreamPermitted } from "./permissions.js";
-import { CaseNotFoundError, RationaleRequiredError, TerminalCaseError } from "./errors.js";
+import { RationaleRequiredError, TerminalCaseError } from "./errors.js";
 
 /**
  * Audit action vocabulary. CASE_STATUS_CHANGED / CASE_WORKSTREAM_CHANGED keep
@@ -103,11 +103,13 @@ export class CaseCommandService {
   async assignCase(input: AssignCaseCommand): Promise<CommandResult> {
     const cmd = AssignCaseCommandSchema.parse(input);
     assertPermitted("AssignCase", cmd.actor.roles);
-    // Assignee must exist in the SAME organization (FK alone would allow cross-org users).
-    const assignee = await this.gateway.findOrganizationUser(cmd.organizationId, cmd.assigneeUserId);
-    if (!assignee) throw new CaseNotFoundError(cmd.assigneeUserId); // non-revealing miss semantics
+    // Assignee must be an ACTIVE user in the SAME organization. Validated by
+    // the gateway INSIDE the command transaction and re-asserted on the
+    // conditional UPDATE itself (ADR-0005) — never checked ahead of the
+    // transaction, so there is no time-of-check/time-of-use window.
     return this.gateway.executeCommand({
       ...this.envelope(cmd, "AssignCase"),
+      requireActiveAssignee: cmd.assigneeUserId,
       decide: (current) => {
         assertNotTerminal(current);
         return {

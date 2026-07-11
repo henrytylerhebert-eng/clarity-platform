@@ -50,11 +50,24 @@ export interface ExecuteCommandParams {
   idempotencyKey?: string;
   reason?: string;
   /**
+   * When set, the command only commits if this user exists in the SAME
+   * organization with status ACTIVE. Checked twice, both inside the
+   * transaction: an early scoped read (non-revealing CaseNotFoundError on
+   * miss), and again as a relation predicate on the conditional UPDATE
+   * itself, so a membership/status change committed between the read and
+   * the write makes the UPDATE match zero rows and the whole command roll
+   * back (ConcurrencyConflictError) — no TOCTOU window outside the
+   * database's own visibility rules.
+   */
+  requireActiveAssignee?: string;
+  /**
    * Pure decision function, called INSIDE the transaction with the freshly
    * read case. All domain validation (state machine, permissions, terminal
    * rules) throws from here; the transaction then rolls back untouched.
+   * May be async (used by tests to deterministically interleave concurrent
+   * writes into the transaction window).
    */
-  decide: (current: PersistedCase) => CommandDecision;
+  decide: (current: PersistedCase) => CommandDecision | Promise<CommandDecision>;
 }
 
 export interface CommandResult {
@@ -208,11 +221,34 @@ export class PrismaCaseCommandGateway {
         if (params.expectedVersion !== undefined && params.expectedVersion !== current.version) {
           throw new ConcurrencyConflictError(caseKey);
         }
-        const decision = params.decide(current);
+        if (params.requireActiveAssignee) {
+          // Same non-revealing miss semantics as a case lookup: a caller
+          // cannot distinguish "no such user", "other tenant's user", and
+          // "inactive user".
+          const assignee = await tx.user.findFirst({
+            where: { id: params.requireActiveAssignee, organizationId, status: "ACTIVE" },
+            select: { id: true },
+          });
+          if (!assignee) throw new CaseNotFoundError(params.requireActiveAssignee);
+        }
+        const decision = await params.decide(current);
         const previousStateHash = caseStateHash(current);
 
         const updated = await tx.behavioralHealthCase.updateMany({
-          where: { id: caseKey, organizationId, version: current.version },
+          where: {
+            id: caseKey,
+            organizationId,
+            version: current.version,
+            // Re-asserted at write time: the UPDATE's own predicate (an EXISTS
+            // subquery in SQL) must still see an ACTIVE same-org assignee.
+            ...(params.requireActiveAssignee
+              ? {
+                  organization: {
+                    users: { some: { id: params.requireActiveAssignee, status: "ACTIVE" } },
+                  },
+                }
+              : {}),
+          },
           data: { ...changesToColumns(decision.changes, this.now), version: { increment: 1 } },
         });
         if (updated.count !== 1) throw new ConcurrencyConflictError(caseKey);
@@ -263,13 +299,5 @@ export class PrismaCaseCommandGateway {
       }
       throw e;
     }
-  }
-
-  /** Tenant-scoped lookup of a user, for same-organization assignment checks. */
-  async findOrganizationUser(organizationId: string, userId: string): Promise<{ id: string } | null> {
-    return this.prisma.user.findFirst({
-      where: { id: userId, organizationId },
-      select: { id: true },
-    });
   }
 }

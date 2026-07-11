@@ -61,7 +61,7 @@ Suite totals this run: **52 integration tests** (2 command-service files: 22; pr
 ## Known limitations
 
 1. Actor roles are trusted from the caller — no authentication layer exists yet; the service is the authorization point only.
-2. `AssignCase` checks the assignee's organization just before the transaction (small TOCTOU window; users are not deleted concurrently in the current system).
+2. ~~`AssignCase` checks the assignee's organization just before the transaction (small TOCTOU window)~~ **Closed 2026-07-11 (ADR-0005):** assignee validation (same organization + `ACTIVE` status) now runs inside the command transaction and is re-asserted as a predicate on the conditional UPDATE itself; a mid-transaction membership change rolls the whole command back. Verified by `tests/integration/case-assignment-atomicity.test.ts`.
 3. `RecordDecisionRationale` is audit-only (no `DecisionRecord` table in the foundation schema — expanded-draft model, OD-8).
 4. Idempotency records are never expired; a retention policy is future work.
 5. Version tokens protect against lost updates, not multi-command sagas.
