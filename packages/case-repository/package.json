@@ -1,0 +1,12 @@
+{
+  "name": "@clarity/case-repository",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Prisma-backed, tenant-scoped implementation of the CaseRepository and audit contracts. Persistence only: no UI, no agents, no clinical/legal/payer logic, no external services.",
+  "dependencies": {
+    "@clarity/domain-contracts": "*",
+    "@prisma/client": "^6.19.3"
+  }
+}

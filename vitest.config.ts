@@ -7,6 +7,9 @@ export default defineConfig({
       "@clarity/domain-contracts": fileURLToPath(
         new URL("./packages/domain-contracts/src/index.ts", import.meta.url),
       ),
+      "@clarity/case-repository": fileURLToPath(
+        new URL("./packages/case-repository/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {
