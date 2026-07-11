@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "vitest run --dir tests --dir packages",
+    "test": "vitest run",
     "test:app": "npm --workspace app test",
     "prisma:format": "prisma format",
     "prisma:validate": "prisma validate",
