@@ -1,5 +1,5 @@
 ---
-status: Implemented and verified against clarity_dev
+status: Superseded by DOCUMENT_REPOSITORY_IMPLEMENTATION.md (2026-07-11 hardening pass — filesystem storage, validation, versioning, compensation)
 owner: TBD
 version: 1.0.0
 last_integrated: 2026-07-11
