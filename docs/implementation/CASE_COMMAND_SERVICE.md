@@ -53,7 +53,7 @@ Every command: `organizationId`, `actor { actorId, actorType?, roles? }`, `corre
 | 8 | Idempotency-key reuse safe | create replay (no duplicate row), transition replay (no second audit event/version bump), cross-command reuse rejected |
 | 9 | Workstreams update independently | "role-appropriate actors move their workstreams independently" (overall status not erased) |
 | 10 | Financial readiness can't block emergency clinical review | benefits BLOCKED → clinical workstream + CLINICAL_REVIEW transition both proceed on an EMERGENT case |
-| 11 | Terminal case immutable except permitted path | every command rejected with TerminalCaseError; reopen requires ORGANIZATION_ADMIN + rationale and is audited CASE_REOPENED |
+| 11 | Terminal case immutable except permitted path | every command rejected with TerminalCaseError; reopen authority is exactly `ORGANIZATION_ADMIN` with mandatory rationale, audited CASE_REOPENED; `SYSTEM_ADMIN` (no case-command rights) and `INTAKE_COORDINATOR` are rejected; a failed reopen writes no mutation, audit event, or idempotency record |
 | 12 | Rationale required for high-impact actions | urgency change, close, reopen, CANCELLED transition all reject without reason |
 
 Suite totals this run: **52 integration tests** (2 command-service files: 22; prior repository files: 30, updated for cleanup of idempotency records), full root suite **91/91**, app suite untouched (37/37 + typecheck).

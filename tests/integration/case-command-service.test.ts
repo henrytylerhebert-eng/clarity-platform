@@ -19,7 +19,8 @@ const actor = (roles: CommandActor["roles"], id = "synthetic-actor"): CommandAct
   roles,
 });
 const intake = actor(["INTAKE_COORDINATOR"], "syn-intake");
-const admin = actor(["ORGANIZATION_ADMIN"], "syn-admin");
+const orgAdmin = actor(["ORGANIZATION_ADMIN"], "syn-org-admin");
+const sysAdmin = actor(["SYSTEM_ADMIN"], "syn-sys-admin");
 const clinical = actor(["CLINICAL_REVIEWER"], "syn-clinical");
 const legal = actor(["LEGAL_REVIEWER"], "syn-legal");
 const benefits = actor(["BENEFITS_VERIFICATION_SPECIALIST"], "syn-benefits");
@@ -276,16 +277,22 @@ describe("terminal cases and reopen", () => {
       service.transitionCase({ ...base("cmd-terminal"), to: "INTAKE_IN_PROGRESS" }),
     ).rejects.toBeInstanceOf(TerminalCaseError);
 
-    // Reopen: intake coordinator lacks the role; admin without reason fails; admin with reason succeeds.
+    // Reopen authority is exactly ORGANIZATION_ADMIN (ADR-0003):
+    // INTAKE_COORDINATOR lacks the role; SYSTEM_ADMIN has no case-command
+    // rights at all; ORGANIZATION_ADMIN without a reason fails; only
+    // ORGANIZATION_ADMIN with a mandatory rationale succeeds.
     await expect(
       service.reopenCase({ ...base("cmd-terminal"), reopenTo: "INTAKE_IN_PROGRESS", reason: "x" }),
     ).rejects.toBeInstanceOf(PermissionDeniedError);
     await expect(
-      service.reopenCase({ ...base("cmd-terminal"), actor: admin, reopenTo: "INTAKE_IN_PROGRESS" }),
+      service.reopenCase({ ...base("cmd-terminal"), actor: sysAdmin, reopenTo: "INTAKE_IN_PROGRESS", reason: "x" }),
+    ).rejects.toBeInstanceOf(PermissionDeniedError);
+    await expect(
+      service.reopenCase({ ...base("cmd-terminal"), actor: orgAdmin, reopenTo: "INTAKE_IN_PROGRESS" }),
     ).rejects.toBeInstanceOf(RationaleRequiredError);
     const reopened = await service.reopenCase({
       ...base("cmd-terminal"),
-      actor: admin,
+      actor: orgAdmin,
       reopenTo: "INTAKE_IN_PROGRESS",
       reason: "synthetic reopen after withdrawal reversal",
     });
@@ -296,6 +303,52 @@ describe("terminal cases and reopen", () => {
       where: { organizationId: h.tenantA.organizationId, caseId: key, action: "CASE_REOPENED" },
     });
     expect(events).toHaveLength(1);
+  });
+
+  it("a failed reopen writes no mutation, no audit event, and no idempotency record", async () => {
+    const key = h.caseKey("cmd-reopen-fail");
+    await createCase("cmd-reopen-fail");
+    await service.transitionCase({ ...base("cmd-reopen-fail"), to: "CANCELLED", reason: "synthetic exit" });
+    const before = await h.prisma.behavioralHealthCase.findFirst({
+      where: { id: key, organizationId: h.tenantA.organizationId },
+    });
+
+    const idemKey = `syn-reopen-fail-${h.runId}`;
+    // Unauthorized role (SYSTEM_ADMIN) — rejected before any database access.
+    await expect(
+      service.reopenCase({
+        ...base("cmd-reopen-fail"),
+        actor: sysAdmin,
+        reopenTo: "INTAKE_IN_PROGRESS",
+        reason: "x",
+        idempotencyKey: idemKey,
+      }),
+    ).rejects.toBeInstanceOf(PermissionDeniedError);
+    // Missing rationale — also rejected before any database access.
+    await expect(
+      service.reopenCase({
+        ...base("cmd-reopen-fail"),
+        actor: orgAdmin,
+        reopenTo: "INTAKE_IN_PROGRESS",
+        idempotencyKey: idemKey,
+      }),
+    ).rejects.toBeInstanceOf(RationaleRequiredError);
+
+    const after = await h.prisma.behavioralHealthCase.findFirst({
+      where: { id: key, organizationId: h.tenantA.organizationId },
+    });
+    expect(after?.status).toBe("CANCELLED");
+    expect(after?.version).toBe(before?.version);
+    const reopenEvents = await h.prisma.auditEvent.count({
+      where: { organizationId: h.tenantA.organizationId, caseId: key, action: "CASE_REOPENED" },
+    });
+    expect(reopenEvents).toBe(0);
+    const idem = await h.prisma.commandIdempotencyRecord.findUnique({
+      where: {
+        organizationId_idempotencyKey: { organizationId: h.tenantA.organizationId, idempotencyKey: idemKey },
+      },
+    });
+    expect(idem).toBeNull();
   });
 
   it("CloseCase requires rationale and follows the state machine", async () => {
