@@ -1,16 +1,16 @@
 # Graph Report - clarity-platform  (2026-07-11)
 
 ## Corpus Check
-- 214 files · ~133,722 words
+- 228 files · ~139,480 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2205 nodes · 2448 edges · 184 communities (158 shown, 26 thin omitted)
+- 2326 nodes · 2680 edges · 190 communities (163 shown, 27 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1e424453`
+- Built from commit: `f9b86301`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -194,6 +194,12 @@
 - [[_COMMUNITY_Community 181|Community 181]]
 - [[_COMMUNITY_Community 182|Community 182]]
 - [[_COMMUNITY_Community 183|Community 183]]
+- [[_COMMUNITY_Community 184|Community 184]]
+- [[_COMMUNITY_Community 185|Community 185]]
+- [[_COMMUNITY_Community 186|Community 186]]
+- [[_COMMUNITY_Community 187|Community 187]]
+- [[_COMMUNITY_Community 188|Community 188]]
+- [[_COMMUNITY_Community 189|Community 189]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `Clarity AI Master Architecture` - 28 edges
@@ -201,25 +207,25 @@
 3. `compilerOptions` - 16 edges
 4. `AppState` - 15 edges
 5. `How It Fits the Current Roadmap` - 15 edges
-6. `case` - 14 edges
+6. `CaseCommandService` - 14 edges
 7. `case` - 14 edges
 8. `case` - 14 edges
 9. `case` - 14 edges
 10. `case` - 14 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `makeCase()` --calls--> `initialWorkstreamStatuses()`  [EXTRACTED]
+  tests/workflow/case-lifecycle.test.ts → packages/domain-contracts/src/workstreams.ts
 - `createHarness()` --calls--> `assertLocalClarityDevDatabase()`  [EXTRACTED]
   tests/integration/helpers/harness.ts → packages/case-repository/src/prismaClient.ts
 - `createHarness()` --calls--> `createPrismaClient()`  [EXTRACTED]
   tests/integration/helpers/harness.ts → packages/case-repository/src/prismaClient.ts
-- `makeCase()` --calls--> `initialWorkstreamStatuses()`  [EXTRACTED]
-  tests/workflow/case-lifecycle.test.ts → packages/domain-contracts/src/workstreams.ts
 - `App()` --calls--> `getRoleFocus()`  [EXTRACTED]
   app/src/App.tsx → app/src/domain/roleFocus.ts
 - `buildPacketForCase()` --calls--> `canonicalJson()`  [EXTRACTED]
   app/src/domain/packets.ts → app/src/domain/hashLedger.ts
 
-## Communities (184 total, 26 thin omitted)
+## Communities (190 total, 27 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.08
@@ -530,12 +536,12 @@ Cohesion: 0.08
 Nodes (24): Decision, Existing Sprint 0, Existing Sprint 10: Evaluation and Hardening, Existing Sprint 1: Identity and Case Spine, Existing Sprint 2: Documents, Existing Sprint 3: Evidence, Existing Sprint 4: Case Intelligence, Existing Sprint 5: Medical Necessity (+16 more)
 
 ### Community 90 - "Community 90"
-Cohesion: 0.20
-Nodes (11): canTransitionCase(), ClarityCase, transitionCase(), initialWorkstreamStatuses(), c, emergent, makeCase(), s (+3 more)
+Cohesion: 0.13
+Nodes (18): ACTIVE_ORDER, canBeginClinicalReview(), canReopenCase(), canTransitionCase(), ClarityCase, EXIT_STATES, ROUTING_EXCEPTIONS, TERMINAL (+10 more)
 
 ### Community 91 - "Community 91"
 Cohesion: 0.11
-Nodes (17): compilerOptions, allowImportingTsExtensions, esModuleInterop, lib, module, moduleResolution, noEmit, noUncheckedIndexedAccess (+9 more)
+Nodes (18): compilerOptions, allowImportingTsExtensions, esModuleInterop, lib, module, moduleResolution, noEmit, noUncheckedIndexedAccess (+10 more)
 
 ### Community 92 - "Community 92"
 Cohesion: 0.12
@@ -586,12 +592,12 @@ Cohesion: 0.17
 Nodes (11): Blocked, Completed (verified working), Documented only (no code), Implementation Status, Next recommended action, Not started, Requires clinical review, Requires developer decision (+3 more)
 
 ### Community 104 - "Community 104"
-Cohesion: 0.16
-Nodes (11): cases, FIXTURE_DIR, flags, text, defaultFeatureFlags(), FEATURE_FLAGS, FeatureFlag, FeatureFlagState (+3 more)
+Cohesion: 0.11
+Nodes (16): cases, FIXTURE_DIR, flags, text, assertHumanSubmitter(), AUTHORIZATION_STATUSES, AUTHORIZATION_TRANSITIONS, AuthorizationStatus (+8 more)
 
 ### Community 105 - "Community 105"
-Cohesion: 0.33
-Nodes (5): assertHumanSubmitter(), AUTHORIZATION_STATUSES, AUTHORIZATION_TRANSITIONS, AuthorizationStatus, canTransitionAuthorization()
+Cohesion: 0.08
+Nodes (31): TERMINAL_STATUSES, AssignCaseCommand, AssignCaseCommandSchema, baseEnvelope, caseEnvelope, CloseCaseCommand, CloseCaseCommandSchema, CommandActorSchema (+23 more)
 
 ### Community 106 - "Community 106"
 Cohesion: 0.18
@@ -602,8 +608,8 @@ Cohesion: 0.18
 Nodes (10): 02 — Master Package and Database Artifact Inventory, code:text (Jul 8  clarity-mh-codex-architecture-package (v0.1 generatio), Database artifact package — status: **COMPLETE (9/9 files)**, Immutable source copies, Independent verification performed, Master architecture package v0.2.0 — status: **INCOMPLETE**, Package version relationships, What is actually present (15 files) (+2 more)
 
 ### Community 108 - "Community 108"
-Cohesion: 0.18
-Nodes (10): mine, orgOneA, orgOneB, orgTwoC, records, assertSameOrganization(), CaseRepository, MutationOptions (+2 more)
+Cohesion: 0.25
+Nodes (7): mine, orgOneA, orgOneB, orgTwoC, records, assertSameOrganization(), scopeToOrganization()
 
 ### Community 109 - "Community 109"
 Cohesion: 0.20
@@ -650,8 +656,8 @@ Cohesion: 0.28
 Nodes (7): compareClinicalUrgency(), describeReadiness(), ReferralReadiness, rows, suspicious, uninsuredEmergent, wealthyRoutine
 
 ### Community 120 - "Community 120"
-Cohesion: 0.14
-Nodes (20): CaseAuditRecord, CaseAuditWriter, PrismaCaseAuditWriter, TxClient, ACTIVE_ORDER, CASE_STATUSES, CaseStatus, EXIT_STATES (+12 more)
+Cohesion: 0.11
+Nodes (25): CaseAuditRecord, CaseAuditWriter, PrismaCaseAuditWriter, TxClient, CaseChanges, CommandDecision, CommandResult, CreateCaseParams (+17 more)
 
 ### Community 121 - "Community 121"
 Cohesion: 0.22
@@ -814,16 +820,16 @@ Cohesion: 0.67
 Nodes (3): code:text (chore/clarity-master-package-integration), code:text (docs/repository-audit/00_BASELINE_AND_SAFETY.md), Phase 0 — Safety, repository state, and baseline
 
 ### Community 179 - "Community 179"
-Cohesion: 0.11
-Nodes (21): createHarness(), createTenantRecords(), Harness, TenantFixture, TEST_ACTOR, tickingClock(), failingRepo, failingWriter (+13 more)
+Cohesion: 0.14
+Nodes (18): createHarness(), createTenantRecords(), Harness, TenantFixture, TEST_ACTOR, tickingClock(), failingRepo, failingWriter (+10 more)
 
 ### Community 180 - "Community 180"
 Cohesion: 0.17
 Nodes (11): Case Repository Implementation, code:text (scoped read → state-machine validation → scoped conditional ), Contract corrections (documented, minimal), Contract implemented, Database test isolation, Error behavior, Files changed, Known limitations (+3 more)
 
 ### Community 181 - "Community 181"
-Cohesion: 0.29
-Nodes (5): domainToCreateRow(), parseEnum(), rowToDomain(), assertActor(), PrismaCaseRepository
+Cohesion: 0.18
+Nodes (7): isIdempotencyUniqueViolation(), PrismaCaseCommandGateway, domainToCreateRow(), parseEnum(), rowToDomain(), assertActor(), PrismaCaseRepository
 
 ### Community 182 - "Community 182"
 Cohesion: 0.20
@@ -833,18 +839,40 @@ Nodes (9): dependencies, @clarity/domain-contracts, @prisma/client, description,
 Cohesion: 0.33
 Nodes (5): Additional tests (not ports — new coverage required by the issue), Baseline-to-port mapping, Case Repository Test Manifest, Counts (from the verified run, 2026-07-11), How the suite runs
 
+### Community 184 - "Community 184"
+Cohesion: 0.12
+Nodes (11): admin, auditor, benefits, bGateway, bService, clinical, compliance, intake (+3 more)
+
+### Community 186 - "Community 186"
+Cohesion: 0.17
+Nodes (7): failingService, failingWriter, intake, ConcurrencyConflictError, IdempotencyConflictError, COMMAND_AUDIT_ACTIONS, CommandActor
+
+### Community 187 - "Community 187"
+Cohesion: 0.18
+Nodes (10): dependencies, @clarity/case-repository, @clarity/domain-contracts, zod, description, main, name, private (+2 more)
+
+### Community 188 - "Community 188"
+Cohesion: 0.29
+Nodes (6): Case Command Service, code:text (caller → CaseCommandService.<command>(envelope)), Command flow, Envelope fields, Known limitations, Verified behavior (all 12 required tests ran against clarity_dev)
+
+### Community 189 - "Community 189"
+Cohesion: 0.40
+Nodes (4): ADR-0003 — Case Command Service and Workflow Transition Engine, Consequences, Context, Decision
+
 ## Knowledge Gaps
-- **1435 isolated node(s):** `name`, `private`, `version`, `description`, `workspaces` (+1430 more)
+- **1475 isolated node(s):** `name`, `private`, `version`, `description`, `workspaces` (+1470 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **26 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **27 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Comprehensive Data Dictionary` connect `Community 144` to `Community 133`, `Community 134`, `Community 135`, `Community 102`, `Community 123`, `Community 156`, `Community 157`?**
-  _High betweenness centrality (0.000) - this node is a cross-community bridge._
+- **Why does `CaseCommandService` connect `Community 185` to `Community 184`, `Community 105`, `Community 186`?**
+  _High betweenness centrality (0.001) - this node is a cross-community bridge._
+- **Why does `assertPermitted()` connect `Community 185` to `Community 105`?**
+  _High betweenness centrality (0.001) - this node is a cross-community bridge._
 - **What connects `name`, `private`, `version` to the rest of the system?**
-  _1435 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1475 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.07610993657505286 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
@@ -853,5 +881,3 @@ _Questions this graph is uniquely positioned to answer:_
   _Cohesion score 0.0625 - nodes in this community are weakly interconnected._
 - **Should `Community 4` be split into smaller, more focused modules?**
   _Cohesion score 0.06060606060606061 - nodes in this community are weakly interconnected._
-- **Should `Community 5` be split into smaller, more focused modules?**
-  _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._

@@ -1,9 +1,10 @@
 # Implementation Status
 
-**As of 2026-07-11** (post case-repository implementation). A capability appears in exactly one bucket. "Verified" means it ran in this session.
+**As of 2026-07-11** (post case-command-service implementation). A capability appears in exactly one bucket. "Verified" means it ran in this session.
 
 ## Completed (verified working)
 
+- **Case command service and workflow transition engine** (`packages/case-service`, branch `feat/case-command-service`): nine explicit commands behind one controlled path — strict envelopes, role policy (schema `UserRole` values), rationale rules, terminal-case protection, role-gated reopen, optimistic concurrency (`version` column + predicate), idempotency keys (`CommandIdempotencyRecord`), correlation ids, and audit events with previous/new state hashes — all atomic per command via the single approved Prisma gateway. Verified: 52/52 integration tests incl. all 12 required behaviors, full suite 91/91. ADR-0003.
 - **Tenant-scoped case repository** (`packages/case-repository`, branch `feat/tenant-scoped-case-repository`): Prisma-backed `CaseRepository` with organization scoping in every query/write predicate, atomic case-mutation + audit-event transactions, append-only audit writes with the restricted-identifier guard, optimistic concurrency on state transitions. Verified against local `clarity_dev`: 30/30 integration tests, 69/69 full root suite, cleanup leaves zero synthetic rows. See `docs/implementation/CASE_REPOSITORY_IMPLEMENTATION.md` and `docs/testing/CASE_REPOSITORY_TEST_MANIFEST.md`. **Audit integration: implemented** for case mutations (no DB-level immutability enforcement yet; no state hashes).
 
 - `app/` crisis-path prototype: guided intake, drafts with prohibited-language guards, hash-chained custody ledger, compliance clocks (demo values), packet builder, simulated routing, bedboard, role-adaptive UX — unit tests 37/37, Playwright smoke 16/16, typecheck + production build pass. Frontend demo only (localStorage).
@@ -48,6 +49,6 @@
 
 ## Next recommended action
 
-~~Implement tenant-scoped case repository~~ **done** (`feat/tenant-scoped-case-repository`).
+~~Implement tenant-scoped case repository~~ **done**. ~~Case command service and state machine~~ **done** (`feat/case-command-service`).
 
-**Issue: "Implement the document domain: tenant-scoped SourceDocument persistence with checksums and audit."** Persist `SourceDocument` rows through the same repository pattern (organization-scoped predicates, atomic `DOCUMENT_UPLOADED`/`DOCUMENT_CLASSIFIED` audit events per REQ-005/006), compute and store SHA-256 checksums for synthetic document fixtures, and gate classification status changes on the existing enum. This is the next spine step (documents feed evidence), reuses the proven harness, and still requires no UI, agents, or external services.
+**Issue: "Implement the tenant-scoped document repository."** Per the agreed sequence (repository → command service → **documents** → evidence → insurance/benefits): document metadata persistence, synthetic file upload behind a storage abstraction, SHA-256 checksum + duplicate detection, classification status transitions on the existing enum, case-ownership checks through the command-service pattern, and `DOCUMENT_UPLOADED`/`DOCUMENT_CLASSIFIED`/document-access audit events (REQ-005/006). No OCR or AI extraction yet.
