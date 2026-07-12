@@ -55,7 +55,7 @@ PROJECT STATE: Clarity Platform — updated 2026-07-11
 Objective: local, tested, tenant-scoped backend foundation for behavioral-health case workflows (synthetic only)
 Current phase: evidence repository implemented and verified (PR #7); next: manual insurance/benefits verification
 Decisions: solo-maintainer protection — PRs required, approvals 0 until a second maintainer/review bot/higher-risk operations (see handoff guide §3a; supersedes the 1-review setting); evidence supersession requires domain reviewer; contradiction groups never change member status; rejected documents cannot source evidence (ADR-0008)
-Open decisions: OD-1 (missing master package), OD-2 (counsel review), OD-3 (clinical licensing), OD-5 (API), OD-6 (DB hosting/RLS), OD-8 (schema graduation), OD-9 (CI/toolchain)
-Deliverables: 149/149 root tests, 37/37 app; tag clarity-foundation-v0.1; ADR-0001…0008
+Open decisions: OD-1 (missing master package), OD-2 (counsel review), OD-3 (clinical licensing), OD-5 (API), OD-6 (DB hosting/RLS), OD-7 (pnpm/Turborepo timing), OD-8 (schema graduation), OD-9 (CI/toolchain)
+Deliverables: 151/151 root tests, 37/37 app; tag clarity-foundation-v0.1; ADR-0001…0008
 Next action: implement manual insurance and benefits verification (PRs #7/#8 land first; protection command in handoff guide §3a)
 ```
