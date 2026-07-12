@@ -15,7 +15,8 @@
       "@clarity/domain-contracts": ["./packages/domain-contracts/src/index.ts"],
       "@clarity/case-repository": ["./packages/case-repository/src/index.ts"],
       "@clarity/case-service": ["./packages/case-service/src/index.ts"],
-      "@clarity/document-service": ["./packages/document-service/src/index.ts"]
+      "@clarity/document-service": ["./packages/document-service/src/index.ts"],
+      "@clarity/evidence-service": ["./packages/evidence-service/src/index.ts"]
     }
   },
   "include": ["packages/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts"],
