@@ -335,13 +335,13 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/tsconfig.json": {
-    "mtime": 1783778079.0875356,
-    "ast_hash": "dc3eab3d3ce98a01ad530da0083eee99",
+    "mtime": 1783814093.435192,
+    "ast_hash": "9617aa4b1de827c205bfd33d05f66b03",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/vitest.config.ts": {
-    "mtime": 1783778078.0615473,
-    "ast_hash": "2bb95ad0c5ce9b31b54c0d97f692bb7a",
+    "mtime": 1783814095.5342343,
+    "ast_hash": "2e6dc78101f2f6c8ddbf7e7ea7f7ea6a",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/prisma/migrations/20260710233252_initial_clarity_foundation/migration.sql": {
@@ -445,8 +445,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/index.ts": {
-    "mtime": 1783777861.233963,
-    "ast_hash": "de9f27cf091a88ac238efb435201dd03",
+    "mtime": 1783813775.955458,
+    "ast_hash": "f7b67e111ace69f4fc8d1edea6a6f700",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/workstreams.ts": {
@@ -530,8 +530,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/IMPLEMENTATION_STATUS.md": {
-    "mtime": 1783780235.1833944,
-    "ast_hash": "5b79cd339d1bdee2dc0c661fd9157fca",
+    "mtime": 1783814410.4572132,
+    "ast_hash": "d873f1ebbe3a1c703bf83d7de3f0e52c",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/ARCHITECTURE.md": {
@@ -1060,8 +1060,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/tests/integration/helpers/harness.ts": {
-    "mtime": 1783776583.4795852,
-    "ast_hash": "ce0c9b8f291d48e079ac942e0d13488b",
+    "mtime": 1783814115.3171792,
+    "ast_hash": "075ff2603c39ffb74ad19579fcb37618",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/package.json": {
@@ -1085,8 +1085,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/index.ts": {
-    "mtime": 1783777961.2589066,
-    "ast_hash": "ca7ba494f73499639840b6847bdeabb4",
+    "mtime": 1783813952.0121098,
+    "ast_hash": "5ce446affc604fbba3091c7feef5da70",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/auditWriter.ts": {
@@ -1317,6 +1317,81 @@
   "/Users/tylerhebert/Documents/clarity-platform/docs/implementation/DOCUMENT_SERVICE.md": {
     "mtime": 1783780205.3916817,
     "ast_hash": "48dc5472d326f16d6f8f3b313ae41433",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/prisma/migrations/20260711234910_evidence_review_and_contradiction_support/migration.sql": {
+    "mtime": 1783813750.8891575,
+    "ast_hash": "5cbf2d3794bf7accc8ece4fdff4e03b8",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/tests/integration/evidence-command-service.test.ts": {
+    "mtime": 1783814158.5373147,
+    "ast_hash": "3d388e132c512a9ba3d77c481f139cd5",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/tests/integration/evidence-review-and-contradictions.test.ts": {
+    "mtime": 1783814272.613947,
+    "ast_hash": "30e2b4225b2dfc07c5772bbfee327d28",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/evidence.ts": {
+    "mtime": 1783813774.4808147,
+    "ast_hash": "b2f99a9f6fd97f2704bb4146e4592a64",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/evidence-service/package.json": {
+    "mtime": 1783813964.4554129,
+    "ast_hash": "95bbeb97a3c1437d762f74f4c453787f",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/evidence-service/src/commands.ts": {
+    "mtime": 1783813980.0998542,
+    "ast_hash": "1fb5233d68523d617aebc130d588eb10",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/evidence-service/src/errors.ts": {
+    "mtime": 1783814001.4155467,
+    "ast_hash": "b9543393a9b1ce383769d5d185e3b3fd",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/evidence-service/src/permissions.ts": {
+    "mtime": 1783813999.5897942,
+    "ast_hash": "df414f361e162382492f8254f68e81f8",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/evidence-service/src/index.ts": {
+    "mtime": 1783814074.125405,
+    "ast_hash": "91d20a9d40668b6cfac7f81f1c7861b1",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/evidence-service/src/evidenceCommandService.ts": {
+    "mtime": 1783814073.175211,
+    "ast_hash": "ee2587cb970e988990640f49c995a6bb",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/evidenceGateway.ts": {
+    "mtime": 1783813925.7559202,
+    "ast_hash": "60f8d7169f7170ab5777c42122794f28",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/evidenceMappers.ts": {
+    "mtime": 1783813840.04343,
+    "ast_hash": "ffe26ca74b2411dfa2e940c12a65a0fb",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/testing/EVIDENCE_TEST_MANIFEST.md": {
+    "mtime": 1783814389.3367467,
+    "ast_hash": "987e05d7d05373a71d43a7c359f0dd1f",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/architecture/ADR-0008-evidence-repository-and-human-review.md": {
+    "mtime": 1783814340.5723073,
+    "ast_hash": "2f10cd6c6a600f300aa19d49d6a17dfc",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/implementation/EVIDENCE_REPOSITORY_IMPLEMENTATION.md": {
+    "mtime": 1783814370.1364393,
+    "ast_hash": "8b87d2c6e3639b71ee7e26ed01962105",
     "semantic_hash": ""
   }
 }
