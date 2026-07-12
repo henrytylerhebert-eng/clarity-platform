@@ -13,3 +13,4 @@ export * from "./organizationScope.js";
 export * from "./actor.js";
 export * from "./commandErrors.js";
 export * from "./documents.js";
+export * from "./evidence.js";

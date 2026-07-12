@@ -441,6 +441,7 @@ model BehavioralHealthCase {
   auditEvents               AuditEvent[]
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
+  contradictionGroups       ContradictionGroup[]
 
   @@index([organizationId, status])
   @@index([assignedUserId])
@@ -485,26 +486,68 @@ model EvidenceItem {
   id                   String               @id @default(cuid())
   caseId               String
   case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organizationId       String
   documentId           String
   document             SourceDocument       @relation(fields: [documentId], references: [id], onDelete: Cascade)
   category             EvidenceCategory
   subcategory          String?
+  /// Verbatim source text, captured at creation and never updated by any
+  /// code path — corrections touch normalizedValue/annotations only;
+  /// material changes create a superseding item (ADR-0008).
   originalText         String
   normalizedValue      Json?
   pageNumber           Int?
   sectionLabel         String?
   sourceAuthor         String?
   sourceTimestamp      DateTime?
+  /// Null for human-entered evidence; reserved for future automation.
   extractionConfidence Float?
   status               EvidenceStatus       @default(CANDIDATE)
-  contradictionGroupId String?
+  /// How the item came to exist. Contract vocabulary: HUMAN_ENTRY (only
+  /// value until automated extraction exists).
+  creationMethod       String
+  createdBy            String
+  reviewerNote         String?
   reviewedBy           String?
   reviewedAt           DateTime?
+  /// Correction chain root: the first item's id, shared by every item that
+  /// supersedes it.
+  evidenceFamilyId     String
+  supersededById       String?
+  supersededBy         EvidenceItem?        @relation("EvidenceSupersession", fields: [supersededById], references: [id])
+  supersedes           EvidenceItem[]       @relation("EvidenceSupersession")
+  contradictionGroupId String?
+  contradictionGroup   ContradictionGroup?  @relation(fields: [contradictionGroupId], references: [id])
+  /// Optimistic-concurrency token, same discipline as cases/documents.
+  version              Int                  @default(0)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 
   @@index([caseId, category, status])
   @@index([documentId])
+  @@index([organizationId, caseId])
+  @@index([evidenceFamilyId])
+}
+
+/// A reviewer-visible grouping of conflicting evidence. Grouping never
+/// changes any member's status; classification records what KIND of
+/// discrepancy a human judged it to be, not which side is correct.
+model ContradictionGroup {
+  id             String               @id @default(cuid())
+  organizationId String
+  caseId         String
+  case           BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  /// Contract vocabulary: DIRECT_CONFLICT | TEMPORAL_CHANGE |
+  /// SOURCE_DISAGREEMENT | UNCLEAR. Null until a reviewer classifies.
+  classification String?
+  reviewNote     String?
+  createdBy      String
+  version        Int                  @default(0)
+  items          EvidenceItem[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([organizationId, caseId])
 }
 
 model HumanReview {
@@ -892,6 +935,8 @@ model CommandIdempotencyRecord {
   idempotencyKey String
   commandType    String
   caseId         String?
+  /// Non-case object a replay must rehydrate (e.g. an evidence item id).
+  objectId       String?
   resultVersion  Int?
   createdAt      DateTime @default(now())
 
