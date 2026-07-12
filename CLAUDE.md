@@ -53,9 +53,9 @@ Adopt these exactly: tenant = `organizationId`; case = `BehavioralHealthCase`; t
 ```
 PROJECT STATE: Clarity Platform — updated 2026-07-11
 Objective: local, tested, tenant-scoped backend foundation for behavioral-health case workflows (synthetic only)
-Current phase: evidence repository done (PR #7 open); next: manual insurance/benefits verification
+Current phase: evidence repository implemented and verified (PR #7); next: manual insurance/benefits verification
 Decisions: evidence supersession requires domain reviewer; contradiction groups never change member status; rejected documents cannot source evidence (ADR-0008)
 Open decisions: OD-1 (missing master package), OD-2 (counsel review), OD-3 (clinical licensing), OD-5 (API), OD-6 (DB hosting/RLS), OD-8 (schema graduation), OD-9 (CI/toolchain)
 Deliverables: 149/149 root tests, 37/37 app; tag clarity-foundation-v0.1; ADR-0001…0008
-Next action: review/merge PR #7, then implement manual insurance and benefits verification
+Next action: merge PRs #7 and #8 (review-requirement decision pending — see PR #8 discussion), then implement manual insurance and benefits verification
 ```
