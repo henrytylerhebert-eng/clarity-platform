@@ -89,7 +89,17 @@ export const SupersedeEvidenceCommandSchema = z
 export type SupersedeEvidenceCommand = z.input<typeof SupersedeEvidenceCommandSchema>;
 
 export const CreateContradictionGroupCommandSchema = z
-  .object({ ...baseEnvelope, evidenceIds: z.array(z.string().min(1)).min(2) })
+  .object({
+    ...baseEnvelope,
+    // A contradiction needs two DISTINCT sides: `[id, id]` would collapse to
+    // a single row downstream and produce a one-member "contradiction".
+    evidenceIds: z
+      .array(z.string().min(1))
+      .min(2)
+      .refine((ids) => new Set(ids).size === ids.length, {
+        message: "evidenceIds must be distinct",
+      }),
+  })
   .strict();
 export type CreateContradictionGroupCommand = z.input<typeof CreateContradictionGroupCommandSchema>;
 

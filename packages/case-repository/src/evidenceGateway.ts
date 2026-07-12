@@ -532,10 +532,20 @@ export class PrismaEvidenceGateway {
       const group = await tx.contradictionGroup.create({
         data: { id: randomUUID(), organizationId, caseId, createdBy: params.createdBy },
       });
-      await tx.evidenceItem.updateMany({
-        where: { id: { in: [...params.evidenceIds] }, organizationId, caseId },
+      // Re-asserted at write time: every member must STILL be ungrouped when
+      // the UPDATE runs, and every requested member must be claimed. If a
+      // concurrent transaction grouped any member after the pre-read, the
+      // count falls short and the whole transaction (group row included)
+      // rolls back — no silent membership overwrite.
+      const claimed = await tx.evidenceItem.updateMany({
+        where: { id: { in: [...params.evidenceIds] }, organizationId, caseId, contradictionGroupId: null },
         data: { contradictionGroupId: group.id, version: { increment: 1 } },
       });
+      if (claimed.count !== params.evidenceIds.length) {
+        throw new ContradictionMembershipError(
+          "One or more evidence items were grouped concurrently; refresh and retry",
+        );
+      }
       await this.auditWriter.write(tx, {
         organizationId,
         caseId,
@@ -589,10 +599,17 @@ export class PrismaEvidenceGateway {
           `Evidence "${evidenceId}" already belongs to a contradiction group`,
         );
       }
-      await tx.evidenceItem.updateMany({
+      const claimed = await tx.evidenceItem.updateMany({
         where: { id: evidenceId, organizationId, caseId, contradictionGroupId: null },
         data: { contradictionGroupId: groupId, version: { increment: 1 } },
       });
+      // A lost membership race must fail the command, not bump the group
+      // version and write a misleading audit event.
+      if (claimed.count !== 1) {
+        throw new ContradictionMembershipError(
+          `Evidence "${evidenceId}" was grouped concurrently; refresh and retry`,
+        );
+      }
       const bumped = await tx.contradictionGroup.updateMany({
         where: { id: groupId, organizationId, caseId, version: group.version },
         data: { version: { increment: 1 } },

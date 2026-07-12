@@ -527,6 +527,8 @@ model EvidenceItem {
   @@index([documentId])
   @@index([organizationId, caseId])
   @@index([evidenceFamilyId])
+  @@index([contradictionGroupId])
+  @@index([supersededById])
 }
 
 /// A reviewer-visible grouping of conflicting evidence. Grouping never

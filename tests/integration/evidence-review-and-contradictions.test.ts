@@ -409,6 +409,48 @@ describe("contradiction groups", () => {
     ).toBe(1);
   });
 
+  it("rejects duplicate evidence ids: a one-member 'contradiction' cannot be created", async () => {
+    const { caseKey, documentId } = await fixture("cg-dup-ids");
+    const a = await createEvidence(caseKey, documentId);
+    await expect(
+      service.createContradictionGroup({
+        organizationId: h.tenantA.organizationId,
+        caseId: caseKey,
+        actor: clinical,
+        evidenceIds: [a.evidenceId, a.evidenceId],
+      }),
+    ).rejects.toThrow(/must be distinct/);
+    expect(await h.prisma.contradictionGroup.count({ where: { caseId: caseKey } })).toBe(0);
+  });
+
+  it("concurrent group creations over the same item produce exactly one group", async () => {
+    const { caseKey, documentId } = await fixture("cg-race");
+    const shared = await createEvidence(caseKey, documentId);
+    const b = await createEvidence(caseKey, documentId, { originalText: "statement B" });
+    const c = await createEvidence(caseKey, documentId, { originalText: "statement C" });
+
+    const groupCmd = (other: string) =>
+      service.createContradictionGroup({
+        organizationId: h.tenantA.organizationId,
+        caseId: caseKey,
+        actor: clinical,
+        evidenceIds: [shared.evidenceId, other],
+      });
+    const results = await Promise.allSettled([groupCmd(b.evidenceId), groupCmd(c.evidenceId)]);
+    const fulfilled = results.filter((r) => r.status === "fulfilled");
+    expect(fulfilled).toHaveLength(1); // exactly one winner; the loser rolled back entirely
+
+    // No orphaned group row from the losing transaction, and the shared item
+    // belongs to exactly the winner's group.
+    expect(await h.prisma.contradictionGroup.count({ where: { caseId: caseKey } })).toBe(1);
+    const sharedRow = await h.prisma.evidenceItem.findUnique({ where: { id: shared.evidenceId } });
+    expect(sharedRow?.contradictionGroupId).not.toBeNull();
+    const groupedCount = await h.prisma.evidenceItem.count({
+      where: { caseId: caseKey, contradictionGroupId: { not: null } },
+    });
+    expect(groupedCount).toBe(2); // winner's pair only; loser's partner untouched
+  });
+
   it("cross-case and cross-tenant grouping fail without revealing existence", async () => {
     const one = await fixture("cg-cross-1");
     const two = await fixture("cg-cross-2");
