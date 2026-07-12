@@ -64,6 +64,8 @@ async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string
   // FK-safe order; every delete is scoped to the given organization ids only.
   await prisma.commandIdempotencyRecord.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.auditEvent.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.evidenceItem.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.contradictionGroup.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.behavioralHealthCase.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.patientToken.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.user.deleteMany({ where: { organizationId: { in: organizationIds } } });
