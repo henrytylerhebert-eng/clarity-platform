@@ -66,6 +66,9 @@ async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string
   await prisma.auditEvent.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.evidenceItem.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.contradictionGroup.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  // Coverage delete cascades eligibility/benefit rows; case delete cascades
+  // education records and documents.
+  await prisma.insuranceCoverage.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.behavioralHealthCase.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.patientToken.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.user.deleteMany({ where: { organizationId: { in: organizationIds } } });
