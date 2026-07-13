@@ -705,6 +705,7 @@ model InsuranceCoverage {
   id                     String                    @id @default(cuid())
   caseId                 String
   case                   BehavioralHealthCase      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organizationId         String
   patientTokenId         String
   patientToken           PatientToken              @relation(fields: [patientTokenId], references: [id])
   coverageOrder          CoverageOrder
@@ -728,11 +729,15 @@ model InsuranceCoverage {
   eligibilityChecks      EligibilityVerification[]
   benefitVerifications   BenefitVerification[]
   authorizations         Authorization[]
+  /// Optimistic-concurrency token for the status rollup, same discipline as
+  /// cases/documents/evidence.
+  version                Int                       @default(0)
   createdAt              DateTime                  @default(now())
   updatedAt              DateTime                  @updatedAt
 
   @@index([caseId, coverageOrder])
   @@index([payerProfileId])
+  @@index([organizationId, caseId])
 }
 
 model EligibilityVerification {
