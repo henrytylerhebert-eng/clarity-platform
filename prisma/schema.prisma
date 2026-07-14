@@ -813,6 +813,7 @@ model Authorization {
   id                   String               @id @default(cuid())
   caseId               String
   case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organizationId       String
   insuranceCoverageId  String
   insuranceCoverage    InsuranceCoverage    @relation(fields: [insuranceCoverageId], references: [id])
   requestedLevelOfCare LevelOfCare
@@ -827,11 +828,14 @@ model Authorization {
   denialReason         String?
   appealStatus         String?
   assignedUserId       String?
+  /// Optimistic-concurrency token, same discipline as every other aggregate.
+  version              Int                  @default(0)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 
   @@index([caseId, status])
   @@index([insuranceCoverageId])
+  @@index([organizationId, caseId])
 }
 
 model FinancialEducationRecord {
