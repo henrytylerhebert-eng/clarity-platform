@@ -6,7 +6,8 @@ export type TxClient = Prisma.TransactionClient;
 
 export interface CaseAuditRecord {
   readonly organizationId: string;
-  readonly caseId: string;
+  /** Null for organization-level events (e.g. session issuance) — no case involved. */
+  readonly caseId: string | null;
   readonly action: string;
   readonly actor: AuditActor;
   readonly objectType: string;

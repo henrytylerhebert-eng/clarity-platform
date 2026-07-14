@@ -11,3 +11,4 @@ export * from "./evidenceGateway.js";
 export * from "./benefitsMappers.js";
 export * from "./benefitsGateway.js";
 export * from "./authorizationGateway.js";
+export * from "./authGateway.js";
