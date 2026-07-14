@@ -335,13 +335,13 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/tsconfig.json": {
-    "mtime": 1784053782.429096,
-    "ast_hash": "e5a10dc1bdf35c8dd7d2819df10b5c34",
+    "mtime": 1784054812.1310716,
+    "ast_hash": "0ebfe0f26b3f4a087270d3efd9e09a24",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/vitest.config.ts": {
-    "mtime": 1784053784.7816372,
-    "ast_hash": "7763c9df275b98813c208510b9ee197d",
+    "mtime": 1784054814.510251,
+    "ast_hash": "3c406c3eb79c48ef28ffb30b38a1c9c9",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/prisma/migrations/20260710233252_initial_clarity_foundation/migration.sql": {
@@ -445,8 +445,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/index.ts": {
-    "mtime": 1783955948.3463693,
-    "ast_hash": "f7b67e111ace69f4fc8d1edea6a6f700",
+    "mtime": 1784054715.275084,
+    "ast_hash": "5e5ad1610c0961ce08a3a93a41fb631d",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/workstreams.ts": {
@@ -530,8 +530,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/IMPLEMENTATION_STATUS.md": {
-    "mtime": 1784054009.708688,
-    "ast_hash": "e3b0d3a87f56f8daf451427fa8af3c5c",
+    "mtime": 1784055052.2493153,
+    "ast_hash": "5092a5a6f828c343115b530611ad86c8",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/ARCHITECTURE.md": {
@@ -1060,8 +1060,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/tests/integration/helpers/harness.ts": {
-    "mtime": 1784053787.317034,
-    "ast_hash": "51962a18cd295f2b5222fc6eb4e2727f",
+    "mtime": 1784054817.5948653,
+    "ast_hash": "42eadc7137b87466297ebfa68aca3430",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/package.json": {
@@ -1085,13 +1085,13 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/index.ts": {
-    "mtime": 1784053695.316149,
-    "ast_hash": "62ebcdc0382a9e53d9129732c74af96c",
+    "mtime": 1784054810.2726545,
+    "ast_hash": "bf73e414e71ded5e79a022b15db883fe",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/auditWriter.ts": {
-    "mtime": 1783776348.9981585,
-    "ast_hash": "0c952c31150abba3aeec896c66b9400f",
+    "mtime": 1784054759.6140587,
+    "ast_hash": "a807b0370120a28ff6390fe8df1665b9",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/docs/testing/CASE_REPOSITORY_TEST_MANIFEST.md": {
@@ -1512,6 +1512,66 @@
   "/Users/tylerhebert/Documents/clarity-platform/docs/implementation/AUTHORIZATION_READINESS_IMPLEMENTATION.md": {
     "mtime": 1784053972.2599528,
     "ast_hash": "d7b66ce3e02e4d1f377b8aaa42010f73",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/prisma/migrations/20260714184456_auth_sessions/migration.sql": {
+    "mtime": 1784054696.837348,
+    "ast_hash": "420c3373388f89e36cb5d83171a9f088",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/tests/integration/authentication.test.ts": {
+    "mtime": 1784054895.8160346,
+    "ast_hash": "170ce44b9b3c44a3b7a964db18dffc80",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/domain-contracts/src/authentication.ts": {
+    "mtime": 1784054713.840473,
+    "ast_hash": "bbd77d48458025ea523d4233779fb198",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/case-repository/src/authGateway.ts": {
+    "mtime": 1784054771.4648786,
+    "ast_hash": "79d9bea404405beda062a20f502c3b8c",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/auth-service/package.json": {
+    "mtime": 1784054782.4956548,
+    "ast_hash": "934c5e48b0863f4a84a0acdd5c0889f2",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/auth-service/src/identityProviders.ts": {
+    "mtime": 1784054789.3081527,
+    "ast_hash": "35ee388b75de193d211c1d80c20f60e5",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/auth-service/src/authenticationService.ts": {
+    "mtime": 1784054798.3687768,
+    "ast_hash": "6eaef95e21cdc778c5e3f038f5622ea0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/auth-service/src/index.ts": {
+    "mtime": 1784054800.0282738,
+    "ast_hash": "d254a842fb18dcc906346e1703d68bfa",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/product/INTAKE_STAFF_DISCOVERY_GUIDE.md": {
+    "mtime": 1784055008.4241436,
+    "ast_hash": "cb5ba585233a856c788e1567f439be41",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/architecture/ADR-0011-authentication.md": {
+    "mtime": 1784054956.7435963,
+    "ast_hash": "83e972e4b61f3c2150a1517a913c89be",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/architecture/ADR-0012-api-architecture.md": {
+    "mtime": 1784054981.9718268,
+    "ast_hash": "485f1abab860f4ef1e6347eb21602241",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/implementation/AUTHENTICATION_IMPLEMENTATION.md": {
+    "mtime": 1784055031.3162086,
+    "ast_hash": "42604672e0b4b16342dde6e5bef4777c",
     "semantic_hash": ""
   }
 }
