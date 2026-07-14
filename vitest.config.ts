@@ -22,6 +22,9 @@ export default defineConfig({
       "@clarity/benefits-service": fileURLToPath(
         new URL("./packages/benefits-service/src/index.ts", import.meta.url),
       ),
+      "@clarity/authorization-service": fileURLToPath(
+        new URL("./packages/authorization-service/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {
