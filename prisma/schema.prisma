@@ -380,8 +380,28 @@ model User {
   reviews        HumanReview[]
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
+  authSessions   AuthSession[]
 
   @@index([organizationId])
+}
+
+/// Server-side session record (ADR-0011). The raw bearer token is returned
+/// to the caller exactly once and stored ONLY as a SHA-256 hash — no code
+/// path can recover it. Revocation is a timestamp, never a delete, so the
+/// session trail survives for audit.
+model AuthSession {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  organizationId String
+  tokenHash      String    @unique
+  issuedAt       DateTime  @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([organizationId, userId])
+  @@index([expiresAt])
 }
 
 model PatientToken {
