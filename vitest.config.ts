@@ -25,6 +25,9 @@ export default defineConfig({
       "@clarity/authorization-service": fileURLToPath(
         new URL("./packages/authorization-service/src/index.ts", import.meta.url),
       ),
+      "@clarity/auth-service": fileURLToPath(
+        new URL("./packages/auth-service/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {

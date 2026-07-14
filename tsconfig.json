@@ -18,7 +18,8 @@
       "@clarity/document-service": ["./packages/document-service/src/index.ts"],
       "@clarity/evidence-service": ["./packages/evidence-service/src/index.ts"],
       "@clarity/benefits-service": ["./packages/benefits-service/src/index.ts"],
-      "@clarity/authorization-service": ["./packages/authorization-service/src/index.ts"]
+      "@clarity/authorization-service": ["./packages/authorization-service/src/index.ts"],
+      "@clarity/auth-service": ["./packages/auth-service/src/index.ts"]
     }
   },
   "include": ["packages/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts"],
