@@ -71,6 +71,7 @@ async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string
   // without cascade, so they go first.
   await prisma.authorization.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.insuranceCoverage.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.authSession.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.behavioralHealthCase.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.patientToken.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.user.deleteMany({ where: { organizationId: { in: organizationIds } } });
