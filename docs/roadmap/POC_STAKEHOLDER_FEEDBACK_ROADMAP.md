@@ -46,9 +46,9 @@ Also ask:
 
 **Status:** Built in local prototype.
 
-## MVP 0.2 - Command Center And Role Workflow
+## MVP 0.2 - Command Center, Role Workflow, And Training
 
-**Product promise:** Intake leadership can see active cases, parallel clinical/financial lanes, packet completeness, demo clocks, escalations, routing status, role-focused workspaces, and custody verification.
+**Product promise:** Intake leadership can see active cases, parallel clinical/financial lanes, packet completeness, demo clocks, escalations, routing status, role-focused workspaces, custody verification, and role-specific onboarding/SOP training.
 
 **Primary reviewers:**
 
@@ -64,6 +64,8 @@ Also ask:
 - Which column, badge, or status would your team rename?
 - Does the clinical lane stay independent from insurance/benefits?
 - Does the role selector match real stakeholder responsibilities?
+- Does each role's onboarding path match the SOP detail your team would expect?
+- Which competency evidence would supervisors accept before shadow use?
 - Are clock/escalation warnings helpful or too risky without legal validation?
 
 **Status:** Built in local prototype.
@@ -143,6 +145,7 @@ Also ask:
 | Routing Response | Are response options and decline reasons realistic? | Built |
 | Custody Ledger | Is the hash-chain explanation understandable? | Built |
 | Milieu Bedboard | Does it reflect safe placement concerns beyond bed availability? | Built as demo |
+| Training & SOPs | Can each position be onboarded with built-in SOP practice and competency evidence? | Built as review-gated training |
 | Reporting Metrics Rebuilder | Which UR metrics should be company-agnostic? | Stub only |
 
 ## Evidence Boundaries

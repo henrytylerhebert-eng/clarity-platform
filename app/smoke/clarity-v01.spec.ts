@@ -84,10 +84,12 @@ test('bedboard flags the risky recommendation and requires an override reason', 
 
 test('role switching scopes workspaces to each stakeholder segment', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Guided Intake' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Training & SOPs' })).toBeVisible();
 
   await page.getByLabel('Viewing as').selectOption('facility');
   await expect(page.getByRole('button', { name: 'Guided Intake' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Milieu Bedboard' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Training & SOPs' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Record mock response' })).toBeVisible();
 
   await page.getByLabel('Viewing as').selectOption('nurse');
@@ -99,6 +101,21 @@ test('role switching scopes workspaces to each stakeholder segment', async ({ pa
 
   await page.getByLabel('Viewing as').selectOption('all');
   await expect(page.getByRole('button', { name: 'Guided Intake' })).toBeVisible();
+});
+
+test('training workspace shows SOP onboarding for every role', async ({ page }) => {
+  await page.getByRole('button', { name: 'Training & SOPs' }).click();
+  await expect(page.getByRole('heading', { name: 'Training & SOPs' })).toBeVisible();
+  await expect(page.getByText('Pre-assessment procedure')).toBeVisible();
+  await expect(page.getByText('PEC chain-of-custody practice path')).toBeVisible();
+  await expect(page.getByText('Annual competency evidence')).toBeVisible();
+  await expect(page.getByRole('cell', { name: /Field responder/ })).toBeVisible();
+
+  await page.getByLabel('Viewing as').selectOption('compliance');
+  await page.getByRole('button', { name: 'Training & SOPs' }).click();
+  await expect(page.getByRole('heading', { name: 'Compliance / legal officer onboarding' })).toBeVisible();
+  await expect(page.locator('article').filter({ hasText: 'Compliance / legal officer onboarding' }).getByText('Prove custody, review status, and counsel-validation boundaries.')).toBeVisible();
+  await expect(page.getByText('Counsel validation required').first()).toBeVisible();
 });
 
 test('personas get adapted focus strips and field mode simplifies intake', async ({ page }) => {

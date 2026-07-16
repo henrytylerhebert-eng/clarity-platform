@@ -451,6 +451,16 @@ textarea {
   color: #314153;
 }
 
+.number-list {
+  padding-left: 22px;
+  color: #314153;
+}
+
+.number-list li,
+.check-list li {
+  margin-bottom: 6px;
+}
+
 .check-list.missing {
   color: #8b4e12;
 }
@@ -601,6 +611,51 @@ textarea {
 
 .override-field {
   min-width: 240px;
+}
+
+.training-path {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 16px;
+}
+
+.training-path span {
+  border: 1px solid #dde5ea;
+  border-radius: 7px;
+  padding: 7px 9px;
+  background: #f9fbfc;
+  color: #314153;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.training-badge-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.source-boundary-list {
+  display: grid;
+  gap: 10px;
+}
+
+.source-boundary-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  border: 1px solid #e7edf1;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.source-boundary-row p {
+  margin: 5px 0 0;
+  color: #526173;
+  font-size: 13px;
 }
 
 .unit-grid {

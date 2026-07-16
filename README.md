@@ -10,7 +10,7 @@ Clarity helps qualified behavioral-health professionals turn fragmented referral
 
 > referral -> intake -> evidence -> parallel clinical/legal/benefits workstreams -> packet -> routing -> custody -> audit
 
-The first product wedge is a crisis-intake and access workflow: guided intake, review-gated medical-necessity and legal drafts, referral packet generation, simulated facility response, custody ledger, role-aware command center, and milieu-aware bedboard demo.
+The first product wedge is a crisis-intake and access workflow: guided intake, review-gated medical-necessity and legal drafts, referral packet generation, simulated facility response, custody ledger, role-aware command center, milieu-aware bedboard demo, and role-specific onboarding/SOP training.
 
 ## The problem it solves
 
@@ -50,9 +50,10 @@ The local app in `app/` demonstrates a synthetic proof-of-concept workflow:
 7. Simulate facility routing and response.
 8. Verify material custody events through a hash-chained ledger.
 9. Review command-center status by stakeholder role.
-10. Discuss roadmap priority through a POC feature map and feedback board.
+10. Review onboarding, SOP checklists, competency evidence, and PEC chain-of-custody practice per position.
+11. Discuss roadmap priority through a POC feature map and feedback board.
 
-The Command Center now includes a stakeholder-facing explanation of each tool: what it does, what problem it solves, who it serves, and the correlated workflow.
+The Command Center now includes a stakeholder-facing explanation of each tool: what it does, what problem it solves, who it serves, and the correlated workflow. The Training & SOPs workspace turns detailed SOP context into role-specific synthetic practice while keeping clinical and legal review requirements explicit.
 
 ## What this is not
 
@@ -68,7 +69,7 @@ Where no measurement exists, the project says `No measurements found`. Where a c
 
 | Path | What it is |
 |---|---|
-| `app/` | Working prototype (Vite + React + TS): guided intake, medical-necessity/legal drafts, command center, stakeholder feature map, hash-chained custody ledger, packet builder, simulated routing, bedboard. `cd app && npm run dev` |
+| `app/` | Working prototype (Vite + React + TS): guided intake, medical-necessity/legal drafts, command center, stakeholder feature map, hash-chained custody ledger, packet builder, simulated routing, bedboard, Training & SOPs. `cd app && npm run dev` |
 | `packages/domain-contracts/` | Domain types, Zod schemas, state machines, audit helper, feature flags — contracts only |
 | `packages/*-service/` | Backend service foundations for case, document, evidence, benefits, authorization, and authentication workflows |
 | `prisma/` | Canonical foundation schema (validated; initial migration generated) — ADR-0002 |
@@ -88,6 +89,7 @@ For potential customers or POC reviewers:
 - Open the shareable GitHub Pages artifact: `https://henrytylerhebert-eng.github.io/clarity-platform/`
 - Read `docs/roadmap/POC_STAKEHOLDER_FEEDBACK_ROADMAP.md`.
 - Run the local prototype and open **Command Center**.
+- Open **Training & SOPs** to review onboarding paths and SOP practice by position.
 - Use the feature map to mark each feature as must-have, helpful, confusing, missing, or later.
 
 For developers:
@@ -127,7 +129,7 @@ npm audit --omit=dev
 
 Current prototype status:
 
-- Local app: guided intake, command center, role scoping, packet generation, simulated routing, custody ledger, and bedboard are implemented with synthetic data.
+- Local app: guided intake, command center, role scoping, Training & SOPs, packet generation, simulated routing, custody ledger, and bedboard are implemented with synthetic data.
 - Backend foundations: case, document, evidence, benefits, authorization, and authentication services are in place as repository/service layers, not as a deployed API product.
 - Production deployment: not started.
 - Live integrations: not started.

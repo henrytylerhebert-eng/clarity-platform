@@ -465,6 +465,7 @@
           <button class="active" data-screen="command">Command Center</button>
           <button data-screen="workflow">Workflow Spine</button>
           <button data-screen="features">Feature Map</button>
+          <button data-screen="training">Training & SOPs</button>
           <button data-screen="roadmap">POC Roadmap</button>
           <button data-screen="guardrails">Guardrails</button>
         </nav>
@@ -600,6 +601,29 @@
             </div>
           </section>
 
+          <section id="training" class="screen">
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Role Onboarding And SOP Training</h3>
+                <p>
+                  Each position gets synthetic onboarding, SOP checklists, workflow practice, competency evidence,
+                  and review-gate language. Source documents stay read-only context.
+                </p>
+              </div>
+              <div class="feature-grid">
+                <article class="feature-card"><h4>Field responder</h4><p>Create case, capture field-mode facts, add source-linked risk, and hand off without clinical or legal determinations.</p></article>
+                <article class="feature-card"><h4>Central intake coordinator</h4><p>Run command center lanes, escalate packet gaps, track demo clocks, and keep benefits non-blocking.</p></article>
+                <article class="feature-card"><h4>Clinician reviewer</h4><p>Review assessment domains, risk formulation, and medical-necessity support while prohibited claims stay blocked.</p></article>
+                <article class="feature-card"><h4>UR / benefits specialist</h4><p>Identify payer documentation gaps and future-safe utilization events without delaying clinical screening.</p></article>
+                <article class="feature-card"><h4>Receiving facility</h4><p>Review packet preview, record response, require decline reasons, and preserve receipt evidence.</p></article>
+                <article class="feature-card"><h4>Charge nurse</h4><p>Evaluate milieu safety, document override rationale, and ledger-log placement decisions.</p></article>
+                <article class="feature-card"><h4>Compliance / legal officer</h4><p>Verify custody chain, find counsel-validation gaps, and separate legal workflow evidence from legal advice.</p></article>
+                <article class="feature-card"><h4>Executive / program director</h4><p>Review POC fit, roadmap priority, and outcome claims marked No measurements found until measured.</p></article>
+                <article class="feature-card"><h4>PEC custody practice</h4><p>Draft status, attestation readiness, hash-chain seal, transmission, response, and CEC/second-review as counsel-gated workflow.</p></article>
+              </div>
+            </div>
+          </section>
+
           <section id="roadmap" class="screen">
             <div class="panel">
               <div class="panel-title">
@@ -665,6 +689,7 @@
         ["Routing Response", "Simulates accept, decline, request info, or waitlist.", "Captures structured response reasons for later learning.", "Packet -> response -> status update."],
         ["Custody Ledger", "Verifies material event hashes.", "Demonstrates chain-of-custody and tamper detection.", "Event -> hash -> verify."],
         ["Milieu Bedboard", "Shows placement fit and override reasons.", "Separates bed availability from safe placement.", "Candidate -> compatibility -> decision."],
+        ["Training & SOPs", "Creates onboarding, SOP practice, and competency evidence per position.", "Turns detailed SOP context into role-specific training without making it final policy.", "Role -> SOP checklist -> simulation -> review gate."],
         ["Reporting Metrics Stub", "Emits future-safe operating events.", "Keeps UR reporting company-agnostic.", "Case event -> metrics-safe payload -> future reports."],
       ];
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   BedDouble,
+  BookOpenCheck,
   ClipboardList,
   FileCheck2,
   FileText,
@@ -23,6 +24,7 @@ import { LegalStatus } from "./workspaces/LegalStatus";
 import { PacketPreview } from "./workspaces/PacketPreview";
 import { RoutingResponse } from "./workspaces/RoutingResponse";
 import { CustodyLedger } from "./workspaces/CustodyLedger";
+import { TrainingSops } from "./workspaces/TrainingSops";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
 import { appendCustodyLedgerEvent } from "./domain/custodyLedger";
@@ -57,6 +59,7 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "routing", label: "Routing Response", icon: Network },
   { id: "bedboard", label: "Milieu Bedboard", icon: BedDouble },
   { id: "ledger", label: "Custody Ledger", icon: ShieldCheck },
+  { id: "training", label: "Training & SOPs", icon: BookOpenCheck },
 ];
 
 export function App() {
@@ -454,6 +457,7 @@ export function App() {
           {workspace === "ledger" ? (
             bundle?.ledgerEvents.length ? <CustodyLedger events={bundle.ledgerEvents} /> : <EmptyState title="No custody events">Material custody events appear here after legal drafts, packet sealing, transmission, or facility response.</EmptyState>
           ) : null}
+          {workspace === "training" ? <TrainingSops roleId={roleId} /> : null}
         </section>
       </main>
     </div>
