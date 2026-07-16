@@ -74,7 +74,9 @@ Where no measurement exists, the project says `No measurements found`. Where a c
 | `packages/*-service/` | Backend service foundations for case, document, evidence, benefits, authorization, and authentication workflows |
 | `prisma/` | Canonical foundation schema (validated; initial migration generated) — ADR-0002 |
 | `data/synthetic-cases/` | Validated synthetic fixtures (3 of a planned 10) |
+| `data/mock-use-cohorts/` | Separated mock-use training cohorts; not canonical app seed data |
 | `docs/` | Canonical documentation: `product/`, `architecture/` (incl. ADRs), `workflows/`, `clinical/`, `legal/`, `payer-and-benefits/`, `governance/`, `security/`, `testing/`, `roadmap/`, `developer-handoff/`, `decisions/` |
+| `docs/mock-use/` | Fictitious chart/UR training reports for stakeholder walkthroughs |
 | `docs/00–09*.md` | Historical Jul 8 crisis-platform docs (preserved; see path-migration note in `00-architecture-index.md`) |
 | `docs/repository-audit/` | Full integration audit trail: inventories, integration matrix, conflict register, gap analysis, schema validation, file move map |
 | `reporting-metrics-rebuild-package/` | Reporting-metrics reverse-engineering analysis (metrics substrate) |
