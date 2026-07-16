@@ -24,6 +24,15 @@ npm run build    # typecheck + production build
 
 The sidebar "Viewing as" selector scopes workspaces per stakeholder role, defined in `src/domain/roles.ts`: field responder, central intake coordinator, clinician reviewer, receiving facility, and charge nurse (plus an unscoped demo view). Adding or reshaping a segment is a config change in that one file — workspaces are self-contained components, so no workspace code changes are needed. This is demo role modeling per the handoff spec, **not** authentication; production RBAC/RLS stays in the parking lot.
 
+## POC command center review
+
+The **Command Center** is now both an operational dashboard and a stakeholder walkthrough surface. It includes a POC feature map explaining what each tool does, what problem it solves, who it serves, and the correlated workflow, plus a roadmap feedback board that stakeholders can mark as must-have, helpful, confusing, missing, or later.
+
+Supporting artifacts:
+
+- `../docs/developer-handoff/COMMAND_CENTER_MVP_PROMPT.md` — paste-ready continuation prompt for future Codex work.
+- `../docs/roadmap/POC_STAKEHOLDER_FEEDBACK_ROADMAP.md` — stakeholder-readable roadmap and feedback guide.
+
 ## Layout
 
 - `src/domain/` — canonical case spine: types, seed scenarios, hash-chained custody ledger, pitfall guard engine, compliance clocks, packet builder, bedboard placement rules. Unit-tested.

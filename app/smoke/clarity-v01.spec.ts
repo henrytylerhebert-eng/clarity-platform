@@ -60,6 +60,12 @@ test('command center shows lanes, clocks, and an escalated delay', async ({ page
   await expect(page.getByText('Breached').first()).toBeVisible();
   await expect(page.getByText('Escalated')).toBeVisible();
   await expect(page.getByText('below 95% target').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'POC Feature Map' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Product Roadmap Feedback Board' })).toBeVisible();
+  await expect(page.getByText('What it does:').first()).toBeVisible();
+  await expect(page.getByText('Problem solved:').first()).toBeVisible();
+  await expect(page.getByText('Correlated workflow:').first()).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'MVP 0.3' })).toBeVisible();
 });
 
 test('bedboard flags the risky recommendation and requires an override reason', async ({ page }) => {

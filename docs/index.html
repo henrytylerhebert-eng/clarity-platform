@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clarity Crisis Ops - Command Center Prototype</title>
+    <meta
+      name="description"
+      content="A shareable Clarity Crisis Ops UX/UI artifact explaining the command center, intake spine, custody ledger, routing workflow, and POC roadmap."
+    />
+    <link rel="icon" href="data:," />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17212b;
+        --muted: #5f7184;
+        --soft: #eef4f6;
+        --panel: #ffffff;
+        --line: #dce5eb;
+        --brand: #174d58;
+        --brand-soft: #d9f0ef;
+        --warn: #8b4e12;
+        --danger: #9b2d23;
+        --good: #17643b;
+        --info: #21527f;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #f5f7f8;
+        color: var(--ink);
+      }
+
+      button,
+      select {
+        font: inherit;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 20px 16px;
+        background: #13202b;
+        color: #eff6f7;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .mark {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--brand-soft);
+        color: #13202b;
+        font-weight: 900;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      p {
+        margin-top: 0;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.1;
+      }
+
+      .brand p {
+        margin: 3px 0 0;
+        color: #9eb1bf;
+        font-size: 12px;
+      }
+
+      .role-box {
+        display: grid;
+        gap: 8px;
+        color: #9eb1bf;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .role-box select {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 7px;
+        padding: 9px 10px;
+        background: #1b2b38;
+        color: #eff6f7;
+        font-weight: 700;
+      }
+
+      .role-box span {
+        color: #cfe3e2;
+        font-size: 12px;
+        font-style: italic;
+        font-weight: 600;
+        text-transform: none;
+      }
+
+      .nav {
+        display: grid;
+        gap: 6px;
+      }
+
+      .nav button {
+        border: 0;
+        border-radius: 7px;
+        padding: 10px 11px;
+        background: transparent;
+        color: #dbe7ec;
+        text-align: left;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .nav button.active,
+      .nav button:hover {
+        background: var(--brand-soft);
+        color: #13202b;
+      }
+
+      .sidebar-note {
+        margin-top: auto;
+        color: #9eb1bf;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .main {
+        min-width: 0;
+      }
+
+      .content,
+      .panel,
+      .screen {
+        min-width: 0;
+      }
+
+      .topbar {
+        min-height: 88px;
+        padding: 20px 28px;
+        background: var(--panel);
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .eyebrow {
+        color: #718194;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .topbar h2 {
+        margin: 4px 0 0;
+        font-size: 25px;
+      }
+
+      .badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        width: fit-content;
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .badge-info {
+        background: #dfeeff;
+        color: var(--info);
+      }
+
+      .badge-warn {
+        background: #fff2cf;
+        color: var(--warn);
+      }
+
+      .badge-danger {
+        background: #ffe1df;
+        color: var(--danger);
+      }
+
+      .badge-good {
+        background: #dcf8eb;
+        color: var(--good);
+      }
+
+      .content {
+        display: grid;
+        gap: 18px;
+        padding: 24px 28px 44px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        box-shadow: 0 8px 26px rgba(19, 32, 43, 0.06);
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 16px;
+      }
+
+      .panel-title h3 {
+        margin: 0;
+        font-size: 21px;
+      }
+
+      .panel-title p {
+        max-width: 700px;
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fbfcfd;
+      }
+
+      .stat strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 21px;
+      }
+
+      .table-wrap {
+        overflow: auto;
+        max-width: 100%;
+      }
+
+      table {
+        width: 100%;
+        min-width: 860px;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #e7edf1;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: #526173;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      tr.escalated td {
+        background: #fff6f5;
+      }
+
+      .case-link {
+        font-weight: 900;
+      }
+
+      .subtext {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .clock-stack {
+        display: grid;
+        gap: 6px;
+      }
+
+      .clock-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .feature-card,
+      .workflow-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #f9fbfc;
+        padding: 14px;
+      }
+
+      .feature-card h4,
+      .workflow-card h4 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .feature-card p,
+      .workflow-card p {
+        margin: 8px 0 0;
+        color: #435267;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .workflow-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .workflow-card {
+        position: relative;
+      }
+
+      .workflow-card .step {
+        display: inline-grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        margin-bottom: 8px;
+        border-radius: 50%;
+        background: var(--brand);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .roadmap-table td:nth-child(1) {
+        font-weight: 900;
+      }
+
+      .footer-note {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .screen {
+        display: none;
+      }
+
+      .screen.active {
+        display: grid;
+        gap: 18px;
+      }
+
+      @media (max-width: 980px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: relative;
+          height: auto;
+        }
+
+        .nav {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .topbar,
+        .panel-title {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .content {
+          padding: 18px;
+        }
+
+        .grid-4,
+        .feature-grid,
+        .workflow-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark">C</div>
+          <div>
+            <h1>Clarity</h1>
+            <p>Crisis Ops UX/UI artifact</p>
+          </div>
+        </div>
+
+        <label class="role-box">
+          Viewing as
+          <select id="roleSelect">
+            <option value="all">All stakeholders</option>
+            <option value="field">Field responder</option>
+            <option value="central">Central intake coordinator</option>
+            <option value="clinician">Clinician reviewer</option>
+            <option value="ur">UR / benefits specialist</option>
+            <option value="facility">Receiving facility</option>
+            <option value="nurse">Charge nurse</option>
+            <option value="compliance">Compliance / legal</option>
+            <option value="executive">Executive / program director</option>
+          </select>
+          <span id="roleMission">Reviewer walkthrough of the full closed-loop journey.</span>
+        </label>
+
+        <nav class="nav" aria-label="Prototype sections">
+          <button class="active" data-screen="command">Command Center</button>
+          <button data-screen="workflow">Workflow Spine</button>
+          <button data-screen="features">Feature Map</button>
+          <button data-screen="roadmap">POC Roadmap</button>
+          <button data-screen="guardrails">Guardrails</button>
+        </nav>
+
+        <p class="sidebar-note">
+          Shareable GitHub Pages artifact. Synthetic content only. Not a deployed clinical, legal, payer, or placement system.
+        </p>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">Selected demo case</div>
+            <h2>Packet Ready Demo D</h2>
+          </div>
+          <div class="badges">
+            <span class="badge badge-info">Routing</span>
+            <span class="badge badge-danger">Emergent</span>
+            <span class="badge badge-warn">Draft workflow</span>
+          </div>
+        </header>
+
+        <div class="content">
+          <section id="command" class="screen active">
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Central Intake Command Center</h3>
+                <p>
+                  One operational view for active crisis referrals, parallel clinical and financial lanes, packet readiness,
+                  demo clocks, routing, and escalation. Legal clocks are placeholders pending counsel validation.
+                </p>
+              </div>
+              <div class="grid-4">
+                <div class="stat"><span class="eyebrow">Active cases</span><strong>4</strong></div>
+                <div class="stat"><span class="eyebrow">Escalated</span><strong>1</strong></div>
+                <div class="stat"><span class="eyebrow">Packets below target</span><strong>3</strong></div>
+                <div class="stat"><span class="eyebrow">Baseline timing</span><strong>No measurements found</strong></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Case</th>
+                      <th>Stage</th>
+                      <th>Clinical lane</th>
+                      <th>Financial lane</th>
+                      <th>Packet</th>
+                      <th>Clocks</th>
+                      <th>Escalation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="case-link">Packet Ready Demo D</span><span class="subtext">case-004</span></td>
+                      <td><span class="badge badge-info">Routing</span></td>
+                      <td>Needs clinician review</td>
+                      <td>Verified</td>
+                      <td><strong class="badge badge-warn">94% below target</strong></td>
+                      <td>
+                        <div class="clock-stack">
+                          <span class="clock-line"><span class="badge badge-info">Running</span> Disposition to transport - 220m left</span>
+                        </div>
+                      </td>
+                      <td><span class="subtext">None</span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="case-link">Adult Demo A</span><span class="subtext">case-001</span></td>
+                      <td><span class="badge badge-info">Assessment</span></td>
+                      <td>Draft</td>
+                      <td>Pending verification</td>
+                      <td><strong class="badge badge-warn">62% below target</strong></td>
+                      <td>
+                        <div class="clock-stack">
+                          <span class="clock-line"><span class="badge badge-info">Running</span> Insurance verification - 85m left</span>
+                          <span class="clock-line"><span class="badge badge-info">Running</span> PEC review window - 660m left</span>
+                        </div>
+                      </td>
+                      <td><span class="subtext">None</span></td>
+                    </tr>
+                    <tr class="escalated">
+                      <td><span class="case-link">Youth Demo C</span><span class="subtext">case-003</span></td>
+                      <td><span class="badge badge-info">Intake</span></td>
+                      <td>Draft</td>
+                      <td>Not provided</td>
+                      <td><strong class="badge badge-warn">38% below target</strong></td>
+                      <td>
+                        <span class="clock-line"><span class="badge badge-danger">Breached</span> Referral to screening - 35m over</span>
+                      </td>
+                      <td><span class="badge badge-danger">Escalated</span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="case-link">Geriatric Demo B</span><span class="subtext">case-002</span></td>
+                      <td><span class="badge badge-info">Intake</span></td>
+                      <td>Draft</td>
+                      <td>Unknown</td>
+                      <td><strong class="badge badge-warn">41% below target</strong></td>
+                      <td><span class="clock-line"><span class="badge badge-warn">Due soon</span> Referral to screening - 10m left</span></td>
+                      <td><span class="subtext">None</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="footer-note">Financial readiness never blocks emergency clinical review. Demo clock targets are not statutory truth.</p>
+            </div>
+          </section>
+
+          <section id="workflow" class="screen">
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Workflow Spine</h3>
+                <p>The product exists to capture the story once and carry it through review, packet, routing, custody, and operational feedback.</p>
+              </div>
+              <div class="workflow-grid">
+                <article class="workflow-card"><span class="step">1</span><h4>Referral</h4><p>Create a synthetic case and record the referral source, location, concern, and insurance status.</p></article>
+                <article class="workflow-card"><span class="step">2</span><h4>Guided Intake</h4><p>Capture structured assessment fields and source-linked risk findings.</p></article>
+                <article class="workflow-card"><span class="step">3</span><h4>Review Drafts</h4><p>Render medical necessity and legal status as draft, review-gated support only.</p></article>
+                <article class="workflow-card"><span class="step">4</span><h4>Packet + Routing</h4><p>Generate a packet preview and simulate receiving-facility response with reason codes.</p></article>
+                <article class="workflow-card"><span class="step">5</span><h4>Custody + Learning</h4><p>Verify event hashes and preserve metrics-safe event shapes for future UR reporting.</p></article>
+              </div>
+            </div>
+          </section>
+
+          <section id="features" class="screen">
+            <div class="panel">
+              <div class="panel-title">
+                <h3>POC Feature Map</h3>
+                <p>Use this section with stakeholders to test names, priorities, owner fit, and workflow credibility.</p>
+              </div>
+              <div class="feature-grid" id="featureGrid"></div>
+            </div>
+          </section>
+
+          <section id="roadmap" class="screen">
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Product Development Roadmap</h3>
+                <p>Designed so POC stakeholders can respond with must-have, helpful, confusing, missing, or later.</p>
+              </div>
+              <div class="table-wrap">
+                <table class="roadmap-table">
+                  <thead>
+                    <tr><th>Stage</th><th>Product promise</th><th>Feedback question</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>MVP 0.1</td><td>Prove the intake spine.</td><td>Can a reviewer follow one crisis referral from intake to packet to response without retyping?</td><td>Built in prototype</td></tr>
+                    <tr><td>MVP 0.2</td><td>Add command center, role focus, routing, and milieu-aware placement demo.</td><td>Which role view feels credible, confusing, or missing?</td><td>Built in prototype</td></tr>
+                    <tr><td>POC Pilot</td><td>Validate workflow fit with synthetic stakeholder walkthroughs.</td><td>What would teams rename, remove, or require before shadow use?</td><td>Next</td></tr>
+                    <tr><td>MVP 0.3</td><td>Build measured command metrics and company-agnostic UR reporting substrate.</td><td>Which metrics matter locally, and which should be reusable?</td><td>Planned</td></tr>
+                    <tr><td>Production Readiness</td><td>Add backend, auth/RBAC/RLS, PHI controls, integrations, validation, and deployment controls.</td><td>Which gates are mandatory before live data?</td><td>Parking lot until POC evidence</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section id="guardrails" class="screen">
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Safety And Truth Boundaries</h3>
+                <p>This artifact is built for sharing, but it preserves the same product boundaries as the prototype.</p>
+              </div>
+              <div class="feature-grid">
+                <article class="feature-card"><h4>Synthetic only</h4><p>No PHI, no real facility data, no production identifiers.</p></article>
+                <article class="feature-card"><h4>Human review</h4><p>Clinical, medical necessity, legal, placement, and authorization outputs remain draft or review-gated.</p></article>
+                <article class="feature-card"><h4>Counsel validation</h4><p>Legal clocks and statutory language are placeholders until legal review.</p></article>
+                <article class="feature-card"><h4>No payer certainty</h4><p>Benefits quotes are not payment guarantees and financial readiness does not block clinical workflow.</p></article>
+                <article class="feature-card"><h4>No outcome claims</h4><p>Transfer timing, acceptance rates, and documentation quality improvements are No measurements found.</p></article>
+                <article class="feature-card"><h4>POC feedback first</h4><p>Market fit, feature naming, and workflow ownership remain Unknown until stakeholder review.</p></article>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const roles = {
+        all: "Reviewer walkthrough of the full closed-loop journey.",
+        field: "Capture the story once, on scene, without clinical jargon.",
+        central: "Keep every case moving and escalate before clocks breach.",
+        clinician: "Turn drafts into clinically defensible documentation.",
+        ur: "Clear the financial lane without blocking the clinical lane.",
+        facility: "Respond fast with a reason the network can learn from.",
+        nurse: "Place for milieu safety, not just bed availability.",
+        compliance: "Prove custody, review status, and counsel-validation boundaries.",
+        executive: "See throughput and risk while measuring before claiming improvement.",
+      };
+
+      const featureCards = [
+        ["Case Queue", "Shows active synthetic cases with status and gaps.", "Replaces scattered tracking across calls, notes, and spreadsheets.", "Referral -> queue -> overview."],
+        ["Guided Intake", "Captures structured assessment and source-linked risk.", "Reduces retyping, missing collateral, and unsupported risk claims.", "New case -> facts -> sources -> risk."],
+        ["Medical Necessity Draft", "Shows review-gated support and missing data.", "Prevents unsupported determinations.", "Assessment -> evidence domains -> clinician review."],
+        ["Legal Status Draft", "Tracks legal status, clocks, and counsel warnings.", "Makes legal uncertainty explicit without generating forms.", "Facts -> draft -> counsel validation."],
+        ["Packet Preview", "Creates a packet from canonical facts.", "Avoids rebuilding the same story for each facility.", "Reviewed facts -> checklist -> packet."],
+        ["Routing Response", "Simulates accept, decline, request info, or waitlist.", "Captures structured response reasons for later learning.", "Packet -> response -> status update."],
+        ["Custody Ledger", "Verifies material event hashes.", "Demonstrates chain-of-custody and tamper detection.", "Event -> hash -> verify."],
+        ["Milieu Bedboard", "Shows placement fit and override reasons.", "Separates bed availability from safe placement.", "Candidate -> compatibility -> decision."],
+        ["Reporting Metrics Stub", "Emits future-safe operating events.", "Keeps UR reporting company-agnostic.", "Case event -> metrics-safe payload -> future reports."],
+      ];
+
+      const featureGrid = document.getElementById("featureGrid");
+      featureCards.forEach(([title, does, solves, workflow]) => {
+        const card = document.createElement("article");
+        card.className = "feature-card";
+        card.innerHTML = `<h4>${title}</h4><p><strong>What it does:</strong> ${does}</p><p><strong>Problem solved:</strong> ${solves}</p><p><strong>Correlated workflow:</strong> ${workflow}</p>`;
+        featureGrid.appendChild(card);
+      });
+
+      document.querySelectorAll(".nav button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".nav button").forEach((item) => item.classList.remove("active"));
+          document.querySelectorAll(".screen").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          document.getElementById(button.dataset.screen).classList.add("active");
+        });
+      });
+
+      document.getElementById("roleSelect").addEventListener("change", (event) => {
+        document.getElementById("roleMission").textContent = roles[event.target.value];
+      });
+    </script>
+  </body>
+</html>

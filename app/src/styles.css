@@ -248,6 +248,31 @@ button {
   gap: 16px;
 }
 
+.feature-map-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.feature-card {
+  border: 1px solid #dde5ea;
+  border-radius: 8px;
+  background: #f9fbfc;
+  padding: 14px;
+}
+
+.feature-card h4 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.feature-card p {
+  margin: 8px 0 0;
+  color: #435267;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .table-wrap {
   overflow: auto;
 }
@@ -647,6 +672,7 @@ textarea {
   .status-strip,
   .grid-two,
   .form-grid,
+  .feature-map-grid,
   .packet-grid {
     grid-template-columns: 1fr;
   }
