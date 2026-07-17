@@ -110,6 +110,46 @@ export interface LegalInstrument {
   clockStatus: "Display only" | "Active" | "Due soon" | "Unknown";
   draftText: string;
   reviewStatus: ReviewStatus;
+  // Louisiana e-PEC lifecycle (optional overlay — existing consumers reading only the
+  // fields above are unaffected). See app/src/domain/epecRuleSets.ts for the
+  // jurisdiction-configurable statute refs, windows, and option lists behind this.
+  ruleSetId?: string;
+  opc?: OpcRecord;
+  pec?: PecRecord;
+  cec?: CecRecord;
+}
+
+export interface OpcRecord {
+  issuedAt: string;
+  requestor: string;
+  relation: string;
+  observed: string;
+  grounds: string[];
+  expiresAt: string;
+}
+
+export interface PecRecord {
+  examinerName: string;
+  examinerType: string;
+  examinedAt: string;
+  findings: string[];
+  conditions: string[];
+  telemedicine: boolean;
+  narrative: string;
+  executedAt: string;
+  sealHash?: string;
+  transmittedAt?: string;
+  facilityResponseId?: string;
+}
+
+export interface CecRecord {
+  examinerName: string;
+  findings: string[];
+  conditions: string[];
+  outcome: "Continued" | "Discharged";
+  dischargeReason?: string;
+  executedAt: string;
+  recordFrozenAt: string;
 }
 
 export interface CustodyLedgerEvent {
@@ -183,7 +223,10 @@ export interface AnalyticsEvent {
     | "ROUTING_RESPONSE_RECEIVED"
     | "CUSTODY_CHAIN_VERIFIED"
     | "PACKET_SENT"
-    | "DOCUMENTATION_GAP";
+    | "DOCUMENTATION_GAP"
+    | "OPC_ISSUED"
+    | "PEC_EXECUTED"
+    | "CEC_EXECUTED";
   occurredAt: string;
   organizationToken: string;
   caseId: string;

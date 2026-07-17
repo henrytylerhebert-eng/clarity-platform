@@ -26,6 +26,9 @@ import { CustodyLedger } from "./workspaces/CustodyLedger";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
 import { appendCustodyLedgerEvent } from "./domain/custodyLedger";
+import { readCaseClocks } from "./domain/clocks";
+import { executeCec, executePec, issueOpc, type CecInput, type OpcInput, type PecInput } from "./domain/epec";
+import { getEpecRuleSet } from "./domain/epecRuleSets";
 import { buildPacketForCase } from "./domain/packets";
 import { getRole, roles, type RoleId, type WorkspaceId } from "./domain/roles";
 import { getRoleFocus } from "./domain/roleFocus";
@@ -35,9 +38,9 @@ import type {
   AppState,
   Assessment,
   Case,
+  ComplianceClock,
   Encounter,
   FacilityResponse,
-  LegalInstrument,
   MedicalNecessitySnapshot,
   PlacementRecommendation,
   ReferralPacket,
@@ -64,6 +67,12 @@ export function App() {
   const [selectedCaseId, setSelectedCaseId] = useState("case-004");
   const [workspace, setWorkspace] = useState<WorkspaceId>("queue");
   const [roleId, setRoleId] = useState<RoleId>("all");
+  const [nowIso, setNowIso] = useState(() => new Date().toISOString());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNowIso(new Date().toISOString()), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const role = getRole(roleId);
   const visibleWorkspaceItems = workspaceItems.filter((item) => role.workspaces.includes(item.id));
@@ -212,12 +221,120 @@ export function App() {
     }));
   }
 
-  function handleLegalChange(legalInstrument: LegalInstrument) {
-    updateState((current) => ({
-      ...current,
-      legalInstruments: current.legalInstruments.map((item) => (item.id === legalInstrument.id ? legalInstrument : item)),
-      cases: current.cases.map((item) => item.id === legalInstrument.caseId ? { ...item, legalStatus: legalInstrument.legalStatus } : item),
-    }));
+  async function handleIssueOpc(caseId: string, input: OpcInput) {
+    if (!state) return;
+    const existing = state.legalInstruments.find((item) => item.caseId === caseId);
+    const occurredAt = new Date().toISOString();
+    const ruleSet = getEpecRuleSet(existing?.ruleSetId);
+    const result = issueOpc(existing, caseId, input, ruleSet, occurredAt);
+    const custodyLedgerEvents = await appendCustodyLedgerEvent(state.custodyLedgerEvents, {
+      id: `ledger-${Date.now()}`,
+      caseId,
+      eventType: result.ledgerEventType,
+      actor: "Parish Coroner (demo role)",
+      occurredAt,
+      payload: result.ledgerPayload,
+    });
+    const opcClock: ComplianceClock = {
+      id: `opc-${caseId}`,
+      caseId,
+      label: `OPC transport window (${ruleSet.statuteRefs.opc})`,
+      lane: "Legal",
+      startedAt: occurredAt,
+      targetMinutes: ruleSet.windowsMinutes.opc,
+      counselValidationRequired: true,
+    };
+    setState({
+      ...state,
+      custodyLedgerEvents,
+      legalInstruments: existing
+        ? state.legalInstruments.map((item) => (item.id === result.instrument.id ? result.instrument : item))
+        : [...state.legalInstruments, result.instrument],
+      complianceClocks: [...state.complianceClocks.filter((clock) => clock.id !== opcClock.id), opcClock],
+      cases: state.cases.map((item) => (item.id === caseId ? { ...item, legalStatus: "OPC", currentStage: "Legal draft" } : item)),
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId, action: "OPC issued", actor: "Parish Coroner (demo role)", occurredAt },
+        ...state.auditLogs,
+      ],
+      analyticsEvents: [
+        createAnalyticsEvent({ eventType: "OPC_ISSUED", caseId, metricsSafePayload: { containsPhi: false, groundsCount: input.grounds.length } }),
+        ...state.analyticsEvents,
+      ],
+    });
+  }
+
+  async function handleExecutePec(caseId: string, input: PecInput) {
+    if (!state) return;
+    const existing = state.legalInstruments.find((item) => item.caseId === caseId);
+    const occurredAt = new Date().toISOString();
+    const ruleSet = getEpecRuleSet(existing?.ruleSetId);
+    const caseEvents = state.custodyLedgerEvents.filter((item) => item.caseId === caseId).sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
+    const previousHash = caseEvents[caseEvents.length - 1]?.eventHash ?? null;
+    const result = await executePec(existing, caseId, input, ruleSet, previousHash, occurredAt);
+    const custodyLedgerEvents = await appendCustodyLedgerEvent(state.custodyLedgerEvents, {
+      id: `ledger-${Date.now()}`,
+      caseId,
+      eventType: result.ledgerEventType,
+      actor: input.examinerName,
+      occurredAt,
+      payload: result.ledgerPayload,
+    });
+    setState({
+      ...state,
+      custodyLedgerEvents,
+      legalInstruments: existing
+        ? state.legalInstruments.map((item) => (item.id === result.instrument.id ? result.instrument : item))
+        : [...state.legalInstruments, result.instrument],
+      cases: state.cases.map((item) => (item.id === caseId ? { ...item, legalStatus: "PEC" } : item)),
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId, action: "PEC executed and sealed", actor: input.examinerName, occurredAt },
+        ...state.auditLogs,
+      ],
+      analyticsEvents: [
+        createAnalyticsEvent({ eventType: "PEC_EXECUTED", caseId, metricsSafePayload: { containsPhi: false, telemedicine: input.telemedicine } }),
+        ...state.analyticsEvents,
+      ],
+    });
+  }
+
+  async function handleExecuteCec(caseId: string, input: CecInput) {
+    if (!state) return;
+    const existing = state.legalInstruments.find((item) => item.caseId === caseId);
+    if (!existing) return;
+    const occurredAt = new Date().toISOString();
+    const ruleSet = getEpecRuleSet(existing.ruleSetId);
+    const result = executeCec(existing, ruleSet, input, occurredAt);
+    const withOutcome = await appendCustodyLedgerEvent(state.custodyLedgerEvents, {
+      id: `ledger-${Date.now()}`,
+      caseId,
+      eventType: result.ledgerEventType,
+      actor: input.examinerName,
+      occurredAt,
+      payload: result.ledgerPayload,
+    });
+    const custodyLedgerEvents = await appendCustodyLedgerEvent(withOutcome, {
+      id: `ledger-${Date.now() + 1}`,
+      caseId,
+      eventType: "RECORD_FROZEN",
+      actor: "System",
+      occurredAt,
+      payload: { outcome: input.outcome, containsPhi: false },
+    });
+    setState({
+      ...state,
+      custodyLedgerEvents,
+      legalInstruments: state.legalInstruments.map((item) => (item.id === result.instrument.id ? result.instrument : item)),
+      complianceClocks: state.complianceClocks.map((clock) => (clock.id === `cec-${caseId}` ? { ...clock, stoppedAt: occurredAt } : clock)),
+      cases: state.cases.map((item) => (item.id === caseId ? { ...item, legalStatus: "CEC" } : item)),
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId, action: `CEC executed: ${input.outcome}`, actor: input.examinerName, occurredAt },
+        ...state.auditLogs,
+      ],
+      analyticsEvents: [
+        createAnalyticsEvent({ eventType: "CEC_EXECUTED", caseId, metricsSafePayload: { containsPhi: false, outcome: input.outcome } }),
+        ...state.analyticsEvents,
+      ],
+    });
   }
 
   async function handleFacilityResponse(response: FacilityResponse) {
@@ -240,9 +357,34 @@ export function App() {
       occurredAt,
       payload: { response: response.response, reasonCode: response.reasonCode ?? "Unknown", containsPhi: false },
     });
+    const legalInstrument = state.legalInstruments.find((item) => item.caseId === referral.caseId);
+    const legalInstruments = (() => {
+      if (!legalInstrument?.pec) return state.legalInstruments;
+      const pec = legalInstrument.pec;
+      return state.legalInstruments.map((item) =>
+        item.id === legalInstrument.id ? { ...item, pec: { ...pec, transmittedAt: occurredAt, facilityResponseId: response.id } } : item,
+      );
+    })();
+    const cecRuleSet = legalInstrument ? getEpecRuleSet(legalInstrument.ruleSetId) : undefined;
+    const complianceClocks = legalInstrument?.pec && cecRuleSet && response.response === "Accept"
+      ? [
+          ...state.complianceClocks.filter((clock) => clock.id !== `cec-${referral.caseId}`),
+          {
+            id: `cec-${referral.caseId}`,
+            caseId: referral.caseId,
+            label: `CEC review window (${cecRuleSet.statuteRefs.cec})`,
+            lane: "Legal" as const,
+            startedAt: occurredAt,
+            targetMinutes: cecRuleSet.windowsMinutes.cec,
+            counselValidationRequired: true,
+          },
+        ]
+      : state.complianceClocks;
     setState({
       ...state,
       custodyLedgerEvents,
+      legalInstruments,
+      complianceClocks,
       facilityResponses: [...state.facilityResponses, response],
       facilityReferrals: state.facilityReferrals.map((item) => item.id === response.referralId ? { ...item, status } : item),
       cases: state.cases.map((item) => item.id === referral.caseId ? { ...item, routingStatus: status, currentStage: "Routing" } : item),
@@ -447,7 +589,20 @@ export function App() {
           {workspace === "overview" ? <CaseOverview state={state} caseRecord={activeCase} /> : null}
           {workspace === "intake" ? <GuidedIntake state={state} caseId={activeCase.id} onAssessmentChange={handleAssessmentChange} onAddSourceAndRisk={handleAddSourceAndRisk} /> : null}
           {workspace === "medical" ? <MedicalNecessity snapshot={bundle?.medicalNecessity} onChange={handleMedicalChange} /> : null}
-          {workspace === "legal" ? <LegalStatus legalInstrument={bundle?.legalInstrument} onChange={handleLegalChange} /> : null}
+          {workspace === "legal" ? (
+            <LegalStatus
+              caseId={activeCase.id}
+              ruleSet={getEpecRuleSet(bundle?.legalInstrument?.ruleSetId)}
+              legalInstrument={bundle?.legalInstrument}
+              referrals={bundle?.referrals ?? []}
+              facilityResponses={state.facilityResponses}
+              clocks={readCaseClocks(state, activeCase.id, nowIso)}
+              onIssueOpc={(input) => handleIssueOpc(activeCase.id, input)}
+              onExecutePec={(input) => handleExecutePec(activeCase.id, input)}
+              onExecuteCec={(input) => handleExecuteCec(activeCase.id, input)}
+              onNavigateWorkspace={setWorkspace}
+            />
+          ) : null}
           {workspace === "packet" ? <PacketPreview state={state} caseId={activeCase.id} packet={bundle?.packet} onGenerate={handleGeneratePacket} onSend={handleSendPacket} /> : null}
           {workspace === "routing" ? <RoutingResponse referrals={bundle?.referrals ?? []} responses={state.facilityResponses} onResponse={handleFacilityResponse} /> : null}
           {workspace === "bedboard" ? <Bedboard state={state} onDecision={handlePlacementDecision} /> : null}

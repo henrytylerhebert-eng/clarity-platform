@@ -620,6 +620,72 @@ textarea {
 .bed-blocked { background: #f3f0ee; color: #7c7268; }
 .bed-recommended { outline: 2px solid #174d58; }
 
+.subtext-good {
+  color: #17643b;
+  font-weight: 700;
+}
+
+.epec-stage {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.stage-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 6px 12px;
+  font-size: 13px;
+}
+
+.fingerprint-chip {
+  font-size: 12px;
+  color: #526173;
+  background: #f2f8f8;
+  border: 1px solid #dde5ea;
+  border-radius: 6px;
+  padding: 8px 10px;
+  width: fit-content;
+}
+
+.fingerprint-chip code {
+  font-family: ui-monospace, "SF Mono", monospace;
+  color: #174d58;
+}
+
+.epec-bridge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.option-group {
+  display: grid;
+  gap: 8px;
+}
+
+.option-row {
+  padding: 9px 11px;
+  border: 1px solid #dde5ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.option-row small {
+  display: block;
+  color: #667789;
+  font-weight: 500;
+  font-size: 11.5px;
+}
+
 @media (max-width: 920px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -647,7 +713,8 @@ textarea {
   .status-strip,
   .grid-two,
   .form-grid,
-  .packet-grid {
+  .packet-grid,
+  .kv-grid {
     grid-template-columns: 1fr;
   }
 
