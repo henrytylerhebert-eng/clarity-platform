@@ -39,3 +39,22 @@ related_adrs: ADR-0001, ADR-0002
 ## Next concrete issue
 
 See `IMPLEMENTATION_STATUS.md` → "Next recommended action". FIRST_25_GITHUB_ISSUES.md (preserved in the package copy) is the backlog seed; issues 1–5 are effectively complete after this session.
+
+## Intake-to-admission lane (added 2026-07-17)
+
+The Clarity CIA integration bundle (`reference/source-packages/clarity_cia_integration_bundle_v1_0_0/`)
+is the assessment-documentation blueprint for the intake-to-admission treatment-team workflow. The
+canonical requirements statement — adaptable roles (intake ≠ nurse), physician acceptance with
+per-facility NP delegation, sending-facility nursing report, per-facility lab standards and
+exclusionary/inclusionary criteria, audio-assisted nurse documentation — lives in
+`docs/workflows/INTAKE_TO_ADMISSION_WORKFLOW.md`. The facility configuration layer
+(`FacilityAdmissionProfile`) follows the same configuration-not-truth pattern as the e-PEC
+jurisdictional rule sets.
+
+## Parking lot
+
+Explicitly deprioritized by the product owner — do not schedule; revisit when priorities change.
+
+| Item | Added | Why parked | Where specified |
+|---|---|---|---|
+| Facility policies/procedures/SOP ingestion pipeline (to auto-inform documentation configuration and the CIA runtime) | 2026-07-17 | Appropriate for the roadmap but not a high priority now, per product owner | `docs/workflows/INTAKE_TO_ADMISSION_WORKFLOW.md` R8 |
