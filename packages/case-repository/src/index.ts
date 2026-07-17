@@ -6,3 +6,5 @@ export * from "./stateHash.js";
 export * from "./caseCommandGateway.js";
 export * from "./documentMappers.js";
 export * from "./documentGateway.js";
+export * from "./legalStatusMappers.js";
+export * from "./legalStatusGateway.js";

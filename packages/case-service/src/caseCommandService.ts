@@ -211,7 +211,10 @@ export class CaseCommandService {
         return {
           changes: {}, // audit-only: no column changes; version still increments
           auditAction: COMMAND_AUDIT_ACTIONS.RecordDecisionRationale,
-          auditMetadata: { decisionContext: cmd.decisionContext },
+          auditMetadata: {
+            decisionContext: cmd.decisionContext,
+            ...(cmd.citedLegalStatusRecordId ? { citedLegalStatusRecordId: cmd.citedLegalStatusRecordId } : {}),
+          },
         };
       },
     });

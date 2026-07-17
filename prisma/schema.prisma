@@ -524,21 +524,29 @@ model HumanReview {
 }
 
 model LegalStatusRecord {
-  id                   String                   @id @default(cuid())
-  caseId               String
-  case                 BehavioralHealthCase     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  jurisdiction         String
-  statusType           LegalStatusType
-  authorizingAuthority String?
-  initiatedAt          DateTime?
-  expiresAt            DateTime?
-  formDocumentId       String?
-  signatureStatus      String?
-  reviewStatus         ParallelWorkstreamStatus @default(NOT_STARTED)
-  createdAt            DateTime                 @default(now())
-  updatedAt            DateTime                 @updatedAt
+  id                       String                   @id @default(cuid())
+  caseId                   String
+  case                     BehavioralHealthCase     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  jurisdiction             String
+  statusType               LegalStatusType
+  authorizingAuthority     String?
+  /// License board of the signing professional (LSBME/LSBN/LSBEP), when known —
+  /// together with authorizingLicenseNumber, the stable key for tracking how
+  /// often a professional issues these instruments (a license persists across
+  /// facilities/organizations; there is no cross-organization "professional"
+  /// entity in this schema, so this pair is the closest stable identifier).
+  authorizingLicenseBoard  String?
+  authorizingLicenseNumber String?
+  initiatedAt              DateTime?
+  expiresAt                DateTime?
+  formDocumentId           String?
+  signatureStatus          String?
+  reviewStatus             ParallelWorkstreamStatus @default(NOT_STARTED)
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
 
   @@index([caseId, jurisdiction])
+  @@index([authorizingLicenseBoard, authorizingLicenseNumber])
 }
 
 model MedicalNecessityReview {
