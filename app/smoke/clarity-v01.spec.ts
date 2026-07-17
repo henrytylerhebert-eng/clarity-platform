@@ -161,3 +161,21 @@ test('intake case can generate and send a packet with custody events', async ({ 
   await page.getByRole('button', { name: 'Verify custody chain' }).click();
   await expect(page.getByText('Verified')).toBeVisible();
 });
+
+test('mock admit lab filters the synthetic cohort and preserves review gates', async ({ page }) => {
+  await page.getByRole('button', { name: 'Mock Admit Lab' }).click();
+  await expect(page.getByRole('heading', { name: 'Mock Inpatient Admit Lab' })).toBeVisible();
+  await expect(page.getByText('Synthetic mock-use only')).toBeVisible();
+
+  await page.getByRole('group', { name: 'Cohort filter' }).getByRole('button', { name: 'Geriatric 55+', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Ron Swanson/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /April Ludgate/ })).toHaveCount(0);
+  await page.getByRole('button', { name: /Ron Swanson/ }).click();
+  await page.getByRole('tab', { name: 'Decision path' }).click();
+  await expect(page.getByText('Medical clearance is required before psychiatric-only placement.')).toBeVisible();
+  await expect(page.getByText('Medical, clinician, counsel review').first()).toBeVisible();
+
+  await page.getByRole('tab', { name: 'UR / chart draft' }).click();
+  await expect(page.getByRole('heading', { name: 'Draft chart and UR summary' })).toBeVisible();
+  await expect(page.getByText('Do not copy this training draft into a real chart or authorization request.')).toBeVisible();
+});

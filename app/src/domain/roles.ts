@@ -10,7 +10,8 @@ export type WorkspaceId =
   | "routing"
   | "bedboard"
   | "ledger"
-  | "training";
+  | "training"
+  | "mock-admits";
 
 export const allWorkspaceIds: WorkspaceId[] = [
   "queue",
@@ -25,6 +26,7 @@ export const allWorkspaceIds: WorkspaceId[] = [
   "bedboard",
   "ledger",
   "training",
+  "mock-admits",
 ];
 
 export type RoleId =
@@ -64,7 +66,7 @@ export const roles: RoleDefinition[] = [
     label: "Field responder",
     description: "Field intake capture: start a case, run field-mode assessment, hand off.",
     mission: "Capture the story once, on scene, without clinical jargon.",
-    workspaces: ["new", "intake", "overview", "ledger", "training"],
+    workspaces: ["new", "intake", "overview", "ledger", "training", "mock-admits"],
     defaultWorkspace: "new",
   },
   {
@@ -72,7 +74,7 @@ export const roles: RoleDefinition[] = [
     label: "Central intake coordinator",
     description: "Owns the pipeline: SLA clocks, packet completeness, routing, escalations.",
     mission: "Keep every case moving; escalate before clocks breach.",
-    workspaces: ["command", "queue", "new", "overview", "intake", "medical", "legal", "packet", "routing", "ledger", "training"],
+    workspaces: ["command", "queue", "new", "overview", "intake", "medical", "legal", "packet", "routing", "ledger", "training", "mock-admits"],
     defaultWorkspace: "command",
   },
   {
@@ -80,7 +82,7 @@ export const roles: RoleDefinition[] = [
     label: "Clinician reviewer",
     description: "Reviews assessments, risk formulations, and medical-necessity drafts.",
     mission: "Turn drafts into clinically defensible documentation.",
-    workspaces: ["queue", "overview", "intake", "medical", "legal", "ledger", "training"],
+    workspaces: ["queue", "overview", "intake", "medical", "legal", "ledger", "training", "mock-admits"],
     defaultWorkspace: "queue",
   },
   {
@@ -88,7 +90,7 @@ export const roles: RoleDefinition[] = [
     label: "UR / benefits specialist",
     description: "Runs the financial lane in parallel: verification, payer documentation gaps.",
     mission: "Clear the financial lane without ever blocking the clinical lane.",
-    workspaces: ["command", "queue", "overview", "medical", "ledger", "training"],
+    workspaces: ["command", "queue", "overview", "medical", "ledger", "training", "mock-admits"],
     defaultWorkspace: "command",
   },
   {
@@ -96,7 +98,7 @@ export const roles: RoleDefinition[] = [
     label: "Receiving facility",
     description: "Reviews incoming packets and responds accept, decline, or request info.",
     mission: "Respond fast with a reason the network can learn from.",
-    workspaces: ["packet", "routing", "ledger", "training"],
+    workspaces: ["packet", "routing", "ledger", "training", "mock-admits"],
     defaultWorkspace: "routing",
   },
   {
@@ -104,7 +106,7 @@ export const roles: RoleDefinition[] = [
     label: "Charge nurse (inpatient)",
     description: "Milieu-aware bed placement; final say on accept or override with reason.",
     mission: "Place for milieu safety, not just bed availability.",
-    workspaces: ["bedboard", "overview", "ledger", "training"],
+    workspaces: ["bedboard", "overview", "ledger", "training", "mock-admits"],
     defaultWorkspace: "bedboard",
   },
   {
@@ -112,7 +114,7 @@ export const roles: RoleDefinition[] = [
     label: "Compliance / legal officer",
     description: "Watches custody integrity, counsel-validation queue, and clock breaches.",
     mission: "Prove the chain of custody; flag anything counsel has not validated.",
-    workspaces: ["command", "queue", "legal", "ledger", "training"],
+    workspaces: ["command", "queue", "legal", "ledger", "training", "mock-admits"],
     defaultWorkspace: "ledger",
   },
   {
@@ -120,7 +122,7 @@ export const roles: RoleDefinition[] = [
     label: "Executive / program director",
     description: "Read-focused pipeline oversight. Full metrics dashboard arrives in v0.3.",
     mission: "See throughput and risk at a glance; measure before claiming improvement.",
-    workspaces: ["command", "queue", "ledger", "training"],
+    workspaces: ["command", "queue", "ledger", "training", "mock-admits"],
     defaultWorkspace: "command",
   },
 ];

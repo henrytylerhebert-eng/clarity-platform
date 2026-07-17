@@ -96,6 +96,7 @@ For potential customers or POC reviewers:
 
 For developers:
 
+- For human-supervised multi-agent work, start with agents/bridge/PROJECT_CONFIGURATION.md and agents/bridge/PROTOCOL.md.
 - Read `IMPLEMENTATION_STATUS.md` for what is complete, scaffolded, documented-only, blocked, and next.
 - Read `docs/roadmap/IMPLEMENTATION_ROADMAP.md` for the platform sequence.
 - Use `docs/developer-handoff/COMMAND_CENTER_MVP_PROMPT.md` for the next command-center/product-surface iteration.
@@ -109,6 +110,8 @@ npm test               # root safety/workflow suites (vitest)
 cd app && npm test     # prototype domain tests
 cd app && npm run dev  # http://127.0.0.1:5173
 npx prisma validate    # canonical schema
+npm run bridge:status  # local three-agent bridge capabilities and inboxes
+npm run bridge:test    # bridge lifecycle and credential-guard checks
 ```
 
 Useful app checks:

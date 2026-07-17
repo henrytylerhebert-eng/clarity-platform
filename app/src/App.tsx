@@ -5,6 +5,7 @@ import {
   ClipboardList,
   FileCheck2,
   FileText,
+  FlaskConical,
   Gauge,
   LayoutDashboard,
   Network,
@@ -25,6 +26,7 @@ import { PacketPreview } from "./workspaces/PacketPreview";
 import { RoutingResponse } from "./workspaces/RoutingResponse";
 import { CustodyLedger } from "./workspaces/CustodyLedger";
 import { TrainingSops } from "./workspaces/TrainingSops";
+import { MockAdmitLab } from "./workspaces/MockAdmitLab";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
 import { appendCustodyLedgerEvent } from "./domain/custodyLedger";
@@ -60,6 +62,7 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "bedboard", label: "Milieu Bedboard", icon: BedDouble },
   { id: "ledger", label: "Custody Ledger", icon: ShieldCheck },
   { id: "training", label: "Training & SOPs", icon: BookOpenCheck },
+  { id: "mock-admits", label: "Mock Admit Lab", icon: FlaskConical },
 ];
 
 export function App() {
@@ -376,6 +379,7 @@ export function App() {
   }
 
   const activeCase = selectedCase ?? state.cases[0];
+  const isMockAdmitLab = workspace === "mock-admits";
   const focusChips = getRoleFocus(roleId, state, activeCase.id, new Date().toISOString());
 
   return (
@@ -422,17 +426,26 @@ export function App() {
       <main className="main-surface">
         <header className="topbar">
           <div>
-            <span className="label">Selected case</span>
-            <h2>{activeCase.patientToken.displayName}</h2>
+            <span className="label">{isMockAdmitLab ? "Training workspace" : "Selected case"}</span>
+            <h2>{isMockAdmitLab ? "Mock Admit Lab" : activeCase.patientToken.displayName}</h2>
           </div>
           <div className="topbar-badges">
-            <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
-            <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
-            <StatusBadge tone="warn">Draft workflow</StatusBadge>
+            {isMockAdmitLab ? (
+              <>
+                <StatusBadge tone="danger">Synthetic only</StatusBadge>
+                <StatusBadge tone="warn">Human review required</StatusBadge>
+              </>
+            ) : (
+              <>
+                <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
+                <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
+                <StatusBadge tone="warn">Draft workflow</StatusBadge>
+              </>
+            )}
           </div>
         </header>
 
-        {focusChips.length ? (
+        {!isMockAdmitLab && focusChips.length ? (
           <div className="focus-strip" aria-label="Role focus summary">
             {focusChips.map((chip) => (
               <div className="focus-chip" key={chip.label}>
@@ -458,6 +471,7 @@ export function App() {
             bundle?.ledgerEvents.length ? <CustodyLedger events={bundle.ledgerEvents} /> : <EmptyState title="No custody events">Material custody events appear here after legal drafts, packet sealing, transmission, or facility response.</EmptyState>
           ) : null}
           {workspace === "training" ? <TrainingSops roleId={roleId} /> : null}
+          {workspace === "mock-admits" ? <MockAdmitLab /> : null}
         </section>
       </main>
     </div>
