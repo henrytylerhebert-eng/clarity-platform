@@ -16,6 +16,9 @@ export default defineConfig({
       "@clarity/document-service": fileURLToPath(
         new URL("./packages/document-service/src/index.ts", import.meta.url),
       ),
+      "@clarity/legal-hold-forms": fileURLToPath(
+        new URL("./packages/legal-hold-forms/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {

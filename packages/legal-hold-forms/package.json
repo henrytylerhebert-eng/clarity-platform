@@ -1,0 +1,13 @@
+{
+  "name": "@clarity/legal-hold-forms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Structured field schemas, advisory deadline calculators, advisory structural validators, and fillable-PDF rendering for the five official Louisiana OBH involuntary-commitment forms (OBH-1, OBH-1A, OBH-2, OBH-19, OBH-20). Statutory triggers/durations/form requirements are configuration, not enforced truth, per docs/legal/LEGAL_STATUS_ARCHITECTURE.md — nothing here auto-blocks or auto-releases. No Prisma; no case-repository dependency.",
+  "dependencies": {
+    "@clarity/domain-contracts": "*",
+    "pdf-lib": "^1.17.1",
+    "zod": "^3.24.1"
+  }
+}

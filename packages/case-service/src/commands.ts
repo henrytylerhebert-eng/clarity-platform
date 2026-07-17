@@ -69,7 +69,18 @@ export const UpdateWorkstreamStatusCommandSchema = z
 export type UpdateWorkstreamStatusCommand = z.input<typeof UpdateWorkstreamStatusCommandSchema>;
 
 export const RecordDecisionRationaleCommandSchema = z
-  .object({ ...caseEnvelope, reason: z.string().min(1), decisionContext: z.string().min(1) })
+  .object({
+    ...caseEnvelope,
+    reason: z.string().min(1),
+    decisionContext: z.string().min(1),
+    /**
+     * Optional pointer to the LegalStatusRecord (e.g. an OPC/PEC/CEC instrument)
+     * the decision relied on — lets a physician's acceptance decision cite the
+     * specific legal-hold document in the immutable audit trail. Advisory only:
+     * this is a citation, not a precondition — no transition is blocked on it.
+     */
+    citedLegalStatusRecordId: z.string().min(1).optional(),
+  })
   .strict();
 export type RecordDecisionRationaleCommand = z.input<typeof RecordDecisionRationaleCommandSchema>;
 
