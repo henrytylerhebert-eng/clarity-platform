@@ -1,0 +1,13 @@
+{
+  "name": "@clarity/evidence-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Tenant-scoped evidence command service and human-review workflow. The single controlled path for evidence actions: creation, correction, domain-scoped approval, rejection, clarification, supersession, and contradiction grouping. Entirely human-driven: no OCR, no automated extraction, no AI reasoning. No Prisma outside the approved gateway adapter.",
+  "dependencies": {
+    "@clarity/case-repository": "*",
+    "@clarity/domain-contracts": "*",
+    "zod": "^3.24.1"
+  }
+}

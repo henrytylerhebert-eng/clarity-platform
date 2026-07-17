@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+SOURCE="$0"
+while [ -L "$SOURCE" ]; do
+  DIRECTORY="$(CDPATH= cd -- "$(dirname -- "$SOURCE")" && pwd)"
+  TARGET="$(readlink "$SOURCE")"
+  case "$TARGET" in
+    /*) SOURCE="$TARGET" ;;
+    *) SOURCE="$DIRECTORY/$TARGET" ;;
+  esac
+done
+BRIDGE="$(CDPATH= cd -- "$(dirname -- "$SOURCE")" && pwd)"
+exec python3 "$BRIDGE/bridge.py" "$@"

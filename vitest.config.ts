@@ -19,6 +19,18 @@ export default defineConfig({
       "@clarity/legal-hold-forms": fileURLToPath(
         new URL("./packages/legal-hold-forms/src/index.ts", import.meta.url),
       ),
+      "@clarity/evidence-service": fileURLToPath(
+        new URL("./packages/evidence-service/src/index.ts", import.meta.url),
+      ),
+      "@clarity/benefits-service": fileURLToPath(
+        new URL("./packages/benefits-service/src/index.ts", import.meta.url),
+      ),
+      "@clarity/authorization-service": fileURLToPath(
+        new URL("./packages/authorization-service/src/index.ts", import.meta.url),
+      ),
+      "@clarity/auth-service": fileURLToPath(
+        new URL("./packages/auth-service/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {

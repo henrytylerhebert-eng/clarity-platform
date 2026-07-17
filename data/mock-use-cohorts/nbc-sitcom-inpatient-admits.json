@@ -1,0 +1,144 @@
+{
+  "cohortId": "mock-nbc-sitcom-inpatient-admits-001",
+  "status": "Synthetic mock-use clone only",
+  "createdFor": "Clarity role-play walkthrough and utilization-review training",
+  "guardrails": [
+    "Fictitious training content only.",
+    "No real PHI, no real police report, no real facility data.",
+    "Diagnoses are provisional training drafts and require clinician review.",
+    "Legal status and hold language are placeholders and require counsel validation.",
+    "Utilization-review language is a draft support summary, not payer authorization or medical-necessity certification."
+  ],
+  "rolePlayCast": {
+    "lawEnforcementResponders": [
+      "Jake Peralta",
+      "Amy Santiago",
+      "Rosa Diaz",
+      "Terry Jeffords",
+      "Raymond Holt",
+      "Charles Boyle"
+    ],
+    "facilityStaff": [
+      "Michael Scott, intake director",
+      "Pam Beesly, central intake coordinator",
+      "Jim Halpert, clinician reviewer",
+      "Angela Martin, compliance reviewer",
+      "Oscar Martinez, UR / benefits specialist",
+      "Phyllis Vance, charge nurse"
+    ]
+  },
+  "patients": [
+    {
+      "caseId": "mock-ger-001",
+      "patientToken": "Leslie Knope",
+      "age": 57,
+      "ageBand": "Geriatric 55+",
+      "insurance": "Medicare Advantage HMO",
+      "referralSource": "Brooklyn 99 field welfare check by Amy Santiago and Terry Jeffords",
+      "assignedStaff": "Pam Beesly intake, Jim Halpert clinician review, Oscar Martinez UR",
+      "provisionalDiagnoses": [
+        "Major depressive disorder, recurrent, severe, with anxious distress",
+        "Generalized anxiety disorder",
+        "Hypertension",
+        "Hypothyroidism"
+      ],
+      "precipitatingEvents": "After an abrupt retirement-board conflict and perceived public humiliation, patient sent multiple goodbye-style texts, stopped eating for two days, and was found pacing near a bridge with disorganized paperwork and no clear plan for safe return home.",
+      "riskSummary": "High danger-to-self concern due to goodbye texts, impaired sleep/appetite, hopeless statements, and unsafe location. No homicidal ideation reported. Medical comorbidities require medication reconciliation.",
+      "recommendedDisposition": "Inpatient psychiatric admission, voluntary if capacity and consent confirmed; otherwise legal-status review required.",
+      "urDecision": "Draft supports acute inpatient level of care due to imminent safety concern, functional decline, need for 24-hour monitoring, medication reconciliation, and failure of outpatient coping supports."
+    },
+    {
+      "caseId": "mock-ger-002",
+      "patientToken": "Ron Swanson",
+      "age": 68,
+      "ageBand": "Geriatric 55+",
+      "insurance": "Original Medicare Part A/B with supplemental policy",
+      "referralSource": "Brooklyn 99 field response by Rosa Diaz and Raymond Holt",
+      "assignedStaff": "Michael Scott intake director, Phyllis Vance charge nurse, Angela Martin compliance",
+      "provisionalDiagnoses": [
+        "Bipolar I disorder, current episode manic, severe, without psychotic features",
+        "Alcohol use disorder, moderate",
+        "Type 2 diabetes mellitus",
+        "Coronary artery disease"
+      ],
+      "precipitatingEvents": "Neighbors reported three nights of no sleep, loud property destruction, and patient attempting to leave town with firearms despite chest pain complaints and missed diabetes medication.",
+      "riskSummary": "High risk of accidental harm and impaired judgment. Medical risk elevated by diabetes, chest pain history, possible alcohol withdrawal, and firearm access. No direct suicidal intent documented.",
+      "recommendedDisposition": "Medical clearance followed by inpatient psychiatric admission with safety precautions and restricted access to weapons.",
+      "urDecision": "Draft supports acute inpatient level of care due to severe mania, impaired judgment, unsafe behavior, need for medication stabilization, withdrawal monitoring, and medical comorbidity coordination."
+    },
+    {
+      "caseId": "mock-ger-003",
+      "patientToken": "Donna Meagle",
+      "age": 60,
+      "ageBand": "Geriatric 55+",
+      "insurance": "Medicare due disability with Medicaid secondary",
+      "referralSource": "Brooklyn 99 transport request by Charles Boyle and Jake Peralta",
+      "assignedStaff": "Pam Beesly intake, Jim Halpert clinician review, Oscar Martinez UR",
+      "provisionalDiagnoses": [
+        "Posttraumatic stress disorder",
+        "Major depressive disorder, recurrent, moderate",
+        "Chronic pain syndrome",
+        "Obstructive sleep apnea"
+      ],
+      "precipitatingEvents": "Patient reported escalating panic, insomnia, and trauma flashbacks after a motor vehicle crash anniversary. Family collateral described medication overuse concern and inability to complete basic self-care for three days.",
+      "riskSummary": "Moderate-to-high self-neglect and medication safety risk. Passive death wishes reported without active plan. Chronic pain and sleep apnea complicate sedating-medication decisions.",
+      "recommendedDisposition": "Inpatient psychiatric admission for stabilization, medication safety, and trauma-informed safety planning after medical review.",
+      "urDecision": "Draft supports inpatient level of care due to impaired self-care, medication overuse concern, persistent trauma symptoms, inability to stabilize with family support, and need for 24-hour observation."
+    },
+    {
+      "caseId": "mock-adult-001",
+      "patientToken": "April Ludgate",
+      "age": 31,
+      "ageBand": "Adult 18-54",
+      "insurance": "Commercial PPO",
+      "referralSource": "Brooklyn 99 response by Rosa Diaz after workplace concern",
+      "assignedStaff": "Jim Halpert clinician review, Angela Martin compliance, Oscar Martinez UR",
+      "provisionalDiagnoses": [
+        "Major depressive disorder, recurrent, severe",
+        "Rule out borderline personality disorder traits",
+        "Migraine disorder"
+      ],
+      "precipitatingEvents": "Coworkers reported patient posted cryptic farewell messages, gave away personal items, and was found in a locked supply room with superficial cuts and refusal to contract for safety.",
+      "riskSummary": "Imminent self-harm concern with recent self-injury, farewell messaging, concealment, and inability to collaborate on safety planning.",
+      "recommendedDisposition": "Inpatient psychiatric admission with suicide precautions and clinician review for voluntary vs involuntary status.",
+      "urDecision": "Draft supports acute inpatient level of care due to recent self-injury, inability to maintain safety at lower level, need for close observation, and active treatment planning."
+    },
+    {
+      "caseId": "mock-adult-002",
+      "patientToken": "Andy Dwyer",
+      "age": 37,
+      "ageBand": "Adult 18-54",
+      "insurance": "Managed Medicaid",
+      "referralSource": "Brooklyn 99 response by Jake Peralta and Charles Boyle",
+      "assignedStaff": "Michael Scott intake director, Pam Beesly intake, Phyllis Vance charge nurse",
+      "provisionalDiagnoses": [
+        "Schizoaffective disorder, bipolar type",
+        "Cannabis use disorder, moderate",
+        "Asthma"
+      ],
+      "precipitatingEvents": "Patient was found wandering in traffic, singing loudly, responding to unseen stimuli, and stating he had been chosen to stop an invisible emergency. Collateral reported medication nonadherence for two weeks.",
+      "riskSummary": "High grave-disability and accidental-harm risk due to psychosis, traffic exposure, impaired judgment, and medication nonadherence. No intentional violence reported.",
+      "recommendedDisposition": "Inpatient psychiatric admission after medical clearance, elopement precautions, and restart/stabilization of psychiatric medication.",
+      "urDecision": "Draft supports inpatient level of care due to psychosis, inability to maintain personal safety, failed outpatient adherence, and need for 24-hour structured medication stabilization."
+    },
+    {
+      "caseId": "mock-adult-003",
+      "patientToken": "Tom Haverford",
+      "age": 42,
+      "ageBand": "Adult 18-54",
+      "insurance": "Employer-sponsored EPO",
+      "referralSource": "Brooklyn 99 response by Amy Santiago and Terry Jeffords",
+      "assignedStaff": "Pam Beesly intake, Oscar Martinez UR, Angela Martin compliance",
+      "provisionalDiagnoses": [
+        "Panic disorder",
+        "Stimulant use disorder, mild to moderate",
+        "Hypertension",
+        "Rule out substance-induced anxiety disorder"
+      ],
+      "precipitatingEvents": "Patient presented to ED with chest tightness, panic, pressured speech, and escalating paranoid fear after several days of stimulant misuse and no sleep. He attempted to leave before medical clearance.",
+      "riskSummary": "Moderate medical and behavioral risk due to chest-pain presentation, stimulant misuse, hypertension, insomnia, and elopement attempt before clearance.",
+      "recommendedDisposition": "Dual medical-behavioral review; inpatient psychiatric admission if medically cleared and unable to maintain safety at crisis-stabilization level.",
+      "urDecision": "Draft supports inpatient psychiatric admission if medical clearance confirms behavioral-health primary need, due to elopement risk, impaired judgment, stimulant-related instability, and failed ED de-escalation."
+    }
+  ]
+}

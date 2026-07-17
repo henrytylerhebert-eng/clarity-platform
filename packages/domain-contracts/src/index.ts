@@ -14,3 +14,5 @@ export * from "./actor.js";
 export * from "./commandErrors.js";
 export * from "./documents.js";
 export * from "./legalStatus.js";
+export * from "./evidence.js";
+export * from "./authentication.js";

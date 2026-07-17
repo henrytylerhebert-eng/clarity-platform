@@ -14,6 +14,7 @@ This document is the canonical definition of Clarity's stakeholder personas and 
 6. **Review gates follow the persona.** Field capture is Draft; clinical language requires clinician review; statutory language requires counsel validation. The UI must say who owes the next review, in that persona's vocabulary.
 7. **Financial lane never blocks the clinical lane** — enforced in both the coordinator and UR views.
 8. **Escalation is visible to the role that can act on it.** Breached clocks surface to central intake, compliance, and executives; milieu risk surfaces to the charge nurse.
+9. **Training is a universal workspace.** Every implemented persona sees Training & SOPs because onboarding, SOP practice, competency evidence, and review-gate literacy are required before a role-specific workflow is credible.
 
 ## Implemented Personas (v0.2)
 
@@ -109,3 +110,24 @@ This document is the canonical definition of Clarity's stakeholder personas and 
 ## Production Mapping (later)
 
 Role → RBAC role claims; workspace scope → route guards + RLS policies from `03-data-model.md`; focus KPIs → org-configurable dashboards; per-org config adds statutory pack (state), facility capability profiles, and payer rule packs on top of the same persona registry.
+
+## Onboarding And SOP Training Layer
+
+Implemented in `app/src/domain/training.ts` and `app/src/workspaces/TrainingSops.tsx`.
+
+The Training & SOPs workspace translates the read-only assessment-training and ePEC chain-of-custody context into synthetic role practice. It does not import source documents as live app data and does not certify any SOP as final policy. Each role gets:
+
+- onboarding outcome;
+- SOP checklist;
+- practice workflow;
+- competency evidence;
+- review gates;
+- linked operational workspaces.
+
+Source posture:
+
+- assessment-training protocol: summary derived, requires clinical review;
+- ePEC chain-of-custody workflow: summary derived, requires legal review;
+- persona and role UX map: source confirmed, product review.
+
+The training layer is company-agnostic by design. Organization-specific statutory packs, HR records, credentialing evidence, and production SOP approval workflows remain parked until governance and qualified human review are complete.
