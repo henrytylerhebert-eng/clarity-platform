@@ -1,5 +1,5 @@
 ---
-status: Implementation approved within bounded synthetic-only S2 scope; production hardening remains gated
+status: Bounded S2 implementation verified; production hardening remains gated
 owner: Tyler/product owner, technical lead, security reviewer
 date: 2026-07-18
 data_boundary: synthetic only
@@ -8,6 +8,7 @@ related_records:
   - docs/decisions/OPEN_DECISIONS.md
   - docs/architecture/ADR-0002-canonical-data-model.md
   - docs/architecture/ADR-0012-api-architecture.md
+  - docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md
   - prisma/schema.prisma
 ---
 
@@ -15,13 +16,13 @@ related_records:
 
 ## Purpose
 
-This packet prepares the decisions required for S2 persistence. It is not an execution prompt and does not authorize Prisma changes, migrations, service code, API routes, workers, or deployment work.
+This packet records the decisions that authorized the bounded S2 persistence implementation. It is not an authorization for production hardening, API routes, workers, analytics, deployment, or external systems. Implementation and independent verification evidence are recorded in `docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md`.
 
-S2 should begin only after the S1 review record is accepted and the decisions below are resolved by the appropriate owners.
+The bounded S2 implementation began after S1 acceptance and owner resolution of the decisions below. Remaining production and contract-hardening questions are moved to `docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md`.
 
 ## Proposed S2 Boundary
 
-If approved, S2 would persist the following synthetic-only operational facts:
+The bounded S2 implementation persists the following synthetic-only operational facts:
 
 - Episodes and case-to-episode links.
 - Episode-owned authorizations and authorization reviews.
@@ -40,18 +41,18 @@ ADR-0012 remains unresolved and is outside this packet's implementation scope.
 
 | # | Decision | Proposed S2 default | Owner / evidence required | Status |
 |---:|---|---|---|---|
-| 1 | Episode-to-case cardinality | One accepted case creates at most one active `ADMISSION_SOURCE` episode in S2. Transfers/readmissions require explicit relationships and remain additive. | Product owner + technical lead; domain review | Needs decision |
-| 2 | Facility/program/unit ownership | Resolve IDs against canonical organization-owned records. Do not create duplicate facility hierarchy records in the new tables. Unit remains nullable where the source does not provide one. | Technical lead + operations; schema mapping | Needs decision |
-| 3 | Facility timezone source/versioning | Store the explicit facility-configuration source reference and version used for service-date derivation. Never infer from browser, server, or organization name. | Technical lead + operations; timezone correction policy | Needs decision |
-| 4 | Transactional tables versus governed event tables | Keep operational facts in transactional tables and append governed event rows separately. Store event lineage and outbox linkage without treating derived events as operational truth. | Technical lead + security; accepted data-boundary design | Needs decision |
-| 5 | Correction and supersession persistence | Preserve original rows/events. Add explicit supersession links, controlled correction reason, version checks, and one active branch per correction family. | Technical lead + compliance; correction invariants and tests | Needs decision |
-| 6 | Idempotency and optimistic concurrency | Mutating persistence commands require an idempotency key and expected aggregate/version value. Replays return the original result without duplicate facts/events. | Technical lead; align with existing command-service pattern | Needs decision |
-| 7 | Audit and outbox transaction boundary | Persist the source mutation, audit event, governed event, and outbox record atomically where they share a transaction boundary. | Technical lead + security; failure and retry policy | Needs decision |
-| 8 | Tenant enforcement and RLS timing | Enforce organization scope in every gateway predicate in S2. Decide whether database RLS is introduced in S2 or remains a separately gated hardening slice. | Security reviewer + technical lead; OD-6 update | Needs decision |
-| 9 | Additive migration and rollback | Use additive tables/indexes/enums only. Define forward rollback or restore procedure before migration approval; do not rely on destructive down-migrations for production recovery. | Technical lead + security; migration and restore review | Needs decision |
-| 10 | Repository service boundary | Preferred: add thin Prisma gateways and deterministic service tests, with no HTTP/runtime layer. Decide whether command services are included now or deferred until the persistence contract stabilizes. | Technical lead; package ownership and test plan | Needs decision |
+| 1 | Episode-to-case cardinality | One accepted case creates at most one active `ADMISSION_SOURCE` episode in S2. Transfers/readmissions require explicit relationships and remain additive. | Product owner + technical lead; domain review | Resolved for bounded S2 |
+| 2 | Facility/program/unit ownership | Resolve IDs against canonical organization-owned records. Do not create duplicate facility hierarchy records in the new tables. Unit remains nullable where the source does not provide one. | Technical lead + operations; schema mapping | Resolved for bounded S2 |
+| 3 | Facility timezone source/versioning | Store the explicit facility-configuration source reference and version used for service-date derivation. Never infer from browser, server, or organization name. | Technical lead + operations; timezone correction policy | Resolved for bounded S2 |
+| 4 | Transactional tables versus governed event tables | Keep operational facts in transactional tables and append governed event rows separately. Store event lineage and outbox linkage without treating derived events as operational truth. | Technical lead + security; accepted data-boundary design | Resolved for bounded S2 |
+| 5 | Correction and supersession persistence | Preserve original rows/events. Add explicit supersession links, controlled correction reason, version checks, and one active branch per correction family. | Technical lead + compliance; correction invariants and tests | Resolved for bounded S2 |
+| 6 | Idempotency and optimistic concurrency | Mutating persistence commands require an idempotency key and expected aggregate/version value. Replays return the original result without duplicate facts/events. | Technical lead; align with existing command-service pattern | Resolved for bounded S2 |
+| 7 | Audit and outbox transaction boundary | Persist the source mutation, audit event, governed event, and outbox record atomically where they share a transaction boundary. | Technical lead + security; failure and retry policy | Resolved for bounded S2 |
+| 8 | Tenant enforcement and RLS timing | Enforce organization scope in every gateway predicate in S2. Database RLS remains a separately gated hardening decision. | Security reviewer + technical lead; OD-6 update | Resolved for bounded S2; RLS deferred |
+| 9 | Additive migration and rollback | Use additive tables/indexes/enums only. Define forward rollback or restore procedure before migration approval; do not rely on destructive down-migrations for production recovery. | Technical lead + security; migration and restore review | Resolved for bounded S2; production recovery deferred |
+| 10 | Repository service boundary | Preferred: add thin Prisma gateways and deterministic service tests, with no HTTP/runtime layer. Command services remain deferred until the persistence contract stabilizes. | Technical lead; package ownership and test plan | Resolved for bounded S2 |
 
-## Required S2 Design Artifacts
+## Recorded S2 Design Artifacts
 
 Before implementation begins, prepare and accept:
 
@@ -93,7 +94,7 @@ This authorizes the bounded S2 persistence implementation described above. It do
 
 ## Acceptance Gate
 
-S2 implementation is ready within the accepted bounded scope because:
+S2 implementation was ready within the accepted bounded scope because:
 
 - S1 acceptance is recorded by Tyler/product owner.
 - All ten decisions above have an owner decision, rationale, and evidence path in this packet.

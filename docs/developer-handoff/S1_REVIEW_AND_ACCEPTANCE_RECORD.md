@@ -1,5 +1,5 @@
 ---
-status: Verified implementation; owner acceptance pending
+status: Owner-accepted S1 foundation; historical verification record
 owner: Tyler/product owner with technical review
 date: 2026-07-18
 branch: main
@@ -19,9 +19,9 @@ related_artifacts:
 
 ## Purpose
 
-This record captures the reviewable evidence for S1: domain contracts and deterministic logic for episode identity, episode-owned post-admission utilization review, governed events, episode-day authorization derivation, and draft metric definitions.
+This record captures the reviewable evidence for S1: domain contracts and deterministic logic for episode identity, episode-owned post-admission utilization review, governed events, episode-day authorization derivation, and draft metric definitions. The preflight HEAD above is historical to the S1 verification run; later persistence commits are recorded in `docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md`.
 
-This is an acceptance record, not an S2 execution authorization. The earlier owner instruction authorized implementation of S1. Explicit post-implementation acceptance as the foundation for persistence remains a separate owner decision below.
+This is an acceptance record, not an S2 implementation record. Owner acceptance of S1 as the foundation for persistence is recorded below; S2 implementation evidence is kept in the separate S2 acceptance record.
 
 ## Source And Truth Classification
 
@@ -138,7 +138,7 @@ Existing pre-admission authorization-readiness behavior remains in `packages/dom
 
 The full-lint failure is recorded technical debt. It is outside S1 and is not a reason to expand S2.
 
-## Open Questions Before S2
+## Historical Questions Resolved Before S2
 
 - Whether Tyler accepts this S1 implementation as the foundation for persistence.
 - Episode-to-case cardinality beyond the first approved admission-source rule.

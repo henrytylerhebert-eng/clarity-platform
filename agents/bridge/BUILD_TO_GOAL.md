@@ -121,23 +121,31 @@ The team should keep these lanes separate:
 ### Lane A: S1 contract foundation
 
 - Owner: Codex, with Claude review and Antigravity routing.
-- State: Implemented and tested; owner acceptance is a separate gate.
+- State: Implemented, tested, and owner-accepted as the synthetic-only domain foundation.
 - Evidence: `docs/developer-handoff/S1_REVIEW_AND_ACCEPTANCE_RECORD.md`.
 - Boundary: domain contracts, deterministic logic, synthetic fixtures, focused tests.
 
 ### Lane B: S2 persistence decision system
 
 - Owner: Antigravity coordinates; human owner decides; Codex and Claude prepare evidence.
-- State: Decision packet only; implementation not approved.
+- State: Resolved and accepted for the bounded synthetic-only S2 implementation; production hardening remains separately gated.
 - Evidence: `docs/decisions/S2_PERSISTENCE_DECISION_PACKET.md`.
 - Boundary: resolve episode cardinality, ownership, timezone versioning, event/outbox design, corrections, concurrency, tenancy/RLS, migration recovery, and repository-service depth.
 
 ### Lane C: S2 persistence implementation
 
 - Owner: Claude after explicit human approval; Codex verifies; Antigravity coordinates.
-- State: Authorized on 2026-07-18 within the synthetic-only, runtime-free boundary recorded in the S2 packet.
+- State: Implemented and independently verified on 2026-07-18; committed in `7b52870`.
 - Proposed boundary: episodes, episode-owned UR records, documentation gaps, correction chains, governed events, outbox records, Prisma gateways, and deterministic service tests.
 - Excludes: HTTP routes, API framework, workers, marts, dashboards, frontend, Product Studio, external integrations, deployment, and production feature flags.
+
+### Lane D: persistence hardening and contract reconciliation
+
+- Owner: Human project owner with technical and security review; Antigravity coordinates; Codex prepares repository evidence; Claude proposes bounded options.
+- State: Proposed decision packet only; no implementation authorization.
+- Evidence: `docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md` and `docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md`.
+- Boundary: RLS timing, migration recovery, concurrency/replay semantics, outbox ownership, event vocabulary, program identity reconciliation, and later command-service depth.
+- Excludes: production data, deployment, API routes, workers, outbox dispatch, analytics marts, dashboards, frontend, Product Studio, external integrations, and feature flags.
 
 ## Bridge Operating Procedure
 
