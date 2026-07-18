@@ -128,8 +128,8 @@ The team should keep these lanes separate:
 ### Lane B: S2 persistence decision system
 
 - Owner: Antigravity coordinates; human owner decides; Codex and Claude prepare evidence.
-- State: Decision packet not yet assembled; implementation not approved.
-- Evidence: `docs/decisions/OPEN_DECISIONS.md` (OD-5 API boundary, OD-6 database hosting + RLS, OD-8 expanded schema adoption) and ADR-0001/ADR-0002. A consolidated packet at `docs/decisions/S2_PERSISTENCE_DECISION_PACKET.md` is planned but does not exist yet; assembling it is the first Lane B assignment.
+- State: Decision packet assembled with recommended decisions (D1–D10); owner approval pending; implementation not approved.
+- Evidence: `docs/decisions/S2_PERSISTENCE_DECISION_PACKET.md` (assembled 2026-07-18), grounded in `docs/decisions/OPEN_DECISIONS.md` (OD-5, OD-6, OD-8), ADR-0002/0003/0005, the live Prisma schema, and `reporting-metrics-rebuild-package/SCHEMA_BLUEPRINT.sql`.
 - Boundary: resolve episode cardinality, ownership, timezone versioning, event/outbox design, corrections, concurrency, tenancy/RLS, migration recovery, and repository-service depth.
 
 ### Lane C: S2 persistence implementation
