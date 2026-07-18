@@ -17,19 +17,20 @@ related_adrs: ADR-0001, ADR-0002
 ## Where we actually are
 
 - **Done (prototype):** Jul 8 roadmap v0.1 (intake spine) and v0.2 (command center, routing, role UX) are implemented in `app/` as a frontend demo.
-- **Done (this integration):** repository organization, canonical schema selected and validated (see ADR-0002 and validation results), synthetic fixtures, domain-contracts scaffold, safety-test baseline.
-- **Nothing else is built.** No backend, API, auth, tenancy, persistence, or agents.
+- **Done (service foundations):** tenant-scoped case repository, command services for case/document/evidence/benefits/authorization, authentication service, Prisma-backed adapters, and one authenticated `node:http` API vertical slice.
+- **Done (current review slice):** read-only synthetic Product Studio registry in the local app.
+- **Not production-ready:** no confirmed production hosting, managed identity provider, production-wide RBAC/RLS, object storage, observability, external integrations, or controlled release evidence. No live product agent exists.
 
 ## Reconciled sequence (package 15-step sequence governs the platform build)
 
 | Stage | Content | Status |
 |---|---|---|
-| 1. Foundation | Repo, CI, lint/format, env validation, synthetic-only banner | Partially done (repo, tests); CI/lint open |
-| 2. Case spine | Tenant-scoped repositories, case + parallel-status state machine, workflow tasks, audit helper, fixtures | Contracts scaffolded; persistence open |
+| 1. Foundation | Repo, CI, lint/format, env validation, synthetic-only banner | Repo/tests/lint/typecheck done; Node pin, formatter, env validation, and quality CI open |
+| 2. Case spine | Tenant-scoped repositories, case + parallel-status state machine, workflow tasks, audit helper, fixtures | Repository + command service implemented; broader workflow tasks open |
 | 3. Workflow | Tasks, deadlines, blockers, escalation | Documented |
-| 4–6. Documents / Evidence / Case intelligence | Upload+checksum, classification, candidate evidence, review UI, contradictions, timeline | Documented (demo analogs in app/) |
+| 4–6. Documents / Evidence / Case intelligence | Upload+checksum, classification, candidate evidence, review UI, contradictions, timeline | Document/evidence service foundations implemented; production storage/scanning and full UI open |
 | 7. Clinical + legal | Necessity workbench, jurisdictional rule sets | Demo in app/; production open |
-| 8–10. Insurance → benefits → authorization | Foundation-schema domains behind feature flags | Schema + contracts only |
+| 8–10. Insurance -> benefits -> authorization | Foundation-schema domains behind feature flags | Manual benefits and authorization-readiness service foundations implemented; external payer integrations open |
 | 11. Packet + facility | Versioned approved packets, profile matching | Demo in app/ |
 | 12. Custody + communication | Ledger (demo implemented), recorded channels | Partial demo |
 | 13. Analytics | Reporting-metrics substrate (`reporting-metrics-rebuild-package/`) | Analysis done; build open |
@@ -38,7 +39,7 @@ related_adrs: ADR-0001, ADR-0002
 
 ## Next concrete issue
 
-See `IMPLEMENTATION_STATUS.md` → "Next recommended action". FIRST_25_GITHUB_ISSUES.md (preserved in the package copy) is the backlog seed; issues 1–5 are effectively complete after this session.
+Reconcile ADR-0012 with the implemented `packages/api-service` spike and decide hosting/tenancy (OD-5/OD-6). Then implement one authorized read-only Product Studio server projection before any mutation or release-control surface.
 
 ## Intake-to-admission lane (added 2026-07-17)
 

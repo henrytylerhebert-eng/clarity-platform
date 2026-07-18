@@ -42,13 +42,15 @@ Each case maintains an overall status plus independent statuses for clinical, le
 
 ## Current implementation state (honest)
 
-- **Implemented (prototype, `app/`):** frontend-only demo of guided intake, medical-necessity and legal drafts, prohibited-language guardrails, hash-chained custody ledger, compliance clocks, packet builder, simulated routing, bedboard; localStorage persistence; unit + smoke tested.
-- **Schema (validated text, no database):** `prisma/schema.prisma` — foundation, 25 models (ADR-0002). Expanded 43-model draft preserved as target.
-- **Documented only:** API/services (no local spec — gap), model gateway, retrieval, agent contracts, tenancy enforcement, deployment.
+- **Implemented prototype (`app/`):** localStorage-backed guided intake, medical-necessity and legal drafts, evidence review, benefits/authorization views, packet/routing, custody ledger, bedboard, training, Mock Admit Lab, and read-only synthetic Product Studio.
+- **Implemented service foundations (`packages/*-service`):** tenant-scoped case, document, evidence, benefits, authorization, and authentication services plus Prisma adapters and tests. These are local foundations, not deployed products.
+- **Implemented API spike (`packages/api-service`):** authenticated `node:http` vertical slice for session routes and one case decision-rationale command. ADR-0012 remains Proposed and recommends a different Fastify package shape, so the production API decision is open.
+- **Schema and local persistence:** `prisma/schema.prisma` is valid and migrations/adapters are exercised by integration tests. Production database hosting and RLS strategy remain open.
+- **Documented only or open:** model gateway, retrieval, product agents, production hosting, managed identity, production storage, observability, external integrations, and controlled release.
 
 ## Growth path
 
-The package's target monorepo (`REPOSITORY_STRUCTURE.md`: pnpm+Turborepo, ~30 domain packages) is adopted incrementally from the current npm-workspaces layout (`app/`, `packages/domain-contracts/`) per ADR-0001. Domain packages are split out when a backend service first needs them.
+The package's target monorepo (`REPOSITORY_STRUCTURE.md`: pnpm+Turborepo, ~30 domain packages) is adopted incrementally from the current npm-workspaces layout (`app/`, `packages/*`) per ADR-0001. Domain packages are split out when an implemented service needs them.
 
 ## Agent architecture (target)
 

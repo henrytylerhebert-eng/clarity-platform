@@ -4,6 +4,10 @@
 - **Date:** 2026-07-14
 - **Related:** ADR-0011 (authentication — the middleware this API consumes), ADR-0003 (command pattern), `docs/planning/MVP_ROADMAP.md` (Phase 4), OD-5.
 
+## 2026-07-18 implementation note
+
+A bounded authenticated vertical slice now exists in `packages/api-service` using `node:http`, not the Fastify package shape proposed below. It proves session-derived actor/tenant handling and one case decision-rationale route with integration tests. This spike does not change this ADR to Accepted and does not settle the production framework, full route surface, hosting, or deployment topology. OD-5 now means explicitly reconciling the spike with this proposal before additional API expansion.
+
 ## Decision to make
 
 How HTTP callers reach the six command services (case, document, evidence, benefits, authorization, auth). Who decides: owner. By when: before Phase 4 starts.
