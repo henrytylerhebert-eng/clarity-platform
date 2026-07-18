@@ -17,6 +17,7 @@
       "@clarity/case-service": ["./packages/case-service/src/index.ts"],
       "@clarity/document-service": ["./packages/document-service/src/index.ts"],
       "@clarity/legal-hold-forms": ["./packages/legal-hold-forms/src/index.ts"],
+      "@clarity/api-service": ["./packages/api-service/src/index.ts"],
       "@clarity/evidence-service": ["./packages/evidence-service/src/index.ts"],
       "@clarity/benefits-service": ["./packages/benefits-service/src/index.ts"],
       "@clarity/authorization-service": ["./packages/authorization-service/src/index.ts"],

@@ -1,0 +1,15 @@
+{
+  "name": "@clarity/api-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Thin HTTP layer over the command services. The first (and only) path where identity is verified: every request authenticates a bearer token through @clarity/auth-service and builds its CommandActor via actorFor(), so tenant and roles come from the database-backed principal — never from the request body. One command exposed end-to-end (RecordDecisionRationale); no framework, no PHI, no UI.",
+  "dependencies": {
+    "@clarity/auth-service": "*",
+    "@clarity/case-repository": "*",
+    "@clarity/case-service": "*",
+    "@clarity/domain-contracts": "*",
+    "zod": "^3.24.1"
+  }
+}

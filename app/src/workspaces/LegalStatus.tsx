@@ -1,6 +1,12 @@
 import { useState } from "react";
-import { Gavel, ShieldAlert, ScaleIcon } from "lucide-react";
+import { Gavel, ShieldAlert, ScaleIcon, ShieldCheck } from "lucide-react";
 import { StatusBadge } from "../components/StatusBadge";
+import {
+  apiRecordDecisionRationale,
+  describeApiError,
+  type DecisionRationaleResult,
+  type VerifiedPrincipal,
+} from "../domain/api";
 import { isPecExamWithinWindow, validateCecIndependence, validatePecInput } from "../domain/epec";
 import type { CecInput as CecFormInput, OpcInput as OpcFormInput, PecInput as PecFormInput } from "../domain/epec";
 import type { ClockReading } from "../domain/clocks";
@@ -19,6 +25,8 @@ interface Props {
   onExecutePec: (input: PecFormInput) => void;
   onExecuteCec: (input: CecFormInput) => void;
   onNavigateWorkspace: (workspace: WorkspaceId) => void;
+  /** Verified backend session from the API slice; null when not signed in. */
+  apiPrincipal: VerifiedPrincipal | null;
 }
 
 function clockTone(status: ClockReading["status"]): "info" | "warn" | "danger" | "good" {
@@ -78,6 +86,104 @@ function OptionGroup({
   );
 }
 
+function VerifiedRationalePanel({ principal }: { principal: VerifiedPrincipal | null }) {
+  const [form, setForm] = useState({
+    caseKey: "SYN-API-CASE-0001",
+    decisionContext: "legal_status_review",
+    reason: "",
+    citedLegalStatusRecordId: "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<DecisionRationaleResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    setBusy(true);
+    setResult(null);
+    setError(null);
+    try {
+      setResult(
+        await apiRecordDecisionRationale({
+          caseKey: form.caseKey.trim(),
+          reason: form.reason.trim(),
+          decisionContext: form.decisionContext.trim(),
+          citedLegalStatusRecordId: form.citedLegalStatusRecordId.trim() || undefined,
+        }),
+      );
+    } catch (submitError) {
+      setError(describeApiError(submitError));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <article className="subtle-panel epec-stage verified-panel">
+      <div className="stage-summary-head">
+        <div className="icon-title"><ShieldCheck size={16} /><h3>Decision rationale — verified backend</h3></div>
+        {principal ? <StatusBadge tone="good">Verified session</StatusBadge> : <StatusBadge tone="warn">Not signed in</StatusBadge>}
+      </div>
+      <p>
+        This action runs through the real command service: the API derives tenant and roles from the
+        signed-in session (never from this form), and the rationale lands in the immutable audit
+        trail in Postgres. It targets the synthetic backend case seeded by <code>npm run api:dev</code>,
+        not the local demo case shown above.
+      </p>
+      {!principal ? (
+        <p className="inline-warning">
+          Sign in via the <b>Session &amp; identity</b> panel in the sidebar to enable this action.
+          The demo role selector cannot enable it — only a verified session can.
+        </p>
+      ) : (
+        <>
+          <div className="form-grid">
+            <label>Backend case key
+              <input value={form.caseKey} onChange={(event) => setForm({ ...form, caseKey: event.target.value })} />
+            </label>
+            <label>Decision context
+              <input value={form.decisionContext} onChange={(event) => setForm({ ...form, decisionContext: event.target.value })} />
+            </label>
+            <label className="span-2">Rationale
+              <textarea
+                value={form.reason}
+                onChange={(event) => setForm({ ...form, reason: event.target.value })}
+                placeholder="Why this decision was made — recorded verbatim in the audit trail."
+              />
+            </label>
+            <label className="span-2">Cited legal-status record id (optional)
+              <input
+                value={form.citedLegalStatusRecordId}
+                onChange={(event) => setForm({ ...form, citedLegalStatusRecordId: event.target.value })}
+                placeholder="synthetic-legal-record-api-dev"
+              />
+              <small className="subtext-muted">
+                Advisory citation to the backend LegalStatusRecord the decision relied on — a
+                pointer in the audit trail, not a precondition.
+              </small>
+            </label>
+          </div>
+          <button
+            className="primary-button"
+            type="button"
+            disabled={busy || !form.caseKey.trim() || !form.reason.trim() || !form.decisionContext.trim()}
+            onClick={submit}
+          >
+            {busy ? "Recording..." : "Record rationale (audited)"}
+          </button>
+        </>
+      )}
+      {result ? (
+        <p className="subtext-good">
+          Recorded against {result.caseKey} — case version {result.version ?? "unknown"}
+          {result.replayed ? " (idempotent replay; not double-recorded)" : ""}. Audit action:
+          DECISION_RATIONALE_RECORDED.
+        </p>
+      ) : null}
+      {error ? <p className="inline-warning">{error}</p> : null}
+    </article>
+  );
+}
+
 export function LegalStatus({
   caseId,
   ruleSet,
@@ -89,6 +195,7 @@ export function LegalStatus({
   onExecutePec,
   onExecuteCec,
   onNavigateWorkspace,
+  apiPrincipal,
 }: Props) {
   const opc = legalInstrument?.opc;
   const pec = legalInstrument?.pec;
@@ -613,6 +720,8 @@ export function LegalStatus({
           <button className="secondary-button" type="button" onClick={() => onNavigateWorkspace("ledger")}>View full custody ledger &amp; verify chain</button>
         </article>
       ) : null}
+
+      <VerifiedRationalePanel principal={apiPrincipal} />
     </section>
   );
 }

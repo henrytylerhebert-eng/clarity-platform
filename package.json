@@ -15,6 +15,7 @@
     "prisma:format": "prisma format",
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
+    "api:dev": "tsx packages/api-service/src/devMain.ts",
     "bridge:doctor": "agents/bridge/agent-bridge doctor",
     "bridge:status": "agents/bridge/agent-bridge status",
     "bridge:test": "python3 -m unittest discover -s agents/bridge/tests"
@@ -25,6 +26,7 @@
     "eslint": "^10.7.0",
     "jsdom": "^25.0.1",
     "prisma": "^6.1.0",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.63.0",
     "vitest": "^2.1.8",

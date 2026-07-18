@@ -26,6 +26,7 @@ import { GuidedIntake } from "./workspaces/GuidedIntake";
 import { MedicalNecessity } from "./workspaces/MedicalNecessity";
 import { LegalStatus } from "./workspaces/LegalStatus";
 import { DEFAULT_SESSION_TTL_MS, describeDemoSession } from "./domain/services";
+import { apiLogin, apiLogout, describeApiError, type VerifiedPrincipal } from "./domain/api";
 import { EvidenceReview } from "./workspaces/EvidenceReview";
 import { BenefitsVerification } from "./workspaces/BenefitsVerification";
 import { AuthorizationReadiness } from "./workspaces/AuthorizationReadiness";
@@ -84,6 +85,11 @@ export function App() {
   const [workspace, setWorkspace] = useState<WorkspaceId>("queue");
   const [roleId, setRoleId] = useState<RoleId>("all");
   const [nowIso, setNowIso] = useState(() => new Date().toISOString());
+  // Verified backend session (API vertical slice). Held in React state for
+  // display; the bearer token itself stays inside app/src/domain/api.ts.
+  const [apiPrincipal, setApiPrincipal] = useState<VerifiedPrincipal | null>(null);
+  const [apiAssertion, setApiAssertion] = useState("");
+  const [apiLoginError, setApiLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setNowIso(new Date().toISOString()), 30000);
@@ -93,6 +99,25 @@ export function App() {
   const role = getRole(roleId);
   const visibleWorkspaceItems = workspaceItems.filter((item) => role.workspaces.includes(item.id));
   const demoSession = describeDemoSession(role.label);
+
+  async function handleApiLogin() {
+    setApiLoginError(null);
+    try {
+      setApiPrincipal(await apiLogin(apiAssertion.trim()));
+      setApiAssertion("");
+    } catch (error) {
+      setApiPrincipal(null);
+      setApiLoginError(describeApiError(error));
+    }
+  }
+
+  async function handleApiLogout() {
+    try {
+      await apiLogout();
+    } finally {
+      setApiPrincipal(null);
+    }
+  }
 
   function handleRoleChange(nextRoleId: RoleId) {
     setRoleId(nextRoleId);
@@ -556,21 +581,53 @@ export function App() {
           <span className="role-note">Demo role scoping only — not authentication.</span>
         </label>
         <details className="session-panel">
-          <summary>Session &amp; identity</summary>
-          <p>
-            No sign-in exists in this prototype. The selector above is unverified local display
-            scoping, so roles here are asserted, not proven.
-          </p>
-          <dl>
-            <dt>Principal</dt><dd>{demoSession.displayName} ({demoSession.userId})</dd>
-            <dt>Organization</dt><dd>{demoSession.organizationId}</dd>
-            <dt>Session TTL</dt><dd>{DEFAULT_SESSION_TTL_MS / 3600000}h (one nursing shift)</dd>
-          </dl>
-          <p>
-            In the authentication service a verified session is the identity point: an actor&rsquo;s
-            roles are derived from the principal, so a caller cannot assert its own. Wiring that in
-            is what closes the gap this panel describes.
-          </p>
+          <summary>Session &amp; identity{apiPrincipal ? " — verified" : ""}</summary>
+          {apiPrincipal ? (
+            <>
+              <p>
+                Signed in against the local API. Roles below were loaded from the database by the
+                authentication service — the demo role selector above has no effect on this session.
+              </p>
+              <dl>
+                <dt>Principal</dt><dd>{apiPrincipal.displayName} ({apiPrincipal.userId})</dd>
+                <dt>Organization</dt><dd>{apiPrincipal.organizationId}</dd>
+                <dt>Verified roles</dt><dd>{apiPrincipal.roles.join(", ") || "none"}</dd>
+                <dt>Session expires</dt><dd>{new Date(apiPrincipal.expiresAt).toLocaleTimeString()}</dd>
+              </dl>
+              <button className="secondary-button" type="button" onClick={handleApiLogout}>
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <p>
+                The selector above is unverified local display scoping — roles there are asserted,
+                not proven. To act through the real backend, sign in with a synthetic dev assertion
+                (start the API with <code>npm run api:dev</code>; it prints the assertions).
+              </p>
+              <label className="session-login">
+                Dev assertion
+                <input
+                  value={apiAssertion}
+                  onChange={(event) => setApiAssertion(event.target.value)}
+                  placeholder="syn-assert-api-physician-dev"
+                />
+              </label>
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={apiAssertion.trim().length < 16}
+                onClick={handleApiLogin}
+              >
+                Sign in (verified session)
+              </button>
+              {apiLoginError ? <p className="inline-warning">{apiLoginError}</p> : null}
+              <dl>
+                <dt>Demo principal</dt><dd>{demoSession.displayName} ({demoSession.userId})</dd>
+                <dt>Session TTL</dt><dd>{DEFAULT_SESSION_TTL_MS / 3600000}h (one nursing shift)</dd>
+              </dl>
+            </>
+          )}
         </details>
         <nav className="nav-list" aria-label="Workspace navigation">
           {visibleWorkspaceItems.map((item) => {
@@ -648,6 +705,7 @@ export function App() {
               onExecutePec={(input) => handleExecutePec(activeCase.id, input)}
               onExecuteCec={(input) => handleExecuteCec(activeCase.id, input)}
               onNavigateWorkspace={setWorkspace}
+              apiPrincipal={apiPrincipal}
             />
           ) : null}
           {workspace === "packet" ? <PacketPreview state={state} caseId={activeCase.id} packet={bundle?.packet} onGenerate={handleGeneratePacket} onSend={handleSendPacket} /> : null}
