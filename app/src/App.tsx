@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  BadgeCheck,
   BedDouble,
   BookOpenCheck,
+  ClipboardCheck,
   ClipboardList,
   FileCheck2,
+  FileSearch,
   FileText,
   FlaskConical,
   Gauge,
@@ -22,6 +25,10 @@ import { CaseOverview } from "./workspaces/CaseOverview";
 import { GuidedIntake } from "./workspaces/GuidedIntake";
 import { MedicalNecessity } from "./workspaces/MedicalNecessity";
 import { LegalStatus } from "./workspaces/LegalStatus";
+import { DEFAULT_SESSION_TTL_MS, describeDemoSession } from "./domain/services";
+import { EvidenceReview } from "./workspaces/EvidenceReview";
+import { BenefitsVerification } from "./workspaces/BenefitsVerification";
+import { AuthorizationReadiness } from "./workspaces/AuthorizationReadiness";
 import { PacketPreview } from "./workspaces/PacketPreview";
 import { RoutingResponse } from "./workspaces/RoutingResponse";
 import { CustodyLedger } from "./workspaces/CustodyLedger";
@@ -58,8 +65,11 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "new", label: "New Case", icon: PlusCircle },
   { id: "overview", label: "Case Overview", icon: ClipboardList },
   { id: "intake", label: "Guided Intake", icon: FileText },
+  { id: "evidence", label: "Evidence Review", icon: FileSearch },
   { id: "medical", label: "Medical Necessity", icon: FileCheck2 },
   { id: "legal", label: "Legal Status", icon: Scale },
+  { id: "benefits", label: "Benefits Verification", icon: BadgeCheck },
+  { id: "authorization", label: "Authorization Readiness", icon: ClipboardCheck },
   { id: "packet", label: "Packet Preview", icon: ShieldCheck },
   { id: "routing", label: "Routing Response", icon: Network },
   { id: "bedboard", label: "Milieu Bedboard", icon: BedDouble },
@@ -82,6 +92,7 @@ export function App() {
 
   const role = getRole(roleId);
   const visibleWorkspaceItems = workspaceItems.filter((item) => role.workspaces.includes(item.id));
+  const demoSession = describeDemoSession(role.label);
 
   function handleRoleChange(nextRoleId: RoleId) {
     setRoleId(nextRoleId);
@@ -544,6 +555,23 @@ export function App() {
           <span className="role-mission">{role.mission}</span>
           <span className="role-note">Demo role scoping only — not authentication.</span>
         </label>
+        <details className="session-panel">
+          <summary>Session &amp; identity</summary>
+          <p>
+            No sign-in exists in this prototype. The selector above is unverified local display
+            scoping, so roles here are asserted, not proven.
+          </p>
+          <dl>
+            <dt>Principal</dt><dd>{demoSession.displayName} ({demoSession.userId})</dd>
+            <dt>Organization</dt><dd>{demoSession.organizationId}</dd>
+            <dt>Session TTL</dt><dd>{DEFAULT_SESSION_TTL_MS / 3600000}h (one nursing shift)</dd>
+          </dl>
+          <p>
+            In the authentication service a verified session is the identity point: an actor&rsquo;s
+            roles are derived from the principal, so a caller cannot assert its own. Wiring that in
+            is what closes the gap this panel describes.
+          </p>
+        </details>
         <nav className="nav-list" aria-label="Workspace navigation">
           {visibleWorkspaceItems.map((item) => {
             const Icon = item.icon;
@@ -604,7 +632,10 @@ export function App() {
           {workspace === "new" ? <NewCase onCreate={handleCreateCase} /> : null}
           {workspace === "overview" ? <CaseOverview state={state} caseRecord={activeCase} /> : null}
           {workspace === "intake" ? <GuidedIntake state={state} caseId={activeCase.id} onAssessmentChange={handleAssessmentChange} onAddSourceAndRisk={handleAddSourceAndRisk} /> : null}
+          {workspace === "evidence" ? <EvidenceReview state={state} caseId={activeCase.id} /> : null}
           {workspace === "medical" ? <MedicalNecessity snapshot={bundle?.medicalNecessity} onChange={handleMedicalChange} /> : null}
+          {workspace === "benefits" ? <BenefitsVerification caseId={activeCase.id} /> : null}
+          {workspace === "authorization" ? <AuthorizationReadiness caseId={activeCase.id} onNavigateWorkspace={setWorkspace} /> : null}
           {workspace === "legal" ? (
             <LegalStatus
               caseId={activeCase.id}

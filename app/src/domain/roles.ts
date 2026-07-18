@@ -4,8 +4,11 @@ export type WorkspaceId =
   | "new"
   | "overview"
   | "intake"
+  | "evidence"
   | "medical"
   | "legal"
+  | "benefits"
+  | "authorization"
   | "packet"
   | "routing"
   | "bedboard"
@@ -19,8 +22,11 @@ export const allWorkspaceIds: WorkspaceId[] = [
   "new",
   "overview",
   "intake",
+  "evidence",
   "medical",
   "legal",
+  "benefits",
+  "authorization",
   "packet",
   "routing",
   "bedboard",
@@ -74,7 +80,7 @@ export const roles: RoleDefinition[] = [
     label: "Central intake coordinator",
     description: "Owns the pipeline: SLA clocks, packet completeness, routing, escalations.",
     mission: "Keep every case moving; escalate before clocks breach.",
-    workspaces: ["command", "queue", "new", "overview", "intake", "medical", "legal", "packet", "routing", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "queue", "new", "overview", "intake", "evidence", "medical", "legal", "benefits", "authorization", "packet", "routing", "ledger", "training", "mock-admits"],
     defaultWorkspace: "command",
   },
   {
@@ -82,7 +88,7 @@ export const roles: RoleDefinition[] = [
     label: "Clinician reviewer",
     description: "Reviews assessments, risk formulations, and medical-necessity drafts.",
     mission: "Turn drafts into clinically defensible documentation.",
-    workspaces: ["queue", "overview", "intake", "medical", "legal", "ledger", "training", "mock-admits"],
+    workspaces: ["queue", "overview", "intake", "evidence", "medical", "legal", "ledger", "training", "mock-admits"],
     defaultWorkspace: "queue",
   },
   {
@@ -90,8 +96,8 @@ export const roles: RoleDefinition[] = [
     label: "UR / benefits specialist",
     description: "Runs the financial lane in parallel: verification, payer documentation gaps.",
     mission: "Clear the financial lane without ever blocking the clinical lane.",
-    workspaces: ["command", "queue", "overview", "medical", "ledger", "training", "mock-admits"],
-    defaultWorkspace: "command",
+    workspaces: ["command", "queue", "overview", "medical", "benefits", "authorization", "ledger", "training", "mock-admits"],
+    defaultWorkspace: "benefits",
   },
   {
     id: "facility",
@@ -114,7 +120,7 @@ export const roles: RoleDefinition[] = [
     label: "Compliance / legal officer",
     description: "Watches custody integrity, counsel-validation queue, and clock breaches.",
     mission: "Prove the chain of custody; flag anything counsel has not validated.",
-    workspaces: ["command", "queue", "legal", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "queue", "evidence", "legal", "ledger", "training", "mock-admits"],
     defaultWorkspace: "ledger",
   },
   {

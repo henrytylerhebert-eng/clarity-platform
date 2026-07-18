@@ -140,16 +140,38 @@ export interface PecRecord {
   sealHash?: string;
   transmittedAt?: string;
   facilityResponseId?: string;
+  // Fields reconciled against the official OBH-1 / OBH-1A forms — see
+  // docs/legal/LOUISIANA_OPC_PEC_CEC_FORM_VERIFICATION.md. All optional so existing
+  // seeded instruments remain valid.
+  /** Which printed form this signer executes: psychologists use OBH-1A, everyone else OBH-1. */
+  form?: "OBH-1" | "OBH-1A";
+  /** The "1st" / "2nd" checkbox printed in the CHECK row of OBH-1 / OBH-1A. */
+  certificateSequence?: "1st" | "2nd";
+  /** Required attestation when a non-psychiatric NP signs (La. R.S. 28:53(B)(1)). */
+  collaboratingPhysicianName?: string;
+  /** Printed in the form's "LA MEDICAL LICENSE NUMBER" field regardless of issuing board. */
+  examinerLicenseNumber?: string;
+  /** One-of-one control number printed on the generated form and used to trace the instance. */
+  formInstanceId?: string;
 }
 
 export interface CecRecord {
   examinerName: string;
   findings: string[];
   conditions: string[];
+  /**
+   * Maps to OBH-2's "Complete either A or B": Continued = Conclusion A (needs treatment),
+   * Discharged = Conclusion B ("not a proper subject for emergency admission"), which ends
+   * the legal basis for the hold and triggers the R.S. 28:53.1 discharge-notification duties.
+   */
   outcome: "Continued" | "Discharged";
   dischargeReason?: string;
   executedAt: string;
   recordFrozenAt: string;
+  /** Printed in OBH-2's "LA MEDICAL LICENSE NUMBER" field; also the independence cross-check key. */
+  examinerLicenseNumber?: string;
+  /** One-of-one control number printed on the generated OBH-2. */
+  formInstanceId?: string;
 }
 
 export interface CustodyLedgerEvent {

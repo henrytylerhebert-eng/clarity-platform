@@ -73,7 +73,15 @@ describe("App smoke", () => {
       screen.getByPlaceholderText(/Time-stamped observations/i),
       "Acute suicidal ideation with plan; refuses safety planning; requires inpatient stabilization.",
     );
-    await user.click(screen.getByRole("button", { name: /Sign, attest & seal certificate/i }));
+    await user.click(screen.getByRole("button", { name: /Review certificate for signature/i }));
+
+    // Review-and-confirm gate: sealing stays disabled until the signer acknowledges identity.
+    expect(await screen.findByText(/Review before signing/i)).toBeInTheDocument();
+    const sealButton = screen.getByRole("button", { name: /Sign, attest & seal certificate/i });
+    expect(sealButton).toBeDisabled();
+    await user.click(screen.getByRole("checkbox", { name: /I am Dr. Thibodeaux/i }));
+    expect(sealButton).toBeEnabled();
+    await user.click(sealButton);
 
     expect(await screen.findByText("PEC executed & sealed")).toBeInTheDocument();
   });

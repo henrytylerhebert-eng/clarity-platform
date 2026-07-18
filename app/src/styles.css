@@ -1088,3 +1088,362 @@ textarea {
     flex: 1 1 100%;
   }
 }
+
+/* ── Legal Status: form-vs-statute conflicts, deadline splits, validation ───────────── */
+
+.conflict-panel {
+  border: 1px solid #e4d9c4;
+  background: #fdfaf3;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.conflict-panel summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #7a5c1e;
+  font-size: 13px;
+}
+
+.conflict-intro {
+  margin: 10px 0 8px;
+  font-size: 12.5px;
+  color: #6b5a3c;
+  line-height: 1.5;
+}
+
+.conflict-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.conflict-list li {
+  background: #ffffff;
+  border: 1px solid #e8ddc8;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 12.5px;
+}
+
+.conflict-sides {
+  display: grid;
+  gap: 3px;
+  margin: 5px 0;
+}
+
+.conflict-sides em {
+  font-style: normal;
+  font-weight: 700;
+  margin-right: 6px;
+  color: #8a7550;
+}
+
+.conflict-list small {
+  display: block;
+  color: #6b5a3c;
+  line-height: 1.45;
+}
+
+.form-lineage {
+  font-size: 12.5px;
+  color: #526173;
+  background: #f2f8f8;
+  border-left: 3px solid #174d58;
+  padding: 8px 11px;
+  border-radius: 0 6px 6px 0;
+  line-height: 1.5;
+}
+
+.deadline-split {
+  border: 1px solid #dde5ea;
+  background: #f8fbfb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: #3d4b5a;
+  margin-top: 10px;
+}
+
+.deadline-split-rows {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.deadline-split-rows span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deadline-split small {
+  display: block;
+  color: #667789;
+  line-height: 1.45;
+}
+
+.validation-list {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.validation-list li {
+  border: 1px solid #edd6d6;
+  background: #fdf6f6;
+  border-radius: 8px;
+  padding: 8px 11px;
+  font-size: 12.5px;
+  color: #8a3b3b;
+}
+
+.validation-list small {
+  display: block;
+  color: #a3736f;
+  margin-top: 2px;
+}
+
+.subtext-muted {
+  display: block;
+  color: #667789;
+  font-weight: 500;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+/* ── Evidence Review ───────────────────────────────────────────────────────────────── */
+
+.evidence-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+  font-size: 12.5px;
+  color: #526173;
+}
+
+.evidence-status-strip span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.evidence-card {
+  border: 1px solid #dde5ea;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 12px 14px;
+}
+
+.evidence-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.evidence-card-head b {
+  display: block;
+  color: #174d58;
+}
+
+.evidence-card-head small {
+  color: #667789;
+  font-size: 11.5px;
+}
+
+.evidence-card p {
+  font-size: 13px;
+  color: #3d4b5a;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+
+.evidence-sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.evidence-sources li {
+  background: #f8fbfb;
+  border: 1px solid #e6eef2;
+  border-radius: 7px;
+  padding: 7px 9px;
+  font-size: 11.5px;
+  display: grid;
+  gap: 3px;
+}
+
+.source-type {
+  font-weight: 700;
+  color: #174d58;
+}
+
+.source-label {
+  color: #526173;
+}
+
+.evidence-sources em {
+  color: #667789;
+  line-height: 1.45;
+}
+
+.contradiction-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.contradiction-list li {
+  display: grid;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid #dde5ea;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 12.5px;
+  color: #3d4b5a;
+}
+
+.contradiction-list small {
+  color: #667789;
+}
+
+/* ── Benefits / Authorization ──────────────────────────────────────────────────────── */
+
+.benefit-disclaimer {
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: #667789;
+  line-height: 1.5;
+  border-top: 1px solid #e6eef2;
+  padding-top: 8px;
+}
+
+.gap-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.gap-list li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  color: #3d4b5a;
+  background: #ffffff;
+  border: 1px solid #dde5ea;
+  border-radius: 8px;
+  padding: 8px 11px;
+}
+
+@media (max-width: 920px) {
+  .evidence-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Sidebar session & identity panel ──────────────────────────────────────────────── */
+
+.session-panel {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  padding: 9px 11px;
+  color: #9eb1bf;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.session-panel summary {
+  cursor: pointer;
+  color: #dbe7ec;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.session-panel p {
+  margin: 8px 0 0;
+}
+
+.session-panel dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 10px;
+  margin: 9px 0 0;
+}
+
+.session-panel dt {
+  color: #7e93a3;
+  font-weight: 700;
+}
+
+.session-panel dd {
+  margin: 0;
+  color: #dbe7ec;
+  overflow-wrap: anywhere;
+}
+
+/* Review-and-confirm gate for certificate execution (WCAG 3.3.4) */
+.attest-review {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #d8a13a;
+  border-radius: 8px;
+  background: #fdf8ee;
+  padding: 14px;
+  margin-top: 4px;
+}
+
+.attest-review h4 {
+  margin: 0;
+  color: #7a5a12;
+}
+
+.attest-text {
+  margin: 0;
+  border-left: 3px solid #d8a13a;
+  padding: 8px 12px;
+  background: #fff;
+  color: #3a4148;
+  font-size: 13.5px;
+}
+
+.attest-text small {
+  display: block;
+  margin-top: 6px;
+  color: #8a6d2f;
+}
+
+.attest-narrative {
+  white-space: pre-wrap;
+}
+
+.attest-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
