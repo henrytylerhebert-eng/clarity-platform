@@ -1,0 +1,1611 @@
+openapi: 3.1.0
+info:
+  title: Clarity Hospital Operations and Outcomes Intelligence API
+  version: 0.1.0-proposed
+  description: |
+    Proposed and unverified API contract. The live repository, ADR-0012,
+    current error taxonomy, role enum, IDs, and route conventions must be
+    reconciled before implementation. Browser clients never write directly
+    to governed-event, projection, or analytics-mart tables.
+servers:
+  - url: /api/v1
+    description: Authenticated Clarity API boundary
+tags:
+  - name: Admission Handoff
+  - name: Utilization Review Commands
+  - name: Utilization Review Queries
+  - name: Analytics
+  - name: Provenance
+security:
+  - bearerAuth: []
+
+paths:
+  /cases/{caseKey}/admission-handoffs:
+    post:
+      tags: [Admission Handoff]
+      operationId: recordAdmissionHandoff
+      summary: Create an episode from an already accepted case
+      description: |
+        Requires a verified principal with episode.admissionHandoff.create
+        capability in the receiving facility scope. This command records an
+        authorized admission fact; it does not decide admission acceptance.
+      parameters:
+        - $ref: '#/components/parameters/CaseKey'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordAdmissionHandoffRequest'
+      responses:
+        '201':
+          description: Episode and admission created
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordAdmissionHandoffResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainError'
+
+  /episodes/{episodeId}/authorizations:
+    post:
+      tags: [Utilization Review Commands]
+      operationId: openEpisodeAuthorization
+      summary: Open a post-admission authorization lifecycle
+      parameters:
+        - $ref: '#/components/parameters/EpisodeId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenEpisodeAuthorizationRequest'
+      responses:
+        '201':
+          description: Episode authorization opened
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenEpisodeAuthorizationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainError'
+
+  /episode-authorizations/{authorizationId}/reviews:
+    post:
+      tags: [Utilization Review Commands]
+      operationId: recordAuthorizationReview
+      summary: Record a human-performed authorization review and date decisions
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordAuthorizationReviewRequest'
+      responses:
+        '201':
+          description: Review recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordAuthorizationReviewResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainError'
+
+  /authorization-reviews/{reviewId}/corrections:
+    post:
+      tags: [Utilization Review Commands]
+      operationId: correctAuthorizationReview
+      summary: Append a correction that supersedes an active review event
+      parameters:
+        - $ref: '#/components/parameters/ReviewId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorrectAuthorizationReviewRequest'
+      responses:
+        '201':
+          description: Correction appended and recomputation queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CorrectionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainError'
+
+  /episodes/{episodeId}/documentation-gaps:
+    post:
+      tags: [Utilization Review Commands]
+      operationId: recordDocumentationGap
+      summary: Record a controlled documentation gap
+      parameters:
+        - $ref: '#/components/parameters/EpisodeId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordDocumentationGapRequest'
+      responses:
+        '201':
+          description: Documentation gap recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentationGapCommandResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainError'
+
+  /documentation-gaps/{gapId}/acknowledgements:
+    post:
+      tags: [Utilization Review Commands]
+      operationId: acknowledgeDocumentationGap
+      summary: Acknowledge a documentation gap through a controlled transition
+      parameters:
+        - $ref: '#/components/parameters/GapId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcknowledgeDocumentationGapRequest'
+      responses:
+        '200':
+          description: Gap acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentationGapCommandResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainError'
+
+  /documentation-gaps/{gapId}/resolutions:
+    post:
+      tags: [Utilization Review Commands]
+      operationId: transitionDocumentationGap
+      summary: Resolve, dispute, reopen, or cancel a documentation gap
+      parameters:
+        - $ref: '#/components/parameters/GapId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransitionDocumentationGapRequest'
+      responses:
+        '200':
+          description: Gap transition recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentationGapCommandResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainError'
+
+  /episodes/{episodeId}/ur-assignments:
+    post:
+      tags: [Utilization Review Commands]
+      operationId: assignUrOwner
+      summary: Change the human UR work assignment
+      parameters:
+        - $ref: '#/components/parameters/EpisodeId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignUrOwnerRequest'
+      responses:
+        '200':
+          description: Assignment changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainError'
+
+  /episodes/{episodeId}:
+    get:
+      tags: [Utilization Review Queries]
+      operationId: getEpisode
+      summary: Read a scoped operational episode summary
+      parameters:
+        - $ref: '#/components/parameters/EpisodeId'
+      responses:
+        '200':
+          description: Episode summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpisodeResponse'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /episodes/{episodeId}/utilization-review:
+    get:
+      tags: [Utilization Review Queries]
+      operationId: getEpisodeUtilizationReview
+      summary: Read operational review, day, gap, and provenance summaries
+      parameters:
+        - $ref: '#/components/parameters/EpisodeId'
+      responses:
+        '200':
+          description: Episode utilization-review detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpisodeUtilizationReviewResponse'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '503':
+          $ref: '#/components/responses/ProjectionError'
+
+  /ur/work-queue:
+    get:
+      tags: [Utilization Review Queries]
+      operationId: getUrWorkQueue
+      summary: Read the server-owned UR work queue
+      parameters:
+        - $ref: '#/components/parameters/FacilityFilter'
+        - $ref: '#/components/parameters/ProgramFilter'
+        - $ref: '#/components/parameters/UnitFilter'
+        - name: assignment
+          in: query
+          schema:
+            type: string
+            enum: [MINE, UNASSIGNED, ANY]
+        - name: coverageStatus
+          in: query
+          schema:
+            $ref: '#/components/schemas/CoverageStatus'
+        - name: riskCode
+          in: query
+          schema:
+            $ref: '#/components/schemas/RiskCode'
+        - name: dueBefore
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: qualityState
+          in: query
+          schema:
+            $ref: '#/components/schemas/DataQualityState'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Queue result, including a valid empty result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrWorkQueueResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '503':
+          $ref: '#/components/responses/ProjectionError'
+
+  /analytics/authorization-risk:
+    get:
+      tags: [Analytics]
+      operationId: getAuthorizationRisk
+      summary: Read PHI-minimized authorization-risk metrics
+      description: |
+        Returns aggregate metrics only. At-risk patient days can overlap the
+        mutually exclusive coverage-outcome counts.
+      parameters:
+        - $ref: '#/components/parameters/FacilityFilter'
+        - $ref: '#/components/parameters/ProgramFilter'
+        - $ref: '#/components/parameters/UnitFilter'
+        - name: periodStart
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: periodEnd
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: grain
+          in: query
+          schema:
+            type: string
+            enum: [DAY, WEEK, MONTH]
+            default: DAY
+      responses:
+        '200':
+          description: Aggregate result, including NO_MEASUREMENTS_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizationRiskResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '503':
+          $ref: '#/components/responses/ProjectionError'
+
+  /audit/events/{eventId}/provenance:
+    get:
+      tags: [Provenance]
+      operationId: getEventProvenance
+      summary: Read redacted governed-event provenance and correction chain
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Scoped and redacted provenance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvenanceResponse'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /analytics/metric-definitions/{metricKey}:
+    get:
+      tags: [Analytics]
+      operationId: getMetricDefinition
+      summary: Read a metric definition and version metadata
+      parameters:
+        - name: metricKey
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$'
+      responses:
+        '200':
+          description: Metric definition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricDefinitionResponse'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-session-token
+
+  headers:
+    RequestId:
+      description: Server-generated request identifier
+      schema:
+        type: string
+    CorrelationId:
+      description: Canonical correlation identifier
+      schema:
+        type: string
+
+  parameters:
+    CaseKey:
+      name: caseKey
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+    EpisodeId:
+      name: episodeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AuthorizationId:
+      name: authorizationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ReviewId:
+      name: reviewId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    GapId:
+      name: gapId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 200
+    FacilityFilter:
+      name: facilityId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+    ProgramFilter:
+      name: programId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+    UnitFilter:
+      name: unitId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 2000
+
+  responses:
+    ValidationError:
+      description: Malformed input or unknown fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    AuthenticationError:
+      description: Missing or invalid verified session
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    PermissionError:
+      description: Authenticated principal lacks in-scope capability
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFoundError:
+      description: Resource absent or outside the principal organization
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    ConflictError:
+      description: Optimistic-concurrency or idempotency conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    DomainError:
+      description: Valid transport input but unmet domain requirement
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    ProjectionError:
+      description: Required read projection is not safely available
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+    NullableUuid:
+      oneOf:
+        - $ref: '#/components/schemas/Uuid'
+        - type: 'null'
+    DateOnly:
+      type: string
+      format: date
+    DateRange:
+      type: object
+      additionalProperties: false
+      required: [startDate, endDate]
+      properties:
+        startDate:
+          $ref: '#/components/schemas/DateOnly'
+        endDate:
+          $ref: '#/components/schemas/DateOnly'
+    CoverageStatus:
+      type: string
+      enum: [NOT_REQUIRED, APPROVED, DENIED, PENDING, EXPIRED, UNREQUESTED, UNKNOWN]
+    RiskCode:
+      type: string
+      enum:
+        - REVIEW_DUE_SOON
+        - REVIEW_OVERDUE
+        - AUTH_EXPIRES_SOON
+        - AUTH_EXPIRED
+        - DOCUMENTATION_GAP
+        - SOURCE_DISAGREEMENT
+        - DATA_INCOMPLETE
+    DataQualityState:
+      type: string
+      enum:
+        - VALID
+        - VALID_WITH_WARNINGS
+        - PENDING_REVIEW
+        - QUARANTINED
+        - REJECTED
+        - CORRECTED
+        - SUPERSEDED
+
+    ApiError:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message, requestId, correlationId, retryable]
+          properties:
+            code:
+              type: string
+              enum:
+                - AUTHENTICATION_REQUIRED
+                - PERMISSION_DENIED
+                - RESOURCE_NOT_FOUND
+                - SCOPE_NOT_ALLOWED
+                - VALIDATION_FAILED
+                - CONCURRENCY_CONFLICT
+                - IDEMPOTENCY_KEY_REUSED
+                - ADMISSION_HANDOFF_NOT_READY
+                - SOURCE_DISAGREEMENT
+                - DATA_QUALITY_REVIEW_REQUIRED
+                - PROJECTION_NOT_READY
+                - METRIC_DEFINITION_NOT_APPROVED
+                - INTERNAL_ERROR
+            message:
+              type: string
+              maxLength: 500
+            requestId:
+              type: string
+            correlationId:
+              type: string
+            retryable:
+              type: boolean
+            fieldErrors:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required: [path, code, message]
+                properties:
+                  path: {type: string}
+                  code: {type: string}
+                  message: {type: string}
+
+    CommandMeta:
+      type: object
+      additionalProperties: false
+      required: [requestId, correlationId, idempotentReplay]
+      properties:
+        requestId: {type: string}
+        correlationId: {type: string}
+        idempotentReplay: {type: boolean}
+
+    Attestation:
+      type: object
+      additionalProperties: false
+      required: [statement, method]
+      properties:
+        statement:
+          type: string
+          minLength: 1
+          maxLength: 500
+        method:
+          type: string
+          enum: [FACILITY_WORKFLOW, HUMAN_VERIFICATION, SOURCE_RECONCILIATION]
+
+    RecordAdmissionHandoffRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedCaseVersion
+        - acceptedFacilityResponseId
+        - facilityId
+        - programId
+        - unitId
+        - admittedAt
+        - sourcePacketVersionId
+        - sourceCustodyEventId
+        - attestation
+      properties:
+        expectedCaseVersion:
+          type: integer
+          minimum: 1
+        acceptedFacilityResponseId:
+          $ref: '#/components/schemas/Uuid'
+        facilityId:
+          $ref: '#/components/schemas/Uuid'
+        programId:
+          $ref: '#/components/schemas/Uuid'
+        unitId:
+          $ref: '#/components/schemas/NullableUuid'
+        admittedAt:
+          type: string
+          format: date-time
+        sourcePacketVersionId:
+          $ref: '#/components/schemas/NullableUuid'
+        sourceCustodyEventId:
+          $ref: '#/components/schemas/NullableUuid'
+        attestation:
+          $ref: '#/components/schemas/Attestation'
+
+    RecordAdmissionHandoffResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - episodeId
+            - sourceCaseId
+            - status
+            - admittedAt
+            - serviceDate
+            - episodeVersion
+            - governedEventId
+          properties:
+            episodeId: {$ref: '#/components/schemas/Uuid'}
+            sourceCaseId: {$ref: '#/components/schemas/Uuid'}
+            status:
+              type: string
+              const: ACTIVE
+            admittedAt:
+              type: string
+              format: date-time
+            serviceDate:
+              $ref: '#/components/schemas/DateOnly'
+            episodeVersion:
+              type: integer
+              minimum: 1
+            governedEventId:
+              $ref: '#/components/schemas/Uuid'
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+
+    OpenEpisodeAuthorizationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedEpisodeVersion
+        - sourceCoverageId
+        - sourcePreAdmissionAuthorizationId
+        - levelOfCare
+        - requirement
+        - effectiveStartDate
+        - attestation
+      properties:
+        expectedEpisodeVersion: {type: integer, minimum: 1}
+        sourceCoverageId: {$ref: '#/components/schemas/NullableUuid'}
+        sourcePreAdmissionAuthorizationId: {$ref: '#/components/schemas/NullableUuid'}
+        levelOfCare: {type: string, minLength: 1, maxLength: 100}
+        requirement:
+          type: string
+          enum: [REQUIRED, NOT_REQUIRED, UNKNOWN]
+        effectiveStartDate: {$ref: '#/components/schemas/DateOnly'}
+        attestation:
+          type: object
+          additionalProperties: false
+          required: [method, sourceReferenceToken]
+          properties:
+            method:
+              type: string
+              enum: [HUMAN_VERIFICATION, NATIVE_HANDOFF]
+            sourceReferenceToken:
+              oneOf:
+                - type: string
+                  maxLength: 200
+                - type: 'null'
+
+    OpenEpisodeAuthorizationResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [episodeAuthorizationId, episodeId, status, version, governedEventId]
+          properties:
+            episodeAuthorizationId: {$ref: '#/components/schemas/Uuid'}
+            episodeId: {$ref: '#/components/schemas/Uuid'}
+            status:
+              type: string
+              const: OPEN
+            version: {type: integer, minimum: 1}
+            governedEventId: {$ref: '#/components/schemas/Uuid'}
+        meta: {$ref: '#/components/schemas/CommandMeta'}
+
+    AuthorizationDayDecisionInput:
+      type: object
+      additionalProperties: false
+      required: [startDate, endDate, outcome, denialReasonCode]
+      properties:
+        startDate: {$ref: '#/components/schemas/DateOnly'}
+        endDate: {$ref: '#/components/schemas/DateOnly'}
+        outcome:
+          type: string
+          enum: [APPROVED, DENIED, PENDING]
+        denialReasonCode:
+          oneOf:
+            - type: string
+              enum:
+                - MISSING_AUTHORIZATION
+                - LATE_REVIEW
+                - DOCUMENTATION_GAP
+                - LEVEL_OF_CARE_NOT_SUPPORTED
+                - ELIGIBILITY_OR_COVERAGE
+                - OTHER_CONTROLLED
+            - type: 'null'
+
+    DocumentationGapInput:
+      type: object
+      additionalProperties: false
+      required: [categoryCode, dueAt, operationalSummary]
+      properties:
+        categoryCode:
+          $ref: '#/components/schemas/DocumentationGapCategory'
+        dueAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        operationalSummary:
+          oneOf:
+            - type: string
+              maxLength: 500
+            - type: 'null'
+
+    DocumentationGapCategory:
+      type: string
+      enum:
+        - MISSING_PROGRESS_NOTE
+        - MISSING_PHYSICIAN_ORDER
+        - MISSING_TREATMENT_PLAN
+        - MISSING_RISK_UPDATE
+        - MISSING_DISCHARGE_PLAN
+        - MISSING_SIGNATURE_OR_ATTESTATION
+        - INCONSISTENT_LEVEL_OF_CARE_SUPPORT
+        - PAYER_REQUESTED_CLARIFICATION
+        - OTHER_CONTROLLED
+
+    RecordAuthorizationReviewRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedAuthorizationVersion
+        - reviewType
+        - requestedStartDate
+        - requestedEndDate
+        - dueAt
+        - decisionStatus
+        - payerReferenceToken
+        - source
+        - dayDecisions
+        - documentationGaps
+      properties:
+        expectedAuthorizationVersion: {type: integer, minimum: 1}
+        reviewType:
+          type: string
+          enum: [INITIAL, CONCURRENT, RETROSPECTIVE, PEER_TO_PEER, APPEAL]
+        requestedStartDate: {$ref: '#/components/schemas/DateOnly'}
+        requestedEndDate: {$ref: '#/components/schemas/DateOnly'}
+        dueAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        decisionStatus:
+          type: string
+          enum: [PENDING, APPROVED, DENIED, WITHDRAWN, UNKNOWN]
+        payerReferenceToken:
+          oneOf:
+            - type: string
+              maxLength: 200
+            - type: 'null'
+        source:
+          type: object
+          additionalProperties: false
+          required: [method, effectiveAt]
+          properties:
+            method:
+              type: string
+              enum: [PHONE, PORTAL_VIEWED_BY_HUMAN, FAX, SECURE_MESSAGE, DOCUMENT, OTHER_CONTROLLED]
+            effectiveAt:
+              type: string
+              format: date-time
+        dayDecisions:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/AuthorizationDayDecisionInput'
+        documentationGaps:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/DocumentationGapInput'
+
+    RecordAuthorizationReviewResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - reviewId
+            - episodeAuthorizationId
+            - reviewVersion
+            - dayDecisionIds
+            - documentationGapIds
+            - governedEventIds
+            - projectionState
+          properties:
+            reviewId: {$ref: '#/components/schemas/Uuid'}
+            episodeAuthorizationId: {$ref: '#/components/schemas/Uuid'}
+            reviewVersion: {type: integer, minimum: 1}
+            dayDecisionIds:
+              type: array
+              items: {$ref: '#/components/schemas/Uuid'}
+            documentationGapIds:
+              type: array
+              items: {$ref: '#/components/schemas/Uuid'}
+            governedEventIds:
+              type: array
+              items: {$ref: '#/components/schemas/Uuid'}
+            projectionState:
+              type: string
+              enum: [PENDING, CURRENT]
+        meta: {$ref: '#/components/schemas/CommandMeta'}
+
+    CorrectAuthorizationReviewRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedReviewVersion, supersedesEventId, reasonCode, reason, replacement]
+      properties:
+        expectedReviewVersion: {type: integer, minimum: 1}
+        supersedesEventId: {$ref: '#/components/schemas/Uuid'}
+        reasonCode:
+          type: string
+          enum:
+            - PAYER_DATE_RANGE_CORRECTED
+            - PAYER_OUTCOME_CORRECTED
+            - DUPLICATE_REVIEW
+            - SOURCE_RECONCILIATION
+            - DATA_ENTRY_ERROR
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        replacement:
+          type: object
+          additionalProperties: false
+          required: [decisionStatus, dayDecisions]
+          properties:
+            decisionStatus:
+              type: string
+              enum: [PENDING, APPROVED, DENIED, WITHDRAWN, UNKNOWN]
+            dayDecisions:
+              type: array
+              maxItems: 100
+              items: {$ref: '#/components/schemas/AuthorizationDayDecisionInput'}
+
+    CorrectionResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [correctionEventId, supersededEventId, recomputeState]
+          properties:
+            correctionEventId: {$ref: '#/components/schemas/Uuid'}
+            supersededEventId: {$ref: '#/components/schemas/Uuid'}
+            recomputeState:
+              type: string
+              enum: [QUEUED, NOT_REQUIRED]
+        meta: {$ref: '#/components/schemas/CommandMeta'}
+
+    RecordDocumentationGapRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedEpisodeVersion
+        - sourceAuthorizationReviewId
+        - categoryCode
+        - dueAt
+        - assignedRole
+        - assignedUserId
+        - operationalSummary
+      properties:
+        expectedEpisodeVersion: {type: integer, minimum: 1}
+        sourceAuthorizationReviewId: {$ref: '#/components/schemas/NullableUuid'}
+        categoryCode: {$ref: '#/components/schemas/DocumentationGapCategory'}
+        dueAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        assignedRole:
+          oneOf:
+            - type: string
+              maxLength: 100
+            - type: 'null'
+        assignedUserId: {$ref: '#/components/schemas/NullableUuid'}
+        operationalSummary:
+          oneOf:
+            - type: string
+              maxLength: 500
+            - type: 'null'
+
+    AcknowledgeDocumentationGapRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedGapVersion]
+      properties:
+        expectedGapVersion: {type: integer, minimum: 1}
+
+    TransitionDocumentationGapRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedGapVersion, action, resolutionCode, sourceDocumentId, attestation]
+      properties:
+        expectedGapVersion: {type: integer, minimum: 1}
+        action:
+          type: string
+          enum: [START, RESOLVE, DISPUTE, REOPEN, CANCEL]
+        resolutionCode:
+          oneOf:
+            - type: string
+              enum:
+                - DOCUMENT_COMPLETED
+                - SOURCE_VERIFIED
+                - NOT_APPLICABLE
+                - DUPLICATE
+                - DISPUTED_BY_OWNER
+                - OTHER_CONTROLLED
+            - type: 'null'
+        sourceDocumentId: {$ref: '#/components/schemas/NullableUuid'}
+        attestation:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    DocumentationGapCommandResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [gapId, status, version, governedEventId, projectionState]
+          properties:
+            gapId: {$ref: '#/components/schemas/Uuid'}
+            status:
+              type: string
+              enum: [OPEN, ACKNOWLEDGED, IN_PROGRESS, RESOLVED, DISPUTED, REOPENED, CANCELLED, SUPERSEDED]
+            version: {type: integer, minimum: 1}
+            governedEventId: {$ref: '#/components/schemas/Uuid'}
+            projectionState:
+              type: string
+              enum: [PENDING, CURRENT]
+        meta: {$ref: '#/components/schemas/CommandMeta'}
+
+    AssignUrOwnerRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedAssignmentVersion, assignedUserId, reasonCode]
+      properties:
+        expectedAssignmentVersion: {type: integer, minimum: 0}
+        assignedUserId: {$ref: '#/components/schemas/NullableUuid'}
+        reasonCode:
+          type: string
+          enum: [SHIFT_ASSIGNMENT, PROGRAM_ASSIGNMENT, MANAGER_REASSIGNMENT, UNASSIGNED]
+
+    AssignmentResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [episodeId, assignedUserId, assignmentVersion, governedEventId]
+          properties:
+            episodeId: {$ref: '#/components/schemas/Uuid'}
+            assignedUserId: {$ref: '#/components/schemas/NullableUuid'}
+            assignmentVersion: {type: integer, minimum: 1}
+            governedEventId: {$ref: '#/components/schemas/Uuid'}
+        meta: {$ref: '#/components/schemas/CommandMeta'}
+
+    OperationalQueryMeta:
+      type: object
+      additionalProperties: false
+      required: [generatedAt, sourceWatermark, freshness, quality, correction]
+      properties:
+        generatedAt: {type: string, format: date-time}
+        sourceWatermark:
+          oneOf:
+            - type: string
+            - type: 'null'
+        freshness:
+          type: object
+          additionalProperties: false
+          required: [state, calculatedAt]
+          properties:
+            state: {type: string, enum: [FRESH, STALE, UNKNOWN]}
+            calculatedAt:
+              oneOf:
+                - type: string
+                  format: date-time
+                - type: 'null'
+        quality:
+          type: object
+          additionalProperties: false
+          required: [state, issueCodes]
+          properties:
+            state: {type: string, enum: [VALID, VALID_WITH_WARNINGS, PENDING_REVIEW]}
+            issueCodes:
+              type: array
+              items: {type: string}
+        correction:
+          type: object
+          additionalProperties: false
+          required: [includesCorrectedData]
+          properties:
+            includesCorrectedData: {type: boolean}
+
+    QueueItem:
+      type: object
+      additionalProperties: false
+      required:
+        - itemId
+        - episodeId
+        - patientDisplay
+        - facilityId
+        - programId
+        - unitId
+        - payerDisplay
+        - coverageStatus
+        - riskCodes
+        - approvedThroughDate
+        - nextReviewDueAt
+        - daysAtRisk
+        - openDocumentationGapCount
+        - topGapCategories
+        - assignedUserId
+        - priorityBand
+        - reasonCodes
+        - sourceWatermark
+        - calculatedAt
+        - version
+      properties:
+        itemId: {$ref: '#/components/schemas/Uuid'}
+        episodeId: {$ref: '#/components/schemas/Uuid'}
+        patientDisplay:
+          type: object
+          additionalProperties: false
+          required: [mode, value]
+          properties:
+            mode: {type: string, enum: [TOKEN, OPERATIONAL_LABEL]}
+            value: {type: string, maxLength: 200}
+        facilityId: {$ref: '#/components/schemas/Uuid'}
+        programId: {$ref: '#/components/schemas/Uuid'}
+        unitId: {$ref: '#/components/schemas/NullableUuid'}
+        payerDisplay:
+          oneOf:
+            - type: string
+              maxLength: 200
+            - type: 'null'
+        coverageStatus: {$ref: '#/components/schemas/CoverageStatus'}
+        riskCodes:
+          type: array
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/RiskCode'}
+        approvedThroughDate:
+          oneOf:
+            - $ref: '#/components/schemas/DateOnly'
+            - type: 'null'
+        nextReviewDueAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        daysAtRisk: {type: integer, minimum: 0}
+        openDocumentationGapCount: {type: integer, minimum: 0}
+        topGapCategories:
+          type: array
+          items: {$ref: '#/components/schemas/DocumentationGapCategory'}
+        assignedUserId: {$ref: '#/components/schemas/NullableUuid'}
+        priorityBand:
+          type: string
+          enum: [CRITICAL, HIGH, NORMAL, REVIEW]
+        reasonCodes:
+          type: array
+          uniqueItems: true
+          items: {type: string}
+        sourceWatermark: {type: string}
+        calculatedAt: {type: string, format: date-time}
+        version: {type: integer, minimum: 1}
+
+    UrWorkQueueResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page, meta]
+      properties:
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/QueueItem'}
+        page:
+          type: object
+          additionalProperties: false
+          required: [nextCursor, pageSize]
+          properties:
+            nextCursor:
+              oneOf:
+                - type: string
+                - type: 'null'
+            pageSize: {type: integer, minimum: 1, maximum: 100}
+        meta: {$ref: '#/components/schemas/OperationalQueryMeta'}
+
+    EpisodeResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - episodeId
+            - sourceCaseId
+            - status
+            - facilityId
+            - programId
+            - unitId
+            - admittedAt
+            - serviceDate
+            - version
+          properties:
+            episodeId: {$ref: '#/components/schemas/Uuid'}
+            sourceCaseId: {$ref: '#/components/schemas/Uuid'}
+            status: {type: string, enum: [ACTIVE, DISCHARGED, CLOSED]}
+            facilityId: {$ref: '#/components/schemas/Uuid'}
+            programId: {$ref: '#/components/schemas/Uuid'}
+            unitId: {$ref: '#/components/schemas/NullableUuid'}
+            admittedAt: {type: string, format: date-time}
+            serviceDate: {$ref: '#/components/schemas/DateOnly'}
+            version: {type: integer, minimum: 1}
+        meta: {$ref: '#/components/schemas/OperationalQueryMeta'}
+
+    EpisodeUtilizationReviewResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [episode, authorizations, episodeDays, documentationGaps, assignment]
+          properties:
+            episode: {$ref: '#/components/schemas/EpisodeResponse'}
+            authorizations:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            episodeDays:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required: [serviceDate, patientDay, coverageStatus, riskCodes, qualityState]
+                properties:
+                  serviceDate: {$ref: '#/components/schemas/DateOnly'}
+                  patientDay: {type: boolean}
+                  coverageStatus: {$ref: '#/components/schemas/CoverageStatus'}
+                  riskCodes:
+                    type: array
+                    uniqueItems: true
+                    items: {$ref: '#/components/schemas/RiskCode'}
+                  qualityState: {$ref: '#/components/schemas/DataQualityState'}
+            documentationGaps:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            assignment:
+              oneOf:
+                - type: object
+                  additionalProperties: true
+                - type: 'null'
+        meta: {$ref: '#/components/schemas/OperationalQueryMeta'}
+
+    AnalyticsQueryMeta:
+      type: object
+      additionalProperties: false
+      required:
+        - generatedAt
+        - sourceWatermark
+        - freshness
+        - coverage
+        - metricDefinitions
+        - quality
+        - suppression
+        - correction
+      properties:
+        generatedAt: {type: string, format: date-time}
+        sourceWatermark:
+          oneOf:
+            - type: string
+            - type: 'null'
+        freshness:
+          type: object
+          additionalProperties: false
+          required: [state, maximumLagSeconds, staleAfterSeconds]
+          properties:
+            state: {type: string, enum: [FRESH, STALE, UNKNOWN]}
+            maximumLagSeconds:
+              oneOf:
+                - type: integer
+                  minimum: 0
+                - type: 'null'
+            staleAfterSeconds: {type: integer, minimum: 1}
+        coverage:
+          type: object
+          additionalProperties: false
+          required: [state, includedSources, missingSources]
+          properties:
+            state: {type: string, enum: [COMPLETE, PARTIAL, UNKNOWN, NO_DATA]}
+            includedSources:
+              type: array
+              items: {type: string}
+            missingSources:
+              type: array
+              items: {type: string}
+        metricDefinitions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [metricKey, version, status]
+            properties:
+              metricKey: {type: string}
+              version: {type: string}
+              status: {type: string, enum: [APPROVED, DRAFT]}
+        quality:
+          type: object
+          additionalProperties: false
+          required: [state, issueCodes]
+          properties:
+            state: {type: string, enum: [VALID, VALID_WITH_WARNINGS, PENDING_REVIEW]}
+            issueCodes:
+              type: array
+              items: {type: string}
+        suppression:
+          type: object
+          additionalProperties: false
+          required: [applied, policyVersion, reason]
+          properties:
+            applied: {type: boolean}
+            policyVersion:
+              oneOf:
+                - type: string
+                - type: 'null'
+            reason:
+              oneOf:
+                - type: string
+                - type: 'null'
+        correction:
+          type: object
+          additionalProperties: false
+          required: [includesRecomputedHistory, latestRecomputeRunId]
+          properties:
+            includesRecomputedHistory: {type: boolean}
+            latestRecomputeRunId: {$ref: '#/components/schemas/NullableUuid'}
+
+    AuthorizationRiskSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - approvedPatientDays
+        - deniedPatientDays
+        - pendingPatientDays
+        - expiredPatientDays
+        - atRiskPatientDays
+        - openDocumentationGaps
+        - concurrentReviewsDue
+      properties:
+        approvedPatientDays: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+        deniedPatientDays: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+        pendingPatientDays: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+        expiredPatientDays: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+        atRiskPatientDays: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+        openDocumentationGaps: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+        concurrentReviewsDue: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+
+    AuthorizationRiskResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [status, series, summary]
+          properties:
+            status:
+              type: string
+              enum:
+                - CALCULATED
+                - NO_MEASUREMENTS_FOUND
+                - INSUFFICIENT_DENOMINATOR
+                - SUPPRESSED
+                - PENDING_REVIEW
+            series:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required: [period, approved, denied, pending, expired, atRisk]
+                properties:
+                  period: {$ref: '#/components/schemas/DateOnly'}
+                  approved: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+                  denied: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+                  pending: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+                  expired: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+                  atRisk: {oneOf: [{type: integer, minimum: 0}, {type: 'null'}]}
+            summary: {$ref: '#/components/schemas/AuthorizationRiskSummary'}
+        meta: {$ref: '#/components/schemas/AnalyticsQueryMeta'}
+
+    ProvenanceResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - eventId
+            - eventType
+            - schemaVersion
+            - aggregateType
+            - aggregateId
+            - effectiveAt
+            - recordedAt
+            - actorDisplay
+            - sourceSystem
+            - sourceEventId
+            - qualityState
+            - reviewState
+            - metricEligibility
+            - correctionChain
+            - payloadSummary
+          properties:
+            eventId: {$ref: '#/components/schemas/Uuid'}
+            eventType: {type: string}
+            schemaVersion: {type: string}
+            aggregateType: {type: string}
+            aggregateId: {$ref: '#/components/schemas/Uuid'}
+            effectiveAt: {type: string, format: date-time}
+            recordedAt: {type: string, format: date-time}
+            actorDisplay: {type: string}
+            sourceSystem: {type: string}
+            sourceEventId:
+              oneOf:
+                - type: string
+                - type: 'null'
+            qualityState: {$ref: '#/components/schemas/DataQualityState'}
+            reviewState: {type: string}
+            metricEligibility: {type: string}
+            correctionChain:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required: [eventId, kind, supersedesEventId, recordedAt, reasonCode]
+                properties:
+                  eventId: {$ref: '#/components/schemas/Uuid'}
+                  kind: {type: string, enum: [ORIGINAL, CORRECTION, REVERSAL]}
+                  supersedesEventId: {$ref: '#/components/schemas/NullableUuid'}
+                  recordedAt: {type: string, format: date-time}
+                  reasonCode:
+                    oneOf:
+                      - type: string
+                      - type: 'null'
+            payloadSummary:
+              type: object
+              additionalProperties: true
+        meta:
+          type: object
+          additionalProperties: false
+          required: [redactedFields]
+          properties:
+            redactedFields:
+              type: array
+              items: {type: string}
+
+    MetricDefinitionResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+          description: Must conform to contracts/metric-definition.schema.json

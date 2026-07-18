@@ -156,8 +156,8 @@ export function ProductStudio() {
     });
   }, [filter, query]);
 
-  const selectedConcept = featureConcepts.find((concept) => concept.id === selectedId) ?? filteredConcepts[0] ?? featureConcepts[0];
-  const details = lensDetails(selectedConcept, lens);
+  const selectedConcept = filteredConcepts.find((concept) => concept.id === selectedId) ?? filteredConcepts[0];
+  const details = selectedConcept ? lensDetails(selectedConcept, lens) : [];
 
   return (
     <div className="stack studio-shell">
@@ -206,7 +206,7 @@ export function ProductStudio() {
           </div>
           <div className="studio-registry-list">
             {filteredConcepts.map((concept) => (
-              <button className={selectedConcept.id === concept.id ? "studio-registry-row selected" : "studio-registry-row"} key={concept.id} type="button" onClick={() => setSelectedId(concept.id)}>
+              <button className={selectedConcept?.id === concept.id ? "studio-registry-row selected" : "studio-registry-row"} key={concept.id} type="button" onClick={() => setSelectedId(concept.id)}>
                 <span className="studio-registry-row-head"><span className="mono">{concept.id}</span><span className={stageClass(concept.stage)}>{concept.stage}</span></span>
                 <strong>{concept.title}</strong>
                 <span className="subtext">Owner: {concept.owner} · {concept.visibility}</span>
@@ -217,19 +217,28 @@ export function ProductStudio() {
         </section>
 
         <section className="panel studio-inspector-panel" aria-live="polite">
-          <div className="panel-title">
-            <div><span className="studio-eyebrow">{selectedConcept.id}</span><h2>{selectedConcept.title}</h2><p>{selectedConcept.owner} · {selectedConcept.visibility}</p></div>
-            <span className={stageClass(selectedConcept.stage)}>{selectedConcept.stage}</span>
-          </div>
-          <div className="studio-detail-list">
-            {details.map((detail) => (
-              <div className="studio-detail" key={detail.label}>
-                <span className="label">{detail.label}</span>
-                {Array.isArray(detail.value) ? <ul>{detail.value.map((value) => <li key={value}>{value}</li>)}</ul> : <p>{detail.value}</p>}
+          {selectedConcept ? (
+            <>
+              <div className="panel-title">
+                <div><span className="studio-eyebrow">{selectedConcept.id}</span><h2>{selectedConcept.title}</h2><p>{selectedConcept.owner} · {selectedConcept.visibility}</p></div>
+                <span className={stageClass(selectedConcept.stage)}>{selectedConcept.stage}</span>
               </div>
-            ))}
-          </div>
-          <div className="studio-next-action"><ArrowUpRight size={17} /><div><span className="label">Next human action</span><p>{selectedConcept.nextAction}</p></div></div>
+              <div className="studio-detail-list">
+                {details.map((detail) => (
+                  <div className="studio-detail" key={detail.label}>
+                    <span className="label">{detail.label}</span>
+                    {Array.isArray(detail.value) ? <ul>{detail.value.map((value) => <li key={value}>{value}</li>)}</ul> : <p>{detail.value}</p>}
+                  </div>
+                ))}
+              </div>
+              <div className="studio-next-action"><ArrowUpRight size={17} /><div><span className="label">Next human action</span><p>{selectedConcept.nextAction}</p></div></div>
+            </>
+          ) : (
+            <div>
+              <h2>No concept selected</h2>
+              <p className="subtext">Clear or change the registry filters to inspect a concept.</p>
+            </div>
+          )}
         </section>
       </section>
 

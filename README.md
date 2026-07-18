@@ -127,6 +127,7 @@ npm audit --omit=dev
 
 - **Synthetic data only.** No real PHI/PII anywhere, ever, until formal security review (`SECURITY.md`).
 - **Human gates stay intact.** No autonomous clinical, legal, admission, placement, or authorization decisions (`GOVERNANCE.md`).
+- **Evidence gates status.** Output is not evidence; speed is not progress; automation is not understanding; polish is not trust. Use `docs/governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md` before promoting product, release, measurement, or implementation claims.
 - **Benefits quotes are not payment guarantees; payer memory is historical and unconfirmed; financial readiness never blocks emergency clinical review.** These are tested invariants, not slogans.
 - The master architecture package is only **partially present** (15 of 87 files) — see `docs/repository-audit/02_MASTER_PACKAGE_INVENTORY.md` and open decision OD-1.
 

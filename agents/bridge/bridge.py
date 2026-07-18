@@ -23,7 +23,7 @@ REPO_ROOT = ROOT.parent.parent
 NOTIFY_ROOT = Path(
     os.environ.get("AGENT_BRIDGE_NOTIFY_ROOT", REPO_ROOT / "agent_bridge")
 ).expanduser().resolve()
-WAKE_TRANSPORT = os.environ.get("AGENT_BRIDGE_WAKE_TRANSPORT", "none").lower()
+WAKE_TRANSPORT = os.environ.get("AGENT_BRIDGE_WAKE_TRANSPORT", "file_mirror").lower()
 LEDGER = ROOT / "LEDGER.md"
 LOCK_FILE = ROOT / ".bridge.lock"
 
@@ -609,6 +609,16 @@ def invoke_direct_worker(
             )
         except subprocess.TimeoutExpired as error:
             raise DirectRunError(f"{target} timed out after {timeout_seconds} seconds.", 124) from error
+        if target == "claude":
+            try:
+                payload = json.loads(result.stdout)
+            except json.JSONDecodeError:
+                payload = None
+            if isinstance(payload, dict) and payload.get("is_error"):
+                detail = payload.get("result") or payload.get("message") or "unknown Claude API error"
+                api_status = payload.get("api_error_status")
+                status_text = f" (HTTP {api_status})" if api_status else ""
+                raise DirectRunError(f"claude API error{status_text}: {detail}", result.returncode or 1)
         if result.returncode != 0:
             raise DirectRunError(f"{target} exited with status {result.returncode}.", result.returncode)
         if target == "codex":

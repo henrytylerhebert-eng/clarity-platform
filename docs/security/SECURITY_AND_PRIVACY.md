@@ -14,7 +14,7 @@ related_adrs: ADR-0001, ADR-0002
 
 # Security and Privacy
 
-> **Honesty note:** nothing below is implemented. The prototype has no authentication, no backend, and no persistence beyond localStorage. Describing controls is not compliance; HIPAA readiness requires implementation, review, and testing.
+> **Honesty note:** this document describes required security/privacy controls, not compliance evidence. The repository now includes authentication, API, and service-foundation code, but it is not a deployed or PHI-ready system. Production security, privacy, tenancy, hosting, monitoring, and real-data controls remain unapproved and unverified. Describing controls is not compliance; HIPAA readiness requires implementation, review, and testing.
 
 ## Required controls (target)
 
@@ -25,7 +25,7 @@ Authentication + MFA; least privilege; tenant isolation (organization-scoped que
 - **No real PHI/PII anywhere** — synthetic data only, until formal security/privacy review (`data/synthetic-cases/README.md`).
 - Member IDs, Medicare identifiers, policy numbers, credentials: **restricted fields, never logged, never in audit payloads** (test: `tests/security/no-sensitive-identifiers-in-audit.test.ts`).
 - Patient identity is tokenized (`PatientToken`) in the schema; display names in demos are synthetic.
-- No live EHR, payer portal, clearinghouse, email, fax, database, or cloud connection may be added without security review.
+- No production/live EHR, payer portal, clearinghouse, email, fax, external database, or cloud connection may be added without security review.
 
 ## Historical note
 

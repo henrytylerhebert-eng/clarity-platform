@@ -1,0 +1,737 @@
+// Proposed and unverified.
+// Review against the live clarity-platform working tree before adoption.
+// This is a self-contained target schema for design review; it is NOT an instruction
+// to replace the repository's canonical prisma/schema.prisma. Merge in staged slices,
+// preserve existing names/relations/migrations, and run Prisma validation in-repository.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EpisodeStatus {
+  ACTIVE
+  DISCHARGED
+  CLOSED
+
+  @@map("episode_status")
+}
+
+enum AdmissionSourceType {
+  CLARITY_ACCEPTED_CASE
+  DIRECT_ADMISSION
+  SYNTHETIC_FIXTURE
+  EXTERNAL_IMPORT
+
+  @@map("admission_source_type")
+}
+
+enum EpisodeDayClinicalStatus {
+  EXPECTED
+  ACTIVE
+  COMPLETE
+  VOIDED
+
+  @@map("episode_day_clinical_status")
+}
+
+enum AuthorizationCoverageStatus {
+  NOT_REQUIRED
+  APPROVED
+  DENIED
+  PENDING
+  EXPIRED
+  UNREQUESTED
+  UNKNOWN
+
+  @@map("authorization_coverage_status")
+}
+
+enum AuthorizationRiskCode {
+  REVIEW_DUE_SOON
+  REVIEW_OVERDUE
+  AUTH_EXPIRES_SOON
+  AUTH_EXPIRED
+  DOCUMENTATION_GAP
+  SOURCE_DISAGREEMENT
+  DATA_INCOMPLETE
+
+  @@map("authorization_risk_code")
+}
+
+enum AuthorizationRequirement {
+  REQUIRED
+  NOT_REQUIRED
+  UNKNOWN
+
+  @@map("authorization_requirement")
+}
+
+enum EpisodeAuthorizationLifecycleStatus {
+  OPEN
+  CLOSED
+  SUPERSEDED
+
+  @@map("episode_authorization_lifecycle_status")
+}
+
+enum AuthorizationReviewType {
+  INITIAL
+  CONCURRENT
+  RETROSPECTIVE
+  PEER_TO_PEER
+  APPEAL
+
+  @@map("authorization_review_type")
+}
+
+enum AuthorizationReviewOutcome {
+  PENDING
+  APPROVED
+  DENIED
+  WITHDRAWN
+  UNKNOWN
+
+  @@map("authorization_review_outcome")
+}
+
+enum AuthorizationReviewStatus {
+  DRAFT
+  ATTESTED
+  SUPERSEDED
+  VOIDED
+
+  @@map("authorization_review_status")
+}
+
+enum DayDecisionBasis {
+  PAYER_DECISION
+  CONTRACT_RULE
+  HUMAN_ATTESTATION
+  DERIVED_FROM_REVIEW_RANGE
+  UNKNOWN
+
+  @@map("authorization_day_decision_basis")
+}
+
+enum DocumentationGapStatus {
+  OPEN
+  ACKNOWLEDGED
+  IN_PROGRESS
+  RESOLVED
+  DISPUTED
+  REOPENED
+  CANCELLED
+  SUPERSEDED
+
+  @@map("documentation_gap_status")
+}
+
+enum DocumentationGapSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("documentation_gap_severity")
+}
+
+enum DocumentationGapSourceType {
+  HUMAN_REVIEW
+  RULE_EVALUATION
+  EXTERNAL_SOURCE
+  IMPORT_VALIDATION
+
+  @@map("documentation_gap_source_type")
+}
+
+enum UrQueueItemStatus {
+  OPEN
+  CLAIMED
+  SNOOZED
+  RESOLVED
+  VOIDED
+
+  @@map("ur_queue_item_status")
+}
+
+enum UrQueueReasonCode {
+  AUTHORIZATION_PENDING
+  AUTHORIZATION_EXPIRED
+  AUTHORIZATION_EXPIRING
+  DENIED_DAY
+  DOCUMENTATION_GAP
+  REVIEW_DUE
+  REVIEW_OVERDUE
+  SOURCE_DISAGREEMENT
+  DATA_QUALITY_REVIEW
+  CORRECTION_REVIEW
+
+  @@map("ur_queue_reason_code")
+}
+
+enum GovernedEventAggregateType {
+  CASE
+  EPISODE
+  EPISODE_DAY
+  EPISODE_AUTHORIZATION
+  AUTHORIZATION_REVIEW
+  DOCUMENTATION_GAP
+  METRIC_SNAPSHOT
+  DATA_QUALITY_ISSUE
+
+  @@map("governed_event_aggregate_type")
+}
+
+enum GovernedEventActorType {
+  USER
+  SYSTEM
+  EXTERNAL_SYSTEM
+
+  @@map("governed_event_actor_type")
+}
+
+enum GovernedEventClassification {
+  PHI_RESTRICTED
+  PHI_OPERATIONAL
+  PSEUDONYMIZED
+  DEIDENTIFIED_AGGREGATE
+  PUBLIC_SYNTHETIC
+
+  @@map("governed_event_classification")
+}
+
+enum GovernedEventReviewStatus {
+  NOT_REQUIRED
+  REQUIRED
+  ATTESTED
+  REJECTED
+
+  @@map("governed_event_review_status")
+}
+
+enum GovernedEventCorrectionType {
+  ORIGINAL
+  CORRECTION
+  REVERSAL
+
+  @@map("governed_event_correction_type")
+}
+
+enum GovernedMetricEligibility {
+  ELIGIBLE
+  ELIGIBLE_WITH_WARNING
+  PENDING_REVIEW
+  EXCLUDED_CORRECTED
+  EXCLUDED_SUPERSEDED
+  EXCLUDED_QUALITY
+  EXCLUDED_POLICY
+
+  @@map("governed_metric_eligibility")
+}
+
+enum EventDeliveryStatus {
+  PENDING
+  LEASED
+  DELIVERED
+  RETRYABLE_FAILURE
+  QUARANTINED
+
+  @@map("event_delivery_status")
+}
+
+enum DataQualityIssueStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  WAIVED
+  VOIDED
+
+  @@map("data_quality_issue_status")
+}
+
+enum DataQualityIssueCode {
+  SCHEMA_INVALID
+  UNKNOWN_REFERENCE
+  SOURCE_DISAGREEMENT
+  DUPLICATE_SOURCE_EVENT
+  LATE_ARRIVAL
+  MISSING_REQUIRED_FACT
+  OUT_OF_ORDER_EVENT
+  PROJECTION_STALE
+  METRIC_INELIGIBLE
+  PRIVACY_RULE_FAILED
+  OTHER
+
+  @@map("data_quality_issue_code")
+}
+
+model Episode {
+  id                       String        @id @default(uuid()) @db.Uuid
+  organizationId           String        @db.Uuid
+  facilityId               String        @db.Uuid
+  programId                String?       @db.Uuid
+  unitId                   String?       @db.Uuid
+  status                   EpisodeStatus @default(ACTIVE)
+  episodeNumber            String?
+  admittedAt               DateTime?     @db.Timestamptz(6)
+  dischargedAt             DateTime?     @db.Timestamptz(6)
+  admissionTimezone        String
+  sourceType               AdmissionSourceType
+  version                  Int           @default(1)
+  createdAt                DateTime      @default(now()) @db.Timestamptz(6)
+  createdByActorId         String        @db.Uuid
+  updatedAt                DateTime      @updatedAt @db.Timestamptz(6)
+  updatedByActorId         String        @db.Uuid
+
+  admission                AdmissionRecord?
+  caseLinks                CaseEpisodeLink[]
+  days                     EpisodeDay[]
+  authorizations           EpisodeAuthorization[]
+  authorizationReviews     AuthorizationReview[]
+  documentationGaps        DocumentationGap[]
+  urQueueItems             UrQueueItemProjection[]
+  dataQualityIssues        DataQualityIssue[]
+
+  @@unique([organizationId, facilityId, episodeNumber])
+  @@index([organizationId, facilityId, status])
+  @@index([organizationId, programId, status])
+  @@index([organizationId, unitId, status])
+  @@index([organizationId, admittedAt])
+  @@map("episodes")
+}
+
+model CaseEpisodeLink {
+  id                       String   @id @default(uuid()) @db.Uuid
+  organizationId           String   @db.Uuid
+  caseId                   String   @db.Uuid
+  episodeId                String   @db.Uuid
+  relationshipType         String   @default("ADMISSION_HANDOFF")
+  linkedAt                 DateTime @default(now()) @db.Timestamptz(6)
+  linkedByActorId          String   @db.Uuid
+  sourceCaseVersion        Int
+  sourceAcceptanceId       String?  @db.Uuid
+  sourceHandoffId          String?  @db.Uuid
+
+  episode                  Episode  @relation(fields: [episodeId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, caseId, episodeId, relationshipType])
+  @@index([organizationId, caseId])
+  @@index([organizationId, episodeId])
+  @@map("case_episode_links")
+}
+
+model AdmissionRecord {
+  id                       String   @id @default(uuid()) @db.Uuid
+  organizationId           String   @db.Uuid
+  episodeId                String   @unique @db.Uuid
+  admittedAt               DateTime @db.Timestamptz(6)
+  recordedAt               DateTime @default(now()) @db.Timestamptz(6)
+  recordedByActorId        String   @db.Uuid
+  receivingFacilityId      String   @db.Uuid
+  receivingProgramId       String?  @db.Uuid
+  receivingUnitId          String?  @db.Uuid
+  sourceCaseId             String?  @db.Uuid
+  sourceAcceptanceId       String?  @db.Uuid
+  sourceTransportId        String?  @db.Uuid
+  sourceCustodyHandoffId   String?  @db.Uuid
+  attestationTextVersion   String
+  correctionEventId        String?  @db.Uuid
+  version                  Int      @default(1)
+
+  episode                  Episode  @relation(fields: [episodeId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, receivingFacilityId, admittedAt])
+  @@map("admission_records")
+}
+
+model EpisodeDay {
+  id                       String                         @id @default(uuid()) @db.Uuid
+  organizationId           String                         @db.Uuid
+  episodeId                String                         @db.Uuid
+  facilityId               String                         @db.Uuid
+  programId                String?                        @db.Uuid
+  unitId                   String?                        @db.Uuid
+  serviceDate              DateTime                       @db.Date
+  timezone                 String
+  ordinal                  Int
+  patientDay               Boolean                        @default(true)
+  clinicalStatus           EpisodeDayClinicalStatus       @default(EXPECTED)
+  coverageStatus           AuthorizationCoverageStatus    @default(UNKNOWN)
+  riskCodes                AuthorizationRiskCode[]
+  riskAsOf                 DateTime?                      @db.Timestamptz(6)
+  derivedFromEventSequence BigInt?
+  projectionVersion        Int                            @default(1)
+  version                  Int                            @default(1)
+  createdAt                DateTime                       @default(now()) @db.Timestamptz(6)
+  updatedAt                DateTime                       @updatedAt @db.Timestamptz(6)
+
+  episode                  Episode                        @relation(fields: [episodeId], references: [id], onDelete: Restrict)
+  dayDecisions             AuthorizationDayDecision[]
+  documentationGaps        DocumentationGap[]
+  urQueueItems             UrQueueItemProjection[]
+
+  @@unique([organizationId, episodeId, serviceDate])
+  @@unique([organizationId, episodeId, ordinal])
+  @@index([organizationId, facilityId, serviceDate, coverageStatus])
+  @@index([organizationId, programId, serviceDate])
+  @@index([organizationId, unitId, serviceDate])
+  @@map("episode_days")
+}
+
+model EpisodeAuthorization {
+  id                       String                       @id @default(uuid()) @db.Uuid
+  organizationId           String                       @db.Uuid
+  episodeId                String                       @db.Uuid
+  payerOrganizationKey     String?
+  payerPlanKey             String?
+  externalAuthorizationKey String?
+  sourceCoverageId         String?                      @db.Uuid
+  sourcePreAdmissionAuthorizationId String?             @db.Uuid
+  levelOfCare              String
+  requirement              AuthorizationRequirement
+  lifecycleStatus          EpisodeAuthorizationLifecycleStatus @default(OPEN)
+  effectiveStartDate       DateTime?                    @db.Date
+  effectiveEndDate         DateTime?                    @db.Date
+  currentStatus            AuthorizationCoverageStatus  @default(UNKNOWN)
+  statusAsOf               DateTime?                    @db.Timestamptz(6)
+  lastReviewAt             DateTime?                    @db.Timestamptz(6)
+  nextReviewDueAt          DateTime?                    @db.Timestamptz(6)
+  version                  Int                          @default(1)
+  createdAt                DateTime                     @default(now()) @db.Timestamptz(6)
+  createdByActorId         String                       @db.Uuid
+  updatedAt                DateTime                     @updatedAt @db.Timestamptz(6)
+  updatedByActorId         String                       @db.Uuid
+
+  episode                  Episode                      @relation(fields: [episodeId], references: [id], onDelete: Restrict)
+  reviews                  AuthorizationReview[]
+  dayDecisions             AuthorizationDayDecision[]
+
+  @@index([organizationId, payerOrganizationKey, externalAuthorizationKey])
+  @@index([organizationId, episodeId, currentStatus])
+  @@index([organizationId, nextReviewDueAt])
+  @@map("episode_authorizations")
+}
+
+model AuthorizationReview {
+  id                       String                       @id @default(uuid()) @db.Uuid
+  organizationId           String                       @db.Uuid
+  episodeId                String                       @db.Uuid
+  authorizationId          String?                      @db.Uuid
+  reviewType               AuthorizationReviewType
+  reviewStatus             AuthorizationReviewStatus   @default(DRAFT)
+  outcome                  AuthorizationReviewOutcome  @default(UNKNOWN)
+  requestedStartDate       DateTime?                    @db.Date
+  requestedEndDate         DateTime?                    @db.Date
+  decidedStartDate         DateTime?                    @db.Date
+  decidedEndDate           DateTime?                    @db.Date
+  requestedDayCount        Int?
+  approvedDayCount         Int?
+  deniedDayCount           Int?
+  decisionRecordedAt       DateTime?                    @db.Timestamptz(6)
+  payerDecisionAt          DateTime?                    @db.Timestamptz(6)
+  reviewDueAt              DateTime?                    @db.Timestamptz(6)
+  payerReference           String?
+  sourceSystem             String
+  sourceRecordKey          String?
+  sourceDocumentRef        String?
+  attestedByActorId        String?                      @db.Uuid
+  attestedAt               DateTime?                    @db.Timestamptz(6)
+  supersedesReviewId       String?                      @db.Uuid
+  correctionReasonCode     String?
+  correctionNarrative      String?
+  version                  Int                          @default(1)
+  createdAt                DateTime                     @default(now()) @db.Timestamptz(6)
+  createdByActorId         String                       @db.Uuid
+  updatedAt                DateTime                     @updatedAt @db.Timestamptz(6)
+  updatedByActorId         String                       @db.Uuid
+
+  episode                  Episode                      @relation(fields: [episodeId], references: [id], onDelete: Restrict)
+  authorization            EpisodeAuthorization?       @relation(fields: [authorizationId], references: [id], onDelete: Restrict)
+  supersedesReview         AuthorizationReview?         @relation("AuthorizationReviewSupersession", fields: [supersedesReviewId], references: [id], onDelete: Restrict)
+  supersededByReviews      AuthorizationReview[]        @relation("AuthorizationReviewSupersession")
+  dayDecisions             AuthorizationDayDecision[]
+
+  @@index([organizationId, episodeId, reviewStatus])
+  @@index([organizationId, reviewDueAt])
+  @@index([organizationId, sourceSystem, sourceRecordKey])
+  @@map("authorization_reviews")
+}
+
+model AuthorizationDayDecision {
+  id                       String                       @id @default(uuid()) @db.Uuid
+  organizationId           String                       @db.Uuid
+  episodeId                String                       @db.Uuid
+  episodeDayId             String                       @db.Uuid
+  authorizationId          String?                      @db.Uuid
+  reviewId                 String?                      @db.Uuid
+  serviceDate              DateTime                     @db.Date
+  coverageStatus           AuthorizationCoverageStatus
+  decisionBasis            DayDecisionBasis
+  decisionEffectiveAt      DateTime                     @db.Timestamptz(6)
+  recordedAt               DateTime                     @default(now()) @db.Timestamptz(6)
+  sourceEventId            String?                      @db.Uuid
+  sourceRecordKey          String?
+  isCurrent                Boolean                      @default(true)
+  supersedesDecisionId     String?                      @db.Uuid
+  correctionReasonCode     String?
+  version                  Int                          @default(1)
+
+  episodeDay               EpisodeDay                   @relation(fields: [episodeDayId], references: [id], onDelete: Restrict)
+  authorization            EpisodeAuthorization?       @relation(fields: [authorizationId], references: [id], onDelete: Restrict)
+  review                   AuthorizationReview?         @relation(fields: [reviewId], references: [id], onDelete: Restrict)
+  supersedesDecision       AuthorizationDayDecision?    @relation("AuthorizationDayDecisionSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)
+  supersededByDecisions    AuthorizationDayDecision[]   @relation("AuthorizationDayDecisionSupersession")
+
+  @@unique([organizationId, episodeDayId, version])
+  @@index([organizationId, episodeId, serviceDate, coverageStatus, isCurrent])
+  @@index([organizationId, sourceEventId])
+  @@map("authorization_day_decisions")
+}
+
+model DocumentationGap {
+  id                       String                         @id @default(uuid()) @db.Uuid
+  organizationId           String                         @db.Uuid
+  episodeId                String                         @db.Uuid
+  episodeDayId             String?                        @db.Uuid
+  facilityId               String                         @db.Uuid
+  programId                String?                        @db.Uuid
+  unitId                   String?                        @db.Uuid
+  gapTypeKey               String
+  severity                 DocumentationGapSeverity
+  status                   DocumentationGapStatus         @default(OPEN)
+  sourceType               DocumentationGapSourceType
+  sourceRuleVersion        String?
+  sourceDocumentRef        String?
+  sourceEventId            String?                        @db.Uuid
+  openedAt                 DateTime                       @db.Timestamptz(6)
+  dueAt                    DateTime?                      @db.Timestamptz(6)
+  assignedToActorId        String?                        @db.Uuid
+  resolvedAt               DateTime?                      @db.Timestamptz(6)
+  resolvedByActorId        String?                        @db.Uuid
+  resolutionCode           String?
+  resolutionNarrative      String?
+  attestedAt               DateTime?                      @db.Timestamptz(6)
+  attestedByActorId        String?                        @db.Uuid
+  supersedesGapId          String?                        @db.Uuid
+  correctionReasonCode     String?
+  version                  Int                            @default(1)
+  createdAt                DateTime                       @default(now()) @db.Timestamptz(6)
+  createdByActorId         String                         @db.Uuid
+  updatedAt                DateTime                       @updatedAt @db.Timestamptz(6)
+  updatedByActorId         String                         @db.Uuid
+
+  episode                  Episode                        @relation(fields: [episodeId], references: [id], onDelete: Restrict)
+  episodeDay               EpisodeDay?                    @relation(fields: [episodeDayId], references: [id], onDelete: Restrict)
+  supersedesGap            DocumentationGap?              @relation("DocumentationGapSupersession", fields: [supersedesGapId], references: [id], onDelete: Restrict)
+  supersededByGaps         DocumentationGap[]             @relation("DocumentationGapSupersession")
+  urQueueItems             UrQueueItemProjection[]
+
+  @@index([organizationId, facilityId, status, dueAt])
+  @@index([organizationId, episodeId, status])
+  @@index([organizationId, sourceEventId])
+  @@map("documentation_gaps")
+}
+
+model UrWorkAssignment {
+  id                       String   @id @default(uuid()) @db.Uuid
+  organizationId           String   @db.Uuid
+  episodeId                String   @db.Uuid
+  assignedToActorId        String   @db.Uuid
+  assignedByActorId        String   @db.Uuid
+  assignedAt               DateTime @db.Timestamptz(6)
+  releasedAt               DateTime? @db.Timestamptz(6)
+  releaseReasonCode        String?
+  isCurrent                Boolean  @default(true)
+  version                  Int      @default(1)
+
+  @@index([organizationId, assignedToActorId, isCurrent])
+  @@index([organizationId, episodeId, isCurrent])
+  @@map("ur_work_assignments")
+}
+
+model UrQueueItemProjection {
+  id                       String                  @id @default(uuid()) @db.Uuid
+  organizationId           String                  @db.Uuid
+  facilityId               String                  @db.Uuid
+  programId                String?                 @db.Uuid
+  unitId                   String?                 @db.Uuid
+  episodeId                String                  @db.Uuid
+  episodeDayId             String?                 @db.Uuid
+  documentationGapId       String?                 @db.Uuid
+  status                   UrQueueItemStatus       @default(OPEN)
+  reasonCodes              UrQueueReasonCode[]
+  riskCodes                AuthorizationRiskCode[]
+  priorityTier             Int
+  priorityScore            Int
+  dueAt                    DateTime?               @db.Timestamptz(6)
+  agingStartedAt           DateTime                @db.Timestamptz(6)
+  assignedToActorId        String?                 @db.Uuid
+  snoozedUntil             DateTime?               @db.Timestamptz(6)
+  projectionKey            String
+  serverSortKey            String
+  projectionVersion        Int
+  sourceEventSequence      BigInt
+  projectedAt              DateTime                @db.Timestamptz(6)
+  staleAfter               DateTime                @db.Timestamptz(6)
+  version                  Int                     @default(1)
+
+  episode                  Episode                 @relation(fields: [episodeId], references: [id], onDelete: Restrict)
+  episodeDay               EpisodeDay?             @relation(fields: [episodeDayId], references: [id], onDelete: Restrict)
+  documentationGap         DocumentationGap?       @relation(fields: [documentationGapId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, projectionKey])
+  @@index([organizationId, facilityId, status, serverSortKey])
+  @@index([organizationId, assignedToActorId, status, serverSortKey])
+  @@index([organizationId, projectedAt])
+  @@map("ur_queue_item_projection")
+}
+
+model GovernedAnalyticsEvent {
+  eventId                  String                         @id @default(uuid()) @db.Uuid
+  eventSequence            BigInt                         @unique @default(autoincrement())
+  eventType                String
+  eventVersion             Int
+  schemaName               String
+  schemaVersion            String
+  aggregateType            GovernedEventAggregateType
+  aggregateId              String                         @db.Uuid
+  aggregateVersion         Int
+  organizationId           String                         @db.Uuid
+  facilityId               String?                        @db.Uuid
+  programId                String?                        @db.Uuid
+  unitId                   String?                        @db.Uuid
+  caseId                   String?                        @db.Uuid
+  episodeId                String?                        @db.Uuid
+  episodeDayId             String?                        @db.Uuid
+  personToken              String?
+  occurredAt               DateTime                       @db.Timestamptz(6)
+  recordedAt               DateTime                       @default(now()) @db.Timestamptz(6)
+  effectiveAt              DateTime                       @db.Timestamptz(6)
+  actorType                GovernedEventActorType
+  actorId                  String
+  actorRole                String?
+  purposeOfUse             String?
+  sourceSystem             String
+  sourceTenantKey          String?
+  sourceEventId            String?
+  sourceRecordVersion      String?
+  sourceMethod             String
+  sourceDedupeKey          String?                        @unique
+  sourceProvenance         Json
+  correlationId            String                         @db.Uuid
+  causationId              String?                        @db.Uuid
+  commandId                String?                        @db.Uuid
+  traceId                  String?
+  classification           GovernedEventClassification
+  metricEligibility        GovernedMetricEligibility
+  payloadHash              String                         @db.Char(64)
+  reviewStatus             GovernedEventReviewStatus
+  reviewedByActorId        String?                        @db.Uuid
+  reviewedAt               DateTime?                      @db.Timestamptz(6)
+  correctionType           GovernedEventCorrectionType   @default(ORIGINAL)
+  supersedesEventId        String?                        @db.Uuid
+  correctionReasonCode     String?
+  correctionNarrative      String?
+  payload                  Json
+
+  supersedesEvent          GovernedAnalyticsEvent?        @relation("GovernedEventSupersession", fields: [supersedesEventId], references: [eventId], onDelete: Restrict)
+  supersededByEvents       GovernedAnalyticsEvent[]       @relation("GovernedEventSupersession")
+  deliveries               EventDelivery[]
+  dataQualityIssues        DataQualityIssue[]
+
+  @@unique([organizationId, aggregateType, aggregateId, aggregateVersion, eventType, eventVersion])
+  @@index([organizationId, sourceSystem, sourceEventId, eventType])
+  @@index([organizationId, eventSequence])
+  @@index([organizationId, episodeId, occurredAt])
+  @@index([organizationId, caseId, occurredAt])
+  @@index([organizationId, eventType, effectiveAt])
+  @@index([organizationId, correctionType, supersedesEventId])
+  @@map("governed_analytics_events")
+}
+
+model EventDelivery {
+  id                       String              @id @default(uuid()) @db.Uuid
+  governedEventId          String              @db.Uuid
+  consumerName             String
+  consumerVersion          String
+  partitionKey             String
+  status                   EventDeliveryStatus @default(PENDING)
+  availableAt              DateTime            @default(now()) @db.Timestamptz(6)
+  leasedAt                 DateTime?           @db.Timestamptz(6)
+  leaseOwner               String?
+  leaseExpiresAt           DateTime?           @db.Timestamptz(6)
+  attemptCount             Int                 @default(0)
+  lastAttemptAt            DateTime?           @db.Timestamptz(6)
+  deliveredAt              DateTime?           @db.Timestamptz(6)
+  lastErrorCode            String?
+  lastErrorDetailRedacted  String?
+  createdAt                DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt                DateTime            @updatedAt @db.Timestamptz(6)
+
+  governedEvent            GovernedAnalyticsEvent @relation(fields: [governedEventId], references: [eventId], onDelete: Restrict)
+
+  @@unique([governedEventId, consumerName, consumerVersion])
+  @@index([status, availableAt])
+  @@index([consumerName, consumerVersion, partitionKey, status])
+  @@map("event_deliveries")
+}
+
+model ProjectionCheckpoint {
+  id                       String   @id @default(uuid()) @db.Uuid
+  projectorName            String
+  projectorVersion         String
+  organizationId           String?  @db.Uuid
+  partitionKey             String
+  lastEventSequence        BigInt
+  lastEventId              String   @db.Uuid
+  lastEventRecordedAt      DateTime @db.Timestamptz(6)
+  projectedAt              DateTime @db.Timestamptz(6)
+  projectionLagSeconds     Int
+  status                   String
+  detailRedacted           String?
+  updatedAt                DateTime @updatedAt @db.Timestamptz(6)
+
+  @@unique([projectorName, projectorVersion, partitionKey])
+  @@index([organizationId, projectorName, status])
+  @@map("projection_checkpoints")
+}
+
+model DataQualityIssue {
+  id                       String                 @id @default(uuid()) @db.Uuid
+  organizationId           String                 @db.Uuid
+  facilityId               String?                @db.Uuid
+  programId                String?                @db.Uuid
+  unitId                   String?                @db.Uuid
+  episodeId                String?                @db.Uuid
+  governedEventId          String?                @db.Uuid
+  code                     DataQualityIssueCode
+  status                   DataQualityIssueStatus @default(OPEN)
+  severity                 String
+  detectedAt               DateTime               @db.Timestamptz(6)
+  detectedBy               String
+  summaryRedacted          String
+  details                  Json
+  assignedToActorId        String?                @db.Uuid
+  acknowledgedAt           DateTime?              @db.Timestamptz(6)
+  acknowledgedByActorId    String?                @db.Uuid
+  resolvedAt               DateTime?              @db.Timestamptz(6)
+  resolvedByActorId        String?                @db.Uuid
+  resolutionCode           String?
+  resolutionEvidenceRef    String?
+  version                  Int                    @default(1)
+  createdAt                DateTime               @default(now()) @db.Timestamptz(6)
+  updatedAt                DateTime               @updatedAt @db.Timestamptz(6)
+
+  episode                  Episode?               @relation(fields: [episodeId], references: [id], onDelete: Restrict)
+  governedEvent            GovernedAnalyticsEvent? @relation(fields: [governedEventId], references: [eventId], onDelete: Restrict)
+
+  @@index([organizationId, status, severity, detectedAt])
+  @@index([organizationId, episodeId, status])
+  @@index([governedEventId])
+  @@map("data_quality_issues")
+}

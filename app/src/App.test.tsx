@@ -117,6 +117,6 @@ describe("App smoke", () => {
     await user.click(screen.getByRole("tab", { name: "Build" }));
     expect(screen.getByText("Technical placement")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Parking Lot" }));
-    expect(screen.getByText("Production auth, tenancy, and release controls")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Production auth, tenancy, and release controls" })).toBeInTheDocument();
   });
 });

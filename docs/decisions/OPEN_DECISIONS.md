@@ -19,7 +19,7 @@ related_adrs: ADR-0001, ADR-0002
 | OD-2 | Louisiana statutory wording, official forms, trigger/duration language | Counsel | Any legal-clock or instrument enforcement |
 | OD-3 | Clinical criteria licensing (InterQual/MCG or payer-specific) and clinician governance of assessment content | Clinical + legal | Medical-necessity criteria mapping |
 | OD-4 | Product naming: "Clarity", "Clarity MH", "Clarity AI", "Clarity Crisis Platform" all appear; pick one | Product owner | Branding in docs/UI |
-| OD-5 | Reconcile Proposed ADR-0012 (Fastify in `packages/api`) with the implemented `node:http` spike in `packages/api-service`; approve the production API boundary | Product owner + tech lead | Additional HTTP routes and production API deployment |
+| OD-5 | Reconcile the accepted Fastify direction in `packages/api-service` with the implemented `node:http` spike; separately approve the production API boundary, hosting, and deployment | Product owner + tech lead | Additional HTTP routes and production API deployment |
 | OD-6 | Database hosting + RLS strategy (re-derive from canonical schema; Supabase starter superseded) | Tech lead + security | Migrations, tenancy tests against a real DB |
 | OD-7 | pnpm/Turborepo migration timing (deferred by ADR-0001) | Tech lead | None immediately |
 | OD-8 | Expanded 43-model schema adoption path (which models graduate when) | Tech lead | ADR-0002 follow-up |

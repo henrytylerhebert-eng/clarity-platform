@@ -11,6 +11,7 @@
 - Treat the repository and test outputs as source of truth.
 - Preserve user changes. Do not revert unrelated edits.
 - Do not invent requirements, user needs, constraints, or outcomes. Mark unknowns as `[Unknown]` or `[Unverified]`.
+- Before promoting product, implementation, roadmap, release, or measurement status, apply `docs/governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md`: output is not evidence; speed is not progress; automation is not understanding; polish is not trust.
 
 ## Scope for this repo
 
@@ -84,6 +85,7 @@ When a request is improved, rewrite in this compact structure:
 - Backend/API scaffolding exists; production tenancy/enforcement and full integration surfaces are staged via ADR roadmap.
 - Keep `reference/` immutable unless explicitly directed.
 - `AGENTS.md` should be treated as policy; do not ignore these guardrails.
+- Product Studio is a read-only evidence/status projection until server-owned registry, authorization, audit, tenancy, and release-control decisions are recorded and verified.
 
 ## Response format for completed work
 
@@ -112,5 +114,5 @@ Use:
 
 ## Template usage (for future lanes)
 
-- Use [docs/AGENTS_TEMPLATE.md](/Users/tylerhebert/Documents/clarity-platform/docs/AGENTS_TEMPLATE.md) for standard lanes.
-- Use [docs/AGENTS_TEMPLATE.quickfill.md](/Users/tylerhebert/Documents/clarity-platform/docs/AGENTS_TEMPLATE.quickfill.md) for urgent lanes that need fast scoping.
+- Use [docs/AGENTS_TEMPLATE.md](docs/AGENTS_TEMPLATE.md) for standard lanes.
+- Use [docs/AGENTS_TEMPLATE.quickfill.md](docs/AGENTS_TEMPLATE.quickfill.md) for urgent lanes that need fast scoping.

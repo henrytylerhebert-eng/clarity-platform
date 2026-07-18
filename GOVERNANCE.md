@@ -1,6 +1,6 @@
 # Governance
 
-Clarity supports qualified professionals; it does not replace them. These invariants bind all contributions. Detail: [HUMAN_APPROVAL_GATES](docs/governance/HUMAN_APPROVAL_GATES.md) · [AI_GOVERNANCE](docs/governance/AI_GOVERNANCE.md).
+Clarity supports qualified professionals; it does not replace them. These invariants bind all contributions. Detail: [HUMAN_APPROVAL_GATES](docs/governance/HUMAN_APPROVAL_GATES.md) · [AI_GOVERNANCE](docs/governance/AI_GOVERNANCE.md) · [PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL](docs/governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md).
 
 ## Non-negotiable invariants (tested where implementable)
 
@@ -23,3 +23,7 @@ Clarity supports qualified professionals; it does not replace them. These invari
 ## Decision records
 
 Architectural decisions: versioned ADRs. Open questions: [OPEN_DECISIONS](docs/decisions/OPEN_DECISIONS.md). Risks: [RISK_REGISTER](docs/decisions/RISK_REGISTER.md). Integration provenance: `docs/repository-audit/`.
+
+## Evidence and status changes
+
+Product, implementation, roadmap, release, and measurement claims follow [PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL](docs/governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md). Do not promote status because an artifact exists, a UI is polished, an agent completed a summary, or work moved quickly. Status changes require evidence in the appropriate canonical record.

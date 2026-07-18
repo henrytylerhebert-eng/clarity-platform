@@ -25,6 +25,7 @@ Use this when you need a fast start; fill missing items with `[TODO]`.
   - `git rev-parse HEAD`
 - Relevant docs read:
   - README / ARCHITECTURE / implementation docs / ADRs
+  - Product evidence protocol if changing status, release, measurement, roadmap, or Product Studio claims
 
 ## 4) PROMPT CHECK
 - Goal:
@@ -55,13 +56,14 @@ Use this when you need a fast start; fill missing items with `[TODO]`.
 - [ ] Type/lint
 - [ ] API smoke/test
 - [ ] Deployment check
+- [ ] Evidence/status gate checked
 - Commands run:
 
 ## 9) Completion response format
-1. Completed  
-2. Files affected  
-3. Verification  
-4. Decisions and tradeoffs  
-5. Unverified risks  
-6. Recommended next move  
+1. Completed
+2. Files affected
+3. Verification
+4. Decisions and tradeoffs
+5. Unverified risks
+6. Recommended next move
 7. Prompt lesson

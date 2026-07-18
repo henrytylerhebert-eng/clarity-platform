@@ -16,7 +16,7 @@ it before dispatching or accepting a task.
 | Primary checks | npm test; npm run lint; npm run typecheck; npm run test:app; cd app && npm run build; cd app && npm run smoke |
 | Bridge CLI | agents/bridge/agent-bridge |
 | Canonical mailbox | agents/bridge |
-| Wake transport | NONE. No Clarity-specific listener is configured. |
+| Wake transport | FILE_MIRROR. `agent_bridge/` is the Clarity-specific notification layer; Antigravity watcher consumption remains separately verified. |
 | Antigravity direct CLI | NO. An app installation was detected, but no usable direct CLI endpoint was verified. |
 | Claude write access | Explicit assignment required. The bridge only invokes Claude in plan mode. |
 | Codex write access | Explicit assignment required. Bridge-dispatched review work is read-only by default. |
@@ -39,11 +39,13 @@ Confirmed: the project-local CLI can create, lifecycle-manage, archive, and
 inspect canonical messages. Claude Code is installed locally. Antigravity's
 desktop app is present.
 
-Blocked: a direct Claude check on 2026-07-18 exited with status 1 and produced
-no worker review. The earlier 2026-07-16 check reported HTTP 401. Human
-reauthentication and a successful bridge check are required before Claude can
-be treated as available.
+Confirmed: Claude completed the queued reviews in `MSG-0011` and `MSG-0012`
+on 2026-07-18 and reported a clean executor check-in in `MSG-0010`.
 
-Unknown: Codex authentication, whether an Antigravity agent has consumed a
-message, and any project-specific live wake transport. A queued message is not
-proof that an agent received or completed work.
+Unknown: the automated `agent-bridge ask --direct` adapter previously hid the
+worker's API error behind a generic exit status. The adapter now surfaces safe
+Claude API error detail; current CLI authentication still requires a successful
+health check before direct dispatch is trusted.
+
+Unknown: Codex authentication and any project-specific live wake transport. A
+queued message is not proof that an agent received or completed work.

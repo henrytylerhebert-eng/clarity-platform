@@ -1,0 +1,710 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarity.invalid/contracts/analytics-event-envelope.schema.json",
+  "title": "Clarity Governed Analytics Event Envelope",
+  "description": "Proposed and unverified. Canonical immutable envelope for native and normalized operational events.",
+  "x-clarity-status": "Proposed and unverified",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "schema",
+    "eventType",
+    "aggregate",
+    "tenant",
+    "subject",
+    "times",
+    "actor",
+    "source",
+    "correlation",
+    "classification",
+    "quality",
+    "review",
+    "correction",
+    "metricEligibility",
+    "payloadHash",
+    "payload"
+  ],
+  "properties": {
+    "eventId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "schema": {
+      "$ref": "#/$defs/schemaDescriptor"
+    },
+    "eventType": {
+      "$ref": "#/$defs/eventTypeDescriptor"
+    },
+    "aggregate": {
+      "$ref": "#/$defs/aggregateDescriptor"
+    },
+    "tenant": {
+      "$ref": "#/$defs/tenantScope"
+    },
+    "subject": {
+      "$ref": "#/$defs/subjectReferences"
+    },
+    "times": {
+      "$ref": "#/$defs/eventTimes"
+    },
+    "actor": {
+      "$ref": "#/$defs/actor"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "correlation": {
+      "$ref": "#/$defs/correlation"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "PHI_RESTRICTED",
+        "PHI_OPERATIONAL",
+        "PSEUDONYMIZED",
+        "DEIDENTIFIED_AGGREGATE",
+        "PUBLIC_SYNTHETIC"
+      ]
+    },
+    "quality": {
+      "$ref": "#/$defs/quality"
+    },
+    "review": {
+      "$ref": "#/$defs/review"
+    },
+    "correction": {
+      "$ref": "#/$defs/correction"
+    },
+    "metricEligibility": {
+      "type": "string",
+      "enum": [
+        "ELIGIBLE",
+        "ELIGIBLE_WITH_WARNING",
+        "PENDING_REVIEW",
+        "EXCLUDED_CORRECTED",
+        "EXCLUDED_SUPERSEDED",
+        "EXCLUDED_QUALITY",
+        "EXCLUDED_POLICY"
+      ]
+    },
+    "payloadHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Lowercase SHA-256 hex of the canonical event payload representation."
+    },
+    "payload": {
+      "type": "object",
+      "description": "Validated by the event-specific payload schema named in schema/eventType.",
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "correction": {
+            "properties": {
+              "kind": {
+                "const": "ORIGINAL"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "correction": {
+            "properties": {
+              "supersedesEventId": {
+                "type": "null"
+              },
+              "reasonCode": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "correction": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "CORRECTION",
+                  "REVERSAL"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "correction": {
+            "required": [
+              "supersedesEventId",
+              "reasonCode"
+            ],
+            "properties": {
+              "supersedesEventId": {
+                "$ref": "#/$defs/uuid"
+              },
+              "reasonCode": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "nullableUuid": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nullableDateTime": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/dateTime"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schemaDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?$"
+        }
+      }
+    },
+    "eventTypeDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]+$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "aggregateDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id",
+        "version"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "CASE",
+            "EPISODE",
+            "EPISODE_DAY",
+            "EPISODE_AUTHORIZATION",
+            "AUTHORIZATION_REVIEW",
+            "DOCUMENTATION_GAP",
+            "METRIC_SNAPSHOT",
+            "DATA_QUALITY_ISSUE"
+          ]
+        },
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "tenantScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "organizationId",
+        "facilityId",
+        "programId",
+        "unitId"
+      ],
+      "properties": {
+        "organizationId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "facilityId": {
+          "$ref": "#/$defs/nullableUuid"
+        },
+        "programId": {
+          "$ref": "#/$defs/nullableUuid"
+        },
+        "unitId": {
+          "$ref": "#/$defs/nullableUuid"
+        }
+      }
+    },
+    "subjectReferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "caseId",
+        "episodeId",
+        "episodeDayId",
+        "personToken"
+      ],
+      "properties": {
+        "caseId": {
+          "$ref": "#/$defs/nullableUuid"
+        },
+        "episodeId": {
+          "$ref": "#/$defs/nullableUuid"
+        },
+        "episodeDayId": {
+          "$ref": "#/$defs/nullableUuid"
+        },
+        "personToken": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "eventTimes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "effectiveAt",
+        "recordedAt",
+        "receivedAt"
+      ],
+      "properties": {
+        "effectiveAt": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "recordedAt": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "receivedAt": {
+          "$ref": "#/$defs/nullableDateTime"
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id",
+        "displayRole",
+        "sessionId"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "USER",
+            "SYSTEM",
+            "EXTERNAL_SYSTEM"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "displayRole": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sessionId": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "system",
+        "sourceTenantKey",
+        "sourceEventId",
+        "sourceEventVersion",
+        "adapterName",
+        "adapterVersion",
+        "method",
+        "provenanceRefs"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "NATIVE_CLARITY",
+            "HUMAN_ATTESTATION",
+            "FHIR",
+            "HL7",
+            "PAYER",
+            "STAFFING_PAYROLL",
+            "BATCH_FILE",
+            "AGENCY"
+          ]
+        },
+        "system": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "sourceTenantKey": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceEventId": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 300
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceEventVersion": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "adapterName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "adapterVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "id",
+              "version",
+              "hash"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "version": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "hash": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "correlation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "correlationId",
+        "causationId",
+        "commandId"
+      ],
+      "properties": {
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "causationId": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "commandId": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "issues"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "VALID",
+            "VALID_WITH_WARNINGS",
+            "PENDING_REVIEW",
+            "QUARANTINED",
+            "REJECTED",
+            "CORRECTED",
+            "SUPERSEDED"
+          ]
+        },
+        "issues": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "severity",
+              "field",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]+$"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "INFO",
+                  "WARNING",
+                  "ERROR"
+                ]
+              },
+              "field": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            }
+          }
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reviewedByActorId",
+        "reviewedAt",
+        "attestationCode"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NOT_REQUIRED",
+            "REQUIRED",
+            "ATTESTED",
+            "REJECTED"
+          ]
+        },
+        "reviewedByActorId": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reviewedAt": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "attestationCode": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "correction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "supersedesEventId",
+        "reasonCode"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ORIGINAL",
+            "CORRECTION",
+            "REVERSAL"
+          ]
+        },
+        "supersedesEventId": {
+          "$ref": "#/$defs/nullableUuid"
+        },
+        "reasonCode": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

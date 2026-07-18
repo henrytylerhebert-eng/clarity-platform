@@ -3,7 +3,7 @@ id: MSG-0009
 from: codex
 to: antigravity
 type: review
-status: open
+status: acknowledged
 transport: queued
 posted: 2026-07-18T18:26:53Z
 owner: antigravity

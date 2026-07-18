@@ -2,7 +2,7 @@
 
 **Status date:** 2026-07-18
 **Repository:** `/Users/tylerhebert/Documents/clarity-platform`
-**Branch / preflight HEAD:** `main` / `b8cc961d26aa17315b0e334c4b7f99b2d88ae288`
+**Committed baseline HEAD:** `main` / `8af3e69d0f7d057d2ed903c78f3e7428b131e492`
 **Live systems:** None confirmed
 
 ## Shared truth
@@ -14,7 +14,7 @@
 - App tests pass: 10 files, 64 tests.
 - Bridge tests pass: 2 tests.
 - `npm run lint`, `npm run typecheck`, `npm --workspace app run build`, `npm run prisma:validate`, and `git diff --check` pass.
-- The worktree contains existing uncommitted Product Studio and documentation changes. It is not release-ready until that change set is reviewed and deliberately packaged.
+- The six-commit Product Studio, documentation, bridge, and Graphify range was audited after commit. Corrective work after this baseline must be reviewed and deliberately packaged.
 
 ### Confirmed production state
 
@@ -33,7 +33,7 @@
 | Team member | Current responsibility | Write authority | Current capability |
 | --- | --- | --- | --- |
 | Antigravity | Orchestrate priorities, keep one owner per goal, run authorized visual/browser review, reconcile evidence | Only after explicit assignment | Responded to `MSG-0004` through `MSG-0007`; no listener or direct CLI is verified |
-| Claude Code | Primary executor for approved backend/API integration slices | Explicit assignment required | Blocked: direct bridge run exited 1; `MSG-0005` remains queued |
+| Claude Code | Primary executor for approved backend/API integration slices | Explicit assignment required | `MSG-0010/0011/0012` report successful execution; automated bridge-direct reliability remains `Unknown` |
 | Codex | Independent reviewer, diagnostician, test/debug owner, narrow fixes when explicitly assigned | Explicit assignment granted by the current human request | Active; current quality evidence recorded below |
 | Human owner | Architecture approval, credentials, production actions, deployment, publishing, irreversible changes | Final authority | Required for API/hosting decision and agent reauthentication |
 
@@ -42,7 +42,7 @@
 ### Goal 1 - Align and stabilize the current development baseline
 
 - Owner: Codex
-- Status: In progress in this alignment task
+- Status: Completed; follow-up audit corrections are tracked separately
 - Work: reconcile stale status documents, preserve the dirty worktree, record test/build evidence, and identify release blockers.
 - Completion gate: canonical docs no longer claim backend/API/auth are both complete and not started; all local quality gates are explicit.
 
@@ -55,8 +55,8 @@
 
 ### Goal 3 - Implement the next approved full-stack slice
 
-- Owner: Claude Code after reauthentication; Codex reviews and verifies
-- Status: Blocked on Goal 2 and Claude availability
+- Owner: Claude Code after Goal 2 approval; Codex reviews and verifies
+- Status: Blocked on Goal 2
 - Recommended slice: server-owned read-only Feature Concept projection for Product Studio, using verified principals and object-level visibility policy before any mutation controls.
 - Completion gate: contract, server authorization, synthetic integration tests, UI adapter, audit boundary, and rollback notes pass review.
 
@@ -70,7 +70,7 @@
 ## Current blockers
 
 - Antigravity returned a canonical plan in `MSG-0007`; automatic wake/listener capability remains unverified.
-- Claude direct execution failed; authentication/availability is unresolved.
+- Claude completed the queued reviews through `MSG-0011/0012`; the earlier automated bridge-direct failure remains an adapter reliability concern, not a current executor blocker.
 - ADR-0012 and OD-6 remain open.
 - No test/lint/build CI workflow exists; Pages deployment is documentation-only.
 - Accessibility, security, deployment, observability, and performance evidence are `Unknown` or `No measurements found`.

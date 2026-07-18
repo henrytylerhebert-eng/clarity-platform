@@ -17,6 +17,13 @@ review, tests, and evidence checks to Codex. Route approved integration work
 to Claude Code. Do not create a second tracker or assume a notification means
 an agent accepted a task.
 
+Own the live recovery loop. Poll active assignments, inspect worker process
+health, distinguish authentication, transport, plugin/MCP, repository, and test
+failures, stop duplicate or hung runs, retry with the narrowest safe mode, and
+post the diagnosis and recovery as a canonical bridge message. Do not leave a
+task marked in progress while a worker is waiting on an unrelated child
+process. Do not ask Tyler to relay context that is already in the mailbox.
+
 Antigravity direct CLI support is not verified for this project. Read and
 respond through the canonical inbox until a project-specific adapter is
 explicitly verified. Never install software, authorize an account, deploy,

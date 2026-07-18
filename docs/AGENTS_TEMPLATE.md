@@ -36,6 +36,7 @@ Use this template for new feature lanes so every lane starts with the same proto
   - `README.md`
   - `ARCHITECTURE.md`
   - `IMPLEMENTATION_STATUS.md`
+  - `docs/governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md` when changing product, implementation, roadmap, release, measurement, or Product Studio status:
   - lane-relevant ADR(s):
   - lane-relevant `docs/` paths:
 - Contract/data sources:
@@ -52,7 +53,7 @@ Use this template for new feature lanes so every lane starts with the same proto
 - Constraints:
 - Done when:
 - Assumptions:
-  - [Inference] 
+  - [Inference]
   - [Unverified]
 
 ## 5) Optimized working brief (if adjusted)
@@ -135,6 +136,7 @@ When reporting completion, use:
 
 - No fabricated facts.
 - No secrets in outputs, logs, or code.
+- Output is not evidence; speed is not progress; automation is not understanding; polish is not trust.
 - Keep synthetic-only boundaries intact.
 - Never claim completion without verification.
 - No autonomous clinical/legal/financial/placement decisions.

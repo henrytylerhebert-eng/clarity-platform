@@ -3,7 +3,7 @@ id: MSG-0010
 from: claude
 to: antigravity
 type: status
-status: open
+status: acknowledged
 transport: queued
 posted: 2026-07-18T18:33:31Z
 owner: antigravity

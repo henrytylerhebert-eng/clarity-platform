@@ -1,0 +1,451 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarity.invalid/contracts/metric-definition.schema.json",
+  "title": "Clarity Metric Definition",
+  "description": "Proposed and unverified. Governed metric registry contract.",
+  "x-clarity-status": "Proposed and unverified",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "metricKey",
+    "version",
+    "name",
+    "description",
+    "status",
+    "ownerRole",
+    "stewardUserId",
+    "reviewerUserId",
+    "effectiveStart",
+    "effectiveEnd",
+    "subjectArea",
+    "valueType",
+    "unit",
+    "grain",
+    "numerator",
+    "denominator",
+    "inclusions",
+    "exclusions",
+    "sourceEventTypes",
+    "sourceFactTables",
+    "calculationRef",
+    "calculationVersion",
+    "requiredQualityStates",
+    "lateArrivalPolicyRef",
+    "suppressionPolicyRef",
+    "minimumDenominator",
+    "display",
+    "governance"
+  ],
+  "properties": {
+    "metricKey": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "IN_REVIEW",
+        "APPROVED",
+        "RETIRED"
+      ]
+    },
+    "ownerRole": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "stewardUserId": {
+      "oneOf": [
+        {
+          "type": "string",
+          "maxLength": 200
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reviewerUserId": {
+      "oneOf": [
+        {
+          "type": "string",
+          "maxLength": 200
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "effectiveStart": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "effectiveEnd": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "subjectArea": {
+      "type": "string",
+      "enum": [
+        "UTILIZATION_REVIEW",
+        "OPERATIONS",
+        "QUALITY",
+        "FINANCE"
+      ]
+    },
+    "valueType": {
+      "type": "string",
+      "enum": [
+        "COUNT",
+        "RATE",
+        "DURATION",
+        "CURRENCY",
+        "PERCENT"
+      ]
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "grain": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "DAY",
+          "WEEK",
+          "MONTH",
+          "FACILITY",
+          "PROGRAM",
+          "UNIT",
+          "PAYER"
+        ]
+      }
+    },
+    "numerator": {
+      "$ref": "#/$defs/term"
+    },
+    "denominator": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/term"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "inclusions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/filter"
+      }
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/filter"
+      }
+    },
+    "sourceEventTypes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]+\\.v[0-9]+$"
+      }
+    },
+    "sourceFactTables": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "calculationRef": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+    },
+    "calculationVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "requiredQualityStates": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "VALID",
+          "VALID_WITH_WARNINGS"
+        ]
+      }
+    },
+    "lateArrivalPolicyRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "suppressionPolicyRef": {
+      "oneOf": [
+        {
+          "type": "string",
+          "maxLength": 200
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "minimumDenominator": {
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "display": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "emptyState",
+        "insufficientDenominatorLabel",
+        "caveat"
+      ],
+      "properties": {
+        "emptyState": {
+          "const": "NO_MEASUREMENTS_FOUND"
+        },
+        "insufficientDenominatorLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "caveat": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 1000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approvedAt",
+        "evidenceRefs",
+        "changeSummary"
+      ],
+      "properties": {
+        "approvedAt": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "changeSummary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "valueType": {
+            "enum": [
+              "RATE",
+              "PERCENT"
+            ]
+          }
+        },
+        "required": [
+          "valueType"
+        ]
+      },
+      "then": {
+        "properties": {
+          "denominator": {
+            "$ref": "#/$defs/term"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "APPROVED"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "stewardUserId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reviewerUserId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "effectiveStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "governance": {
+            "properties": {
+              "approvedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "evidenceRefs": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "filter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "operator",
+        "value"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "EQ",
+            "NEQ",
+            "IN",
+            "NOT_IN",
+            "GT",
+            "GTE",
+            "LT",
+            "LTE",
+            "IS_NULL",
+            "NOT_NULL"
+          ]
+        },
+        "value": {}
+      }
+    },
+    "term": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fact",
+        "operation",
+        "field",
+        "filters"
+      ],
+      "properties": {
+        "fact": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "COUNT",
+            "COUNT_DISTINCT",
+            "SUM",
+            "AVG",
+            "MIN",
+            "MAX"
+          ]
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/filter"
+          }
+        }
+      }
+    }
+  }
+}
