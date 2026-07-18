@@ -10,7 +10,7 @@ it before dispatching or accepting a task.
 | Repository | https://github.com/henrytylerhebert-eng/clarity-platform.git |
 | Default branch | main |
 | Canon entry | README.md, followed by the canonical documentation it names |
-| Local agent rules | /Users/tylerhebert/.codex/AGENTS.md; no repository-local AGENTS.md is present |
+| Local agent rules | Repository `AGENTS.md`, then `/Users/tylerhebert/.codex/AGENTS.md`; the repository-local file takes precedence |
 | Human approval authority | Project owner or authorized human operator |
 | Live systems | None confirmed. This repository is a local prototype and service foundation only. |
 | Primary checks | npm test; npm run lint; npm run typecheck; npm run test:app; cd app && npm run build; cd app && npm run smoke |
@@ -39,9 +39,10 @@ Confirmed: the project-local CLI can create, lifecycle-manage, archive, and
 inspect canonical messages. Claude Code is installed locally. Antigravity's
 desktop app is present.
 
-Blocked: a direct Claude check on 2026-07-16 returned HTTP 401 because its
-OAuth access token is revoked. Human reauthentication is required before any
-Claude direct call can be treated as available.
+Blocked: a direct Claude check on 2026-07-18 exited with status 1 and produced
+no worker review. The earlier 2026-07-16 check reported HTTP 401. Human
+reauthentication and a successful bridge check are required before Claude can
+be treated as available.
 
 Unknown: Codex authentication, whether an Antigravity agent has consumed a
 message, and any project-specific live wake transport. A queued message is not
