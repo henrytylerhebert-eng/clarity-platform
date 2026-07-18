@@ -104,4 +104,19 @@ describe("App smoke", () => {
     expect(screen.getByRole("heading", { name: "Draft chart and UR summary" })).toBeInTheDocument();
     expect(screen.getByText("Do not copy this training draft into a real chart or authorization request.")).toBeInTheDocument();
   });
+
+  it("opens the read-only Product Studio registry for the program director demo role", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+
+    await user.selectOptions(screen.getByRole("combobox"), "executive");
+    await user.click(screen.getByRole("button", { name: "Product Studio" }));
+    expect(await screen.findByRole("heading", { name: "Make the product inspectable." })).toBeInTheDocument();
+    expect(screen.getByText(/Read-only prototype\. Demo role scoping is not authentication/)).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "Build" }));
+    expect(screen.getByText("Technical placement")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Parking Lot" }));
+    expect(screen.getByText("Production auth, tenancy, and release controls")).toBeInTheDocument();
+  });
 });

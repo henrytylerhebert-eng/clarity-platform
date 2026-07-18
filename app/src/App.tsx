@@ -12,6 +12,7 @@ import {
   Gauge,
   LayoutDashboard,
   Network,
+  PanelTop,
   PlusCircle,
   RotateCcw,
   Scale,
@@ -35,6 +36,7 @@ import { RoutingResponse } from "./workspaces/RoutingResponse";
 import { CustodyLedger } from "./workspaces/CustodyLedger";
 import { TrainingSops } from "./workspaces/TrainingSops";
 import { MockAdmitLab } from "./workspaces/MockAdmitLab";
+import { ProductStudio } from "./workspaces/ProductStudio";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
 import { appendCustodyLedgerEvent } from "./domain/custodyLedger";
@@ -77,6 +79,7 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "ledger", label: "Custody Ledger", icon: ShieldCheck },
   { id: "training", label: "Training & SOPs", icon: BookOpenCheck },
   { id: "mock-admits", label: "Mock Admit Lab", icon: FlaskConical },
+  { id: "studio", label: "Product Studio", icon: PanelTop },
 ];
 
 export function App() {
@@ -558,6 +561,7 @@ export function App() {
 
   const activeCase = selectedCase ?? state.cases[0];
   const isMockAdmitLab = workspace === "mock-admits";
+  const isProductStudio = workspace === "studio";
   const focusChips = getRoleFocus(roleId, state, activeCase.id, new Date().toISOString());
 
   return (
@@ -653,14 +657,19 @@ export function App() {
       <main className="main-surface">
         <header className="topbar">
           <div>
-            <span className="label">{isMockAdmitLab ? "Training workspace" : "Selected case"}</span>
-            <h2>{isMockAdmitLab ? "Mock Admit Lab" : activeCase.patientToken.displayName}</h2>
+            <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : "Selected case"}</span>
+            <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : activeCase.patientToken.displayName}</h2>
           </div>
           <div className="topbar-badges">
             {isMockAdmitLab ? (
               <>
                 <StatusBadge tone="danger">Synthetic only</StatusBadge>
                 <StatusBadge tone="warn">Human review required</StatusBadge>
+              </>
+            ) : isProductStudio ? (
+              <>
+                <StatusBadge tone="info">Synthetic registry</StatusBadge>
+                <StatusBadge tone="warn">Review-gated</StatusBadge>
               </>
             ) : (
               <>
@@ -672,7 +681,7 @@ export function App() {
           </div>
         </header>
 
-        {!isMockAdmitLab && focusChips.length ? (
+        {!isMockAdmitLab && !isProductStudio && focusChips.length ? (
           <div className="focus-strip" aria-label="Role focus summary">
             {focusChips.map((chip) => (
               <div className="focus-chip" key={chip.label}>
@@ -716,6 +725,7 @@ export function App() {
           ) : null}
           {workspace === "training" ? <TrainingSops roleId={roleId} /> : null}
           {workspace === "mock-admits" ? <MockAdmitLab /> : null}
+          {workspace === "studio" ? <ProductStudio /> : null}
         </section>
       </main>
     </div>
