@@ -1,17 +1,17 @@
 {
   "/Users/tylerhebert/Documents/clarity-platform/package.json": {
-    "mtime": 1784318292.471813,
-    "ast_hash": "8342eb60008747c0582ad863d1938928",
+    "mtime": 1784397645.4040892,
+    "ast_hash": "8d6fc724feea2f2474398b47d6bd70d9",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/tsconfig.json": {
-    "mtime": 1784318358.6410089,
-    "ast_hash": "767e949c47a621881c0dfabbb0b2763a",
+    "mtime": 1784397647.6200962,
+    "ast_hash": "412dadf877316c85c78d52b7c0704bdf",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/vitest.config.ts": {
-    "mtime": 1784318383.3607643,
-    "ast_hash": "bf04993044b6ce6a5847fc8dc6834a89",
+    "mtime": 1784397649.6185157,
+    "ast_hash": "a2e498cfa8dd94f3c920746599b2c652",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/eslint.config.mjs": {
@@ -35,8 +35,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/app/vite.config.ts": {
-    "mtime": 1784396942.3010533,
-    "ast_hash": "8c9e5a240ba8ce1c5e29d5b574dd1f96",
+    "mtime": 1784397783.144417,
+    "ast_hash": "cb494b1dcc14039e8c947f0f0cca3409",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/app/smoke/clarity-v01.spec.ts": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/app/src/App.tsx": {
-    "mtime": 1784395884.8213997,
-    "ast_hash": "a67221f076ba1d0b2f3df97728b893fa",
+    "mtime": 1784397855.6338117,
+    "ast_hash": "43ab7de503b149fc709eb19e48d1d966",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/app/src/main.tsx": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/LegalStatus.tsx": {
-    "mtime": 1784396733.8541033,
-    "ast_hash": "dfe747796fa1dadb6f0b1f8f67a67e65",
+    "mtime": 1784397897.0104833,
+    "ast_hash": "cb5af32b5e3bc782253041f031f7868a",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/app/src/workspaces/CustodyLedger.tsx": {
@@ -980,8 +980,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/IMPLEMENTATION_STATUS.md": {
-    "mtime": 1784318292.4493945,
-    "ast_hash": "fdf2e7f7fedd7276bfcea252fa3843cf",
+    "mtime": 1784398414.9115508,
+    "ast_hash": "b545e2f66587eb4e4137a1892ccf0d54",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/ARCHITECTURE.md": {
@@ -1405,8 +1405,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/docs/developer-handoff/DEVELOPER_BRIEF.md": {
-    "mtime": 1783726217.0292494,
-    "ast_hash": "d0b2e57aee247c6b44fb5c03fafb2308",
+    "mtime": 1784397846.3989794,
+    "ast_hash": "9eb7ab04abeb9b78316ac6729408e7a9",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/docs/developer-handoff/MASTER_BUILD_PROMPT.md": {
@@ -1902,6 +1902,51 @@
   "/Users/tylerhebert/Documents/clarity-platform/docs/clarity-ux/14-clinical-and-operational-safety-hazard-register.md": {
     "mtime": 1784396277.5408208,
     "ast_hash": "1b3b20d6382ebb920c8b06dcf9447ae5",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/app/src/domain/api.ts": {
+    "mtime": 1784397772.247501,
+    "ast_hash": "33e224fd6c07b048a85e9f76bd9dff2e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/tests/integration/api-service.test.ts": {
+    "mtime": 1784397740.0056896,
+    "ast_hash": "8be923292a1c88c21360adacf8a86f7c",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/api-service/package.json": {
+    "mtime": 1784397548.7934077,
+    "ast_hash": "3b8b384c4add6b104a657ae638e4a1aa",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/api-service/src/devMain.ts": {
+    "mtime": 1784397688.4453924,
+    "ast_hash": "f309111ae9f097312d090b1b70c2bfea",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/api-service/src/index.ts": {
+    "mtime": 1784397625.0958376,
+    "ast_hash": "c2291109f169cfb5afa5b4e997987f9e",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/packages/api-service/src/server.ts": {
+    "mtime": 1784397576.3685138,
+    "ast_hash": "8d78e19acce617cf12210f6303b6dd24",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/AGENTS.md": {
+    "mtime": 1784397830.146533,
+    "ast_hash": "e67c5918b09cecd4b805bf512b6c3057",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/AGENTS_TEMPLATE.md": {
+    "mtime": 1784397892.927192,
+    "ast_hash": "26aa79ff2a710c172e2db2e85d726f71",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/docs/AGENTS_TEMPLATE.quickfill.md": {
+    "mtime": 1784397892.9274836,
+    "ast_hash": "32f6f100760471039b9c81e621717f9c",
     "semantic_hash": ""
   }
 }
