@@ -26,7 +26,7 @@ Keep Packet 8 scope strictly runtime-bound and confirm that the network-enrichme
 
 ## Decision Path (choose one)
 
-- Decision: `[ ] Approve Packet 8`  `[ ] Revise Packet 8`  `[ ] Defer Packet 8`
+- Decision: `[x] Approve Packet 8`  `[ ] Revise Packet 8`  `[ ] Defer Packet 8`
 - Owner: Tyler / product owner
 - Date: `2026-07-19`
 - Notes: Gate remains open until one option is explicitly selected.
