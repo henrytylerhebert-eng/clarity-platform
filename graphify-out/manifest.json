@@ -3225,8 +3225,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/.claude/worktrees/review-pull-push-requests-8d60aa/IMPLEMENTATION_STATUS.md": {
-    "mtime": 1784431243.0973804,
-    "ast_hash": "1a60446234c95e4763e80decdf8ba775",
+    "mtime": 1784432447.6502728,
+    "ast_hash": "5ebe5f6d83e8b760f22408c9ab96624e",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/.claude/worktrees/review-pull-push-requests-8d60aa/ARCHITECTURE.md": {
@@ -4255,8 +4255,8 @@
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/.claude/worktrees/review-pull-push-requests-8d60aa/docs/developer-handoff/PRIVATE_REMOTE_AND_BRANCH_PROTECTION_GUIDE.md": {
-    "mtime": 1784431243.137404,
-    "ast_hash": "2010ab42a678eefeec1b4b5957941344",
+    "mtime": 1784432011.1796203,
+    "ast_hash": "ae89c01caa6b3b0468cc93a4a6c43901",
     "semantic_hash": ""
   },
   "/Users/tylerhebert/Documents/clarity-platform/.claude/worktrees/review-pull-push-requests-8d60aa/docs/developer-handoff/NEXT_PERSISTENCE_HARDENING_EVIDENCE.md": {
@@ -4927,6 +4927,26 @@
   "/Users/tylerhebert/Documents/clarity-platform/.claude/worktrees/review-pull-push-requests-8d60aa/reference/source-documents/louisiana-obh-forms/OBH-2_Coroners_Emergency_Certificate_Rev2017-05.pdf": {
     "mtime": 1784431243.2680695,
     "ast_hash": "cc4e221f49af7c44610ae7c8f61450f0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/.claude/worktrees/review-pull-push-requests-8d60aa/CLAUDE.md": {
+    "mtime": 1784432053.1927943,
+    "ast_hash": "7722a021f0625c3c74dd980aae8907f0",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/.claude/worktrees/review-pull-push-requests-8d60aa/docs/planning/MVP_ROADMAP.md": {
+    "mtime": 1784432011.1797855,
+    "ast_hash": "cbf2f6fb95e73cb559faf18c6e1435c4",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/.claude/worktrees/review-pull-push-requests-8d60aa/docs/developer-handoff/CLAUDE_OPERATING_MANUAL.md": {
+    "mtime": 1784432011.1792371,
+    "ast_hash": "49c6c4777b5e512857eacf4f6fcb7ac9",
+    "semantic_hash": ""
+  },
+  "/Users/tylerhebert/Documents/clarity-platform/.claude/worktrees/review-pull-push-requests-8d60aa/.github/workflows/ci.yml": {
+    "mtime": 1784432036.1397796,
+    "ast_hash": "a17b1508dded4fdf9f899ff5de03b957",
     "semantic_hash": ""
   }
 }
