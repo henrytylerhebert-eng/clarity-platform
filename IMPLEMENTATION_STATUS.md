@@ -1,6 +1,14 @@
 # Implementation Status
 
-**As of 2026-07-18** on local `main`. Committed baseline HEAD: `8af3e69d0f7d057d2ed903c78f3e7428b131e492`. Current verification evidence: root tests 222/222, app tests 64/64, bridge tests 2/2, lint, typecheck, app production build, and Prisma validation pass. The six-commit baseline audit found follow-up corrections, which must pass `git diff --check` and focused tests before packaging. A capability appears in exactly one bucket. "Verified" means it ran in the 2026-07-18 alignment session unless a historical count is explicitly labeled.
+**As of 2026-07-19** on local `main`. Current HEAD: `1538cb3624b948438b0dbaf3196a231be31111d1`; worktree clean and branch is 57 commits ahead of `origin/main`. Current verification evidence: root tests 258/258, app tests 64/64, bridge tests 3/3, typecheck, app production build, Prisma validation/generation/status, scoped lint, and `git diff --check` pass. Repository-wide `npm run lint` remains blocked by the unrelated `clarity-platform-visualizer` React ESLint incompatibility. A capability appears in exactly one bucket. "Verified" means it ran in the current local verification pass unless a historical count is explicitly labeled.
+
+## Current Clarity Persistence And Coordination Slice
+
+- **S1 domain foundation:** episode identity/lifecycle, admission linkage, episode-owned utilization review, authorization outcomes, separate risk flags, governed envelopes, append-only corrections, explicit facility timezone lineage, draft metrics, synthetic fixtures, and deterministic tests are implemented and owner-accepted.
+- **S2 bounded persistence:** episodes, case links, episode-owned authorization facts, documentation gaps, corrections, governed events, transactional outbox rows, Prisma gateways, and deterministic integration tests are implemented and independently verified.
+- **H1 hardening:** nullable source-owned `programId` is aligned across contracts, event payloads, mapper, and persistence; concurrent acceptance-key replay is deterministic and conflicting reuse raises `IdempotencyConflictError`.
+- **H2 governance:** proposed RLS tenant-enforcement design, migration promotion/recovery checklist, and outbox delivery boundary records are documented. They do not authorize production data, RLS migrations, workers, external delivery, APIs, or deployment.
+- **Bridge:** the active repository-relative Antigravity file-mirror watcher is detected as `listener=running`; direct Antigravity CLI and agent consumption remain unverified.
 
 ## Completed (verified working)
 
@@ -65,4 +73,4 @@
 
 ~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011).
 
-**Decision before the next implementation slice:** reconcile ADR-0012 with the implemented `node:http` API spike and decide the production API/hosting/tenancy boundary. After that decision, the recommended full-stack slice is a server-owned read-only Feature Concept projection for Product Studio with verified-principal visibility policy. Do not add Studio mutation, publication, feature-flag, or deployment controls before server authorization and audit boundaries exist.
+**Current action:** complete the independent Claude audit of commits `a5c7462` through `1538cb3`, then record any findings before opening the next human decision gate. The next implementation slice remains blocked on the relevant owner/security decisions: ADR-0012 API/hosting/tenancy, OD-6 provider/RLS, migration promotion, outbox delivery ownership, and event-vocabulary semantics. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
