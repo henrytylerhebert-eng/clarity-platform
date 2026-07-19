@@ -9,6 +9,7 @@ import fcntl
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -171,6 +172,20 @@ def validate_message_fields(
 
 def detect_sensitive(body: str) -> list[str]:
     return [label for label, pattern in SENSITIVE_PATTERNS if pattern.search(body)]
+
+
+def listener_process_detected(process_scan: str, notify_root: Path, repo_root: Path) -> bool:
+    """Accept the absolute or repo-relative path used by a local watcher."""
+    target = notify_root / "claude_outbox.md"
+    candidates = (str(target), os.path.relpath(target, repo_root))
+    for line in process_scan.splitlines():
+        try:
+            command_tokens = shlex.split(line)
+        except ValueError:
+            command_tokens = line.split()
+        if any(candidate in command_tokens for candidate in candidates):
+            return True
+    return False
 
 
 def notification_target(frm: str, to: str) -> Path | None:
@@ -736,7 +751,7 @@ def doctor_payload() -> dict[str, object]:
                 text=True,
                 timeout=5,
             )
-            listener_running = str(NOTIFY_ROOT / "claude_outbox.md") in process_scan.stdout
+            listener_running = listener_process_detected(process_scan.stdout, NOTIFY_ROOT, REPO_ROOT)
         except (OSError, subprocess.TimeoutExpired):
             listener_running = False
     return {

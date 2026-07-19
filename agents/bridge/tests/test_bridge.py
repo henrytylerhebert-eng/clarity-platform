@@ -7,6 +7,8 @@ from pathlib import Path
 
 
 BRIDGE = Path(__file__).resolve().parents[1] / "bridge.py"
+sys.path.insert(0, str(BRIDGE.parent))
+from bridge import listener_process_detected  # noqa: E402
 
 
 class BridgeCliTest(unittest.TestCase):
@@ -69,3 +71,28 @@ class BridgeCliTest(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Potential credential material detected", result.stderr)
+
+    def test_listener_detection_accepts_absolute_and_repo_relative_paths(self) -> None:
+        repo_root = Path("/workspace/clarity-platform")
+        notify_root = repo_root / "agent_bridge"
+        self.assertTrue(
+            listener_process_detected(
+                "tail -f agent_bridge/claude_outbox.md",
+                notify_root,
+                repo_root,
+            )
+        )
+        self.assertTrue(
+            listener_process_detected(
+                "tail -f /workspace/clarity-platform/agent_bridge/claude_outbox.md",
+                notify_root,
+                repo_root,
+            )
+        )
+        self.assertFalse(
+            listener_process_detected(
+                "tail -f /other-project/agent_bridge/claude_outbox.md",
+                notify_root,
+                repo_root,
+            )
+        )
