@@ -42,7 +42,7 @@ external integrations, deployment, production flags, or real data.
 |---:|---|---|---|
 | 1 | RLS timing and database tenant enforcement | Design record drafted; S2 still uses organization predicates and has no RLS migration. | Security and technical approval |
 | 2 | Migration recovery model | Promotion/recovery checklist drafted; no production restore evidence exists. | Technical and operations approval |
-| 3 | Concurrent admission retry semantics | H1 targets only the acceptance unique conflict, re-reads the organization-scoped link, compares command identity, and distinguishes replay from conflict. | H1 verified; production retry/observability remains gated |
+| 3 | Concurrent admission retry semantics | H1 targets only the same-acceptance unique conflict, re-reads the organization-scoped link, and compares the approved partial command identity. Different acceptance ids can still race through the application-level active-admission guard. | H1 verified; partial-index migration fix remains gated |
 | 4 | Outbox ownership and failure handling | Delivery boundary record drafted; S2 persists `PENDING` rows atomically and has no dispatcher or retry worker. | Architecture and operations decision |
 | 5 | Event vocabulary expansion | Review-row identifiers and gap-transition events lack dedicated S1 payload schemas. | Domain and governance decision |
 | 6 | Program identity contract | H1 aligns the Zod contracts, event payloads, mapper, and already-nullable Prisma column as nullable/source-owned. | H1 verified; revisit only if a canonical program hierarchy becomes required |
@@ -83,6 +83,19 @@ external integrations, deployment, production flags, or real data.
   records only. It does not authorize code, migrations, RLS, workers, runtime,
   deployment, or external changes.
 
+## Owner Decision: H1 Implementation Authorization
+
+- Decision: `[x] Approve H1 implementation`  `[ ] Revise scope`  `[ ] Defer`
+- Owner: Tyler / product owner
+- Date: 2026-07-19
+- Scope: D6 Option A (`programId` nullable/source-owned) and D3 Option A
+  (targeted same-acceptance replay recovery with explicit conflict handling).
+- Constraints: no Prisma schema or migration, RLS, workers, APIs, event
+  vocabulary, UI, deployment, external integration, or real data.
+- Notes: This is the implementation authorization for the H1 slice only. It
+  does not approve production hardening or the different-acceptance-id race
+  fix described in Decision 3.
+
 ## H1 Implementation Record
 
 The owner instruction to finish the approved first implementation slice
@@ -107,6 +120,30 @@ H1 verification: focused 36 tests passed; root 31 files / 258 tests passed;
 app 10 files / 64 tests passed; app build, typecheck, Prisma validation and
 generation, scoped lint, and `git diff --check` passed. Repository-wide lint
 remains blocked by the unrelated visualizer React ESLint incompatibility.
+
+## H1 Identity And Concurrency Limits
+
+The H1 replay identity is intentionally partial and follows the approved
+options memo. A same-acceptance replay matches only:
+
+- `sourceCaseId`
+- `facilityId`
+- `admittedAt`
+- `facilityTimezone.sourceReferenceId`
+
+`programId`, `unitId`, `sourcePacketVersionId`, and `sourceCustodyEventId` are
+not part of the H1 replay identity. Reusing an acceptance id with a different
+value for one of those fields therefore replays the existing admission. This
+is an explicit current contract, not an accidental claim of full-payload
+idempotency; it must be revisited if the source acceptance key is later
+required to bind the complete admission snapshot.
+
+H1 does not make different acceptance ids mutually exclusive under concurrent
+writes. The active-admission `findFirst` guard remains application-level and
+can race. The next gated persistence slice must design and test a database
+constraint or equivalent transaction strategy for one active
+admission-source episode per case; a partial unique index on active episodes is
+one candidate, not an approved migration.
 
 ## H2 Governance Records
 

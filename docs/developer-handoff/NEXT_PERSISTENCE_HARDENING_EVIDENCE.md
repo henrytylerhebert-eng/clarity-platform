@@ -64,7 +64,16 @@ link after the targeted unique conflict, compare case, facility, admission
 instant, and timezone source reference, and return the existing result only
 when the natural key and command identity match. Do not hide unrelated unique
 violations as successful replays. Production retry ownership and observability
-remain outside this slice.
+remain outside this slice. The command identity is intentionally partial:
+`programId`, `unitId`, `sourcePacketVersionId`, and `sourceCustodyEventId` are
+not compared. A same-acceptance reuse that changes one of those fields replays
+by the current contract; full admission-snapshot binding is deferred.
+
+H1 does not close the separate race where different acceptance ids admit the
+same case concurrently. The active-admission guard is an application-level
+pre-check. A future migration-gated slice must design and test a database
+constraint or equivalent transaction strategy for one active
+admission-source episode per case.
 
 ### 4. Outbox ownership and failure handling
 
