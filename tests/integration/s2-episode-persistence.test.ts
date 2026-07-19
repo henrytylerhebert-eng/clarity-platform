@@ -241,6 +241,36 @@ describe("admission handoff", () => {
     expect(await h.prisma.governedEvent.count({ where: { caseId, eventTypeName: "ADMISSION_RECORDED" } })).toBe(1);
   });
 
+  it("replays when a concurrent winner commits between the acceptance and active-admission lookups", async () => {
+    const caseId = await createCase(h.tenantA, "admit-active-check-replay");
+    const command = admissionCommand(caseId);
+    let winner: Awaited<ReturnType<PrismaEpisodePersistenceGateway["recordAdmission"]>> | undefined;
+    const interleavedGateway = new PrismaEpisodePersistenceGateway(
+      h.prisma,
+      undefined,
+      () => FIXED_NOW,
+      async () => {
+        winner = await gateway.recordAdmission({
+          organizationId: h.tenantA.organizationId,
+          command,
+          actor: actorA,
+        });
+      },
+    );
+
+    const replay = await interleavedGateway.recordAdmission({
+      organizationId: h.tenantA.organizationId,
+      command,
+      actor: actorA,
+    });
+
+    expect(winner).toMatchObject({ replayed: false });
+    expect(replay).toMatchObject({ replayed: true, episodeId: winner?.episodeId });
+    expect(await h.prisma.episode.count({ where: { sourceCaseId: caseId } })).toBe(1);
+    expect(await h.prisma.caseEpisodeLink.count({ where: { caseId } })).toBe(1);
+    expect(await h.prisma.governedEvent.count({ where: { caseId, eventTypeName: "ADMISSION_RECORDED" } })).toBe(1);
+  });
+
   it("rejects acceptance-key reuse when the command identity differs", async () => {
     const firstCaseId = await createCase(h.tenantA, "admit-idempotency-first");
     const secondCaseId = await createCase(h.tenantA, "admit-idempotency-second");

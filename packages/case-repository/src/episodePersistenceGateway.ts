@@ -440,6 +440,7 @@ export class PrismaEpisodePersistenceGateway {
     private readonly prisma: PrismaClient,
     private readonly auditWriter: CaseAuditWriter = new PrismaCaseAuditWriter(),
     private readonly now: () => Date = () => new Date(),
+    private readonly afterAdmissionAcceptanceLookup?: () => Promise<void>,
   ) {}
 
   private async assertEpisodeOwnership(tx: TxClient, organizationId: string, episodeId: string) {
@@ -569,6 +570,8 @@ export class PrismaEpisodePersistenceGateway {
         return replayAdmissionResult(existingLink, existingEpisode);
       }
 
+      if (this.afterAdmissionAcceptanceLookup) await this.afterAdmissionAcceptanceLookup();
+
       const activeAdmission = await tx.caseEpisodeLink.findFirst({
         where: {
           organizationId: params.organizationId,
@@ -679,15 +682,14 @@ export class PrismaEpisodePersistenceGateway {
       };
       });
     } catch (error) {
-      const activeAdmissionViolation = isActiveAdmissionUniqueViolation(error);
-      if (!activeAdmissionViolation && !isAdmissionAcceptanceUniqueViolation(error)) throw error;
+      const activeAdmissionConflict =
+        error instanceof ActiveAdmissionExistsError || isActiveAdmissionUniqueViolation(error);
+      if (!activeAdmissionConflict && !isAdmissionAcceptanceUniqueViolation(error)) throw error;
 
-      // A concurrent writer may have won either race: the acceptance natural
-      // key on CaseEpisodeLink, or the single-active-admission index on
-      // Episode (which fires first for identical commands, because the
-      // episode row is inserted before its link). Both can be an identical
-      // replay, so re-read by the acceptance key before classifying. The
-      // winner has committed by the time the loser observes the violation.
+      // A concurrent writer may commit after the first acceptance lookup but
+      // before the active-admission lookup, or either database uniqueness check
+      // may lose. Re-read only after this transaction has ended, then treat an
+      // exact command identity as a replay and any mismatch as a conflict.
       const existingLink = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.caseEpisodeLink.findUnique({
         where: {
           organizationId_sourceAcceptanceId: {
@@ -697,14 +699,18 @@ export class PrismaEpisodePersistenceGateway {
         },
       }));
       if (!existingLink) {
-        if (activeAdmissionViolation) throw new ActiveAdmissionExistsError(command.sourceCaseId);
+        if (isActiveAdmissionUniqueViolation(error)) {
+          throw new ActiveAdmissionExistsError(command.sourceCaseId);
+        }
         throw error;
       }
       const existingEpisode = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.episode.findFirst({
         where: { id: existingLink.episodeId, organizationId: params.organizationId },
       }));
       if (!existingEpisode) {
-        if (activeAdmissionViolation) throw new ActiveAdmissionExistsError(command.sourceCaseId);
+        if (isActiveAdmissionUniqueViolation(error)) {
+          throw new ActiveAdmissionExistsError(command.sourceCaseId);
+        }
         throw error;
       }
       if (!admissionIdentityMatches(existingLink, existingEpisode, command)) {
