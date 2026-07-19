@@ -85,6 +85,23 @@ Available files:
 - `sheet_summary.csv`
 - `reporting-metrics-rebuild-audit.xlsx`
 
+### Inpatient behavioral hospital operations parking-lot attachments
+
+Path: Codex session attachments captured 2026-07-19.
+
+Available files:
+
+- `/Users/tylerhebert/.codex/attachments/22aa6b7a-6d25-4092-afcc-6036e2fe55c1/pasted-text.txt`
+- `/Users/tylerhebert/.codex/attachments/ffb676ed-e0c5-4e3f-b261-d85f7374a102/pasted-text.txt`
+
+Use status:
+
+- Role hierarchy and department dashboard concepts: `source-confirmed`
+- Staffing/budget estimates: `summary-derived`; `No measurements found`
+- Regulatory compliance tasks: `requires legal review`
+- Clinical role responsibilities and care-quality KPIs: `requires clinical review`
+- Operational role ownership, handoffs, and data-entry cadence: `requires operational review`
+
 ## Source Contribution Map
 
 ### 1. `clarity-holistic-synthesis.md`
