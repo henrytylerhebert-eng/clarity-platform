@@ -25,6 +25,7 @@ const ASSERTIONS = {
   physician: "syn-assert-api-physician-1",
   sysadmin: "syn-assert-api-sysadmin-01",
   tenantB: "syn-assert-api-tenantb-01",
+  networkClinical: "syn-assert-api-network-clinical-01",
 };
 
 async function createRoleUser(label: string, tenant: Harness["tenantA"], roles: UserRole[]) {
@@ -61,12 +62,40 @@ function postRationale(token: string, key: string, body: Record<string, unknown>
   });
 }
 
+function postNetworkEnrichmentSubmit(token: string, body: Record<string, unknown>) {
+  return fetch(`${baseUrl}/api/network-enrichment/synthetic/reviews/submit`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+}
+
+function postNetworkEnrichmentApprove(token: string, body: Record<string, unknown>) {
+  return fetch(`${baseUrl}/api/network-enrichment/synthetic/reviews/approve`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+}
+
+function postNetworkEnrichmentReject(token: string, body: Record<string, unknown>) {
+  return fetch(`${baseUrl}/api/network-enrichment/synthetic/reviews/reject`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+}
+
 beforeAll(async () => {
   h = await createHarness();
   const provider = new LocalDevIdentityProvider();
   provider.register(ASSERTIONS.physician, await createRoleUser("physician", h.tenantA, ["PHYSICIAN_REVIEWER"]));
   provider.register(ASSERTIONS.sysadmin, await createRoleUser("sysadmin", h.tenantA, ["SYSTEM_ADMIN"]));
   provider.register(ASSERTIONS.tenantB, await createRoleUser("tenant-b", h.tenantB, ["PHYSICIAN_REVIEWER"]));
+  provider.register(
+    ASSERTIONS.networkClinical,
+    await createRoleUser("network-clinical", h.tenantA, ["CLINICAL_REVIEWER"]),
+  );
 
   const caseData = h.makeCaseData(h.tenantA, "api-slice");
   caseKey = caseData.caseKey;
@@ -230,5 +259,120 @@ describe("RecordDecisionRationale end to end", () => {
     });
     expect(res.status).toBe(404);
     expect(await res.json()).toEqual({ error: "case_not_found" });
+  });
+});
+
+describe("Network enrichment synthetic command runtime", () => {
+  it("submits and then approves a review using synthetic command state", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+    const reviewId = `network-review-${h.runId}-approve`;
+    const submitRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId,
+      caseId: `case-${h.runId}-approve`,
+      sourceCandidateId: "candidate-approve",
+      fieldPath: "facilityAdmissionProfiles.name",
+      currentValue: "old",
+      proposedValue: "new",
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-approve`,
+      reason: "Synthetic routing test",
+      correlationId: "corr-network-approve",
+    });
+    expect(submitRes.status).toBe(200);
+
+    const submitPayload = (await submitRes.json()) as {
+      value: { review: { reviewId: string; status: string; version: number } };
+      replayed: boolean;
+    };
+    expect(submitPayload.value.review.reviewId).toBe(reviewId);
+    expect(submitPayload.value.review.status).toBe("REVIEW_PENDING");
+    expect(submitPayload.value.review.version).toBe(1);
+    expect(submitPayload.replayed).toBe(false);
+
+    const approveRes = await postNetworkEnrichmentApprove(token, {
+      reviewId,
+      expectedVersion: submitPayload.value.review.version,
+      actorNotes: "Clinical reviewer approved synthetic review",
+      idempotencyKey: `synthetic-enrich-approve-${h.runId}-approve`,
+      correlationId: "corr-network-approve-final",
+    });
+    expect(approveRes.status).toBe(200);
+    const approvePayload = (await approveRes.json()) as {
+      value: { review: { status: string; version: number } };
+      replayed: boolean;
+    };
+    expect(approvePayload.value.review.status).toBe("HUMAN_CONFIRMED");
+    expect(approvePayload.value.review.version).toBe(2);
+    expect(approvePayload.replayed).toBe(false);
+  });
+
+  it("replays duplicate submit commands and rejects unauthorized mappings", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+    const reviewId = `network-review-${h.runId}-replay`;
+    const basePayload = {
+      reviewId,
+      caseId: `case-${h.runId}-replay`,
+      sourceCandidateId: "candidate-replay",
+      fieldPath: "facilityAdmissionProfiles.notes",
+      currentValue: "old",
+      proposedValue: { notes: "candidate-note" },
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-replay`,
+      reason: "Replay test",
+      correlationId: "corr-network-replay",
+    };
+
+    const first = await postNetworkEnrichmentSubmit(token, basePayload);
+    expect(first.status).toBe(200);
+    expect(((await first.json()) as { replayed: boolean }).replayed).toBe(false);
+
+    const second = await postNetworkEnrichmentSubmit(token, basePayload);
+    expect(second.status).toBe(200);
+    expect(((await second.json()) as { replayed: boolean }).replayed).toBe(true);
+
+    const badRoleToken = await login(ASSERTIONS.physician);
+    const denied = await postNetworkEnrichmentSubmit(badRoleToken, {
+      ...basePayload,
+      reviewId: `network-review-${h.runId}-denied`,
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-denied`,
+    });
+    expect(denied.status).toBe(403);
+    expect(await denied.json()).toEqual({ error: "permission_denied" });
+  });
+
+  it("rejects a review with the reviewer actor and synthetic runtime review state", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+    const reviewId = `network-review-${h.runId}-reject`;
+    const submitRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId,
+      caseId: `case-${h.runId}-reject`,
+      sourceCandidateId: "candidate-reject",
+      fieldPath: "facilityAdmissionProfiles.capacity",
+      currentValue: 1,
+      proposedValue: 2,
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-reject`,
+      reason: "Synthetic reject test",
+      correlationId: "corr-network-reject",
+    });
+    expect(submitRes.status).toBe(200);
+    const submitPayload = (await submitRes.json()) as { value: { review: { version: number } }; replayed: boolean };
+    expect(submitPayload.replayed).toBe(false);
+
+    const rejectRes = await postNetworkEnrichmentReject(token, {
+      reviewId,
+      expectedVersion: submitPayload.value.review.version,
+      rejectionReason: "Rejecting for synthetic test",
+      idempotencyKey: `synthetic-enrich-reject-${h.runId}-reject`,
+      correlationId: "corr-network-reject-final",
+    });
+    expect(rejectRes.status).toBe(200);
+    const rejectPayload = (await rejectRes.json()) as {
+      value: { review: { status: string; version: number } };
+      replayed: boolean;
+    };
+    expect(rejectPayload.value.review.status).toBe("REJECTED");
+    expect(rejectPayload.value.review.version).toBe(2);
+    expect(rejectPayload.replayed).toBe(false);
   });
 });

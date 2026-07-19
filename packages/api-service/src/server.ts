@@ -6,7 +6,19 @@ import {
   type AuthenticationService,
 } from "@clarity/auth-service";
 import { CaseNotFoundError, PermissionDeniedError, type CaseCommandService } from "@clarity/case-service";
-import type { AuthenticatedPrincipal } from "@clarity/domain-contracts";
+import {
+  ApproveReviewCommandSchema,
+  NetworkEnrichmentDomainError,
+  RejectReviewCommandSchema,
+  SubmitForReviewCommandSchema,
+  type AuthenticatedPrincipal,
+} from "@clarity/domain-contracts";
+import {
+  type NetworkEnrichmentReviewInvocation,
+  type NetworkEnrichmentReviewInvocationResult,
+  invokeNetworkEnrichmentReviewCommand,
+  createNetworkEnrichmentReviewRuntimeAdapter,
+} from "@clarity/network-enrichment-service";
 
 /**
  * The API vertical slice (retires the "actor roles are trusted caller input"
@@ -16,6 +28,9 @@ import type { AuthenticatedPrincipal } from "@clarity/domain-contracts";
  *   GET  /api/auth/session                            bearer → principal
  *   POST /api/auth/logout                             bearer → 204
  *   POST /api/cases/{caseKey}/decision-rationale      bearer + body → command result
+ *   POST /api/network-enrichment/synthetic/reviews/submit   bearer + body → review submit
+ *   POST /api/network-enrichment/synthetic/reviews/approve  bearer + body → review approve
+ *   POST /api/network-enrichment/synthetic/reviews/reject   bearer + body → review reject
  *
  * Invariants:
  * - organizationId and actor roles are taken ONLY from the verified principal
@@ -40,9 +55,25 @@ const DecisionRationaleBodySchema = z
   })
   .strict();
 
+const SubmitForReviewBodySchema = SubmitForReviewCommandSchema.omit({
+  organizationId: true,
+  actor: true,
+}).strict();
+const ApproveReviewBodySchema = ApproveReviewCommandSchema.omit({
+  organizationId: true,
+  actor: true,
+}).strict();
+const RejectReviewBodySchema = RejectReviewCommandSchema.omit({
+  organizationId: true,
+  actor: true,
+}).strict();
+
 export interface ApiDeps {
   auth: AuthenticationService;
   caseCommands: CaseCommandService;
+  networkEnrichmentReviewInvoker?: (
+    invocation: NetworkEnrichmentReviewInvocation,
+  ) => Promise<NetworkEnrichmentReviewInvocationResult>;
 }
 
 class HttpError extends Error {
@@ -104,13 +135,36 @@ function toHttpError(error: unknown): HttpError {
   }
   if (error instanceof PermissionDeniedError) return new HttpError(403, "permission_denied");
   if (error instanceof CaseNotFoundError) return new HttpError(404, "case_not_found");
+  if (error instanceof NetworkEnrichmentDomainError) {
+    switch (error.code) {
+      case "PERMISSION_DENIED":
+        return new HttpError(403, "permission_denied");
+      case "NOT_FOUND":
+        return new HttpError(404, "review_not_found");
+      case "CONCURRENCY_CONFLICT":
+      case "IDEMPOTENCY_CONFLICT":
+      case "CONFLICT":
+        return new HttpError(409, "conflict");
+      case "VALIDATION":
+        return new HttpError(400, "invalid_request");
+    }
+  }
   if (error instanceof ZodError) return new HttpError(400, "invalid_request");
   return new HttpError(500, "internal_error");
 }
 
 const DECISION_RATIONALE_PATH = /^\/api\/cases\/([^/]+)\/decision-rationale$/;
+const NETWORK_ENRICHMENT_SUBMIT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/submit";
+const NETWORK_ENRICHMENT_APPROVE_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/approve";
+const NETWORK_ENRICHMENT_REJECT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/reject";
 
 export function createApiServer(deps: ApiDeps): Server {
+  const adapter = createNetworkEnrichmentReviewRuntimeAdapter();
+  const networkEnrichmentReviewInvoker =
+    deps.networkEnrichmentReviewInvoker ??
+    ((invocation: NetworkEnrichmentReviewInvocation) =>
+      invokeNetworkEnrichmentReviewCommand(invocation, { adapter }));
+
   return createServer(async (req, res) => {
     const url = (req.url ?? "").split("?")[0] ?? "";
     const method = req.method ?? "GET";
@@ -152,6 +206,48 @@ export function createApiServer(deps: ApiDeps): Server {
           version: result.case.version ?? null,
           replayed: result.replayed,
         });
+      }
+
+      if (method === "POST" && url === NETWORK_ENRICHMENT_SUBMIT_REVIEW_PATH) {
+        const principal = await deps.auth.authenticate(bearerToken(req));
+        const body = SubmitForReviewBodySchema.parse(await readJsonBody(req));
+        const command = await networkEnrichmentReviewInvoker({
+          commandType: "submitForReview",
+          command: {
+            ...body,
+            organizationId: principal.organizationId,
+            actor: deps.auth.actorFor(principal),
+          },
+        });
+        return sendJson(res, 200, command);
+      }
+
+      if (method === "POST" && url === NETWORK_ENRICHMENT_APPROVE_REVIEW_PATH) {
+        const principal = await deps.auth.authenticate(bearerToken(req));
+        const body = ApproveReviewBodySchema.parse(await readJsonBody(req));
+        const command = await networkEnrichmentReviewInvoker({
+          commandType: "approveReview",
+          command: {
+            ...body,
+            organizationId: principal.organizationId,
+            actor: deps.auth.actorFor(principal),
+          },
+        });
+        return sendJson(res, 200, command);
+      }
+
+      if (method === "POST" && url === NETWORK_ENRICHMENT_REJECT_REVIEW_PATH) {
+        const principal = await deps.auth.authenticate(bearerToken(req));
+        const body = RejectReviewBodySchema.parse(await readJsonBody(req));
+        const command = await networkEnrichmentReviewInvoker({
+          commandType: "rejectReview",
+          command: {
+            ...body,
+            organizationId: principal.organizationId,
+            actor: deps.auth.actorFor(principal),
+          },
+        });
+        return sendJson(res, 200, command);
       }
 
       return sendJson(res, 404, { error: "not_found" });
