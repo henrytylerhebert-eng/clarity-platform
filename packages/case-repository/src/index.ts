@@ -1,5 +1,6 @@
 export * from "./prismaClient.js";
 export * from "./tenantContext.js";
+export * from "./outboxDelivery.js";
 export * from "./mappers.js";
 export * from "./auditWriter.js";
 export * from "./prismaCaseRepository.js";

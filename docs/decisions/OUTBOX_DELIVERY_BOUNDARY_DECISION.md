@@ -19,8 +19,9 @@ delivery configuration.
 - `writeGovernedEventWithOutbox` writes the governed event and `OutboxRecord`
   in the same transaction as the source mutation and audit write.
 - New outbox records remain `PENDING`.
-- The repository has no dispatcher, worker, claim protocol, retry state,
-  dead-letter state, or external delivery adapter.
+- The repository has no production dispatcher, worker, claim protocol, retry
+  state, dead-letter state, or external delivery adapter. A local synthetic
+  dispatcher and in-process consumer now exist only for boundary verification.
 - The source-of-truth operational facts remain transactional records; governed
   events and outbox records are separate append-oriented delivery artifacts.
 
@@ -81,9 +82,24 @@ The owner must also name the first target consumer and the delivery runtime
 owner. Without both, the repository remains the only implemented owner and the
 outbox remains persistence-only.
 
+## Local Synthetic Evidence
+
+`SyntheticOutboxDispatcher` and `SyntheticOutboxConsumer` provide a local-only
+proof of the boundary. `tests/integration/outbox-delivery.test.ts` verifies:
+
+- tenant-scoped pending selection;
+- successful delivery changing `PENDING` to `DELIVERED`;
+- consumer failure preserving `PENDING` for retry; and
+- concurrent row locking preventing duplicate selection.
+
+This is not an external consumer, production worker, lease protocol, or
+delivery guarantee. The in-process consumer is deliberately limited to the
+accepted three event types and has no external side effect.
+
 ## Gate
 
-No outbox worker, scheduler, lease/attempt migration, external delivery, or
-API surface is authorized by this document. The S2 outbox remains a
-transactional `PENDING` record only. The ownership model above is a
-recommendation awaiting architecture and operations acceptance.
+No production outbox worker, scheduler, lease/attempt migration, external
+delivery, or API surface is authorized by this document. The S2 outbox remains
+a transactional `PENDING` record until a separately approved delivery runtime
+claims it. The ownership model above is a recommendation awaiting architecture
+and operations acceptance.

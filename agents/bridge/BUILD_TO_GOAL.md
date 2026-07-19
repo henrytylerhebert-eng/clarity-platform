@@ -173,10 +173,11 @@ gates.
 The next decision is technical/operations acceptance of the migration
 promotion/recovery ownership model and the outbox ownership model, followed by
 provider/session selection and security review for any provider-backed RLS
-extension. The local design records are now updated without adding workers or
-delivery. Keep the accepted three-event vocabulary in force; defer new
-review-level, documentation-gap-transition, and derived events until a named
-consumer and owner are accepted.
+extension. Local fresh replay/restore and synthetic outbox delivery are now
+verified; a real consumer and production delivery runtime remain gated. Keep
+the accepted three-event vocabulary in force; defer new review-level,
+documentation-gap-transition, and derived events until a named consumer and
+owner are accepted.
 
 ## Bridge Operating Procedure
 

@@ -86,6 +86,16 @@ inherited child models, global/reference models, provider configuration, and
 production role management outside its policy migration. Existing application
 organization predicates remain required for those paths.
 
+## Local Provider And Security Evidence
+
+The local synthetic baseline is PostgreSQL on `localhost`, database
+`clarity_dev`, with the RLS migration applied. The focused integration proof
+creates a disposable `NOSUPERUSER NOBYPASSRLS` role and verifies no-context
+denial, tenant isolation, rollback cleanup, and concurrent context separation.
+This is direct technical evidence for the local boundary. It is not a selected
+production provider, provider-backed pooling evidence, or human security
+acceptance.
+
 ## Provider And Connection Options
 
 | Option | Description | Decision posture |

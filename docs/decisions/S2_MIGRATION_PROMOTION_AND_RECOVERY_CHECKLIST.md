@@ -117,6 +117,14 @@ up to date through `npx prisma migrate status`, including
 `20260719123000_od6_episode_persistence_rls`. This is local verification only;
 it is not promotion, backup, restore, or production evidence.
 
+The repeatable local verifier `npm run migration:recovery:local` proves a fresh
+local replay, a custom-format `pg_dump`, and a `pg_restore` into a second
+disposable local database. The current run reported
+`LOCAL_REPLAY migrations=12 episode_table=t` and
+`LOCAL_RESTORE migrations=12 episode_table=t`. This advances local recovery
+evidence only; it does not substitute for provider-managed backup/restore or a
+production change window.
+
 ## Deterministic Local Migration Evidence
 
 Run the read-only integration check from the repository root:
