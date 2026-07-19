@@ -51,11 +51,11 @@ Adopt these exactly: tenant = `organizationId`; case = `BehavioralHealthCase`; t
 ## Project state (update on every phase change)
 
 ```
-PROJECT STATE: Clarity Platform — updated 2026-07-18
+PROJECT STATE: Clarity Platform — updated 2026-07-19
 Objective: local, tested, tenant-scoped backend foundation for behavioral-health case workflows (synthetic only)
-Current phase: S1/S2 persistence hardening, insurance/benefits, authorization readiness, and authentication merged (PR #13); dependency vulnerabilities cleared and admission replay classification fixed (PR #14); CI with a Postgres service added (this PR)
-Decisions: solo-maintainer protection — PRs required, approvals 0 until a second maintainer/review bot/higher-risk operations (see handoff guide §3a; supersedes the 1-review setting; the live setting still says 1 — maintainer to run the §3a command); evidence supersession requires domain reviewer; contradiction groups never change member status; rejected documents cannot source evidence (ADR-0008)
-Open decisions: OD-1 (missing master package), OD-2 (counsel review), OD-3 (clinical licensing), OD-5 (API — vertical slice merged, hosting undecided), OD-6 (DB hosting/RLS — bounded local slice merged, provider posture gated), OD-7 (pnpm/Turborepo timing), OD-8 (schema graduation)
-Deliverables: 268/268 root tests, 64/64 app; tag clarity-foundation-v0.1; ADR-0001…0012
-Next action: maintainer applies §3a protection (approvals 0) and adds the CI "verify" job as a required status check; then the gated production decisions in IMPLEMENTATION_STATUS.md
+Current phase: prescreen product slice — source package onboarded (PR #17), Phase 1 contracts merged (PR #19), Phase 2 command service + in-memory gateway implemented (ADR-0013); provider-backed Cloud SQL/RLS verification remains the separate gate before Phase 3 prescreen persistence
+Decisions: solo-maintainer §3a protection is LIVE (PR-only, approvals 0, required strict "verify" check, conversation resolution, admin enforcement — confirmed against the GitHub API this session); prescreen Phase 2 approved same-org synthetic-only with submission-as-intent; two conservative contract deviations from the prescreen reference package accepted under external review (NON_OPPOSED routing per owner decision #7; privacy-regime fail-closed); event-vocabulary expansion stays gated on named consumers and domain review
+Open decisions: OD-1 (missing master package), OD-2 (counsel review), OD-3 (clinical licensing), OD-5 (API — vertical slice merged, hosting undecided), OD-6 (DB hosting/RLS — provider posture accepted, provider-backed evidence gated), OD-7 (pnpm/Turborepo), OD-8 (schema graduation), prescreen role mapping + cross-org submission model (docs/decisions/PRESCREEN_ROLE_MAPPING_DECISION_PACKET.md — blocks prescreen API/UI)
+Deliverables: 323/323 root tests, 64/64 app; tag clarity-foundation-v0.1; ADR-0001…0013
+Next action: owner resolves the prescreen role-mapping decision packet, or provides GCP access to start the provider-backed Cloud SQL/RLS gate; no Studio mutation/publication/feature-flag/worker/deployment controls before server authorization and audit boundaries exist
 ```
