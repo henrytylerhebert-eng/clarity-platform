@@ -159,5 +159,9 @@ The next bounded slice should be selected explicitly from:
 - the proposed RLS design and OD-6 provider/session decision;
 - the separately governed outbox delivery design.
 
+The event-vocabulary decision packet is recorded at
+`docs/decisions/EVENT_VOCABULARY_DECISION_PACKET.md`. It is proposed decision
+work only; no new event type or consumer is implemented.
+
 RLS, production deployment, workers, APIs, analytics, UX, integrations, and
 real data remain outside this proposed boundary.

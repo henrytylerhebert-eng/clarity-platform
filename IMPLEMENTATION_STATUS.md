@@ -9,6 +9,7 @@
 - **H1 hardening:** nullable source-owned `programId` is aligned across contracts, event payloads, mapper, and persistence; concurrent acceptance-key replay is deterministic and conflicting reuse raises `IdempotencyConflictError`.
 - **H3 hardening:** an additive partial unique index enforces one active admission-source episode per case at the database boundary; losing concurrent writes raise `ActiveAdmissionExistsError`.
 - **Migration integrity:** local migration ledger and H3 index verification are covered by a read-only integration test; fresh-database replay, provider restore, and production promotion remain unverified.
+- **Event vocabulary:** proposed source-versus-derived event boundary and consumer decision packet recorded; no new event type or consumer is implemented.
 - **H2 governance:** proposed RLS tenant-enforcement design, migration promotion/recovery checklist, and outbox delivery boundary records are documented. They do not authorize production data, RLS migrations, workers, external delivery, APIs, or deployment.
 - **Bridge:** the active repository-relative Antigravity file-mirror watcher is detected as `listener=running`; direct Antigravity CLI and agent consumption remain unverified.
 
@@ -75,4 +76,4 @@
 
 ~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011).
 
-**Current action:** Claude's independent audit of H1/H2 is acceptable and its findings are recorded. H3 closes the different-acceptance-id active-admission race locally, and migration integrity now has a deterministic local check. Remaining work is gated on the relevant owner/security decisions: ADR-0012 API/hosting/tenancy, OD-6 provider/RLS, production migration promotion and recovery, outbox delivery ownership, and event-vocabulary semantics. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
+**Current action:** Claude's independent audit of H1/H2 is acceptable and its findings are recorded. H3 closes the different-acceptance-id active-admission race locally, migration integrity has a deterministic local check, and the event-vocabulary proposal is ready for owner review. Remaining implementation work is gated on named consumers and domain acceptance for new events, plus ADR-0012 API/hosting/tenancy, OD-6 provider/RLS, production migration promotion and recovery, and outbox delivery ownership. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.

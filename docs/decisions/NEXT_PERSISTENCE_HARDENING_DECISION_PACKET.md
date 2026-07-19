@@ -7,6 +7,7 @@ evidence:
   - docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md
   - docs/developer-handoff/NEXT_PERSISTENCE_HARDENING_EVIDENCE.md
   - docs/decisions/S2_PERSISTENCE_DECISION_PACKET.md
+  - docs/decisions/EVENT_VOCABULARY_DECISION_PACKET.md
   - 7b52870
 ---
 
@@ -44,7 +45,7 @@ external integrations, deployment, production flags, or real data.
 | 2 | Migration recovery model | Promotion/recovery checklist and deterministic local migration-integrity test are recorded; no fresh-database, provider restore, or production promotion evidence exists. | Technical and operations approval |
 | 3 | Concurrent admission retry semantics | H1 handles same-acceptance replay. H3 adds an additive partial unique index for one ACTIVE admission-source episode per case and maps the losing database conflict to `ActiveAdmissionExistsError`. | H1/H3 verified locally; migration promotion and recovery remain gated |
 | 4 | Outbox ownership and failure handling | Delivery boundary record drafted; S2 persists `PENDING` rows atomically and has no dispatcher or retry worker. | Architecture and operations decision |
-| 5 | Event vocabulary expansion | Review-row identifiers and gap-transition events lack dedicated S1 payload schemas. | Domain and governance decision |
+| 5 | Event vocabulary expansion | Proposed vocabulary packet inventories three emitted events, audit/history-only actions, and the draft derived event. No approved runtime consumer is identified. | Domain and governance decision |
 | 6 | Program identity contract | H1 aligns the Zod contracts, event payloads, mapper, and already-nullable Prisma column as nullable/source-owned. | H1 verified; revisit only if a canonical program hierarchy becomes required |
 | 7 | Command-service boundary | Boundary is recorded: episode writes require a role-gated command service before any HTTP exposure. | Technical lead decision |
 
