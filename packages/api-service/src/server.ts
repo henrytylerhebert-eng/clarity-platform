@@ -14,11 +14,9 @@ import {
   type AuthenticatedPrincipal,
 } from "@clarity/domain-contracts";
 import {
-  type NetworkEnrichmentReviewInvocation,
-  type NetworkEnrichmentReviewInvocationResult,
-  invokeNetworkEnrichmentReviewCommand,
-  createNetworkEnrichmentReviewRuntimeAdapter,
-} from "@clarity/network-enrichment-service";
+  type NetworkEnrichmentReviewCommandInvoker,
+  createNetworkEnrichmentReviewCommandCaller,
+} from "./reviewCommandCaller.js";
 
 /**
  * The API vertical slice (retires the "actor roles are trusted caller input"
@@ -71,9 +69,7 @@ const RejectReviewBodySchema = RejectReviewCommandSchema.omit({
 export interface ApiDeps {
   auth: AuthenticationService;
   caseCommands: CaseCommandService;
-  networkEnrichmentReviewInvoker?: (
-    invocation: NetworkEnrichmentReviewInvocation,
-  ) => Promise<NetworkEnrichmentReviewInvocationResult>;
+  networkEnrichmentReviewInvoker?: NetworkEnrichmentReviewCommandInvoker;
 }
 
 class HttpError extends Error {
@@ -159,11 +155,8 @@ const NETWORK_ENRICHMENT_APPROVE_REVIEW_PATH = "/api/network-enrichment/syntheti
 const NETWORK_ENRICHMENT_REJECT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/reject";
 
 export function createApiServer(deps: ApiDeps): Server {
-  const adapter = createNetworkEnrichmentReviewRuntimeAdapter();
   const networkEnrichmentReviewInvoker =
-    deps.networkEnrichmentReviewInvoker ??
-    ((invocation: NetworkEnrichmentReviewInvocation) =>
-      invokeNetworkEnrichmentReviewCommand(invocation, { adapter }));
+    deps.networkEnrichmentReviewInvoker ?? createNetworkEnrichmentReviewCommandCaller();
 
   return createServer(async (req, res) => {
     const url = (req.url ?? "").split("?")[0] ?? "";
