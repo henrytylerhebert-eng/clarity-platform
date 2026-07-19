@@ -440,6 +440,7 @@ export class PrismaEpisodePersistenceGateway {
     private readonly prisma: PrismaClient,
     private readonly auditWriter: CaseAuditWriter = new PrismaCaseAuditWriter(),
     private readonly now: () => Date = () => new Date(),
+    private readonly afterAdmissionAcceptanceLookup?: () => Promise<void>,
   ) {}
 
   private async assertEpisodeOwnership(tx: TxClient, organizationId: string, episodeId: string) {
@@ -568,6 +569,8 @@ export class PrismaEpisodePersistenceGateway {
         }
         return replayAdmissionResult(existingLink, existingEpisode);
       }
+
+      if (this.afterAdmissionAcceptanceLookup) await this.afterAdmissionAcceptanceLookup();
 
       const activeAdmission = await tx.caseEpisodeLink.findFirst({
         where: {
