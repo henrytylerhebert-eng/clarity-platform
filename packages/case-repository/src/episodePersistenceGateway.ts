@@ -679,14 +679,15 @@ export class PrismaEpisodePersistenceGateway {
       };
       });
     } catch (error) {
-      if (isActiveAdmissionUniqueViolation(error)) {
-        throw new ActiveAdmissionExistsError(command.sourceCaseId);
-      }
-      if (!isAdmissionAcceptanceUniqueViolation(error)) throw error;
+      const activeAdmissionViolation = isActiveAdmissionUniqueViolation(error);
+      if (!activeAdmissionViolation && !isAdmissionAcceptanceUniqueViolation(error)) throw error;
 
-      // A concurrent writer may have won the acceptance natural-key race.
-      // Re-read only after the losing transaction has rolled back, then treat
-      // an exact command identity as a replay and any mismatch as a conflict.
+      // A concurrent writer may have won either race: the acceptance natural
+      // key on CaseEpisodeLink, or the single-active-admission index on
+      // Episode (which fires first for identical commands, because the
+      // episode row is inserted before its link). Both can be an identical
+      // replay, so re-read by the acceptance key before classifying. The
+      // winner has committed by the time the loser observes the violation.
       const existingLink = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.caseEpisodeLink.findUnique({
         where: {
           organizationId_sourceAcceptanceId: {
@@ -695,11 +696,17 @@ export class PrismaEpisodePersistenceGateway {
           },
         },
       }));
-      if (!existingLink) throw error;
+      if (!existingLink) {
+        if (activeAdmissionViolation) throw new ActiveAdmissionExistsError(command.sourceCaseId);
+        throw error;
+      }
       const existingEpisode = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.episode.findFirst({
         where: { id: existingLink.episodeId, organizationId: params.organizationId },
       }));
-      if (!existingEpisode) throw error;
+      if (!existingEpisode) {
+        if (activeAdmissionViolation) throw new ActiveAdmissionExistsError(command.sourceCaseId);
+        throw error;
+      }
       if (!admissionIdentityMatches(existingLink, existingEpisode, command)) {
         throw new IdempotencyConflictError(command.acceptedFacilityResponseId);
       }
