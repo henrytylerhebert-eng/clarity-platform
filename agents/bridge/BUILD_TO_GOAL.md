@@ -143,7 +143,7 @@ The team should keep these lanes separate:
 
 - Owner: Human project owner with technical and security review; Antigravity coordinates; Codex prepares repository evidence; Claude proposes bounded options.
 - State: Decision work authorized on 2026-07-18; implementation remains gated until the seven decisions and required evidence are accepted.
-- Evidence: `docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md` and `docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md`.
+- Evidence: `docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md`, `docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md`, and `docs/developer-handoff/NEXT_PERSISTENCE_HARDENING_EVIDENCE.md`.
 - Boundary: RLS timing, migration recovery, concurrency/replay semantics, outbox ownership, event vocabulary, program identity reconciliation, and later command-service depth.
 - Excludes: production data, deployment, API routes, workers, outbox dispatch, analytics marts, dashboards, frontend, Product Studio, external integrations, and feature flags.
 

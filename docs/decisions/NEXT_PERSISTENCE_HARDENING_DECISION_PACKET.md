@@ -5,6 +5,7 @@ date: 2026-07-18
 data_boundary: synthetic only
 evidence:
   - docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md
+  - docs/developer-handoff/NEXT_PERSISTENCE_HARDENING_EVIDENCE.md
   - docs/decisions/S2_PERSISTENCE_DECISION_PACKET.md
   - 7b52870
 ---
