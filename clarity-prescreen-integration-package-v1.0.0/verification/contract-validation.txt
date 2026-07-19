@@ -1,0 +1,17 @@
+PASS synthetic-assessment.json -> prescreen-assessment.schema.json
+PASS synthetic-facility-profile.json -> facility-admission-profile.schema.json
+PASS synthetic-transport-provider.json -> transport-provider-profile.schema.json
+PASS synthetic-consent-rule.json -> consent-authority-rule.schema.json
+PASS synthetic-prescreen-event.json -> prescreen-event-envelope.schema.json
+PASS 01_willing-oriented.json assessment
+PASS 02_willing-not-oriented.json assessment
+PASS 03_nonopposed-unknown-orientation.json assessment
+PASS 04_opposed-pec.json assessment
+PASS 05_opc-law-enforcement-pickup.json assessment
+PASS 06_cec-transfer.json assessment
+PASS 07_intoxication-reassessment.json assessment
+PASS 08_minor-parental-pathway.json assessment
+PASS 09_minor-sixteen-voluntary.json assessment
+PASS 10_missing-packet-items.json assessment
+PASS openapi.yaml parse and expected path count
+ALL CONTRACT VALIDATIONS PASSED

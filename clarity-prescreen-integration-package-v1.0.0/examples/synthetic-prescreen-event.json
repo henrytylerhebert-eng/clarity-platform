@@ -1,0 +1,40 @@
+{
+  "eventId": "evt_synthetic_1",
+  "schemaName": "clarity.prescreen.event",
+  "schemaVersion": "1.0.0",
+  "eventType": "ASSESSMENT_ATTESTED",
+  "organizationId": "org_synthetic",
+  "facilityId": null,
+  "programId": null,
+  "caseId": "case_synthetic_1",
+  "encounterId": "enc_syn_01",
+  "aggregateType": "AssessmentVersion",
+  "aggregateId": "assess_syn_01",
+  "aggregateVersion": 1,
+  "eventTime": "2026-07-19T12:10:00Z",
+  "recordedTime": "2026-07-19T12:10:01Z",
+  "actor": {
+    "actorType": "USER",
+    "actorId": "actor_synthetic",
+    "roleCodes": [
+      "PRESCREEN_ASSESSOR"
+    ]
+  },
+  "source": {
+    "sourceSystem": "clarity-native",
+    "sourceObjectId": null,
+    "sourceVersion": null,
+    "mappingVersion": null
+  },
+  "correlationId": "corr_synthetic_1",
+  "causationId": null,
+  "idempotencyKey": "idem_synthetic_1",
+  "phiClassification": "RESTRICTED_PHI",
+  "dataQualityState": "VALIDATED",
+  "reviewState": "APPROVED",
+  "supersedesEventId": null,
+  "payload": {
+    "assessmentVersionId": "assess_syn_01",
+    "contentHash": "synthetic-hash"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "ruleId": "consent_synthetic_1",
+  "version": 1,
+  "jurisdiction": "LA",
+  "facilityId": "facility_synthetic_1",
+  "programId": "adult_ip",
+  "ageBand": "AGE_16_TO_17",
+  "actionCode": "FORMAL_VOLUNTARY_ADMISSION_REQUEST",
+  "documentType": "ADMISSION_REQUEST",
+  "treatmentCategory": null,
+  "admissionPathways": [
+    "FORMAL_VOLUNTARY"
+  ],
+  "authorizedSignerTypes": [
+    "MINOR_PATIENT"
+  ],
+  "minorSignatureRequired": true,
+  "minorAssentRecorded": true,
+  "relationshipEvidenceRequired": false,
+  "courtApprovalRequired": false,
+  "clinicianReviewRequired": true,
+  "coSignerTypes": [
+    "PHYSICIAN"
+  ],
+  "privacyRegimes": [
+    "HIPAA"
+  ],
+  "conditions": [
+    "Synthetic example only"
+  ],
+  "prohibitedWhen": [],
+  "effectiveFrom": "2026-08-01",
+  "effectiveTo": null,
+  "approvalStatus": "DRAFT_UNVERIFIED",
+  "sourceReferences": [
+    {
+      "sourceType": "STATUTE",
+      "citation": "Synthetic mapping to be legally reviewed",
+      "sourceDocumentVersionId": null,
+      "location": null
+    }
+  ],
+  "approvedBy": []
+}

@@ -1,0 +1,70 @@
+{
+  "scenarioId": "SYN-04",
+  "title": "Opposed Pec",
+  "description": "Patient objects; a synthetic PEC record exists.",
+  "syntheticOnly": true,
+  "assessment": {
+    "schemaVersion": "1.0.0",
+    "assessmentVersionId": "assess_syn_04",
+    "encounterId": "enc_syn_04",
+    "organizationId": "org_synthetic",
+    "versionNumber": 1,
+    "status": "DRAFT",
+    "createdAt": "2026-07-19T12:00:00Z",
+    "createdBy": "actor_synthetic",
+    "attestedAt": null,
+    "attestedBy": null,
+    "parentVersionId": null,
+    "changeReason": null,
+    "willingness": "OPPOSED",
+    "orientation": {
+      "observedAt": "2026-07-19T12:00:00Z",
+      "sourceId": "src_direct",
+      "domains": {
+        "person": {
+          "status": "ORIENTED",
+          "observation": "Synthetic observation."
+        },
+        "place": {
+          "status": "ORIENTED",
+          "observation": "Synthetic observation."
+        },
+        "time": {
+          "status": "ORIENTED",
+          "observation": "Synthetic observation."
+        },
+        "situation": {
+          "status": "ORIENTED",
+          "observation": "Synthetic observation."
+        }
+      }
+    },
+    "possiblePathway": "EMERGENCY_OR_LEGAL_REVIEW_REQUIRED",
+    "answers": [],
+    "sources": [
+      {
+        "sourceId": "src_direct",
+        "sourceType": "DIRECT_OBSERVATION",
+        "displayLabel": "Synthetic direct observation",
+        "documentVersionId": null,
+        "recordedAt": "2026-07-19T12:00:00Z"
+      }
+    ],
+    "contradictions": [],
+    "unknowns": [],
+    "emergencyInterrupt": null
+  },
+  "expected": {
+    "transportAllowedCategories": [
+      "LAW_ENFORCEMENT_CUSTODY",
+      "LICENSED_AMBULANCE_EMS",
+      "CONTRACTED_SECURE_BEHAVIORAL_TRANSPORT"
+    ],
+    "familyTransportBlocked": true
+  },
+  "legalStatus": {
+    "type": "PEC",
+    "instrumentId": "pec_synthetic_01",
+    "status": "ACTIVE"
+  }
+}

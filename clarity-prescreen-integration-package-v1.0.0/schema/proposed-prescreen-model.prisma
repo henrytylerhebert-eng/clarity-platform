@@ -1,0 +1,612 @@
+// Proposed and unverified. Reconcile with the live Clarity Prisma schema before editing.
+// IDs are String to preserve compatibility with existing repository conventions until inspected.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PrescreenEncounterStatus {
+  DRAFT
+  ATTESTED
+  SUBMITTED
+  CENTRAL_INTAKE_REVIEW
+  NEEDS_INFORMATION
+  AUTHORIZED_REVIEW
+  FACILITY_ROUTING
+  TRANSPORT_PLANNING
+  HANDED_OFF
+  REDIRECTED
+  DECLINED
+  CANCELLED
+}
+
+enum AssessmentVersionStatus {
+  DRAFT
+  ATTESTED
+  CORRECTED
+  SUPERSEDED
+}
+
+enum PatientWillingness {
+  WILLING
+  NON_OPPOSED
+  OPPOSED
+  UNABLE_TO_EXPRESS
+  FLUCTUATING
+  UNKNOWN
+  NOT_ASSESSED
+}
+
+enum OrientationFindingStatus {
+  ORIENTED
+  NOT_ORIENTED
+  UNABLE_TO_ASSESS
+  NOT_ASSESSED
+  UNKNOWN
+}
+
+enum PossibleAdmissionPathway {
+  POSSIBLE_FORMAL_VOLUNTARY_REVIEW
+  POSSIBLE_NONCONTESTED_PATHWAY
+  EMERGENCY_OR_LEGAL_REVIEW_REQUIRED
+  MEDICAL_STABILIZATION_REQUIRED
+  COMMUNITY_OR_OTHER_DISPOSITION
+  UNDETERMINED
+}
+
+enum SourceType {
+  DIRECT_OBSERVATION
+  PATIENT_REPORT
+  FAMILY_SUPPORT_REPORT
+  FACILITY_STAFF_REPORT
+  LAW_ENFORCEMENT_REPORT
+  CLINICIAN_REPORT
+  DOCUMENT
+  SYSTEM_DERIVED
+  UNKNOWN
+}
+
+enum AnswerValueState {
+  ANSWERED
+  UNKNOWN
+  NOT_ASSESSED
+  DECLINED_TO_ANSWER
+  NOT_APPLICABLE
+}
+
+enum WorkflowTaskStatus {
+  OPEN
+  ACKNOWLEDGED
+  IN_PROGRESS
+  BLOCKED
+  ESCALATED
+  DECLINED_WITH_REASON
+  COMPLETED
+  CANCELLED
+}
+
+enum PacketRequirementState {
+  NOT_STARTED
+  REQUESTED
+  RECEIVED
+  UNDER_REVIEW
+  ACCEPTED_FOR_PACKET
+  MISSING
+  UNAVAILABLE_WITH_REASON
+  NOT_APPLICABLE_WITH_AUTHORITY
+  NEEDS_CLARIFICATION
+  STALE
+  SUPERSEDED
+}
+
+enum FacilityProfileStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  ACTIVE
+  SUSPENDED
+  SUPERSEDED
+}
+
+enum TransportCategory {
+  LAW_ENFORCEMENT_CUSTODY
+  LICENSED_AMBULANCE_EMS
+  CONTRACTED_SECURE_BEHAVIORAL_TRANSPORT
+  INTERFACILITY_CLINICAL_TRANSPORT
+  TRANSPORTATION_BROKER
+  NEMT_CARRIER
+  FAMILY_OR_SUPPORT_TRANSPORT
+  SELF_TRANSPORT
+}
+
+enum TransportPlanStatus {
+  DRAFT
+  QUALIFICATION_REQUIRED
+  QUALIFIED
+  DISPATCH_REQUESTED
+  DISPATCH_ACCEPTED
+  IN_CUSTODY
+  IN_TRANSIT
+  ARRIVED
+  HANDED_OFF
+  CANCELLED
+  EXCEPTION
+}
+
+enum TransportProviderStatus {
+  CANDIDATE
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  RESTRICTED
+  INACTIVE
+}
+
+enum VerificationStatus {
+  VERIFIED
+  PARTIAL
+  STALE
+  BLOCKED
+  UNKNOWN
+}
+
+enum ConsentRuleStatus {
+  DRAFT_UNVERIFIED
+  PENDING_REVIEW
+  APPROVED
+  SUSPENDED
+  SUPERSEDED
+}
+
+model PrescreenEncounter {
+  id                       String                    @id @default(cuid())
+  organizationId           String
+  caseId                   String
+  sourceOrganizationId     String?
+  receivingOrganizationId  String?
+  targetFacilityId         String?
+  targetProgramId          String?
+  status                   PrescreenEncounterStatus @default(DRAFT)
+  currentLocation          String
+  referralSourceJson       Json
+  presentingConcern        String
+  currentAssessmentId      String?
+  currentAssessmentVersion Int?
+  possiblePathway          PossibleAdmissionPathway @default(UNDETERMINED)
+  version                  Int                       @default(1)
+  createdBy                String
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  closedAt                 DateTime?
+
+  assessments              PrescreenAssessmentVersion[]
+  tasks                    PrescreenWorkflowTask[]
+  communications           PrescreenCommunication[]
+  packets                  ReferralPacketVersion[]
+  transportPlans           TransportPlan[]
+
+  @@unique([organizationId, id])
+  @@index([organizationId, status, updatedAt])
+  @@index([organizationId, caseId])
+  @@index([receivingOrganizationId, status, updatedAt])
+}
+
+model PrescreenAssessmentVersion {
+  id                String                  @id @default(cuid())
+  organizationId    String
+  encounterId       String
+  versionNumber     Int
+  status            AssessmentVersionStatus @default(DRAFT)
+  parentVersionId   String?
+  willingness       PatientWillingness      @default(NOT_ASSESSED)
+  possiblePathway   PossibleAdmissionPathway @default(UNDETERMINED)
+  contentHash       String?
+  changeReason      String?
+  createdBy         String
+  createdAt         DateTime                @default(now())
+  attestedBy        String?
+  attestedAt        DateTime?
+  supersededById    String?
+
+  encounter         PrescreenEncounter      @relation(fields: [encounterId], references: [id], onDelete: Restrict)
+  answers           PrescreenAnswer[]
+  sources           PrescreenSource[]
+  orientation       PrescreenOrientationObservation?
+
+  @@unique([organizationId, encounterId, versionNumber])
+  @@index([organizationId, encounterId, status])
+  @@index([parentVersionId])
+}
+
+model PrescreenAnswer {
+  id                  String             @id @default(cuid())
+  organizationId      String
+  assessmentVersionId String
+  questionCode        String
+  valueState          AnswerValueState
+  valueJson           Json?
+  narrative           String?
+  recordedBy          String
+  recordedAt          DateTime           @default(now())
+
+  assessment          PrescreenAssessmentVersion @relation(fields: [assessmentVersionId], references: [id], onDelete: Cascade)
+  sourceLinks         PrescreenAnswerSource[]
+
+  @@unique([organizationId, assessmentVersionId, questionCode])
+  @@index([organizationId, questionCode])
+}
+
+model PrescreenSource {
+  id                  String             @id @default(cuid())
+  organizationId      String
+  assessmentVersionId String
+  sourceType          SourceType
+  displayLabel        String?
+  documentVersionId   String?
+  sourceObjectId      String?
+  recordedAt          DateTime           @default(now())
+
+  assessment          PrescreenAssessmentVersion @relation(fields: [assessmentVersionId], references: [id], onDelete: Cascade)
+  answerLinks         PrescreenAnswerSource[]
+
+  @@index([organizationId, assessmentVersionId])
+  @@index([documentVersionId])
+}
+
+model PrescreenAnswerSource {
+  organizationId String
+  answerId       String
+  sourceId       String
+
+  answer          PrescreenAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  source          PrescreenSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, answerId, sourceId])
+  @@index([organizationId, sourceId])
+}
+
+model PrescreenOrientationObservation {
+  id                  String                   @id @default(cuid())
+  organizationId      String
+  assessmentVersionId String                   @unique
+  observedAt          DateTime
+  sourceId            String?
+  personStatus        OrientationFindingStatus
+  personObservation   String?
+  placeStatus         OrientationFindingStatus
+  placeObservation    String?
+  timeStatus          OrientationFindingStatus
+  timeObservation     String?
+  situationStatus     OrientationFindingStatus
+  situationObservation String?
+  recordedBy          String
+  recordedAt          DateTime                 @default(now())
+
+  assessment          PrescreenAssessmentVersion @relation(fields: [assessmentVersionId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, observedAt])
+}
+
+model PrescreenWorkflowTask {
+  id                  String             @id @default(cuid())
+  organizationId      String
+  encounterId         String
+  requestType         String
+  description         String
+  status              WorkflowTaskStatus @default(OPEN)
+  ownerOrganizationId String
+  ownerRoleCode       String
+  ownerActorId        String?
+  dueAt               DateTime?
+  requirementCode     String?
+  externalWait        Boolean            @default(false)
+  version             Int                @default(1)
+  createdBy           String
+  createdAt           DateTime           @default(now())
+  acknowledgedAt      DateTime?
+  completedAt         DateTime?
+  resolutionJson      Json?
+
+  encounter           PrescreenEncounter @relation(fields: [encounterId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, status, dueAt])
+  @@index([ownerOrganizationId, ownerRoleCode, status, dueAt])
+  @@index([organizationId, encounterId])
+}
+
+model PrescreenCommunication {
+  id                  String   @id @default(cuid())
+  organizationId      String
+  encounterId         String
+  taskId              String?
+  direction           String
+  method              String
+  purposeCode         String
+  senderOrganizationId String
+  senderActorId       String?
+  recipientOrganizationId String?
+  recipientActorId    String?
+  occurredAt          DateTime
+  recordedAt          DateTime @default(now())
+  outcomeCode         String?
+  summary             String?
+  receiptStatus       String?
+  externalMessageId   String?
+  correctionOfId      String?
+  createdBy           String
+
+  encounter           PrescreenEncounter @relation(fields: [encounterId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, encounterId, occurredAt])
+  @@index([externalMessageId])
+  @@index([taskId])
+}
+
+model ReferralPacketVersion {
+  id                       String   @id @default(cuid())
+  organizationId           String
+  encounterId              String
+  versionNumber            Int
+  assessmentVersionId      String
+  targetCode               String
+  targetFacilityId         String?
+  targetProgramId          String?
+  facilityProfileVersionId String?
+  manifestHash             String
+  createdBy                String
+  createdAt                DateTime @default(now())
+  transmittedAt            DateTime?
+  supersededById           String?
+
+  encounter                PrescreenEncounter @relation(fields: [encounterId], references: [id], onDelete: Restrict)
+  requirements             ReferralPacketRequirement[]
+  documents                ReferralPacketDocument[]
+  transmissions            ReferralPacketTransmission[]
+
+  @@unique([organizationId, encounterId, versionNumber])
+  @@index([organizationId, targetFacilityId, createdAt])
+}
+
+model ReferralPacketRequirement {
+  id                String                 @id @default(cuid())
+  organizationId    String
+  packetVersionId   String
+  requirementCode   String
+  requiredness      String
+  state             PacketRequirementState
+  blockingTargets   String[]
+  documentVersionId String?
+  unavailableReason String?
+  authorityRuleId   String?
+  evaluatedAt       DateTime
+
+  packet            ReferralPacketVersion @relation(fields: [packetVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, packetVersionId, requirementCode])
+  @@index([organizationId, state])
+}
+
+model ReferralPacketDocument {
+  organizationId  String
+  packetVersionId String
+  documentVersionId String
+  requirementCode String?
+  documentHash    String
+
+  packet          ReferralPacketVersion @relation(fields: [packetVersionId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, packetVersionId, documentVersionId])
+}
+
+model ReferralPacketTransmission {
+  id                String   @id @default(cuid())
+  organizationId    String
+  packetVersionId   String
+  destinationOrganizationId String
+  channel           String
+  externalTransmissionId String?
+  status            String
+  attemptedAt       DateTime
+  acknowledgedAt    DateTime?
+  errorCode         String?
+
+  packet            ReferralPacketVersion @relation(fields: [packetVersionId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, status, attemptedAt])
+}
+
+model FacilityAdmissionProfile {
+  id                String                @id @default(cuid())
+  organizationId    String
+  facilityId        String
+  versionNumber     Int
+  status            FacilityProfileStatus @default(DRAFT)
+  effectiveFrom     DateTime
+  effectiveTo       DateTime?
+  profileJson       Json
+  profileHash       String
+  sourceDocumentVersionIds String[]
+  requiredApprovalTypes String[]
+  createdBy         String
+  createdAt         DateTime              @default(now())
+  activatedAt       DateTime?
+  supersededById    String?
+
+  approvals         FacilityProfileApproval[]
+
+  @@unique([organizationId, facilityId, versionNumber])
+  @@index([organizationId, facilityId, status, effectiveFrom])
+}
+
+model FacilityProfileApproval {
+  id                String   @id @default(cuid())
+  organizationId    String
+  profileId         String
+  approvalType      String
+  status            String
+  reviewerId        String
+  rationale         String?
+  reviewedAt        DateTime @default(now())
+
+  profile           FacilityAdmissionProfile @relation(fields: [profileId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, profileId, approvalType])
+}
+
+model ConsentAuthorityRule {
+  id                String            @id @default(cuid())
+  organizationId    String
+  jurisdictionCode  String
+  facilityId        String?
+  programId         String?
+  ruleCode          String
+  versionNumber     Int
+  status            ConsentRuleStatus @default(DRAFT_UNVERIFIED)
+  effectiveFrom     DateTime
+  effectiveTo       DateTime?
+  ruleJson          Json
+  sourceDocumentVersionIds String[]
+  approvedBy        String[]
+  createdAt         DateTime          @default(now())
+  supersededById    String?
+
+  @@unique([organizationId, ruleCode, versionNumber])
+  @@index([organizationId, jurisdictionCode, facilityId, status, effectiveFrom])
+}
+
+model TransportProviderProfile {
+  id                String                  @id @default(cuid())
+  organizationId    String
+  legalName         String
+  doingBusinessAs   String?
+  category          TransportCategory
+  status            TransportProviderStatus @default(CANDIDATE)
+  serviceAreas      String[]
+  supportedLegalStatuses String[]
+  capabilities      String[]
+  restrictions      String[]
+  verificationStatus VerificationStatus    @default(UNKNOWN)
+  lastVerifiedAt    DateTime?
+  nextVerificationDueAt DateTime?
+  profileJson       Json
+  version            Int                    @default(1)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  credentials        TransportProviderCredential[]
+  transportPlans     TransportPlan[]
+
+  @@index([organizationId, category, status])
+  @@index([verificationStatus, nextVerificationDueAt])
+}
+
+model TransportProviderCredential {
+  id                String   @id @default(cuid())
+  organizationId    String
+  providerId        String
+  credentialType    String
+  identifier        String
+  status            String
+  effectiveFrom     DateTime?
+  effectiveTo       DateTime?
+  verifiedAt        DateTime
+  sourceReference   String?
+
+  provider          TransportProviderProfile @relation(fields: [providerId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, providerId, credentialType, identifier])
+  @@index([organizationId, status, effectiveTo])
+}
+
+model TransportPlan {
+  id                  String              @id @default(cuid())
+  organizationId      String
+  encounterId         String
+  legalStatusCode     String
+  legalInstrumentId   String?
+  destinationFacilityId String
+  destinationProgramId String?
+  status              TransportPlanStatus @default(DRAFT)
+  allowedCategories   TransportCategory[]
+  blockedCategories   TransportCategory[]
+  arrangingOrganizationId String?
+  actualProviderId    String?
+  qualificationSnapshotJson Json?
+  qualificationRuleVersionIds String[]
+  version             Int                 @default(1)
+  createdBy           String
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  encounter           PrescreenEncounter  @relation(fields: [encounterId], references: [id], onDelete: Restrict)
+  actualProvider      TransportProviderProfile? @relation(fields: [actualProviderId], references: [id], onDelete: Restrict)
+  custodyEvents       TransportCustodyEvent[]
+
+  @@index([organizationId, encounterId])
+  @@index([organizationId, status, updatedAt])
+}
+
+model TransportCustodyEvent {
+  id                String   @id @default(cuid())
+  organizationId    String
+  transportPlanId   String
+  sequenceNumber    Int
+  eventType         String
+  occurredAt        DateTime
+  actorOrganizationId String
+  actorId           String?
+  location          String?
+  detailsJson       Json?
+  previousEventHash String?
+  eventHash         String
+  correctionOfId    String?
+  createdAt         DateTime @default(now())
+
+  transportPlan     TransportPlan @relation(fields: [transportPlanId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, transportPlanId, sequenceNumber])
+  @@unique([eventHash])
+  @@index([organizationId, transportPlanId, occurredAt])
+}
+
+model PrescreenCommandIdempotency {
+  id                String   @id @default(cuid())
+  organizationId    String
+  actorId           String
+  commandName       String
+  idempotencyKey    String
+  requestHash       String
+  resultObjectId    String
+  resultVersion     Int
+  createdAt         DateTime @default(now())
+
+  @@unique([organizationId, actorId, commandName, idempotencyKey])
+  @@index([createdAt])
+}
+
+model PrescreenOutboxEvent {
+  id                String   @id
+  organizationId    String
+  aggregateType     String
+  aggregateId       String
+  aggregateVersion  Int
+  eventType         String
+  schemaName        String
+  schemaVersion     String
+  payloadJson       Json
+  occurredAt        DateTime
+  recordedAt        DateTime @default(now())
+  correlationId     String
+  causationId       String?
+  publishedAt       DateTime?
+  attemptCount      Int      @default(0)
+  lastErrorCode     String?
+
+  @@index([publishedAt, recordedAt])
+  @@index([organizationId, aggregateType, aggregateId, aggregateVersion])
+}

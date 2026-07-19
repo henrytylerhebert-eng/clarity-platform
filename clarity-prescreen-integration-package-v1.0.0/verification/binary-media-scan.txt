@@ -1,0 +1,1 @@
+PASS: no images or PDFs are packaged; raw source images excluded.
