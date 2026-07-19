@@ -63,6 +63,7 @@ const TERMINAL_ENCOUNTER_STATUSES = new Set(["HANDED_OFF", "REDIRECTED", "DECLIN
  */
 export class InMemoryPrescreenGateway implements PrescreenGateway {
   private readonly encounters = new Map<string, PrescreenEncounter>();
+  /** Keyed `${organizationId}:${assessmentVersionId}` so every lookup is tenant-scoped by construction. */
   private readonly assessments = new Map<string, PrescreenAssessmentVersion>();
   private readonly assessmentIdsByEncounter = new Map<string, string[]>();
   private readonly requirements = new Map<string, Map<string, PacketRequirement>>();
@@ -115,7 +116,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     return this.idempotent(cmd, "SaveAssessmentDraft", () => {
       const encounter = this.requireEncounter(cmd.organizationId, cmd.encounterId);
       this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
-      const existing = this.assessments.get(cmd.draft.assessmentVersionId);
+      const existing = this.assessments.get(this.assessmentKey(cmd.organizationId, cmd.draft.assessmentVersionId));
       if (existing && existing.encounterId !== encounter.encounterId) throw new PrescreenNotFoundError("assessment");
       if (existing && existing.status !== "DRAFT") throw new AssessmentNotDraftError();
       if (encounter.status !== "DRAFT") {
@@ -140,6 +141,8 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
         createdBy: existing ? existing.createdBy : cmd.actor.actorId,
         willingness: cmd.draft.willingness,
         orientation: cmd.draft.orientation,
+        immediateMedicalStabilizationRequired: cmd.draft.immediateMedicalStabilizationRequired,
+        activeEmergencyOrLegalProcess: cmd.draft.activeEmergencyOrLegalProcess,
         possiblePathway: pathway.pathway,
         answers: cmd.draft.answers.map((answer) => ({
           ...answer,
@@ -169,7 +172,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
           contentHash: this.assessmentContentHash(stored),
         },
       });
-      this.assessments.set(stored.assessmentVersionId, stored);
+      this.assessments.set(this.assessmentKey(cmd.organizationId, stored.assessmentVersionId), stored);
       if (!versionIds.includes(stored.assessmentVersionId)) {
         this.assessmentIdsByEncounter.set(encounter.encounterId, [...versionIds, stored.assessmentVersionId]);
       }
@@ -215,7 +218,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
           contentHash: attested.contentHash,
         },
       });
-      this.assessments.set(attested.assessmentVersionId, attested);
+      this.assessments.set(this.assessmentKey(cmd.organizationId, attested.assessmentVersionId), attested);
       this.encounters.set(encounter.encounterId, updated);
       commit();
       return this.result(attested.assessmentVersionId, "PrescreenAssessmentVersion", encounter.encounterId, updated.version, "ATTESTED");
@@ -236,7 +239,9 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
       if (parent.status === "DRAFT") {
         throw new AssessmentVersionRequiredError("A supplement requires an attested parent assessment version.");
       }
-      if (this.assessments.has(cmd.draft.assessmentVersionId)) {
+      // Tenant-scoped check: another organization's use of the same id is
+      // invisible here, so this discloses nothing across tenants.
+      if (this.assessments.has(this.assessmentKey(cmd.organizationId, cmd.draft.assessmentVersionId))) {
         throw new PrescreenDomainValidationError("The supplement assessment version id is already in use.");
       }
 
@@ -261,6 +266,8 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
         changeReason: cmd.reason,
         willingness: cmd.draft.willingness,
         orientation: cmd.draft.orientation,
+        immediateMedicalStabilizationRequired: cmd.draft.immediateMedicalStabilizationRequired,
+        activeEmergencyOrLegalProcess: cmd.draft.activeEmergencyOrLegalProcess,
         possiblePathway: pathway.pathway,
         answers: cmd.draft.answers.map((answer) => ({
           ...answer,
@@ -294,7 +301,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
           contentHash: supplement.contentHash,
         },
       });
-      this.assessments.set(supplement.assessmentVersionId, supplement);
+      this.assessments.set(this.assessmentKey(cmd.organizationId, supplement.assessmentVersionId), supplement);
       this.assessmentIdsByEncounter.set(encounter.encounterId, [...versionIds, supplement.assessmentVersionId]);
       this.encounters.set(encounter.encounterId, updated);
       commit();
@@ -310,6 +317,11 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
       if (assessment.encounterId !== encounter.encounterId) throw new PrescreenNotFoundError("assessment");
       if (assessment.status === "DRAFT") {
         throw new AssessmentVersionRequiredError("Submission requires an immutable (attested) assessment version.");
+      }
+      if (assessment.assessmentVersionId !== encounter.currentAssessmentVersionId) {
+        throw new AssessmentVersionRequiredError(
+          "Submission must reference the encounter's current assessment version.",
+        );
       }
       assertPrescreenEncounterTransition(encounter.status, "SUBMITTED");
 
@@ -403,22 +415,22 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
   }
 
   getEncounter(organizationId: string, encounterId: string): PrescreenEncounter {
-    return { ...this.requireEncounter(organizationId, encounterId) };
+    return structuredClone(this.requireEncounter(organizationId, encounterId));
   }
 
   getAssessmentVersion(organizationId: string, assessmentVersionId: string): PrescreenAssessmentVersion {
-    return { ...this.requireAssessment(organizationId, assessmentVersionId) };
+    return structuredClone(this.requireAssessment(organizationId, assessmentVersionId));
   }
 
   getSubmission(organizationId: string, encounterId: string): PrescreenSubmissionRecord | undefined {
     const submission = this.submissions.get(encounterId);
     if (!submission || submission.organizationId !== organizationId) return undefined;
-    return { ...submission };
+    return structuredClone(submission);
   }
 
   listPacketRequirements(organizationId: string, encounterId: string): readonly PacketRequirement[] {
     this.requireEncounter(organizationId, encounterId);
-    return [...(this.requirements.get(encounterId)?.values() ?? [])];
+    return structuredClone([...(this.requirements.get(encounterId)?.values() ?? [])]);
   }
 
   auditEvents(): readonly AuditEvent[] {
@@ -441,9 +453,13 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     return encounter;
   }
 
+  private assessmentKey(organizationId: string, assessmentVersionId: string): string {
+    return `${organizationId}:${assessmentVersionId}`;
+  }
+
   private requireAssessment(organizationId: string, assessmentVersionId: string): PrescreenAssessmentVersion {
-    const assessment = this.assessments.get(assessmentVersionId);
-    if (!assessment || assessment.organizationId !== organizationId) throw new PrescreenNotFoundError("assessment");
+    const assessment = this.assessments.get(this.assessmentKey(organizationId, assessmentVersionId));
+    if (!assessment) throw new PrescreenNotFoundError("assessment");
     return assessment;
   }
 
@@ -455,6 +471,8 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     return sha256Hex({
       willingness: assessment.willingness,
       orientation: assessment.orientation,
+      immediateMedicalStabilizationRequired: assessment.immediateMedicalStabilizationRequired,
+      activeEmergencyOrLegalProcess: assessment.activeEmergencyOrLegalProcess,
       answers: assessment.answers,
       sources: assessment.sources,
       parentVersionId: assessment.parentVersionId ?? null,
@@ -496,7 +514,13 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
       // In-memory slice: recordedTime mirrors the command's occurredAt so
       // tests stay deterministic; a persistence adapter stamps server time.
       recordedTime: cmd.occurredAt,
-      actor: { actorType: cmd.actor.actorType, actorId: cmd.actor.actorId, roleCodes: cmd.actor.roleCodes },
+      // Envelope vocabulary is USER | SOURCE_SYSTEM | SERVICE (package
+      // contract); command AGENT/SYSTEM actors both record as SERVICE.
+      actor: {
+        actorType: cmd.actor.actorType === "USER" ? "USER" : "SERVICE",
+        actorId: cmd.actor.actorId,
+        roleCodes: cmd.actor.roleCodes,
+      },
       source: { sourceSystem: "clarity.prescreen-service" },
       correlationId: cmd.correlationId ?? cmd.idempotencyKey,
       idempotencyKey: cmd.idempotencyKey,

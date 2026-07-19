@@ -8,6 +8,10 @@ import { createHash } from "node:crypto";
  */
 export function canonicalStringify(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
+  const toJSON = (value as { toJSON?: unknown }).toJSON;
+  if (typeof toJSON === "function") {
+    return canonicalStringify((value as { toJSON: () => unknown }).toJSON());
+  }
   if (Array.isArray(value)) return `[${value.map((item) => canonicalStringify(item)).join(",")}]`;
   const entries = Object.entries(value as Record<string, unknown>)
     .filter(([, v]) => v !== undefined)

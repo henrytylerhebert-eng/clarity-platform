@@ -20,7 +20,7 @@ state machines, pathway derivation (medical-stabilization precedence),
 packet-readiness evaluation, event envelope schema (six adopted event types),
 `AppendOnlyAuditLog` + `assertNoRestrictedFields`.
 
-## Behavior proven by tests (tests/unit/prescreen-service.test.ts, 20 tests)
+## Behavior proven by tests (tests/unit/prescreen-service.test.ts, 25 tests)
 
 All fourteen owner completion criteria are covered — see
 `docs/testing/PRESCREEN_SERVICE_TEST_MANIFEST.md` for the mapping.
@@ -44,8 +44,8 @@ All fourteen owner completion criteria are covered — see
 
 ## Verification (this session, local)
 
-- Focused: 20/20 prescreen-service tests; 32/32 prescreen-contract tests.
-- Root suite: 323/323. App suite: 64/64 (unchanged by this slice).
+- Focused: 25/25 prescreen-service tests (25 after post-merge review hardening); 35/35 prescreen-contract tests.
+- Root suite: 328/328. App suite: 64/64 (unchanged by this slice).
 - `npm run typecheck`, `npm run lint`, `npx prisma validate`: pass.
 - Prisma schema untouched (`git diff --stat prisma/` is empty).
 
