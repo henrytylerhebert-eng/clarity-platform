@@ -1,0 +1,96 @@
+{
+  "eventId": "90000000-0000-4000-8000-000000000002",
+  "schema": {
+    "name": "clarity.events.authorization-review-recorded",
+    "version": "1.0.0"
+  },
+  "eventType": {
+    "name": "AUTHORIZATION_REVIEW_RECORDED",
+    "version": 1
+  },
+  "aggregate": {
+    "type": "AUTHORIZATION_REVIEW",
+    "id": "72000000-0000-4000-8000-000000000001",
+    "version": 1
+  },
+  "tenant": {
+    "organizationId": "10000000-0000-4000-8000-000000000001",
+    "facilityId": "20000000-0000-4000-8000-000000000001",
+    "programId": "30000000-0000-4000-8000-000000000001",
+    "unitId": "40000000-0000-4000-8000-000000000001"
+  },
+  "subject": {
+    "caseId": "80000000-0000-4000-8000-000000000001",
+    "episodeId": "70000000-0000-4000-8000-000000000001",
+    "episodeDayId": null,
+    "personToken": null
+  },
+  "times": {
+    "effectiveAt": "2026-07-18T14:20:00-05:00",
+    "recordedAt": "2026-07-18T19:22:00Z",
+    "receivedAt": null
+  },
+  "actor": {
+    "type": "USER",
+    "id": "synthetic-ur-user-001",
+    "displayRole": "UR_SPECIALIST",
+    "sessionId": "synthetic-session-ur-001"
+  },
+  "source": {
+    "kind": "HUMAN_ATTESTATION",
+    "system": "clarity-platform",
+    "sourceTenantKey": null,
+    "sourceEventId": null,
+    "sourceEventVersion": null,
+    "adapterName": "utilization-review-service",
+    "adapterVersion": "proposed-0.1.0",
+    "method": "PORTAL_VIEWED_BY_HUMAN",
+    "provenanceRefs": [
+      {
+        "type": "EPISODE_AUTHORIZATION",
+        "id": "71000000-0000-4000-8000-000000000001",
+        "version": "2",
+        "hash": null
+      }
+    ]
+  },
+  "correlation": {
+    "correlationId": "synthetic-correlation-review-001",
+    "causationId": "90000000-0000-4000-8000-000000000001",
+    "commandId": "synthetic-command-review-001"
+  },
+  "classification": "PUBLIC_SYNTHETIC",
+  "quality": {
+    "state": "VALID",
+    "issues": []
+  },
+  "review": {
+    "state": "ATTESTED",
+    "reviewedByActorId": "synthetic-ur-user-001",
+    "reviewedAt": "2026-07-18T19:22:00Z",
+    "attestationCode": "HUMAN_PAYER_STATUS_RECORDED"
+  },
+  "correction": {
+    "kind": "ORIGINAL",
+    "supersedesEventId": null,
+    "reasonCode": null
+  },
+  "metricEligibility": "ELIGIBLE",
+  "payloadHash": "a3d4c82260c49feacee23163cde09d651e99d9b844b8dfcfffab454686c339df",
+  "payload": {
+    "authorizationReviewId": "72000000-0000-4000-8000-000000000001",
+    "episodeAuthorizationId": "71000000-0000-4000-8000-000000000001",
+    "episodeId": "70000000-0000-4000-8000-000000000001",
+    "reviewType": "CONCURRENT",
+    "requestedRange": {
+      "startDate": "2026-07-19",
+      "endDate": "2026-07-21"
+    },
+    "dueAt": "2026-07-19T15:00:00-05:00",
+    "decisionStatus": "PENDING",
+    "payerReferenceToken": null,
+    "sourceMethod": "PORTAL_VIEWED_BY_HUMAN",
+    "resultingReviewVersion": 1,
+    "syntheticFixture": true
+  }
+}

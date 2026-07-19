@@ -1,0 +1,12 @@
+{
+  "name": "@clarity/auth-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Authentication service (ADR-0011). Session issuance/verification/revocation over the existing User/roles model: opaque bearer tokens stored only as SHA-256 hashes, server-side sessions with expiry and audited revocation, and the AuthenticatedPrincipal -> CommandActor bridge that sources roles from the database instead of the caller. Identity verification is behind the IdentityProvider port — a managed IdP (OIDC) adapter implements it at deployment; the local dev provider maps pre-registered synthetic assertions. No passwords are stored anywhere. No Prisma outside the approved gateway adapter.",
+  "dependencies": {
+    "@clarity/case-repository": "*",
+    "@clarity/domain-contracts": "*"
+  }
+}

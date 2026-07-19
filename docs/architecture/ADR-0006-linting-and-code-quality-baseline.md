@@ -12,7 +12,7 @@ No lint configuration existed anywhere in the repository (verified in `docs/repo
 
 1. **ESLint flat config** (`eslint.config.mjs`) with `@eslint/js` recommended + `typescript-eslint` **non-type-checked** recommended. Installed at the root; covers `packages/`, `tests/`, `scripts/`, root config files, and `app/src` with the same rules (no React-specific plugins — nothing in the current failure history motivates them, and the brief forbids framework rules unless required).
 2. **Type-checked rules deferred.** `recommendedTypeChecked` would require project-service wiring across workspaces and would surface dozens of stylistic findings in tested code — churn without a defect basis. Revisit with OD-9/CI.
-3. **Ignores:** `node_modules`, `app/dist`, Playwright outputs, `coverage`, `prisma/migrations` (generated SQL), `graphify-out`, `reference/` and `reporting-metrics-rebuild-package/` (vendored source packages, not owned code), `.local-object-storage/` (synthetic file bytes), `*.d.ts`.
+3. **Ignores:** `node_modules`, `app/dist`, Playwright outputs, `coverage`, `prisma/migrations` (generated SQL), `graphify-out`, `reference/` and `reporting-metrics-rebuild-package/` (vendored source packages, not owned code), `.local-object-storage/` (synthetic file bytes), `clarity-platform-visualizer/` (separate nested repository), `.claude/worktrees/` (separate agent checkouts), `*.d.ts`.
 4. **Consciously adjusted rules:**
    - `@typescript-eslint/no-explicit-any`: **warn** — the Prisma adapter boundary and Zod-narrowed envelopes occasionally need it; a warning surfaces new uses without blocking.
    - `@typescript-eslint/no-unused-vars`: error, with `^_` ignore patterns for intentionally unused parameters.
@@ -25,4 +25,4 @@ No lint configuration existed anywhere in the repository (verified in `docs/repo
 
 ## Verified
 
-`npm run lint` exits 0; `npm run typecheck` exits 0; full suite 112/112 after the fixes.
+`npm run lint` exits 0; `npm run typecheck` exits 0; full suite 112/112 after the fixes. The root lint command remains scoped to this repository; the nested visualizer has its own lint command and was verified separately.

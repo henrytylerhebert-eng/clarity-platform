@@ -1,7 +1,9 @@
 import type { AppState, CustodyLedgerEvent } from "./types";
 import { sealLedgerEvents, sha256 } from "./custodyLedger";
+import { LOUISIANA_EPEC_RULE_SET } from "./epecRuleSets";
 
 const now = "2026-07-08T15:00:00.000Z";
+const epecRuleSetId = LOUISIANA_EPEC_RULE_SET.id;
 
 function minutesAgo(minutes: number): string {
   return new Date(Date.now() - minutes * 60000).toISOString();
@@ -9,7 +11,13 @@ function minutesAgo(minutes: number): string {
 
 export async function createSeedState(): Promise<AppState> {
   const packetHash = await sha256("packet-ready-case-demo");
-  const rawLedgerEvents: Array<Omit<CustodyLedgerEvent, "eventHash" | "previousHash">> = [
+  const pecSealHash = await sha256("pec-seal-case-004-demo");
+
+  // Each case's custody-ledger events are sealed into their own independent hash chain (mirrors
+  // custodyLedger.ts's runtime appendCustodyLedgerEvent, which also chains per case) so that
+  // filtering state.custodyLedgerEvents down to a single caseId still yields a chain whose first
+  // event has previousHash === null and verifies cleanly in the Custody Ledger workspace.
+  const case004RawEvents: Array<Omit<CustodyLedgerEvent, "eventHash" | "previousHash">> = [
     {
       id: "ledger-001",
       caseId: "case-004",
@@ -17,6 +25,22 @@ export async function createSeedState(): Promise<AppState> {
       actor: "Intake Coordinator",
       occurredAt: "2026-07-08T14:02:00.000Z",
       payload: { stage: "Referral", source: "Family call" },
+    },
+    {
+      id: "ledger-001b",
+      caseId: "case-004",
+      eventType: "OPC_ISSUED",
+      actor: "Crisis Line Dispatcher",
+      occurredAt: "2026-07-08T14:05:00.000Z",
+      payload: { statuteRef: LOUISIANA_EPEC_RULE_SET.statuteRefs.opc, grounds: ["Gravely disabled", "Dangerous to self"], containsPhi: false },
+    },
+    {
+      id: "ledger-001c",
+      caseId: "case-004",
+      eventType: "PEC_EXECUTED",
+      actor: "Dr. A. Fontenot",
+      occurredAt: "2026-07-08T14:12:00.000Z",
+      payload: { statuteRef: LOUISIANA_EPEC_RULE_SET.statuteRefs.pec, findings: ["Gravely disabled", "Dangerous to self"], sealHash: pecSealHash, containsPhi: false },
     },
     {
       id: "ledger-002",
@@ -41,6 +65,17 @@ export async function createSeedState(): Promise<AppState> {
       actor: "Mock Receiving Facility",
       occurredAt: "2026-07-08T14:45:00.000Z",
       payload: { response: "Accept", receipt: "mock-acceptance-receipt" },
+    },
+  ];
+
+  const case001RawEvents: Array<Omit<CustodyLedgerEvent, "eventHash" | "previousHash">> = [
+    {
+      id: "ledger-005",
+      caseId: "case-001",
+      eventType: "OPC_ISSUED",
+      actor: "Ofc. R. Guidry, LPD",
+      occurredAt: "2026-07-08T13:10:00.000Z",
+      payload: { statuteRef: LOUISIANA_EPEC_RULE_SET.statuteRefs.opc, grounds: ["Dangerous to self"], containsPhi: false },
     },
   ];
 
@@ -237,23 +272,54 @@ export async function createSeedState(): Promise<AppState> {
       {
         id: "legal-001",
         caseId: "case-001",
-        legalStatus: "PEC",
-        requiredFactsComplete: false,
-        clockStatus: "Display only",
-        draftText: "Draft PEC scaffold. Louisiana statutory language and timing require counsel validation.",
+        legalStatus: "OPC",
+        requiredFactsComplete: true,
+        clockStatus: "Active",
+        draftText: "Draft OPC scaffold. Louisiana statutory language and timing require counsel validation.",
         reviewStatus: "Counsel validation required",
+        ruleSetId: epecRuleSetId,
+        opc: {
+          issuedAt: "2026-07-08T13:10:00.000Z",
+          requestor: "Ofc. R. Guidry, LPD",
+          relation: "Responding officer — welfare check",
+          observed: "Subject on the ED loading dock stating intent to harm self; family reports four days of worsening isolation and refusal to eat.",
+          grounds: ["Dangerous to self"],
+          expiresAt: "2026-07-11T13:10:00.000Z",
+        },
       },
       {
         id: "legal-004",
         caseId: "case-004",
         legalStatus: "PEC",
         requiredFactsComplete: true,
-        clockStatus: "Display only",
+        clockStatus: "Active",
         draftText: "Draft PEC packet scaffold bound to source references and packet hash. Counsel validation required.",
         reviewStatus: "Counsel validation required",
+        ruleSetId: epecRuleSetId,
+        opc: {
+          issuedAt: "2026-07-08T14:05:00.000Z",
+          requestor: "Crisis Line Dispatcher",
+          relation: "Crisis line intake",
+          observed: "Caller (mother) reported unsafe pacing, escalating paranoia, and inability to sleep for three nights; patient refused voluntary transport when offered.",
+          grounds: ["Gravely disabled", "Dangerous to self"],
+          expiresAt: "2026-07-11T14:05:00.000Z",
+        },
+        pec: {
+          examinerName: "Dr. A. Fontenot",
+          examinerType: "Physician (MD/DO)",
+          examinedAt: "2026-07-08T14:10:00.000Z",
+          findings: ["Gravely disabled", "Dangerous to self"],
+          conditions: ["Unwilling to seek voluntary admission"],
+          telemedicine: false,
+          narrative: "Pt presents with escalating paranoia, pressured speech, and impaired judgment; unable to maintain safe routine per collateral. Refuses voluntary admission; requires inpatient stabilization.",
+          executedAt: "2026-07-08T14:12:00.000Z",
+          sealHash: pecSealHash,
+          transmittedAt: "2026-07-08T14:45:00.000Z",
+          facilityResponseId: "resp-004-a",
+        },
       },
     ],
-    custodyLedgerEvents: await sealLedgerEvents(rawLedgerEvents),
+    custodyLedgerEvents: [...(await sealLedgerEvents(case004RawEvents)), ...(await sealLedgerEvents(case001RawEvents))],
     referralPackets: [
       {
         id: "packet-004",
@@ -278,6 +344,8 @@ export async function createSeedState(): Promise<AppState> {
       { id: "clock-003", caseId: "case-002", label: "Referral to screening", lane: "Clinical", startedAt: minutesAgo(50), targetMinutes: 60, counselValidationRequired: false },
       { id: "clock-004", caseId: "case-003", label: "Referral to screening", lane: "Clinical", startedAt: minutesAgo(95), targetMinutes: 60, counselValidationRequired: false },
       { id: "clock-005", caseId: "case-004", label: "Disposition to transport", lane: "Clinical", startedAt: minutesAgo(20), targetMinutes: 240, counselValidationRequired: false },
+      { id: "opc-case-001", caseId: "case-001", label: `OPC transport window (${LOUISIANA_EPEC_RULE_SET.statuteRefs.opc})`, lane: "Legal", startedAt: minutesAgo(40), targetMinutes: LOUISIANA_EPEC_RULE_SET.windowsMinutes.opc, counselValidationRequired: true },
+      { id: "cec-case-004", caseId: "case-004", label: `CEC review window (${LOUISIANA_EPEC_RULE_SET.statuteRefs.cec})`, lane: "Legal", startedAt: minutesAgo(15), targetMinutes: LOUISIANA_EPEC_RULE_SET.windowsMinutes.cec, counselValidationRequired: true },
     ],
     units: [
       { id: "unit-a", name: "Adult Unit A", population: "Adult", acuityCeiling: 3.5 },

@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  BadgeCheck,
   BedDouble,
+  BookOpenCheck,
+  ClipboardCheck,
   ClipboardList,
   FileCheck2,
+  FileSearch,
   FileText,
+  FlaskConical,
   Gauge,
   LayoutDashboard,
   Network,
+  PanelTop,
   PlusCircle,
   RotateCcw,
   Scale,
@@ -20,12 +26,23 @@ import { CaseOverview } from "./workspaces/CaseOverview";
 import { GuidedIntake } from "./workspaces/GuidedIntake";
 import { MedicalNecessity } from "./workspaces/MedicalNecessity";
 import { LegalStatus } from "./workspaces/LegalStatus";
+import { DEFAULT_SESSION_TTL_MS, describeDemoSession } from "./domain/services";
+import { apiLogin, apiLogout, describeApiError, type VerifiedPrincipal } from "./domain/api";
+import { EvidenceReview } from "./workspaces/EvidenceReview";
+import { BenefitsVerification } from "./workspaces/BenefitsVerification";
+import { AuthorizationReadiness } from "./workspaces/AuthorizationReadiness";
 import { PacketPreview } from "./workspaces/PacketPreview";
 import { RoutingResponse } from "./workspaces/RoutingResponse";
 import { CustodyLedger } from "./workspaces/CustodyLedger";
+import { TrainingSops } from "./workspaces/TrainingSops";
+import { MockAdmitLab } from "./workspaces/MockAdmitLab";
+import { ProductStudio } from "./workspaces/ProductStudio";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
 import { appendCustodyLedgerEvent } from "./domain/custodyLedger";
+import { readCaseClocks } from "./domain/clocks";
+import { executeCec, executePec, issueOpc, type CecInput, type OpcInput, type PecInput } from "./domain/epec";
+import { getEpecRuleSet } from "./domain/epecRuleSets";
 import { buildPacketForCase } from "./domain/packets";
 import { getRole, roles, type RoleId, type WorkspaceId } from "./domain/roles";
 import { getRoleFocus } from "./domain/roleFocus";
@@ -35,9 +52,9 @@ import type {
   AppState,
   Assessment,
   Case,
+  ComplianceClock,
   Encounter,
   FacilityResponse,
-  LegalInstrument,
   MedicalNecessitySnapshot,
   PlacementRecommendation,
   ReferralPacket,
@@ -51,12 +68,18 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "new", label: "New Case", icon: PlusCircle },
   { id: "overview", label: "Case Overview", icon: ClipboardList },
   { id: "intake", label: "Guided Intake", icon: FileText },
+  { id: "evidence", label: "Evidence Review", icon: FileSearch },
   { id: "medical", label: "Medical Necessity", icon: FileCheck2 },
   { id: "legal", label: "Legal Status", icon: Scale },
+  { id: "benefits", label: "Benefits Verification", icon: BadgeCheck },
+  { id: "authorization", label: "Authorization Readiness", icon: ClipboardCheck },
   { id: "packet", label: "Packet Preview", icon: ShieldCheck },
   { id: "routing", label: "Routing Response", icon: Network },
   { id: "bedboard", label: "Milieu Bedboard", icon: BedDouble },
   { id: "ledger", label: "Custody Ledger", icon: ShieldCheck },
+  { id: "training", label: "Training & SOPs", icon: BookOpenCheck },
+  { id: "mock-admits", label: "Mock Admit Lab", icon: FlaskConical },
+  { id: "studio", label: "Product Studio", icon: PanelTop },
 ];
 
 export function App() {
@@ -64,9 +87,40 @@ export function App() {
   const [selectedCaseId, setSelectedCaseId] = useState("case-004");
   const [workspace, setWorkspace] = useState<WorkspaceId>("queue");
   const [roleId, setRoleId] = useState<RoleId>("all");
+  const [nowIso, setNowIso] = useState(() => new Date().toISOString());
+  // Verified backend session (API vertical slice). Held in React state for
+  // display; the bearer token itself stays inside app/src/domain/api.ts.
+  const [apiPrincipal, setApiPrincipal] = useState<VerifiedPrincipal | null>(null);
+  const [apiAssertion, setApiAssertion] = useState("");
+  const [apiLoginError, setApiLoginError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNowIso(new Date().toISOString()), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const role = getRole(roleId);
   const visibleWorkspaceItems = workspaceItems.filter((item) => role.workspaces.includes(item.id));
+  const demoSession = describeDemoSession(role.label);
+
+  async function handleApiLogin() {
+    setApiLoginError(null);
+    try {
+      setApiPrincipal(await apiLogin(apiAssertion.trim()));
+      setApiAssertion("");
+    } catch (error) {
+      setApiPrincipal(null);
+      setApiLoginError(describeApiError(error));
+    }
+  }
+
+  async function handleApiLogout() {
+    try {
+      await apiLogout();
+    } finally {
+      setApiPrincipal(null);
+    }
+  }
 
   function handleRoleChange(nextRoleId: RoleId) {
     setRoleId(nextRoleId);
@@ -212,12 +266,120 @@ export function App() {
     }));
   }
 
-  function handleLegalChange(legalInstrument: LegalInstrument) {
-    updateState((current) => ({
-      ...current,
-      legalInstruments: current.legalInstruments.map((item) => (item.id === legalInstrument.id ? legalInstrument : item)),
-      cases: current.cases.map((item) => item.id === legalInstrument.caseId ? { ...item, legalStatus: legalInstrument.legalStatus } : item),
-    }));
+  async function handleIssueOpc(caseId: string, input: OpcInput) {
+    if (!state) return;
+    const existing = state.legalInstruments.find((item) => item.caseId === caseId);
+    const occurredAt = new Date().toISOString();
+    const ruleSet = getEpecRuleSet(existing?.ruleSetId);
+    const result = issueOpc(existing, caseId, input, ruleSet, occurredAt);
+    const custodyLedgerEvents = await appendCustodyLedgerEvent(state.custodyLedgerEvents, {
+      id: `ledger-${Date.now()}`,
+      caseId,
+      eventType: result.ledgerEventType,
+      actor: "Parish Coroner (demo role)",
+      occurredAt,
+      payload: result.ledgerPayload,
+    });
+    const opcClock: ComplianceClock = {
+      id: `opc-${caseId}`,
+      caseId,
+      label: `OPC transport window (${ruleSet.statuteRefs.opc})`,
+      lane: "Legal",
+      startedAt: occurredAt,
+      targetMinutes: ruleSet.windowsMinutes.opc,
+      counselValidationRequired: true,
+    };
+    setState({
+      ...state,
+      custodyLedgerEvents,
+      legalInstruments: existing
+        ? state.legalInstruments.map((item) => (item.id === result.instrument.id ? result.instrument : item))
+        : [...state.legalInstruments, result.instrument],
+      complianceClocks: [...state.complianceClocks.filter((clock) => clock.id !== opcClock.id), opcClock],
+      cases: state.cases.map((item) => (item.id === caseId ? { ...item, legalStatus: "OPC", currentStage: "Legal draft" } : item)),
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId, action: "OPC issued", actor: "Parish Coroner (demo role)", occurredAt },
+        ...state.auditLogs,
+      ],
+      analyticsEvents: [
+        createAnalyticsEvent({ eventType: "OPC_ISSUED", caseId, metricsSafePayload: { containsPhi: false, groundsCount: input.grounds.length } }),
+        ...state.analyticsEvents,
+      ],
+    });
+  }
+
+  async function handleExecutePec(caseId: string, input: PecInput) {
+    if (!state) return;
+    const existing = state.legalInstruments.find((item) => item.caseId === caseId);
+    const occurredAt = new Date().toISOString();
+    const ruleSet = getEpecRuleSet(existing?.ruleSetId);
+    const caseEvents = state.custodyLedgerEvents.filter((item) => item.caseId === caseId).sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
+    const previousHash = caseEvents[caseEvents.length - 1]?.eventHash ?? null;
+    const result = await executePec(existing, caseId, input, ruleSet, previousHash, occurredAt);
+    const custodyLedgerEvents = await appendCustodyLedgerEvent(state.custodyLedgerEvents, {
+      id: `ledger-${Date.now()}`,
+      caseId,
+      eventType: result.ledgerEventType,
+      actor: input.examinerName,
+      occurredAt,
+      payload: result.ledgerPayload,
+    });
+    setState({
+      ...state,
+      custodyLedgerEvents,
+      legalInstruments: existing
+        ? state.legalInstruments.map((item) => (item.id === result.instrument.id ? result.instrument : item))
+        : [...state.legalInstruments, result.instrument],
+      cases: state.cases.map((item) => (item.id === caseId ? { ...item, legalStatus: "PEC" } : item)),
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId, action: "PEC executed and sealed", actor: input.examinerName, occurredAt },
+        ...state.auditLogs,
+      ],
+      analyticsEvents: [
+        createAnalyticsEvent({ eventType: "PEC_EXECUTED", caseId, metricsSafePayload: { containsPhi: false, telemedicine: input.telemedicine } }),
+        ...state.analyticsEvents,
+      ],
+    });
+  }
+
+  async function handleExecuteCec(caseId: string, input: CecInput) {
+    if (!state) return;
+    const existing = state.legalInstruments.find((item) => item.caseId === caseId);
+    if (!existing) return;
+    const occurredAt = new Date().toISOString();
+    const ruleSet = getEpecRuleSet(existing.ruleSetId);
+    const result = executeCec(existing, ruleSet, input, occurredAt);
+    const withOutcome = await appendCustodyLedgerEvent(state.custodyLedgerEvents, {
+      id: `ledger-${Date.now()}`,
+      caseId,
+      eventType: result.ledgerEventType,
+      actor: input.examinerName,
+      occurredAt,
+      payload: result.ledgerPayload,
+    });
+    const custodyLedgerEvents = await appendCustodyLedgerEvent(withOutcome, {
+      id: `ledger-${Date.now() + 1}`,
+      caseId,
+      eventType: "RECORD_FROZEN",
+      actor: "System",
+      occurredAt,
+      payload: { outcome: input.outcome, containsPhi: false },
+    });
+    setState({
+      ...state,
+      custodyLedgerEvents,
+      legalInstruments: state.legalInstruments.map((item) => (item.id === result.instrument.id ? result.instrument : item)),
+      complianceClocks: state.complianceClocks.map((clock) => (clock.id === `cec-${caseId}` ? { ...clock, stoppedAt: occurredAt } : clock)),
+      cases: state.cases.map((item) => (item.id === caseId ? { ...item, legalStatus: "CEC" } : item)),
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId, action: `CEC executed: ${input.outcome}`, actor: input.examinerName, occurredAt },
+        ...state.auditLogs,
+      ],
+      analyticsEvents: [
+        createAnalyticsEvent({ eventType: "CEC_EXECUTED", caseId, metricsSafePayload: { containsPhi: false, outcome: input.outcome } }),
+        ...state.analyticsEvents,
+      ],
+    });
   }
 
   async function handleFacilityResponse(response: FacilityResponse) {
@@ -240,9 +402,34 @@ export function App() {
       occurredAt,
       payload: { response: response.response, reasonCode: response.reasonCode ?? "Unknown", containsPhi: false },
     });
+    const legalInstrument = state.legalInstruments.find((item) => item.caseId === referral.caseId);
+    const legalInstruments = (() => {
+      if (!legalInstrument?.pec) return state.legalInstruments;
+      const pec = legalInstrument.pec;
+      return state.legalInstruments.map((item) =>
+        item.id === legalInstrument.id ? { ...item, pec: { ...pec, transmittedAt: occurredAt, facilityResponseId: response.id } } : item,
+      );
+    })();
+    const cecRuleSet = legalInstrument ? getEpecRuleSet(legalInstrument.ruleSetId) : undefined;
+    const complianceClocks = legalInstrument?.pec && cecRuleSet && response.response === "Accept"
+      ? [
+          ...state.complianceClocks.filter((clock) => clock.id !== `cec-${referral.caseId}`),
+          {
+            id: `cec-${referral.caseId}`,
+            caseId: referral.caseId,
+            label: `CEC review window (${cecRuleSet.statuteRefs.cec})`,
+            lane: "Legal" as const,
+            startedAt: occurredAt,
+            targetMinutes: cecRuleSet.windowsMinutes.cec,
+            counselValidationRequired: true,
+          },
+        ]
+      : state.complianceClocks;
     setState({
       ...state,
       custodyLedgerEvents,
+      legalInstruments,
+      complianceClocks,
       facilityResponses: [...state.facilityResponses, response],
       facilityReferrals: state.facilityReferrals.map((item) => item.id === response.referralId ? { ...item, status } : item),
       cases: state.cases.map((item) => item.id === referral.caseId ? { ...item, routingStatus: status, currentStage: "Routing" } : item),
@@ -373,6 +560,8 @@ export function App() {
   }
 
   const activeCase = selectedCase ?? state.cases[0];
+  const isMockAdmitLab = workspace === "mock-admits";
+  const isProductStudio = workspace === "studio";
   const focusChips = getRoleFocus(roleId, state, activeCase.id, new Date().toISOString());
 
   return (
@@ -395,6 +584,55 @@ export function App() {
           <span className="role-mission">{role.mission}</span>
           <span className="role-note">Demo role scoping only — not authentication.</span>
         </label>
+        <details className="session-panel">
+          <summary>Session &amp; identity{apiPrincipal ? " — verified" : ""}</summary>
+          {apiPrincipal ? (
+            <>
+              <p>
+                Signed in against the local API. Roles below were loaded from the database by the
+                authentication service — the demo role selector above has no effect on this session.
+              </p>
+              <dl>
+                <dt>Principal</dt><dd>{apiPrincipal.displayName} ({apiPrincipal.userId})</dd>
+                <dt>Organization</dt><dd>{apiPrincipal.organizationId}</dd>
+                <dt>Verified roles</dt><dd>{apiPrincipal.roles.join(", ") || "none"}</dd>
+                <dt>Session expires</dt><dd>{new Date(apiPrincipal.expiresAt).toLocaleTimeString()}</dd>
+              </dl>
+              <button className="secondary-button" type="button" onClick={handleApiLogout}>
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <p>
+                The selector above is unverified local display scoping — roles there are asserted,
+                not proven. To act through the real backend, sign in with a synthetic dev assertion
+                (start the API with <code>npm run api:dev</code>; it prints the assertions).
+              </p>
+              <label className="session-login">
+                Dev assertion
+                <input
+                  value={apiAssertion}
+                  onChange={(event) => setApiAssertion(event.target.value)}
+                  placeholder="syn-assert-api-physician-dev"
+                />
+              </label>
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={apiAssertion.trim().length < 16}
+                onClick={handleApiLogin}
+              >
+                Sign in (verified session)
+              </button>
+              {apiLoginError ? <p className="inline-warning">{apiLoginError}</p> : null}
+              <dl>
+                <dt>Demo principal</dt><dd>{demoSession.displayName} ({demoSession.userId})</dd>
+                <dt>Session TTL</dt><dd>{DEFAULT_SESSION_TTL_MS / 3600000}h (one nursing shift)</dd>
+              </dl>
+            </>
+          )}
+        </details>
         <nav className="nav-list" aria-label="Workspace navigation">
           {visibleWorkspaceItems.map((item) => {
             const Icon = item.icon;
@@ -419,17 +657,31 @@ export function App() {
       <main className="main-surface">
         <header className="topbar">
           <div>
-            <span className="label">Selected case</span>
-            <h2>{activeCase.patientToken.displayName}</h2>
+            <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : "Selected case"}</span>
+            <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : activeCase.patientToken.displayName}</h2>
           </div>
           <div className="topbar-badges">
-            <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
-            <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
-            <StatusBadge tone="warn">Draft workflow</StatusBadge>
+            {isMockAdmitLab ? (
+              <>
+                <StatusBadge tone="danger">Synthetic only</StatusBadge>
+                <StatusBadge tone="warn">Human review required</StatusBadge>
+              </>
+            ) : isProductStudio ? (
+              <>
+                <StatusBadge tone="info">Synthetic registry</StatusBadge>
+                <StatusBadge tone="warn">Review-gated</StatusBadge>
+              </>
+            ) : (
+              <>
+                <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
+                <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
+                <StatusBadge tone="warn">Draft workflow</StatusBadge>
+              </>
+            )}
           </div>
         </header>
 
-        {focusChips.length ? (
+        {!isMockAdmitLab && !isProductStudio && focusChips.length ? (
           <div className="focus-strip" aria-label="Role focus summary">
             {focusChips.map((chip) => (
               <div className="focus-chip" key={chip.label}>
@@ -446,14 +698,34 @@ export function App() {
           {workspace === "new" ? <NewCase onCreate={handleCreateCase} /> : null}
           {workspace === "overview" ? <CaseOverview state={state} caseRecord={activeCase} /> : null}
           {workspace === "intake" ? <GuidedIntake state={state} caseId={activeCase.id} onAssessmentChange={handleAssessmentChange} onAddSourceAndRisk={handleAddSourceAndRisk} /> : null}
+          {workspace === "evidence" ? <EvidenceReview state={state} caseId={activeCase.id} /> : null}
           {workspace === "medical" ? <MedicalNecessity snapshot={bundle?.medicalNecessity} onChange={handleMedicalChange} /> : null}
-          {workspace === "legal" ? <LegalStatus legalInstrument={bundle?.legalInstrument} onChange={handleLegalChange} /> : null}
+          {workspace === "benefits" ? <BenefitsVerification caseId={activeCase.id} /> : null}
+          {workspace === "authorization" ? <AuthorizationReadiness caseId={activeCase.id} onNavigateWorkspace={setWorkspace} /> : null}
+          {workspace === "legal" ? (
+            <LegalStatus
+              caseId={activeCase.id}
+              ruleSet={getEpecRuleSet(bundle?.legalInstrument?.ruleSetId)}
+              legalInstrument={bundle?.legalInstrument}
+              referrals={bundle?.referrals ?? []}
+              facilityResponses={state.facilityResponses}
+              clocks={readCaseClocks(state, activeCase.id, nowIso)}
+              onIssueOpc={(input) => handleIssueOpc(activeCase.id, input)}
+              onExecutePec={(input) => handleExecutePec(activeCase.id, input)}
+              onExecuteCec={(input) => handleExecuteCec(activeCase.id, input)}
+              onNavigateWorkspace={setWorkspace}
+              apiPrincipal={apiPrincipal}
+            />
+          ) : null}
           {workspace === "packet" ? <PacketPreview state={state} caseId={activeCase.id} packet={bundle?.packet} onGenerate={handleGeneratePacket} onSend={handleSendPacket} /> : null}
           {workspace === "routing" ? <RoutingResponse referrals={bundle?.referrals ?? []} responses={state.facilityResponses} onResponse={handleFacilityResponse} /> : null}
           {workspace === "bedboard" ? <Bedboard state={state} onDecision={handlePlacementDecision} /> : null}
           {workspace === "ledger" ? (
             bundle?.ledgerEvents.length ? <CustodyLedger events={bundle.ledgerEvents} /> : <EmptyState title="No custody events">Material custody events appear here after legal drafts, packet sealing, transmission, or facility response.</EmptyState>
           ) : null}
+          {workspace === "training" ? <TrainingSops roleId={roleId} /> : null}
+          {workspace === "mock-admits" ? <MockAdmitLab /> : null}
+          {workspace === "studio" ? <ProductStudio /> : null}
         </section>
       </main>
     </div>

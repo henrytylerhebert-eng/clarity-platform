@@ -24,3 +24,9 @@ generated/
 
 # Local development object storage (synthetic document bytes; never commit)
 .local-object-storage/
+
+# Project-local agent bridge runtime state
+agents/bridge/.bridge.lock
+agents/bridge/.bridge-*
+__pycache__/
+*.py[cod]

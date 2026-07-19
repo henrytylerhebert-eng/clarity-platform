@@ -33,3 +33,15 @@ Synthetic data only; human gates intact; append-only audit; parallel workstreams
 ## First repository actions (adapted)
 
 1. ~~Create repository~~ done. 2. npm workspaces (not pnpm/Turborepo yet — ADR-0001). 3. Add lint/format + CI (open). 4. ~~Add schema draft~~ done. 5. ~~prisma format/validate~~ see validation results. 6. Document schema corrections in ADR-0002 ✅. 7. Generate migration — **blocked on a local PostgreSQL instance** (schema-only validation done). 8. ~~Load synthetic fixtures~~ seed loader + tests done. 9. Build tenant-scoped repositories against a real database — **next issue**.
+
+## Lane onboarding standard (now live)
+
+- For standard/normal-scope work, start with [`docs/AGENTS_TEMPLATE.md`](../AGENTS_TEMPLATE.md).
+- For urgent execution, use [`docs/AGENTS_TEMPLATE.quickfill.md`](../AGENTS_TEMPLATE.quickfill.md) and expand into the full template when time allows.
+- For product, implementation, roadmap, release, measurement, or Product Studio status changes, apply [`docs/governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md`](../governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md) before promoting any claim.
+- Both templates are required to classify:
+  - mode (COACH / FAST / PLAN / SHOW REWRITE),
+  - completion criteria,
+  - verification commands,
+  - open risks and tradeoffs,
+  - and the final response format.

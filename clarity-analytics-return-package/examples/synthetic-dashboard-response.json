@@ -1,0 +1,43 @@
+{
+  "data": {
+    "status": "NO_MEASUREMENTS_FOUND",
+    "series": [],
+    "summary": {
+      "approvedPatientDays": null,
+      "deniedPatientDays": null,
+      "pendingPatientDays": null,
+      "expiredPatientDays": null,
+      "atRiskPatientDays": null,
+      "openDocumentationGaps": null,
+      "concurrentReviewsDue": null
+    }
+  },
+  "meta": {
+    "generatedAt": "2026-07-18T20:30:00Z",
+    "sourceWatermark": null,
+    "freshness": {
+      "state": "UNKNOWN",
+      "maximumLagSeconds": null,
+      "staleAfterSeconds": 900
+    },
+    "coverage": {
+      "state": "NO_DATA",
+      "includedSources": [],
+      "missingSources": []
+    },
+    "metricDefinitions": [],
+    "quality": {
+      "state": "VALID",
+      "issueCodes": []
+    },
+    "suppression": {
+      "applied": false,
+      "policyVersion": null,
+      "reason": null
+    },
+    "correction": {
+      "includesRecomputedHistory": false,
+      "latestRecomputeRunId": null
+    }
+  }
+}

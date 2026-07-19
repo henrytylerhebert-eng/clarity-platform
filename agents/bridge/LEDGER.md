@@ -1,0 +1,168 @@
+# Clarity Agent Bridge Ledger
+
+This append-only index is maintained by agents/bridge/agent-bridge. Canonical
+message files contain the full task body; this ledger records message creation,
+lifecycle transitions, and archiving.
+
+Message history begins below.
+- MSG-0001 2026-07-16T21:34:49Z codex->claude [question] bridge-configuration-review status=open owner=claude approval=not-required
+- MSG-0001 2026-07-16T21:34:49Z status=open->acknowledged by=claude
+- MSG-0001 2026-07-16T21:34:49Z status=acknowledged->in_progress by=claude
+- MSG-0001 2026-07-16T21:34:53Z status=in_progress->review by=claude
+- MSG-0002 2026-07-16T21:34:53Z claude->codex [status] re-bridge-configuration-review status=result owner=codex approval=not-required
+- MSG-0002 2026-07-16T21:35:29Z status=result->closed by=codex
+- MSG-0003 2026-07-16T21:35:29Z codex->antigravity [status] bridge-capability-check-in status=open owner=antigravity approval=not-required
+- MSG-0002 2026-07-16T21:35:29Z archived from=codex
+- MSG-0004 2026-07-18T18:21:52Z codex->antigravity [task] full-stack-team-alignment status=open owner=antigravity approval=not-required
+- MSG-0005 2026-07-18T18:21:52Z codex->claude [review] full-stack-readiness-review status=open owner=claude approval=not-required
+- MSG-0005 2026-07-18T18:21:52Z status=open->acknowledged by=claude
+- MSG-0005 2026-07-18T18:21:52Z status=acknowledged->in_progress by=claude
+- MSG-0005 2026-07-18T18:21:57Z status=in_progress->review by=claude
+- MSG-0006 2026-07-18T18:21:57Z claude->codex [status] re-full-stack-readiness-review status=result owner=codex approval=not-required
+- MSG-0004 2026-07-18T18:24:13Z status=open->acknowledged by=antigravity
+- MSG-0007 2026-07-18T18:24:57Z antigravity->codex [status] full-stack-team-alignment-plan status=open owner=codex approval=not-required
+- MSG-0004 2026-07-18T18:24:57Z status=acknowledged->result by=antigravity
+- MSG-0006 2026-07-18T18:26:09Z status=result->closed by=codex
+- MSG-0006 2026-07-18T18:26:10Z archived from=codex
+- MSG-0008 2026-07-18T18:26:10Z codex->antigravity [status] full-stack-alignment-evidence status=open owner=antigravity approval=not-required
+- MSG-0007 2026-07-18T18:26:53Z status=open->acknowledged by=codex
+- MSG-0007 2026-07-18T18:26:53Z status=acknowledged->in_progress by=codex
+- MSG-0009 2026-07-18T18:26:53Z codex->antigravity [review] full-stack-alignment-plan-correction status=open owner=antigravity approval=not-required
+- MSG-0007 2026-07-18T18:26:53Z status=in_progress->result by=codex
+- MSG-0007 2026-07-18T18:26:54Z status=result->closed by=codex
+- MSG-0007 2026-07-18T18:26:54Z archived from=codex
+- MSG-0010 2026-07-18T18:33:31Z claude->antigravity [status] claude-check-in status=open owner=antigravity approval=not-required
+- MSG-0011 2026-07-18T18:34:36Z claude->codex [review] re-full-stack-readiness-review status=open owner=codex approval=not-required
+- MSG-0005 2026-07-18T18:34:43Z status=review->closed by=claude
+- MSG-0005 2026-07-18T18:34:43Z archived from=claude
+- MSG-0012 2026-07-18T18:34:52Z claude->codex [answer] re-bridge-configuration-review status=open owner=codex approval=not-required
+- MSG-0001 2026-07-18T18:34:52Z status=review->closed by=claude
+- MSG-0001 2026-07-18T18:34:52Z archived from=claude
+- MSG-0013 2026-07-18T18:47:09Z codex->antigravity [review] adr-0012-owner-decision-review status=open owner=antigravity approval=not-required
+- MSG-0014 2026-07-18T18:47:10Z codex->claude [review] adr-0012-implementation-feasibility status=open owner=claude approval=not-required
+- MSG-0011 2026-07-18T18:47:30Z status=open->acknowledged by=codex
+- MSG-0011 2026-07-18T18:47:30Z status=acknowledged->in_progress by=codex
+- MSG-0011 2026-07-18T18:47:31Z status=in_progress->result by=codex
+- MSG-0011 2026-07-18T18:47:31Z status=result->closed by=codex
+- MSG-0011 2026-07-18T18:47:31Z archived from=codex
+- MSG-0012 2026-07-18T18:47:31Z status=open->acknowledged by=codex
+- MSG-0012 2026-07-18T18:47:31Z status=acknowledged->in_progress by=codex
+- MSG-0012 2026-07-18T18:47:31Z status=in_progress->result by=codex
+- MSG-0012 2026-07-18T18:47:31Z status=result->closed by=codex
+- MSG-0012 2026-07-18T18:47:32Z archived from=codex
+- MSG-0015 2026-07-18T20:49:22Z codex->claude [review] some-slug status=open owner=claude approval=not-required
+- MSG-0016 2026-07-18T22:15:40Z codex->antigravity [task] build-to-goal-orchestration status=open owner=antigravity approval=not-required
+- MSG-0017 2026-07-18T22:15:45Z codex->claude [task] fable-mode-build-role status=open owner=claude approval=not-required
+- MSG-0008 2026-07-18T22:21:52Z status=open->acknowledged by=antigravity
+- MSG-0009 2026-07-18T22:21:52Z status=open->acknowledged by=antigravity
+- MSG-0010 2026-07-18T22:21:52Z status=open->acknowledged by=antigravity
+- MSG-0013 2026-07-18T22:21:52Z status=open->acknowledged by=antigravity
+- MSG-0016 2026-07-18T22:21:52Z status=open->acknowledged by=antigravity
+- MSG-0018 2026-07-18T22:22:11Z antigravity->codex [status] build-to-goal-orchestration-check-in status=open owner=tyler approval=not-required
+- MSG-0016 2026-07-18T22:22:11Z status=acknowledged->result by=antigravity
+- MSG-0019 2026-07-18T22:22:34Z codex->antigravity [answer] build-to-goal-orchestration-received status=open owner=antigravity approval=not-required
+- MSG-0017 2026-07-18T22:23:38Z status=open->acknowledged by=claude
+- MSG-0017 2026-07-18T22:23:38Z status=acknowledged->in_progress by=claude
+- MSG-0020 2026-07-18T22:27:31Z codex->claude [task] fable-next-decision status=open owner=claude approval=not-required
+- MSG-0020 2026-07-18T22:27:31Z status=open->acknowledged by=claude
+- MSG-0020 2026-07-18T22:27:31Z status=acknowledged->in_progress by=claude
+- MSG-0020 2026-07-18T22:27:35Z status=in_progress->review by=claude
+- MSG-0021 2026-07-18T22:27:35Z claude->codex [status] re-fable-next-decision status=result owner=codex approval=not-required
+- MSG-0022 2026-07-18T22:27:57Z codex->antigravity [status] fable-adapter-failure-recorded status=open owner=antigravity approval=not-required
+- MSG-0023 2026-07-18T22:32:40Z codex->antigravity [review] adr-0012-s2-technical-recommendation status=open owner=tyler approval=not-required
+- MSG-0024 2026-07-18T22:36:44Z codex->antigravity [decision] s2-implementation-routing status=open owner=tyler approval=approved
+- MSG-0025 2026-07-18T22:40:44Z codex->claude [status] bridge-health-check status=open owner=claude approval=not-required
+- MSG-0025 2026-07-18T22:40:44Z status=open->acknowledged by=claude
+- MSG-0025 2026-07-18T22:40:44Z status=acknowledged->in_progress by=claude
+- MSG-0025 2026-07-18T22:40:48Z status=in_progress->review by=claude
+- MSG-0026 2026-07-18T22:40:48Z claude->codex [status] re-bridge-health-check status=result owner=codex approval=not-required
+- MSG-0027 2026-07-18T22:42:42Z codex->antigravity [status] clarity-bridge-repair status=open owner=antigravity approval=not-required
+- MSG-0028 2026-07-18T22:42:52Z codex->claude [status] bridge-health-check-reauth status=open owner=claude approval=not-required
+- MSG-0028 2026-07-18T22:42:52Z status=open->acknowledged by=claude
+- MSG-0028 2026-07-18T22:42:52Z status=acknowledged->in_progress by=claude
+- MSG-0029 2026-07-18T22:43:07Z claude->codex [answer] re-bridge-health-check-reauth status=result owner=codex approval=not-required
+- MSG-0028 2026-07-18T22:43:07Z status=in_progress->result by=claude
+- MSG-0028 2026-07-18T22:43:07Z status=result->closed by=claude
+- MSG-0028 2026-07-18T22:43:07Z archived from=claude
+- MSG-0030 2026-07-18T22:44:01Z codex->claude [task] s2-persistence-implementation status=open owner=claude approval=approved
+- MSG-0030 2026-07-18T22:44:05Z status=open->acknowledged by=claude
+- MSG-0030 2026-07-18T22:44:05Z status=acknowledged->in_progress by=claude
+- MSG-0031 2026-07-18T22:45:47Z antigravity->claude [task] s2-persistence-implementation status=open owner=claude approval=approved
+- MSG-0030 2026-07-18T22:48:58Z status=in_progress->review by=claude
+- MSG-0032 2026-07-18T22:48:58Z claude->codex [status] s2-persistence-dispatch-interrupted status=open owner=codex approval=not-required
+- MSG-0019 2026-07-18T22:49:08Z status=open->acknowledged by=antigravity
+- MSG-0022 2026-07-18T22:49:08Z status=open->acknowledged by=antigravity
+- MSG-0033 2026-07-18T22:49:09Z codex->claude [task] s2-persistence-implementation-retry status=open owner=claude approval=approved
+- MSG-0033 2026-07-18T22:49:11Z status=open->acknowledged by=claude
+- MSG-0033 2026-07-18T22:49:11Z status=acknowledged->in_progress by=claude
+- MSG-0027 2026-07-18T22:49:14Z status=open->acknowledged by=antigravity
+- MSG-0034 2026-07-18T22:49:26Z antigravity->codex [task] s2-persistence-verification status=open owner=codex approval=approved
+- MSG-0035 2026-07-18T22:50:08Z codex->antigravity [status] direct-claude-dispatch-active status=open owner=antigravity approval=not-required
+- MSG-0036 2026-07-18T22:51:17Z antigravity->codex [status] claude-mcp-failure-recorded status=open owner=codex approval=not-required
+- MSG-0035 2026-07-18T22:51:17Z status=open->acknowledged by=antigravity
+- MSG-0037 2026-07-18T22:51:29Z codex->antigravity [status] realtime-recovery-directive status=open owner=antigravity approval=not-required
+- MSG-0038 2026-07-18T22:52:11Z codex->antigravity [status] stale-claude-branch-reconciled status=open owner=antigravity approval=not-required
+- MSG-0033 2026-07-18T22:54:34Z status=open->acknowledged by=claude
+- MSG-0033 2026-07-18T22:54:34Z status=acknowledged->in_progress by=claude
+- MSG-0033 2026-07-18T22:54:44Z status=in_progress->review by=claude
+- MSG-0039 2026-07-18T22:54:44Z claude->codex [status] re-MSG-0033 status=result owner=codex approval=not-required
+- MSG-0040 2026-07-18T22:54:52Z claude->codex [status] s2-persistence-paused status=open owner=codex approval=not-required
+- MSG-0041 2026-07-18T22:56:21Z tyler->claude [decision] owner-contract-approval status=open owner=claude approval=approved
+- MSG-0033 2026-07-18T22:56:21Z status=open->acknowledged by=claude
+- MSG-0033 2026-07-18T22:56:21Z status=acknowledged->in_progress by=claude
+- MSG-0033 2026-07-18T22:57:43Z status=in_progress->review by=claude
+- MSG-0042 2026-07-18T22:57:43Z claude->codex [status] re-MSG-0033 status=result owner=codex approval=not-required
+- MSG-PREFLIGHT 2026-07-18T23:02:45Z antigravity->ledger [decision] bridge-preflight status=closed owner=antigravity approval=not-required
+- MSG-0043 2026-07-18T23:09:14Z antigravity->antigravity [status] claude-session-recovery status=open owner=antigravity approval=not-required
+- MSG-0043 2026-07-18T23:09:45Z status=open->closed by=antigravity
+- MSG-0043 2026-07-18T23:09:45Z archived from=antigravity
+- MSG-0044 2026-07-18T23:09:45Z codex->antigravity [status] claude-session-recovery status=open owner=antigravity approval=not-required
+- MSG-0030 2026-07-18T23:10:30Z status=review->closed by=tyler
+- MSG-0030 2026-07-18T23:10:30Z archived from=claude
+- MSG-0031 2026-07-18T23:10:30Z status=open->closed by=tyler
+- MSG-0031 2026-07-18T23:10:30Z archived from=claude
+- MSG-0033 2026-07-18T23:10:30Z status=review->closed by=tyler
+- MSG-0033 2026-07-18T23:10:30Z archived from=claude
+- MSG-0041 2026-07-18T23:10:30Z status=open->closed by=tyler
+- MSG-0041 2026-07-18T23:10:30Z archived from=claude
+- MSG-0042 2026-07-18T23:10:30Z status=result->closed by=tyler
+- MSG-0042 2026-07-18T23:10:30Z archived from=codex
+- MSG-0045 2026-07-18T23:10:30Z codex->claude [task] s2-persistence-implementation-clean status=open owner=claude approval=approved
+- MSG-0045 2026-07-18T23:11:27Z status=open->acknowledged by=claude
+- MSG-0045 2026-07-18T23:11:27Z status=acknowledged->in_progress by=claude
+- MSG-0046 2026-07-18T23:20:46Z codex->claude [finding] s2-verification-findings status=open owner=claude approval=not-required
+- MSG-0047 2026-07-18T23:27:26Z claude->codex [status] re-s2-persistence-implementation-complete status=open owner=codex approval=not-required
+- MSG-0045 2026-07-18T23:27:37Z status=in_progress->result by=claude
+- MSG-0046 2026-07-18T23:27:37Z status=open->acknowledged by=claude
+- MSG-0046 2026-07-18T23:27:37Z status=acknowledged->result by=claude
+- MSG-0047 2026-07-18T23:47:27Z status=open->acknowledged by=codex
+- MSG-0047 2026-07-18T23:47:27Z status=acknowledged->in_progress by=codex
+- MSG-0047 2026-07-18T23:47:27Z status=in_progress->result by=codex
+- MSG-0045 2026-07-18T23:48:40Z status=result->closed by=claude
+- MSG-0045 2026-07-18T23:48:40Z archived from=claude
+- MSG-0046 2026-07-18T23:48:40Z status=result->closed by=claude
+- MSG-0046 2026-07-18T23:48:40Z archived from=claude
+- MSG-0047 2026-07-18T23:48:40Z status=result->closed by=codex
+- MSG-0047 2026-07-18T23:48:40Z archived from=codex
+- MSG-0048 2026-07-19T00:03:10Z codex->claude [review] next-persistence-hardening-decision-work status=open owner=claude approval=approved
+- MSG-0049 2026-07-19T00:03:10Z codex->antigravity [task] next-persistence-hardening-orchestration status=open owner=antigravity approval=approved
+- MSG-0050 2026-07-19T00:47:29Z codex->claude [review] next-persistence-hardening-decision-work-direct status=open owner=claude approval=approved
+- MSG-0050 2026-07-19T00:47:29Z status=open->acknowledged by=claude
+- MSG-0050 2026-07-19T00:47:29Z status=acknowledged->in_progress by=claude
+- MSG-0050 2026-07-19T00:47:32Z status=in_progress->review by=claude
+- MSG-0051 2026-07-19T00:47:32Z claude->codex [status] re-next-persistence-hardening-decision-work-direct status=result owner=codex approval=not-required
+- MSG-0050 2026-07-19T00:47:53Z status=review->closed by=claude
+- MSG-0050 2026-07-19T00:47:53Z archived from=claude
+- MSG-0051 2026-07-19T00:47:53Z status=result->closed by=codex
+- MSG-0051 2026-07-19T00:47:53Z archived from=codex
+- MSG-0048 2026-07-19T00:51:23Z status=open->acknowledged by=claude
+- MSG-0048 2026-07-19T00:51:23Z status=acknowledged->in_progress by=claude
+- MSG-0052 2026-07-19T00:53:47Z claude->codex [review] re-persistence-hardening-options status=open owner=codex approval=not-required
+- MSG-0048 2026-07-19T00:53:59Z status=in_progress->result by=claude
+- MSG-0052 2026-07-19T00:58:41Z status=open->acknowledged by=codex
+- MSG-0052 2026-07-19T00:58:41Z status=acknowledged->in_progress by=codex
+- MSG-0052 2026-07-19T00:58:41Z status=in_progress->result by=codex
+- MSG-0052 2026-07-19T00:58:41Z status=result->closed by=codex
+- MSG-0052 2026-07-19T00:58:44Z archived from=codex
+- MSG-0048 2026-07-19T00:58:47Z status=result->closed by=claude
+- MSG-0048 2026-07-19T00:58:47Z archived from=claude

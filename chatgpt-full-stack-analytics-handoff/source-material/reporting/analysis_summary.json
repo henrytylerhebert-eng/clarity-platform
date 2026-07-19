@@ -1,0 +1,151 @@
+{
+  "source_workbook": "Reporting Metrics Ops and Budget .xlsx",
+  "sheet_count": 44,
+  "formula_count": 3933,
+  "formula_error_count": 278,
+  "error_counts": {
+    "#DIV/0!": 255,
+    "#REF!": 23
+  },
+  "sheet_categories": {
+    "Ancillary invoice cost rollup": 1,
+    "Monthly IP revenue / UR / payer mix": 12,
+    "Budget vs actual rollup": 1,
+    "Monthly staffing, census ratios, agency/PTO/1:1 cost": 12,
+    "YTD executive KPI rollup": 1,
+    "Admissions origin detail": 1,
+    "IP daily census/admit/discharge rollup": 1,
+    "IOP daily census/attendance rollup": 1,
+    "Monthly IOP attendance detail": 12,
+    "Blank/unused sheet": 2
+  },
+  "top_dependencies": [
+    {
+      "from_sheet": "2012 YTD Summary",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 67
+    },
+    {
+      "from_sheet": "Ancil Invoices",
+      "to_sheet": "2012 YTD Summary",
+      "formula_refs": 48
+    },
+    {
+      "from_sheet": "Staffing August",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 37
+    },
+    {
+      "from_sheet": "Staffing December",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 37
+    },
+    {
+      "from_sheet": "Staffing January",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 37
+    },
+    {
+      "from_sheet": "Staffing July",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 37
+    },
+    {
+      "from_sheet": "Staffing March",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 37
+    },
+    {
+      "from_sheet": "Staffing May",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 37
+    },
+    {
+      "from_sheet": "Staffing October",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 37
+    },
+    {
+      "from_sheet": "2012 YTD Summary",
+      "to_sheet": "Daily Census IOP 2012",
+      "formula_refs": 36
+    },
+    {
+      "from_sheet": "Staffing April",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 36
+    },
+    {
+      "from_sheet": "Staffing June",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 36
+    },
+    {
+      "from_sheet": "Staffing November",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 36
+    },
+    {
+      "from_sheet": "Staffing September",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 36
+    },
+    {
+      "from_sheet": "Staffing February",
+      "to_sheet": "Daily Census IP 2012",
+      "formula_refs": 35
+    },
+    {
+      "from_sheet": "2012 YTD Summary",
+      "to_sheet": "Admissions",
+      "formula_refs": 24
+    },
+    {
+      "from_sheet": "Budget vs Actual",
+      "to_sheet": "2012 YTD Summary",
+      "formula_refs": 24
+    },
+    {
+      "from_sheet": "2012 YTD Summary",
+      "to_sheet": "Staffing April",
+      "formula_refs": 14
+    },
+    {
+      "from_sheet": "2012 YTD Summary",
+      "to_sheet": "Staffing August",
+      "formula_refs": 14
+    },
+    {
+      "from_sheet": "2012 YTD Summary",
+      "to_sheet": "Staffing December",
+      "formula_refs": 14
+    }
+  ],
+  "phi_risk_sheets": [
+    "Aug Revenue",
+    "Admissions",
+    "Jan Revenue",
+    "Feb Revenue",
+    "Mar Revenue",
+    "Apr Revenue",
+    "May Revenue",
+    "June Revenue",
+    "July Revenue",
+    "Sep Revenue",
+    "Oct Revenue",
+    "Nov Revenue",
+    "Dec Revenue",
+    "Jan IOP 2012 Attend",
+    "Feb IOP 2012 Attend",
+    "Mar IOP Attend",
+    "Apr IOP Attend",
+    "May IOP Attend",
+    "June IOP Attend",
+    "July IOP Attend",
+    "August IOP Attend",
+    "Sept IOP Attend",
+    "Oct IOP Attend",
+    "Nov IOP Attend",
+    "Dec IOP Attend"
+  ]
+}

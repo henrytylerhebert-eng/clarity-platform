@@ -1,6 +1,6 @@
 # Security
 
-**Status: requirements documented; controls NOT implemented.** The prototype has no authentication, backend, or server-side persistence. Nothing in this repository is HIPAA-compliant by virtue of documentation.
+**Status: requirements documented; production controls NOT implemented.** The repository now includes authentication, API, and service-foundation code, but it is not a deployed or PHI-ready system. Production security, privacy, tenancy, hosting, monitoring, and real-data controls remain unapproved and unverified. Nothing in this repository is HIPAA-compliant by virtue of documentation.
 
 Full policy: [docs/security/SECURITY_AND_PRIVACY.md](docs/security/SECURITY_AND_PRIVACY.md).
 

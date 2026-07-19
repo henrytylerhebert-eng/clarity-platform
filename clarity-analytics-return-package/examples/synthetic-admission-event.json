@@ -1,0 +1,102 @@
+{
+  "eventId": "90000000-0000-4000-8000-000000000001",
+  "schema": {
+    "name": "clarity.events.admission-recorded",
+    "version": "1.0.0"
+  },
+  "eventType": {
+    "name": "ADMISSION_RECORDED",
+    "version": 1
+  },
+  "aggregate": {
+    "type": "EPISODE",
+    "id": "70000000-0000-4000-8000-000000000001",
+    "version": 1
+  },
+  "tenant": {
+    "organizationId": "10000000-0000-4000-8000-000000000001",
+    "facilityId": "20000000-0000-4000-8000-000000000001",
+    "programId": "30000000-0000-4000-8000-000000000001",
+    "unitId": "40000000-0000-4000-8000-000000000001"
+  },
+  "subject": {
+    "caseId": "80000000-0000-4000-8000-000000000001",
+    "episodeId": "70000000-0000-4000-8000-000000000001",
+    "episodeDayId": null,
+    "personToken": null
+  },
+  "times": {
+    "effectiveAt": "2026-07-18T20:15:00-05:00",
+    "recordedAt": "2026-07-19T01:16:00Z",
+    "receivedAt": null
+  },
+  "actor": {
+    "type": "USER",
+    "id": "synthetic-admissions-user-001",
+    "displayRole": "ADMISSIONS_COORDINATOR",
+    "sessionId": "synthetic-session-admission-001"
+  },
+  "source": {
+    "kind": "NATIVE_CLARITY",
+    "system": "clarity-platform",
+    "sourceTenantKey": null,
+    "sourceEventId": null,
+    "sourceEventVersion": null,
+    "adapterName": "episode-service",
+    "adapterVersion": "proposed-0.1.0",
+    "method": "FACILITY_WORKFLOW",
+    "provenanceRefs": [
+      {
+        "type": "ACCEPTED_FACILITY_RESPONSE",
+        "id": "75000000-0000-4000-8000-000000000001",
+        "version": "3",
+        "hash": null
+      },
+      {
+        "type": "PACKET_VERSION",
+        "id": "76000000-0000-4000-8000-000000000001",
+        "version": "5",
+        "hash": null
+      }
+    ]
+  },
+  "correlation": {
+    "correlationId": "synthetic-correlation-admission-001",
+    "causationId": "synthetic-case-acceptance-001",
+    "commandId": "synthetic-command-admission-001"
+  },
+  "classification": "PUBLIC_SYNTHETIC",
+  "quality": {
+    "state": "VALID",
+    "issues": []
+  },
+  "review": {
+    "state": "ATTESTED",
+    "reviewedByActorId": "synthetic-admissions-user-001",
+    "reviewedAt": "2026-07-19T01:16:00Z",
+    "attestationCode": "AUTHORIZED_ADMISSION_RECORDED"
+  },
+  "correction": {
+    "kind": "ORIGINAL",
+    "supersedesEventId": null,
+    "reasonCode": null
+  },
+  "metricEligibility": "ELIGIBLE",
+  "payloadHash": "f7c86118324b7846e1ef21c56944447c648a3651633fa100012af2ed7397ec18",
+  "payload": {
+    "episodeId": "70000000-0000-4000-8000-000000000001",
+    "sourceCaseId": "80000000-0000-4000-8000-000000000001",
+    "admissionRecordId": "74000000-0000-4000-8000-000000000001",
+    "acceptedFacilityResponseId": "75000000-0000-4000-8000-000000000001",
+    "facilityId": "20000000-0000-4000-8000-000000000001",
+    "programId": "30000000-0000-4000-8000-000000000001",
+    "unitId": "40000000-0000-4000-8000-000000000001",
+    "facilityTimezone": "America/Chicago",
+    "admittedAt": "2026-07-18T20:15:00-05:00",
+    "serviceDate": "2026-07-18",
+    "sourcePacketVersionId": "76000000-0000-4000-8000-000000000001",
+    "sourceCustodyEventId": null,
+    "attestationCode": "AUTHORIZED_ADMISSION_RECORDED",
+    "syntheticFixture": true
+  }
+}

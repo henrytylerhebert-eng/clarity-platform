@@ -1,6 +1,6 @@
 # Source Document Index
 
-Date: 2026-07-08
+Date: 2026-07-08 (CIA integration bundle added 2026-07-17)
 
 ## Source Handling Rule
 
@@ -54,6 +54,17 @@ Available files:
 
 - `mental-health-clarity-chain-of-custody-thread.txt`
 - `research-product-scope-thread.txt`
+
+### Clarity CIA integration bundle
+
+Path: `reference/source-packages/clarity_cia_integration_bundle_v1_0_0/`
+
+Available files:
+
+- `clarity_cia_full_product_spec_v1_0_0.json` (Comprehensive Initial Assessment implementation blueprint, `product.status: implementation_blueprint`)
+- `clarity_cia_runtime_schema_v1_0_0.json` (JSON Schema Draft 2020-12 runtime record schema)
+- `clarity_cia_empty_record_template_v1_0_0.json` (empty longitudinal record template)
+- `clarity_cia_architect_and_runtime_prompts_v1_0_0.json` (architect, runtime orchestrator, per-stage, and finalizer prompts)
 
 ### Reporting metrics rebuild package
 
@@ -298,6 +309,32 @@ Use status:
 - Any measured operational improvement from rebuild: `unknown`
 - Proprietary payer criteria automation: `requires clinical review`
 - Proprietary criteria system copying or embedding: `requires legal review`
+
+### 11. `clarity_cia_integration_bundle_v1_0_0/`
+
+Role:
+
+- Comprehensive Initial Assessment (CIA) product blueprint: three-stage documentation workflow, role/permission model, safety controls, runtime schema, and orchestration prompts. Onboarded 2026-07-17 for the intake-to-admission workflow lane.
+
+Main contributions:
+
+- Stage model: Stage 1 field/crisis/intake (brief, safety-first), Stage 2 registered-nurse assessment (verify, reconcile, medical screening), Stage 3 social-services comprehensive biopsychosocial integration, then final clinical review.
+- Eleven-role taxonomy in which intake specialist, registered nurse, and crisis clinician are distinct roles (intake staff are not assumed to be nurses).
+- Restricted-capability model: diagnosis confirmation, psychiatric evaluation, medical clearance, medication orders, observation orders, legal-status determination, and medical-necessity signoff are limited to authorized roles "per policy and scope," with configuration-level delegation.
+- Signature matrix per care setting; signed content locked; amendment workflow; silent-overwrite prohibition; field-level source attribution (person report vs. collateral vs. observation vs. record review vs. clinician synthesis).
+- Explicit answer states (unknown, unable to obtain, declined, not assessed, pending verification, conflicting information, not applicable) — a blank is never a negative.
+- Hard-stop safety interrupts invoking the organization's approved emergency protocols; AI is draft-only for high-risk fields.
+- Configurable regulatory profiles instead of a single national template; privacy segmentation incl. 42 CFR Part 2.
+- Vendor-neutral JSON contract: runtime JSON Schema, stable field IDs, JSON Pointer provenance, FHIR R4 mapping suggestions, event hooks, API adapter contract.
+
+Use status:
+
+- Three-stage workflow and role separation: `source-confirmed`
+- Restricted-capability / authorized-signer model: `source-confirmed` as architecture; specific delegation rules (e.g., physician-to-NP acceptance delegation): `requires clinical review` and `requires legal review` per facility policy and state scope-of-practice law.
+- Facility-specific exclusionary/inclusionary admission criteria and lab standards: `unknown` — not covered by this bundle; captured as a platform requirement in `docs/workflows/INTAKE_TO_ADMISSION_WORKFLOW.md`.
+- Ambient audio capture for nursing documentation: `unknown` — bundle covers transcript-to-structured-field proposals only.
+- Clinical content of any stage: `requires clinical review`
+- Legal-status and consent handling: `requires legal review`
 
 ## Product Claim Register
 

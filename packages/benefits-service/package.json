@@ -1,0 +1,13 @@
+{
+  "name": "@clarity/benefits-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Manual insurance and benefits verification command service. Human-performed verification only: coverage records citing approved insurance evidence, eligibility attempts with proof documents, disclaimer-gated benefit quotes, and financial-education records. No payer integrations, no X12 transactions, no automation, no member/group/policy identifiers (deferred until an encryption capability exists). No Prisma outside the approved gateway adapter.",
+  "dependencies": {
+    "@clarity/case-repository": "*",
+    "@clarity/domain-contracts": "*",
+    "zod": "^3.24.1"
+  }
+}

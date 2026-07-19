@@ -380,8 +380,28 @@ model User {
   reviews        HumanReview[]
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
+  authSessions   AuthSession[]
 
   @@index([organizationId])
+}
+
+/// Server-side session record (ADR-0011). The raw bearer token is returned
+/// to the caller exactly once and stored ONLY as a SHA-256 hash — no code
+/// path can recover it. Revocation is a timestamp, never a delete, so the
+/// session trail survives for audit.
+model AuthSession {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  organizationId String
+  tokenHash      String    @unique
+  issuedAt       DateTime  @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([organizationId, userId])
+  @@index([expiresAt])
 }
 
 model PatientToken {
@@ -441,6 +461,9 @@ model BehavioralHealthCase {
   auditEvents               AuditEvent[]
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
+  contradictionGroups       ContradictionGroup[]
+  episodes                  Episode[]
+  episodeLinks              CaseEpisodeLink[]
 
   @@index([organizationId, status])
   @@index([assignedUserId])
@@ -485,26 +508,70 @@ model EvidenceItem {
   id                   String               @id @default(cuid())
   caseId               String
   case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organizationId       String
   documentId           String
   document             SourceDocument       @relation(fields: [documentId], references: [id], onDelete: Cascade)
   category             EvidenceCategory
   subcategory          String?
+  /// Verbatim source text, captured at creation and never updated by any
+  /// code path — corrections touch normalizedValue/annotations only;
+  /// material changes create a superseding item (ADR-0008).
   originalText         String
   normalizedValue      Json?
   pageNumber           Int?
   sectionLabel         String?
   sourceAuthor         String?
   sourceTimestamp      DateTime?
+  /// Null for human-entered evidence; reserved for future automation.
   extractionConfidence Float?
   status               EvidenceStatus       @default(CANDIDATE)
-  contradictionGroupId String?
+  /// How the item came to exist. Contract vocabulary: HUMAN_ENTRY (only
+  /// value until automated extraction exists).
+  creationMethod       String
+  createdBy            String
+  reviewerNote         String?
   reviewedBy           String?
   reviewedAt           DateTime?
+  /// Correction chain root: the first item's id, shared by every item that
+  /// supersedes it.
+  evidenceFamilyId     String
+  supersededById       String?
+  supersededBy         EvidenceItem?        @relation("EvidenceSupersession", fields: [supersededById], references: [id])
+  supersedes           EvidenceItem[]       @relation("EvidenceSupersession")
+  contradictionGroupId String?
+  contradictionGroup   ContradictionGroup?  @relation(fields: [contradictionGroupId], references: [id])
+  /// Optimistic-concurrency token, same discipline as cases/documents.
+  version              Int                  @default(0)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 
   @@index([caseId, category, status])
   @@index([documentId])
+  @@index([organizationId, caseId])
+  @@index([evidenceFamilyId])
+  @@index([contradictionGroupId])
+  @@index([supersededById])
+}
+
+/// A reviewer-visible grouping of conflicting evidence. Grouping never
+/// changes any member's status; classification records what KIND of
+/// discrepancy a human judged it to be, not which side is correct.
+model ContradictionGroup {
+  id             String               @id @default(cuid())
+  organizationId String
+  caseId         String
+  case           BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  /// Contract vocabulary: DIRECT_CONFLICT | TEMPORAL_CHANGE |
+  /// SOURCE_DISAGREEMENT | UNCLEAR. Null until a reviewer classifies.
+  classification String?
+  reviewNote     String?
+  createdBy      String
+  version        Int                  @default(0)
+  items          EvidenceItem[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([organizationId, caseId])
 }
 
 model HumanReview {
@@ -524,21 +591,29 @@ model HumanReview {
 }
 
 model LegalStatusRecord {
-  id                   String                   @id @default(cuid())
-  caseId               String
-  case                 BehavioralHealthCase     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  jurisdiction         String
-  statusType           LegalStatusType
-  authorizingAuthority String?
-  initiatedAt          DateTime?
-  expiresAt            DateTime?
-  formDocumentId       String?
-  signatureStatus      String?
-  reviewStatus         ParallelWorkstreamStatus @default(NOT_STARTED)
-  createdAt            DateTime                 @default(now())
-  updatedAt            DateTime                 @updatedAt
+  id                       String                   @id @default(cuid())
+  caseId                   String
+  case                     BehavioralHealthCase     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  jurisdiction             String
+  statusType               LegalStatusType
+  authorizingAuthority     String?
+  /// License board of the signing professional (LSBME/LSBN/LSBEP), when known —
+  /// together with authorizingLicenseNumber, the stable key for tracking how
+  /// often a professional issues these instruments (a license persists across
+  /// facilities/organizations; there is no cross-organization "professional"
+  /// entity in this schema, so this pair is the closest stable identifier).
+  authorizingLicenseBoard  String?
+  authorizingLicenseNumber String?
+  initiatedAt              DateTime?
+  expiresAt                DateTime?
+  formDocumentId           String?
+  signatureStatus          String?
+  reviewStatus             ParallelWorkstreamStatus @default(NOT_STARTED)
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
 
   @@index([caseId, jurisdiction])
+  @@index([authorizingLicenseBoard, authorizingLicenseNumber])
 }
 
 model MedicalNecessityReview {
@@ -660,6 +735,7 @@ model InsuranceCoverage {
   id                     String                    @id @default(cuid())
   caseId                 String
   case                   BehavioralHealthCase      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organizationId         String
   patientTokenId         String
   patientToken           PatientToken              @relation(fields: [patientTokenId], references: [id])
   coverageOrder          CoverageOrder
@@ -683,11 +759,15 @@ model InsuranceCoverage {
   eligibilityChecks      EligibilityVerification[]
   benefitVerifications   BenefitVerification[]
   authorizations         Authorization[]
+  /// Optimistic-concurrency token for the status rollup, same discipline as
+  /// cases/documents/evidence.
+  version                Int                       @default(0)
   createdAt              DateTime                  @default(now())
   updatedAt              DateTime                  @updatedAt
 
   @@index([caseId, coverageOrder])
   @@index([payerProfileId])
+  @@index([organizationId, caseId])
 }
 
 model EligibilityVerification {
@@ -763,6 +843,7 @@ model Authorization {
   id                   String               @id @default(cuid())
   caseId               String
   case                 BehavioralHealthCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organizationId       String
   insuranceCoverageId  String
   insuranceCoverage    InsuranceCoverage    @relation(fields: [insuranceCoverageId], references: [id])
   requestedLevelOfCare LevelOfCare
@@ -777,11 +858,14 @@ model Authorization {
   denialReason         String?
   appealStatus         String?
   assignedUserId       String?
+  /// Optimistic-concurrency token, same discipline as every other aggregate.
+  version              Int                  @default(0)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 
   @@index([caseId, status])
   @@index([insuranceCoverageId])
+  @@index([organizationId, caseId])
 }
 
 model FinancialEducationRecord {
@@ -819,6 +903,8 @@ model FacilityProfile {
   referralRequirements    String[]
   lastVerifiedAt          DateTime?
   referrals               Referral[]
+  episodes                Episode[]
+  timezoneConfigurations  FacilityTimezoneConfiguration[]
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
 
@@ -892,9 +978,373 @@ model CommandIdempotencyRecord {
   idempotencyKey String
   commandType    String
   caseId         String?
+  /// Non-case object a replay must rehydrate (e.g. an evidence item id).
+  objectId       String?
   resultVersion  Int?
   createdAt      DateTime @default(now())
 
   @@unique([organizationId, idempotencyKey])
   @@index([organizationId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// S2 persistence: episodes, episode-owned utilization review, governed events,
+// and the transactional outbox. Additive, synthetic-only, runtime-free
+// (docs/decisions/S2_PERSISTENCE_DECISION_PACKET.md). Domain shapes live in
+// @clarity/domain-contracts (episode.ts, utilizationReview.ts, analytics.ts);
+// these tables persist those contracts. No HTTP, workers, dispatch, marts, UI,
+// or RLS are introduced here.
+// ---------------------------------------------------------------------------
+
+enum EpisodeStatus {
+  ACTIVE
+  DISCHARGED
+  CLOSED
+}
+
+enum CaseEpisodeRelationship {
+  ADMISSION_SOURCE
+  TRANSFER_SOURCE
+  READMISSION_SOURCE
+}
+
+enum EpisodeAuthorizationRequirement {
+  REQUIRED
+  NOT_REQUIRED
+  UNKNOWN
+}
+
+enum EpisodeAuthorizationStatus {
+  OPEN
+  CLOSED
+  SUPERSEDED
+}
+
+enum AuthorizationReviewType {
+  INITIAL
+  CONCURRENT
+  RETROSPECTIVE
+  PEER_TO_PEER
+  APPEAL
+}
+
+enum AuthorizationReviewStatus {
+  PENDING
+  APPROVED
+  DENIED
+  WITHDRAWN
+  UNKNOWN
+}
+
+enum AuthorizationDayOutcome {
+  APPROVED
+  DENIED
+  PENDING
+}
+
+enum DenialReasonCode {
+  MISSING_AUTHORIZATION
+  LATE_REVIEW
+  DOCUMENTATION_GAP
+  LEVEL_OF_CARE_NOT_SUPPORTED
+  ELIGIBILITY_OR_COVERAGE
+  OTHER_CONTROLLED
+}
+
+enum DocumentationGapCategory {
+  MISSING_PROGRESS_NOTE
+  MISSING_PHYSICIAN_ORDER
+  MISSING_TREATMENT_PLAN
+  MISSING_RISK_UPDATE
+  MISSING_DISCHARGE_PLAN
+  MISSING_SIGNATURE_OR_ATTESTATION
+  INCONSISTENT_LEVEL_OF_CARE_SUPPORT
+  PAYER_REQUESTED_CLARIFICATION
+  OTHER_CONTROLLED
+}
+
+enum DocumentationGapStatus {
+  OPEN
+  ACKNOWLEDGED
+  IN_PROGRESS
+  RESOLVED
+  DISPUTED
+  REOPENED
+  CANCELLED
+  SUPERSEDED
+}
+
+/// Facility-owned timezone lineage (S2 decision 3). The service date behind
+/// every episode day is derived ONLY from an explicit facility-configuration
+/// source reference, its version, and its effective date — never inferred from
+/// browser, server, or organization name. Rows are append-only: a new version
+/// supersedes the prior one via `supersededById`; the old row is never edited.
+model FacilityTimezoneConfiguration {
+  id                String          @id @default(cuid())
+  organizationId    String
+  facilityProfileId String
+  facilityProfile   FacilityProfile @relation(fields: [facilityProfileId], references: [id])
+  /// IANA timezone name (validated against Intl before persistence).
+  facilityTimezone  String
+  /// Controlled source vocabulary; today only FACILITY_CONFIGURATION.
+  source            String
+  /// The facility-owned configuration record this value came from.
+  sourceReferenceId String
+  /// Monotonic version of this facility's timezone configuration.
+  version           Int
+  /// Date from which this configuration version is effective.
+  effectiveDate     DateTime
+  /// Set when a newer version replaces this one; the old row is frozen.
+  supersededById    String?                        @unique
+  supersededBy      FacilityTimezoneConfiguration? @relation("FacilityTimezoneSupersession", fields: [supersededById], references: [id])
+  supersedes        FacilityTimezoneConfiguration? @relation("FacilityTimezoneSupersession")
+  episodes          Episode[]
+  createdAt         DateTime                       @default(now())
+
+  @@unique([facilityProfileId, version])
+  @@index([organizationId, facilityProfileId])
+}
+
+/// An episode of care created when an accepted case is admitted to a facility
+/// (S2 decision 1: at most one active ADMISSION_SOURCE episode per case,
+/// enforced by the CaseEpisodeLink acceptance unique + gateway predicate).
+/// Reuses Organization/FacilityProfile; program/unit remain nullable,
+/// source-owned identifiers until a canonical hierarchy exists (decision 2).
+model Episode {
+  id                        String                         @id @default(cuid())
+  organizationId            String
+  sourceCaseId              String
+  sourceCase                BehavioralHealthCase           @relation(fields: [sourceCaseId], references: [id])
+  facilityId                String
+  facility                  FacilityProfile                @relation(fields: [facilityId], references: [id])
+  /// Nullable/source-owned until a canonical program hierarchy exists.
+  programId                 String?
+  /// Nullable/source-owned; the source may not provide a unit.
+  unitId                    String?
+  /// Timezone snapshot captured at admission, plus the lineage it came from.
+  facilityTimezone          String
+  timezoneSource            String
+  timezoneSourceReferenceId String
+  timezoneConfigurationId   String?
+  timezoneConfiguration     FacilityTimezoneConfiguration? @relation(fields: [timezoneConfigurationId], references: [id])
+  admittedAt                DateTime
+  /// Facility-timezone-derived calendar date (YYYY-MM-DD), stored verbatim so
+  /// it is never re-derived under a different zone.
+  serviceDate               String
+  status                    EpisodeStatus                  @default(ACTIVE)
+  acceptedFacilityResponseId String
+  sourcePacketVersionId     String?
+  sourceCustodyEventId      String?
+  /// Optimistic-concurrency token, same discipline as every other aggregate.
+  version                   Int                            @default(1)
+  createdAt                 DateTime                       @default(now())
+  updatedAt                 DateTime                       @updatedAt
+  caseLinks                 CaseEpisodeLink[]
+  authorizations            EpisodeAuthorization[]
+  reviews                   AuthorizationReview[]
+  dayDecisions              AuthorizationDayDecision[]
+  documentationGaps         DocumentationGap[]
+
+  @@index([organizationId, status])
+  @@index([sourceCaseId])
+  @@index([facilityId])
+}
+
+/// Case-to-episode relationship. The (organization, acceptance) uniqueness
+/// makes admission recording idempotent and the additive active-episode index
+/// on Episode enforces the one-active-admission-source invariant. One accepted
+/// facility response yields exactly one link.
+model CaseEpisodeLink {
+  id                    String                  @id @default(cuid())
+  organizationId        String
+  caseId                String
+  case                  BehavioralHealthCase    @relation(fields: [caseId], references: [id])
+  episodeId             String
+  episode               Episode                 @relation(fields: [episodeId], references: [id])
+  relationship          CaseEpisodeRelationship
+  linkedAt              DateTime
+  linkedByActorId       String
+  sourceAcceptanceId    String
+  sourcePacketVersionId String?
+  sourceCustodyEventId  String?
+  createdAt             DateTime                @default(now())
+
+  @@unique([organizationId, sourceAcceptanceId])
+  @@unique([caseId, episodeId])
+  @@index([organizationId, caseId])
+  @@index([episodeId])
+}
+
+/// Episode-owned authorization requirement fact.
+model EpisodeAuthorization {
+  id                             String                     @id @default(cuid())
+  organizationId                 String
+  episodeId                      String
+  episode                        Episode                    @relation(fields: [episodeId], references: [id])
+  /// Source references remain nullable/source-owned; no duplicate coverage.
+  sourceCoverageId               String?
+  sourcePreAdmissionAuthorizationId String?
+  levelOfCare                    String
+  requirement                    EpisodeAuthorizationRequirement
+  effectiveStartDate             String
+  status                         EpisodeAuthorizationStatus @default(OPEN)
+  version                        Int                        @default(0)
+  createdAt                      DateTime                   @default(now())
+  updatedAt                      DateTime                   @updatedAt
+  reviews                        AuthorizationReview[]
+  dayDecisions                   AuthorizationDayDecision[]
+
+  @@index([organizationId, episodeId])
+  @@index([episodeId, status])
+}
+
+/// A payer utilization review of an episode authorization. Corrections are
+/// append-only: a correction inserts a NEW review row that supersedes the
+/// original via `supersededByReviewId`; the original is frozen (decision 5).
+model AuthorizationReview {
+  id                     String                    @id @default(cuid())
+  organizationId         String
+  episodeAuthorizationId String
+  episodeAuthorization   EpisodeAuthorization      @relation(fields: [episodeAuthorizationId], references: [id])
+  episodeId              String
+  episode                Episode                   @relation(fields: [episodeId], references: [id])
+  reviewType             AuthorizationReviewType
+  requestedStartDate     String
+  requestedEndDate       String
+  dueAt                  DateTime?
+  decisionStatus         AuthorizationReviewStatus @default(PENDING)
+  payerReferenceToken    String?
+  recordedByActorId      String
+  recordedAt             DateTime
+  /// Correction chain: set when a later review supersedes this one.
+  supersededByReviewId   String?                   @unique
+  supersededByReview     AuthorizationReview?      @relation("AuthorizationReviewSupersession", fields: [supersededByReviewId], references: [id])
+  supersedes             AuthorizationReview?      @relation("AuthorizationReviewSupersession")
+  correctionReasonCode   String?
+  version                Int                       @default(1)
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+  dayDecisions           AuthorizationDayDecision[]
+
+  @@index([organizationId, episodeId])
+  @@index([episodeAuthorizationId])
+}
+
+/// Inclusive-range day decision derived from a review (decision 4). The
+/// governed source event id and its supersession pointer are stored verbatim.
+model AuthorizationDayDecision {
+  id                     String                  @id @default(cuid())
+  organizationId         String
+  authorizationReviewId  String
+  authorizationReview    AuthorizationReview     @relation(fields: [authorizationReviewId], references: [id])
+  episodeAuthorizationId String
+  episodeAuthorization   EpisodeAuthorization    @relation(fields: [episodeAuthorizationId], references: [id])
+  episodeId              String
+  episode                Episode                 @relation(fields: [episodeId], references: [id])
+  startDate              String
+  endDate                String
+  outcome                AuthorizationDayOutcome
+  denialReasonCode       DenialReasonCode?
+  sourceEventId          String
+  supersededByEventId    String?
+  createdAt              DateTime                @default(now())
+
+  @@index([organizationId, episodeId])
+  @@index([authorizationReviewId])
+  @@index([episodeAuthorizationId])
+}
+
+/// An episode-owned documentation gap with a controlled status and an
+/// append-only status history (decision 5).
+model DocumentationGap {
+  id                         String                        @id @default(cuid())
+  organizationId             String
+  episodeId                  String
+  episode                    Episode                       @relation(fields: [episodeId], references: [id])
+  sourceAuthorizationReviewId String?
+  categoryCode               DocumentationGapCategory
+  operationalSummary         String?
+  status                     DocumentationGapStatus        @default(OPEN)
+  dueAt                      DateTime?
+  assignedRole               String?
+  assignedUserId             String?
+  recordedByActorId          String
+  resolvedByActorId          String?
+  version                    Int                           @default(1)
+  createdAt                  DateTime                      @default(now())
+  updatedAt                  DateTime                      @updatedAt
+  statusHistory              DocumentationGapStatusHistory[]
+
+  @@index([organizationId, episodeId])
+  @@index([episodeId, status])
+}
+
+/// Append-only transition log for a documentation gap. One row per status
+/// change; never updated or deleted.
+model DocumentationGapStatusHistory {
+  id                 String                 @id @default(cuid())
+  organizationId     String
+  documentationGapId String
+  documentationGap   DocumentationGap       @relation(fields: [documentationGapId], references: [id])
+  fromStatus         DocumentationGapStatus?
+  toStatus           DocumentationGapStatus
+  reasonCode         String?
+  changedByActorId   String
+  changedAt          DateTime
+  createdAt          DateTime               @default(now())
+
+  @@index([documentationGapId, changedAt])
+}
+
+/// Append-only governed event envelope (analytics.ts). Queryable columns are
+/// projected out of the validated envelope, which is stored whole in `envelope`.
+/// A correction supersedes at most one prior event (`supersedesEventId` unique)
+/// — one active branch per correction family. No dispatcher reads this table
+/// in S2; projection/marts are out of scope.
+model GovernedEvent {
+  id                String        @id
+  organizationId    String
+  eventTypeName     String
+  eventTypeVersion  Int
+  schemaName        String
+  schemaVersion     String
+  aggregateType     String
+  aggregateId       String
+  aggregateVersion  Int
+  caseId            String?
+  episodeId         String?
+  correlationId     String
+  causationId       String?
+  correctionKind    String
+  supersedesEventId String?       @unique
+  reasonCode        String?
+  classification    String
+  metricEligibility String
+  payloadHash       String
+  envelope          Json
+  effectiveAt       DateTime
+  recordedAt        DateTime
+  createdAt         DateTime      @default(now())
+  outbox            OutboxRecord?
+
+  @@index([organizationId, aggregateType, aggregateId])
+  @@index([organizationId, episodeId])
+  @@index([organizationId, eventTypeName])
+}
+
+/// Transactional outbox row written in the SAME transaction as its governed
+/// event and source mutation (decision 7). Persistence only — no dispatcher,
+/// worker, or delivery mechanism exists in S2. `status` stays PENDING.
+model OutboxRecord {
+  id              String        @id @default(cuid())
+  organizationId  String
+  governedEventId String        @unique
+  governedEvent   GovernedEvent @relation(fields: [governedEventId], references: [id])
+  eventTypeName   String
+  aggregateType   String
+  aggregateId     String
+  status          String        @default("PENDING")
+  createdAt       DateTime      @default(now())
+
+  @@index([organizationId, status, createdAt])
 }

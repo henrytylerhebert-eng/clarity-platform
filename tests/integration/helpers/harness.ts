@@ -62,8 +62,25 @@ async function createTenantRecords(prisma: PrismaClient, runId: string, label: s
 
 async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string[]): Promise<void> {
   // FK-safe order; every delete is scoped to the given organization ids only.
+  await prisma.outboxRecord.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.governedEvent.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.documentationGapStatusHistory.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.documentationGap.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.authorizationDayDecision.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.authorizationReview.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.episodeAuthorization.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.caseEpisodeLink.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.episode.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.facilityTimezoneConfiguration.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.facilityProfile.deleteMany({ where: { organizationId: { in: organizationIds } } });
+
   await prisma.commandIdempotencyRecord.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.auditEvent.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.evidenceItem.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.contradictionGroup.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.authorization.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.insuranceCoverage.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.authSession.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.behavioralHealthCase.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.patientToken.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.user.deleteMany({ where: { organizationId: { in: organizationIds } } });

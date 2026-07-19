@@ -1,0 +1,92 @@
+{
+  "eventId": "90000000-0000-4000-8000-000000000003",
+  "schema": {
+    "name": "clarity.events.documentation-gap-recorded",
+    "version": "1.0.0"
+  },
+  "eventType": {
+    "name": "DOCUMENTATION_GAP_RECORDED",
+    "version": 1
+  },
+  "aggregate": {
+    "type": "DOCUMENTATION_GAP",
+    "id": "73000000-0000-4000-8000-000000000001",
+    "version": 1
+  },
+  "tenant": {
+    "organizationId": "10000000-0000-4000-8000-000000000001",
+    "facilityId": "20000000-0000-4000-8000-000000000001",
+    "programId": "30000000-0000-4000-8000-000000000001",
+    "unitId": "40000000-0000-4000-8000-000000000001"
+  },
+  "subject": {
+    "caseId": "80000000-0000-4000-8000-000000000001",
+    "episodeId": "70000000-0000-4000-8000-000000000001",
+    "episodeDayId": null,
+    "personToken": null
+  },
+  "times": {
+    "effectiveAt": "2026-07-18T14:22:00-05:00",
+    "recordedAt": "2026-07-18T19:22:30Z",
+    "receivedAt": null
+  },
+  "actor": {
+    "type": "USER",
+    "id": "synthetic-ur-user-001",
+    "displayRole": "UR_SPECIALIST",
+    "sessionId": "synthetic-session-ur-001"
+  },
+  "source": {
+    "kind": "HUMAN_ATTESTATION",
+    "system": "clarity-platform",
+    "sourceTenantKey": null,
+    "sourceEventId": null,
+    "sourceEventVersion": null,
+    "adapterName": "utilization-review-service",
+    "adapterVersion": "proposed-0.1.0",
+    "method": "REVIEW_WORKFLOW",
+    "provenanceRefs": [
+      {
+        "type": "AUTHORIZATION_REVIEW",
+        "id": "72000000-0000-4000-8000-000000000001",
+        "version": "1",
+        "hash": "a3d4c82260c49feacee23163cde09d651e99d9b844b8dfcfffab454686c339df"
+      }
+    ]
+  },
+  "correlation": {
+    "correlationId": "synthetic-correlation-review-001",
+    "causationId": "90000000-0000-4000-8000-000000000002",
+    "commandId": "synthetic-command-review-001"
+  },
+  "classification": "PUBLIC_SYNTHETIC",
+  "quality": {
+    "state": "VALID",
+    "issues": []
+  },
+  "review": {
+    "state": "ATTESTED",
+    "reviewedByActorId": "synthetic-ur-user-001",
+    "reviewedAt": "2026-07-18T19:22:30Z",
+    "attestationCode": "DOCUMENTATION_GAP_RECORDED_BY_HUMAN"
+  },
+  "correction": {
+    "kind": "ORIGINAL",
+    "supersedesEventId": null,
+    "reasonCode": null
+  },
+  "metricEligibility": "ELIGIBLE",
+  "payloadHash": "12db3132f0bebfb8c20e00894c90ae7728b252b910b146f081c73a6f40f2b269",
+  "payload": {
+    "documentationGapId": "73000000-0000-4000-8000-000000000001",
+    "episodeId": "70000000-0000-4000-8000-000000000001",
+    "sourceAuthorizationReviewId": "72000000-0000-4000-8000-000000000001",
+    "categoryCode": "MISSING_PROGRESS_NOTE",
+    "status": "OPEN",
+    "dueAt": "2026-07-19T12:00:00-05:00",
+    "assignedRole": "CLINICIAN_REVIEWER",
+    "assignedUserId": null,
+    "hasOperationalSummary": false,
+    "syntheticFixture": true
+  }
+}

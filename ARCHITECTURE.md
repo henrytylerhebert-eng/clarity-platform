@@ -8,6 +8,7 @@ Entry point for the technical architecture. The full document set lives under `d
 - **Domains:** [clinical](docs/clinical/CLINICAL_INTELLIGENCE.md) · [legal](docs/legal/LEGAL_STATUS_ARCHITECTURE.md) · [benefits](docs/payer-and-benefits/BENEFITS_VERIFICATION.md) · [authorization](docs/payer-and-benefits/AUTHORIZATION_MANAGEMENT.md) · [payer intelligence](docs/payer-and-benefits/PAYER_INTELLIGENCE.md)
 - **Data model:** `prisma/schema.prisma` (canonical foundation, 25 models); expanded 43-model target preserved in the source package; comparison in [docs/repository-audit/05_SCHEMA_COMPARISON.md](docs/repository-audit/05_SCHEMA_COMPARISON.md).
 - **Contracts:** `packages/domain-contracts/` — the single source for enums, state machines, and safety invariants shared by future services. Keep aligned with the Prisma schema.
+- **Workflow discovery:** [docs/discovery/README.md](docs/discovery/README.md) — proposed documentation-only requirements-acquisition protocol; it does not replace ADRs, contracts, evidence, readiness, or implementation-status records.
 
 ## Shape today
 

@@ -19,6 +19,12 @@ export default tseslint.config(
       "graphify-out/**",
       "reference/**",
       "reporting-metrics-rebuild-package/**",
+      // clarity-platform-visualizer is a separate nested repository with its
+      // own ESLint/runtime dependencies and lint command.
+      "clarity-platform-visualizer/**",
+      // Agent worktrees are separate checkouts and are linted from their own
+      // repository context when needed.
+      ".claude/worktrees/**",
       ".local-object-storage/**",
       "**/*.d.ts",
     ],
