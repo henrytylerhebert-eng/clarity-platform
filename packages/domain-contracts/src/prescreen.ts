@@ -116,10 +116,13 @@ export function derivePossiblePathway(input: PathwayInput): PathwayResult {
     };
   }
   if (input.activeEmergencyOrLegalProcess || input.willingness === "OPPOSED") {
+    const reasons: string[] = [];
+    if (input.activeEmergencyOrLegalProcess) reasons.push("ACTIVE_LEGAL_PROCESS");
+    if (input.willingness === "OPPOSED") reasons.push("PATIENT_OPPOSED");
     return {
       pathway: "EMERGENCY_OR_LEGAL_REVIEW_REQUIRED",
       orientationGate: gate,
-      reasons: [input.activeEmergencyOrLegalProcess ? "ACTIVE_LEGAL_PROCESS" : "PATIENT_OPPOSED"],
+      reasons,
       requiresAuthorizedReview: true,
     };
   }
@@ -131,7 +134,12 @@ export function derivePossiblePathway(input: PathwayInput): PathwayResult {
       requiresAuthorizedReview: true,
     };
   }
-  if ((input.willingness === "WILLING" || input.willingness === "NON_OPPOSED") && gate !== "PASS") {
+  // Deliberate deviation from the reference package (external review, PR #19):
+  // a NON_OPPOSED patient routes to the possible noncontested pathway at any
+  // orientation gate — owner decision #7 puts the final status with hospital
+  // intake and an authorized practitioner, so this never derives UNDETERMINED
+  // with no review for an oriented, non-opposed patient.
+  if (input.willingness === "NON_OPPOSED" || (input.willingness === "WILLING" && gate !== "PASS")) {
     return {
       pathway: "POSSIBLE_NONCONTESTED_PATHWAY",
       orientationGate: gate,
@@ -527,10 +535,12 @@ export function evaluateConsentAuthority(
   if (rule.minorSignatureRequired && !context.minorSignaturePresent) unmet.push("MINOR_SIGNATURE_REQUIRED");
   if (rule.courtApprovalRequired && !context.courtApprovalPresent) unmet.push("COURT_APPROVAL_REQUIRED");
   if (rule.clinicianReviewRequired && !context.clinicianReviewPresent) unmet.push("CLINICIAN_REVIEW_REQUIRED");
+  // Deliberate deviation from the reference package (external review, PR #19):
+  // a rule scoped to privacy regimes fails closed when the context does not
+  // supply one, instead of skipping the check.
   if (
-    context.privacyRegime &&
     rule.privacyRegimes.length > 0 &&
-    !rule.privacyRegimes.includes(context.privacyRegime)
+    (!context.privacyRegime || !rule.privacyRegimes.includes(context.privacyRegime))
   ) {
     unmet.push("PRIVACY_REGIME_NOT_COVERED");
   }

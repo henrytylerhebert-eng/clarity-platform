@@ -92,6 +92,22 @@ describe("possible-pathway derivation", () => {
     expect(result.pathway).toBe("MEDICAL_STABILIZATION_REQUIRED");
   });
 
+  it("routes non-opposed and fully oriented to the noncontested pathway with authorized review", () => {
+    const result = derivePossiblePathway({ willingness: "NON_OPPOSED", orientation: fullyOriented });
+    expect(result.pathway).toBe("POSSIBLE_NONCONTESTED_PATHWAY");
+    expect(result.requiresAuthorizedReview).toBe(true);
+  });
+
+  it("reports both reasons when a patient is opposed during an active legal process", () => {
+    const result = derivePossiblePathway({
+      willingness: "OPPOSED",
+      orientation: fullyOriented,
+      activeEmergencyOrLegalProcess: true,
+    });
+    expect(result.pathway).toBe("EMERGENCY_OR_LEGAL_REVIEW_REQUIRED");
+    expect(result.reasons).toEqual(["ACTIVE_LEGAL_PROCESS", "PATIENT_OPPOSED"]);
+  });
+
   it("derives UNDETERMINED without authorized review when information is insufficient", () => {
     const result = derivePossiblePathway({
       willingness: "NOT_ASSESSED",
@@ -257,6 +273,18 @@ describe("consent authority evaluation (configured synthetic rules)", () => {
       syntheticConsentContext,
     );
     expect(result.unmetRequirements).toEqual(["NO_APPROVED_RULE"]);
+  });
+
+  it("fails closed when a regime-scoped rule receives no privacy regime", () => {
+    const scopedRule = { ...syntheticConsentRule, privacyRegimes: ["SYNTHETIC_REGIME_42CFR"] };
+    const withoutRegime = evaluateConsentAuthority([scopedRule], syntheticConsentContext);
+    expect(withoutRegime.allowed).toBe(false);
+    expect(withoutRegime.unmetRequirements).toContain("PRIVACY_REGIME_NOT_COVERED");
+    const withRegime = evaluateConsentAuthority([scopedRule], {
+      ...syntheticConsentContext,
+      privacyRegime: "SYNTHETIC_REGIME_42CFR",
+    });
+    expect(withRegime.allowed).toBe(true);
   });
 
   it("fails closed when no facility rule matches", () => {
