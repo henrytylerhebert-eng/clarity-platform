@@ -699,8 +699,7 @@ export class PrismaEpisodePersistenceGateway {
         },
       }));
       if (!existingLink) {
-        if (activeAdmissionConflict) {
-          if (error instanceof ActiveAdmissionExistsError) throw error;
+        if (isActiveAdmissionUniqueViolation(error)) {
           throw new ActiveAdmissionExistsError(command.sourceCaseId);
         }
         throw error;
@@ -709,8 +708,7 @@ export class PrismaEpisodePersistenceGateway {
         where: { id: existingLink.episodeId, organizationId: params.organizationId },
       }));
       if (!existingEpisode) {
-        if (activeAdmissionConflict) {
-          if (error instanceof ActiveAdmissionExistsError) throw error;
+        if (isActiveAdmissionUniqueViolation(error)) {
           throw new ActiveAdmissionExistsError(command.sourceCaseId);
         }
         throw error;
