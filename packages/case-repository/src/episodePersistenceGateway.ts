@@ -679,14 +679,13 @@ export class PrismaEpisodePersistenceGateway {
       };
       });
     } catch (error) {
-      if (isActiveAdmissionUniqueViolation(error)) {
-        throw new ActiveAdmissionExistsError(command.sourceCaseId);
-      }
-      if (!isAdmissionAcceptanceUniqueViolation(error)) throw error;
+      const admissionUniqueViolation = isActiveAdmissionUniqueViolation(error) || isAdmissionAcceptanceUniqueViolation(error);
+      if (!admissionUniqueViolation) throw error;
 
-      // A concurrent writer may have won the acceptance natural-key race.
-      // Re-read only after the losing transaction has rolled back, then treat
-      // an exact command identity as a replay and any mismatch as a conflict.
+      // A concurrent writer may have won either the active-admission or
+      // acceptance natural-key race. Re-read only after the losing transaction
+      // has rolled back, then treat an exact command identity as a replay and
+      // any mismatch as a conflict.
       const existingLink = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.caseEpisodeLink.findUnique({
         where: {
           organizationId_sourceAcceptanceId: {
@@ -695,7 +694,12 @@ export class PrismaEpisodePersistenceGateway {
           },
         },
       }));
-      if (!existingLink) throw error;
+      if (!existingLink) {
+        if (isActiveAdmissionUniqueViolation(error)) {
+          throw new ActiveAdmissionExistsError(command.sourceCaseId);
+        }
+        throw error;
+      }
       const existingEpisode = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.episode.findFirst({
         where: { id: existingLink.episodeId, organizationId: params.organizationId },
       }));
