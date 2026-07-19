@@ -73,7 +73,7 @@ credentials, employment, or authority.
 | Janis Joplin | Ocean's geriatric-unit floor nurse | Receives nursing handoff after intake | Unit name, bed/placement status, handoff time, and receiving attestation |
 | Susan Lucci | Benefits-verification specialist | Human-in-the-loop eligibility and benefits verification | Organization, role authorization, payer evidence, and verification timestamp |
 | Victor Bermudez, LCSW | Social worker and utilization reviewer for this scenario | Social-work coordination and episode-owned UR, including his own UR review | Role authorization and the source for the scenario-specific self-review rule are `[Pending]`; this is not independently verified Medicare policy |
-| Judy Booty | LPN | Medication reconciliation and MAR/order processing | Exact workflow: reconcile, transcribe, enter MAR, or route orders for prescriber review |
+| Judy Booty | LPN | Receives medication information/orders and processes the Medication Administration Record (MAR) | Exact workflow: reconcile, transcribe, enter MAR, or route orders for prescriber review; she does not independently authorize medication |
 
 Role labels are not authorization by themselves. The test fixture must use the
 repository's role and actor contracts, and any dual-role assignment must preserve
@@ -125,9 +125,9 @@ silently mapped to a payer or medication.
 The prompt names Exelon, Cymbalta, and Abilify. "Aetna Amanda" does not map
 reliably to a medication and remains `[Unclear]`.
 
-The prompt confirms that "MAR" is the intended medication-administration
-workflow term. It does not yet supply the medication orders or reconciliation
-facts needed to create them.
+The prompt confirms that "MAR" means Medication Administration Record. It does
+not yet supply the medication orders or reconciliation facts needed to create
+them.
 
 For each medication, the executable fixture needs:
 
@@ -138,9 +138,10 @@ For each medication, the executable fixture needs:
 - prescriber/source record;
 - whether an order is active, held, refused, discontinued, or awaiting review.
 
-Judy Booty's workflow should be represented as medication reconciliation/MAR
-processing, subject to prescriber and facility policy. The system must not infer
-or authorize a medication order.
+Judy Booty's workflow should be represented as receiving and processing
+medication orders into the Medication Administration Record (MAR), subject to
+prescriber and facility policy. The system must not infer or authorize a
+medication order.
 
 ## End-To-End Data Scenario
 
