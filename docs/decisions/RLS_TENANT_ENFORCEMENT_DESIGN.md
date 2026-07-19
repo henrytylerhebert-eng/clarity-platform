@@ -4,9 +4,15 @@ owner: Technical lead with security review
 date: 2026-07-19
 data_boundary: synthetic only
 related_decisions: OD-6, ADR-0012, S2 persistence decision packet
+decision_packet: docs/decisions/OD-6_PROVIDER_AND_RLS_DECISION_PACKET.md
 ---
 
 # RLS Tenant Enforcement Design
+
+The decision-ready OD-6 packet is
+[OD-6_PROVIDER_AND_RLS_DECISION_PACKET.md](OD-6_PROVIDER_AND_RLS_DECISION_PACKET.md).
+This document remains the shorter design boundary and is subordinate to the
+accepted owner/security decision when one exists.
 
 ## Purpose
 
