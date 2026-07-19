@@ -29,8 +29,8 @@ The remaining hardening work now resolves and documents:
 - migration promotion, restore, and recovery evidence;
 - production retry ownership and observability after the H1 replay behavior;
 - outbox failure, retry, ownership, and observability boundaries;
-- governed event vocabulary for review corrections and documentation-gap
-  transitions;
+- governed event-vocabulary expansion for review corrections and
+  documentation-gap transitions;
 - whether command services belong in a later repository-runtime slice.
 
 This packet does not authorize API routes, API framework changes, workers,
@@ -45,7 +45,7 @@ external integrations, deployment, production flags, or real data.
 | 2 | Migration recovery model | Promotion/recovery checklist and deterministic local migration-integrity test are recorded; no fresh-database, provider restore, or production promotion evidence exists. | Technical and operations approval |
 | 3 | Concurrent admission retry semantics | H1 handles same-acceptance replay. H3 adds an additive partial unique index for one ACTIVE admission-source episode per case and maps the losing database conflict to `ActiveAdmissionExistsError`. | H1/H3 verified locally; migration promotion and recovery remain gated |
 | 4 | Outbox ownership and failure handling | Delivery boundary record drafted; S2 persists `PENDING` rows atomically and has no dispatcher or retry worker. | Architecture and operations decision |
-| 5 | Event vocabulary expansion | Proposed vocabulary packet inventories three emitted events, audit/history-only actions, and the draft derived event. No approved runtime consumer is identified. | Domain and governance decision |
+| 5 | Event vocabulary expansion | Current bounded vocabulary is accepted: three emitted events, with audit/history-only actions and the draft derived event kept separate. No approved runtime consumer is identified for expansion. | Expansion requires a named consumer and domain/governance decision |
 | 6 | Program identity contract | H1 aligns the Zod contracts, event payloads, mapper, and already-nullable Prisma column as nullable/source-owned. | H1 verified; revisit only if a canonical program hierarchy becomes required |
 | 7 | Command-service boundary | Boundary is recorded: episode writes require a role-gated command service before any HTTP exposure. | Technical lead decision |
 
@@ -59,8 +59,8 @@ external integrations, deployment, production flags, or real data.
    deterministic replay behavior.
 4. Outbox failure ownership and retry policy reviewed without adding a worker
    implicitly.
-5. Event payload schemas either extended deliberately or the current
-   interpretation accepted as an interim boundary.
+5. The accepted current event boundary remains in force; any expansion requires
+   deliberate payload design, a named consumer, and a separate approval.
 6. Explicit implementation approval naming files, tests, and exclusions for
    any production-facing slice.
 

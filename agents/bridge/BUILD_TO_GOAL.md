@@ -144,7 +144,7 @@ The team should keep these lanes separate:
 - Owner: Human project owner with technical and security review; Antigravity coordinates; Codex prepares repository evidence; Claude proposes bounded options.
 - State: H1 and H3 implemented and verified; H2 governance records drafted and independently audited. The current synthetic-only scope is complete; remaining production decisions stay gated.
 - Evidence: `docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md`, `docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md`, and `docs/developer-handoff/NEXT_PERSISTENCE_HARDENING_EVIDENCE.md`.
-- Boundary: RLS timing, migration recovery, outbox ownership, event vocabulary, and later command-service depth remain open. H1 covers bounded replay and program identity; H3 closes the local active-admission race; H2 records the non-runtime governance inputs.
+- Boundary: RLS timing, migration recovery, outbox ownership, event-vocabulary expansion, and later command-service depth remain open. H1 covers bounded replay and program identity; H3 closes the local active-admission race; H2 records the non-runtime governance inputs.
 - Excludes: production data, deployment, API routes, workers, outbox dispatch, analytics marts, dashboards, frontend, Product Studio, external integrations, and feature flags.
 
 ### Lane E: workflow discovery and synthetic scenario capture
@@ -159,21 +159,22 @@ The team should keep these lanes separate:
 
 The current bounded synthetic-only goal is complete and recorded in the
 implementation status, hardening packet, and Claude audit. H3 has resolved the
-local active-admission race constraint. The next executable slice requires
-explicit owner/security/technical decisions for OD-6 provider/RLS posture,
-migration promotion and recovery, outbox delivery ownership, and
-event-vocabulary semantics. Those gates are named rather than silently
-converted into implementation scope. The WDP and protective-custody session now
-provide the requirements-acquisition layer for future domain work, but they do
-not change those gates.
+local active-admission race constraint. The current event vocabulary is
+accepted; the next executable slice requires explicit owner/security/technical
+decisions for OD-6 provider/RLS posture, migration promotion and recovery, and
+outbox delivery ownership. Expansion beyond the accepted three events remains
+gated on named consumers and domain review. Those gates are named rather than
+silently converted into implementation scope. The WDP and protective-custody
+session now provide the requirements-acquisition layer for future domain work,
+but they do not change those gates.
 
 ### Next decision
 
-Review `docs/decisions/EVENT_VOCABULARY_DECISION_PACKET.md` against the
-synthetic session's event requirements. The current recommendation is to
-accept the three emitted S2 events as the bounded vocabulary and defer new
-review-level, documentation-gap-transition, and derived events until a named
-consumer and owner are accepted. No code is authorized by this note.
+Move to the next decision gate: review OD-6 provider/session and RLS posture,
+then migration recovery and outbox ownership. Keep the accepted three-event
+vocabulary in force; defer new review-level, documentation-gap-transition, and
+derived events until a named consumer and owner are accepted. No code is
+authorized by this note.
 
 ## Bridge Operating Procedure
 

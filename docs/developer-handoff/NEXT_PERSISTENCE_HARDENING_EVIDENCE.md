@@ -99,10 +99,11 @@ gateway.
 
 ### 5. Event vocabulary
 
-Prefer extending the domain event vocabulary with explicit review-recorded and
-documentation-gap-transition payload schemas before treating those events as
-analytics or operational measurements. Until accepted, keep the current
-interpretations visibly interim.
+The owner accepted the current bounded event vocabulary: admission recorded,
+authorization day decision recorded, and documentation gap recorded. Keep
+review-level authorization actions, documentation-gap transitions, and derived
+episode-day state as audit/history or draft derived concepts until each has a
+named consumer, payload owner, retention decision, and tenant/security review.
 
 ### 6. Program identity
 
@@ -155,13 +156,14 @@ success. The focused S2 suite passes 16 tests after this change.
 
 The next bounded slice should be selected explicitly from:
 
-- event-vocabulary domain decision and explicit consumer requirements;
+- event-vocabulary expansion only if a named consumer and explicit requirements
+  are accepted;
 - the proposed RLS design and OD-6 provider/session decision;
 - the separately governed outbox delivery design.
 
 The event-vocabulary decision packet is recorded at
-`docs/decisions/EVENT_VOCABULARY_DECISION_PACKET.md`. It is proposed decision
-work only; no new event type or consumer is implemented.
+`docs/decisions/EVENT_VOCABULARY_DECISION_PACKET.md`. Its current bounded
+vocabulary is accepted; no new event type or consumer is implemented.
 
 RLS, production deployment, workers, APIs, analytics, UX, integrations, and
 real data remain outside this proposed boundary.

@@ -1,5 +1,5 @@
 ---
-status: Proposed; no event-vocabulary implementation authorized
+status: Accepted bounded vocabulary; expansion remains gated
 owner: Tyler/product owner with domain, technical, security, and operations review
 date: 2026-07-19
 data_boundary: synthetic only
@@ -16,9 +16,9 @@ related_decisions:
 
 Define the smallest governed-event vocabulary needed for future reviewable
 consumers without confusing transactional facts, audit actions, and derived
-analytics observations. This packet is a proposal only. It authorizes no new
-event schema, persistence behavior, projection, worker, metric, API, or
-external delivery.
+analytics observations. The current bounded vocabulary is accepted. This
+packet authorizes no new event schema, persistence behavior, projection,
+worker, metric, API, or external delivery.
 
 ## Truth Boundary
 
@@ -116,15 +116,15 @@ new event schemas or emitted event types, the owner must identify:
 5. Whether any consumer can receive `PHI_RESTRICTED` or only synthetic,
    pseudonymized, or deidentified envelopes.
 
-`Unknown` is the current answer for all five consumer requirements. No
-projection, analytics mart, worker, API, or external integration should be
-created to fill that gap implicitly.
+`Unknown` remains the answer for all five event-expansion consumer
+requirements. No projection, analytics mart, worker, API, or external
+integration should be created to fill that gap implicitly.
 
-## Proposed Next Implementation After Acceptance
+## Possible Expansion After A Separate Acceptance
 
-Only after the owner records a decision and names a consumer should a future
-slice add the smallest required contract and deterministic tests. Depending on
-the decision, that slice may include:
+Only after a separate owner decision names a consumer should a future slice add
+the smallest required contract and deterministic tests. Depending on that
+decision, the slice may include:
 
 - a typed `AUTHORIZATION_REVIEW_RECORDED.v1` payload;
 - a typed `DOCUMENTATION_GAP_TRANSITIONED.v1` payload;
@@ -136,9 +136,14 @@ projection worker, analytics mart, dashboard, API route, or external delivery.
 
 ## Owner Decision
 
-- Decision: `[ ] Accept current bounded vocabulary`  `[ ] Approve a new event`  `[ ] Revise`  `[ ] Defer`
+- Decision: `[x] Accept current bounded vocabulary`  `[ ] Approve a new event`  `[ ] Revise`  `[ ] Defer`
 - Owner: Tyler / product owner
-- Date: `[Pending]`
-- Named consumer(s): `[Pending]`
-- Notes: This packet is decision work only. No event-vocabulary code or
-  migration is authorized by its existence.
+- Date: `2026-07-19`
+- Named consumer(s): None approved for event expansion; current consumers are
+  the transactional source records, audit/history records, and persisted
+  outbox boundary already covered by S2.
+- Notes: The three emitted S2 events are accepted as the current vocabulary:
+  `ADMISSION_RECORDED.v1`, `AUTHORIZATION_DAY_DECISION_RECORDED.v1`, and
+  `DOCUMENTATION_GAP_RECORDED.v1`. New event types remain separately gated by
+  a named consumer, payload owner, retention decision, and tenant/security
+  review. No event-vocabulary code or migration is authorized by this record.
