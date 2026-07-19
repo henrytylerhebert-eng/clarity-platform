@@ -147,6 +147,14 @@ The team should keep these lanes separate:
 - Boundary: RLS timing, migration recovery, outbox ownership, event vocabulary, and later command-service depth remain open. H1 covers bounded replay and program identity; H3 closes the local active-admission race; H2 records the non-runtime governance inputs.
 - Excludes: production data, deployment, API routes, workers, outbox dispatch, analytics marts, dashboards, frontend, Product Studio, external integrations, and feature flags.
 
+### Lane E: workflow discovery and synthetic scenario capture
+
+- Owner: Human project owner; Codex maintains the repository record; Claude may independently audit the package; Antigravity routes review only.
+- State: Documentation-only WDP package and inference-complete synthetic protective-custody session are committed. This lane does not authorize code.
+- Evidence: `docs/discovery/README.md` and `docs/discovery/sessions/DISC-20260719-PC-001/README.md`.
+- Boundary: Requirements acquisition, terminology, workflow, decisions, data, readiness, event, domain, traceability, correction, and synthetic test scenarios.
+- Excludes: Runtime discovery, production data, clinical/legal/payer determinations, schema/API/worker/UI changes, and implementation approval.
+
 ### Current gate after H1/H2
 
 The current bounded synthetic-only goal is complete and recorded in the
@@ -155,7 +163,17 @@ local active-admission race constraint. The next executable slice requires
 explicit owner/security/technical decisions for OD-6 provider/RLS posture,
 migration promotion and recovery, outbox delivery ownership, and
 event-vocabulary semantics. Those gates are named rather than silently
-converted into implementation scope.
+converted into implementation scope. The WDP and protective-custody session now
+provide the requirements-acquisition layer for future domain work, but they do
+not change those gates.
+
+### Next decision
+
+Review `docs/decisions/EVENT_VOCABULARY_DECISION_PACKET.md` against the
+synthetic session's event requirements. The current recommendation is to
+accept the three emitted S2 events as the bounded vocabulary and defer new
+review-level, documentation-gap-transition, and derived events until a named
+consumer and owner are accepted. No code is authorized by this note.
 
 ## Bridge Operating Procedure
 
