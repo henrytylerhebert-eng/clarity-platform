@@ -102,3 +102,7 @@ unresolved domain boundary remains.
 
 For the repository-specific fit assessment, read
 [CONFLICTS_AND_INTEGRATION_POINTS.md](CONFLICTS_AND_INTEGRATION_POINTS.md).
+
+The first inference-complete synthetic session is
+[DISC-20260719-PC-001](sessions/DISC-20260719-PC-001/README.md). It remains
+`OWNER_REVIEW` and is not an executable or operational fixture.
