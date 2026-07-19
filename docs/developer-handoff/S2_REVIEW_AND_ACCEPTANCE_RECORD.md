@@ -60,9 +60,10 @@ Independent verification passed:
 | `git diff --check` | Passed |
 | `npm run bridge:test` | 2 tests passed |
 
-The repository-wide `npm run lint` remains blocked by the unrelated
-`clarity-platform-visualizer` ESLint/plugin incompatibility:
-`contextOrFilename.getFilename is not a function`.
+The root `npm run lint` scope is now clean. The nested
+`clarity-platform-visualizer` repository has its own lint command and was
+verified independently; it is excluded from the root config along with
+separate Claude worktrees.
 
 ## Explicit Interpretations
 
@@ -85,7 +86,8 @@ These were recorded rather than silently expanded:
   production retry ownership and observability remain ungated.
 - Direct outbox-failure injection was not added; shared transaction boundaries
   are tested through audit failure rollback.
-- Full repository lint remains blocked by unrelated visualizer technical debt.
+- Root and nested-project lint boundaries are explicit and passing; the
+  projects retain separate dependency and configuration ownership.
 - No production migration promotion, restore, monitoring, or deployment
   evidence exists.
 

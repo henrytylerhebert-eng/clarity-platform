@@ -118,8 +118,10 @@ integrations remain excluded.
 
 H1 verification: focused 36 tests passed; root 31 files / 258 tests passed;
 app 10 files / 64 tests passed; app build, typecheck, Prisma validation and
-generation, scoped lint, and `git diff --check` passed. Repository-wide lint
-remains blocked by the unrelated visualizer React ESLint incompatibility.
+generation, scoped lint, root lint, nested visualizer lint, and
+`git diff --check` passed. Root lint now explicitly scopes out the nested
+visualizer repository and Claude worktrees; each has its own repository or
+process boundary.
 
 ## H1 Identity And Concurrency Limits
 
