@@ -32,6 +32,7 @@ supplied before an executable fixture is created.
 | Age | 65 | Source-reported scenario input |
 | Coverage context | Medicare recipient | Source-reported; eligibility remains to be verified |
 | Referral context | Protective-custody order / PEC referral | Source-reported; legal validity is not inferred |
+| PEC window | Issued 2026-07-18 for 72 hours; expected expiration date 2026-07-21 at the matching issue time | Source-reported scenario input; exact issue timestamp and explicit facility/jurisdiction timezone are `[Pending]` |
 | Scenario timezone | `[Pending: facility-owned timezone configuration]` | Must be supplied explicitly; never inferred from Lafayette, Louisiana or the server/browser |
 
 ## Source-Reported Patient Facts
@@ -64,13 +65,14 @@ credentials, employment, or authority.
 | Officer Peralta | Officer / protective-custody responder | Supplies custody-order source and transport handoff facts | Agency, badge token, order receipt time, custody authority, and chain-of-custody fields |
 | Dr. Jon Bones Jones | Existing treating physician | Supplies prior diagnosis, treatment history, and source records | Credentials, relationship to patient, last evaluation, and source document |
 | Dr. Dustin Porrier | PEC-initiating physician | Supplies the PEC/clinical order source | Exact spelling, credentials, order date/time, jurisdiction, and expiration/renewal fields |
+| Dr. Jim Halpert | Coroner | Supplies the coroner/authority source associated with the scenario | Exact authority relationship to the PEC, credentials, order reference, and attestation time are `[Pending]` |
 | Andy Dwyer | Acadian Ambulance transport personnel | Transport and custody event source | Credential/role, pickup time, arrival time, and handoff signature/attestation |
-| Ron Swanson | Nurse at Ochsner Lafayette General | Sending nurse and report source | Sending unit, report time, medication record, medical-clearance status, and contact token |
-| April Ludgate | Central-intake manager | Receives report and records facility intake/acceptance workflow | Whether she represents Ochsner or Ocean's, role authority, report time, and acceptance authority |
+| Ron Swanson | Nurse at Lafayette General | Sending nurse and report source | Sending unit, report time, medication record, medical-clearance status, and contact token |
+| April Ludgate | Oceans of Lafayette Central Intake manager | Handles placement under the Lafayette General/Oceans joint-venture arrangement and also represents the receiving facility intake | Role authority, report time, and acceptance authority |
 | Dr. Angela Martin | Receiving psychiatrist | Receiving psychiatric reviewer/acceptance source | Whether she accepts, evaluates, or only receives a clinical packet; decision time and source record |
 | Janis Joplin | Ocean's geriatric-unit floor nurse | Receives nursing handoff after intake | Unit name, bed/placement status, handoff time, and receiving attestation |
 | Susan Lucci | Benefits-verification specialist | Human-in-the-loop eligibility and benefits verification | Organization, role authorization, payer evidence, and verification timestamp |
-| Victor Bermudez, LCSW | Social worker; also described as utilization reviewer | Social-work coordination and possibly episode-owned UR | Confirm whether one person holds both roles and whether dual-control is required |
+| Victor Bermudez, LCSW | Social worker and utilization reviewer for this scenario | Social-work coordination and episode-owned UR, including his own UR review | Role authorization and the source for the scenario-specific self-review rule are `[Pending]`; this is not independently verified Medicare policy |
 | Judy Booty | LPN | Medication reconciliation and MAR/order processing | Exact workflow: reconcile, transcribe, enter MAR, or route orders for prescriber review |
 
 Role labels are not authorization by themselves. The test fixture must use the
@@ -84,15 +86,17 @@ data is generated.
 
 | Role | Prompted facility | Working interpretation | Status |
 |---|---|---|---|
-| Sending hospital | "Oshner/Ochsner Lafayette General" in Lafayette, Louisiana | Source hospital where Ron Swanson gives report | Exact canonical display name and sending unit `[Confirm]` |
-| Receiving hospital | "Ocean's Behavioral Hospital" | Behavioral receiving facility with a geriatric unit | Exact legal/display name, organization record, and address `[Confirm]` |
-| Central intake | April Ludgate | Appears to operate for the receiving facility, but prompt says "for Oshner" | Facility ownership and acceptance authority `[Confirm]` |
-| Receiving unit | Ocean's geriatric unit | Destination program/unit | Program, unit, bed, and level of care `[Pending]` |
+| Sending hospital | Lafayette General in Lafayette, Louisiana | Source hospital where Ron Swanson gives report | Sending unit and canonical organization record `[Pending]` |
+| Receiving hospital | Oceans of Lafayette | Behavioral receiving facility with a geriatric unit | Canonical organization record and address `[Pending]` |
+| Central intake | Oceans of Lafayette Central Intake, managed by April Ludgate | Handles patient placement under the Lafayette General/Oceans joint-venture contract and is also the receiving-facility intake | Contract/source reference, role authority, and acceptance authority `[Pending]` |
+| Receiving unit | Oceans of Lafayette geriatric unit | Destination program/unit | Program, unit, bed, and level of care `[Pending]` |
 | Receiving psychiatrist | Dr. Angela Martin | Receiving clinical reviewer/psychiatrist | Acceptance relationship and review time `[Pending]` |
 
-No episode should be created until the receiving-facility acceptance and the
-facility-owned timezone configuration are explicit. The system may store a
-referral or routing attempt before acceptance.
+The joint-venture relationship is a source-owned organizational fact for this
+scenario. It must not be inferred from matching names. No episode should be
+created until the receiving-facility acceptance and the facility-owned timezone
+configuration are explicit. The system may store a referral or routing attempt
+before acceptance.
 
 ## Coverage And Medication Inputs
 
@@ -121,6 +125,10 @@ silently mapped to a payer or medication.
 The prompt names Exelon, Cymbalta, and Abilify. "Aetna Amanda" does not map
 reliably to a medication and remains `[Unclear]`.
 
+The prompt confirms that "MAR" is the intended medication-administration
+workflow term. It does not yet supply the medication orders or reconciliation
+facts needed to create them.
+
 For each medication, the executable fixture needs:
 
 - normalized medication name and strength;
@@ -139,17 +147,17 @@ or authorize a medication order.
 | Step | Workflow stage | Data captured | Human gate / expected result |
 |---:|---|---|---|
 | 1 | Referral intake | Synthetic patient token, referral source, officer/order source, current location, urgency, and narrative evidence items | Intake coordinator verifies minimum identity and source provenance; no placement decision is made |
-| 2 | Protective-custody evidence | PEC/order document, issuing clinician, legal status label, issue time, jurisdiction, custody period, service/notice fields, source hash, and custody chain | Legal/clinical reviewers validate that the record is complete for their workflow; Clarity does not determine legal validity |
+| 2 | Protective-custody evidence | PEC/order document, Dr. Dustin Porrier's initiating record, Dr. Jim Halpert's coroner/authority record, legal status label, issue time, jurisdiction, custody period, service/notice fields, source hash, and custody chain | Legal/clinical reviewers validate that the record is complete for their workflow; Clarity does not determine legal validity |
 | 3 | Clinical evidence | Dementia history, depression statement, aggression incident, inappropriate behavior, food refusal, hygiene refusal, ADL dependence, home-course report, and medical-clearance facts | Qualified clinical review separates observed, reported, and assessed facts; missing risk details become documentation gaps |
 | 4 | Safety and medical screening | Vitals, allergies, injuries, delirium/medical causes, labs/imaging, fall risk, elopement risk, precautions, and current observation level | Qualified clinical staff record the assessment; no autonomous triage or admission decision |
 | 5 | Medication reconciliation | Exelon/Cymbalta/Abilify details, unknown medication entry, last doses, refusals, allergies, MAR/source document, and prescriber follow-up | Judy Booty processes the MAR/reconciliation workflow; prescriber or authorized clinician reviews orders |
 | 6 | Benefits verification | Medicare, secondary, Medicaid, ambiguous Aetna item, eligibility evidence, benefit-period narrative, coordination-of-benefits status, and payer contacts | Susan Lucci verifies source evidence; benefits readiness remains separate from emergency clinical review |
 | 7 | Packet assembly | Source-linked clinical, legal, benefits, medication, and transport sections; missing-data list; reviewer statuses; correction history | Human reviewers approve the packet contents for routing; no field is silently filled from an assumption |
-| 8 | Routing and acceptance | Receiving organization, program, unit, level of care, bed/acceptance status, accepting person, acceptance time, and reason if not accepted | April/Angela workflow records the facility response; acceptance is a source fact, not an autonomous recommendation |
+| 8 | Routing and acceptance | Oceans of Lafayette receiving organization, Oceans Central Intake placement record under the joint-venture contract, program, unit, level of care, bed/acceptance status, accepting person, acceptance time, and reason if not accepted | April/Angela workflow records the facility response; acceptance is a source fact, not an autonomous recommendation |
 | 9 | Transport custody | Officer Peralta order handoff, Andy Dwyer transport record, departure/arrival times, sending nurse report, receiving contact, and custody attestations | Each handoff is append-only and source-attributed; missing signatures/attestations are visible gaps |
 | 10 | Admission handoff | Accepted response, source case, facility/unit/program, admitted time, explicit facility timezone configuration, service date, episode status, and source references | When the accepted handoff is recorded, S2 episode persistence may emit `ADMISSION_RECORDED.v1`; no pre-admission authorization behavior is changed |
 | 11 | Receiving nurse/psychiatry handoff | Ron-to-April report, April-to-Janis handoff, Angela review/acceptance record, arrival condition, belongings/precautions, and unresolved gaps | Receiving staff attest to receipt; the system records facts and review status without making the clinical decision |
-| 12 | Episode-owned UR | Episode authorization requirement, review request, due time, review status, day decisions, payer reference token, and documentation gaps | Victor's role must be clarified; post-admission UR is episode-owned and separate from pre-admission readiness |
+| 12 | Episode-owned UR | Episode authorization requirement, review request, due time, review status, day decisions, payer reference token, and documentation gaps | Victor performs both the LCSW/social-work and UR roles in this synthetic scenario; the self-review is a scenario constraint and not an independently verified Medicare policy claim |
 | 13 | Coverage derivation | Approved/denied/pending/expired/unrequested/unknown day outcome, separate risk codes, active source event IDs, quality state, and derivation version | Derived status never replaces source facts; "at risk" remains a risk flag, not an authorization outcome |
 | 14 | Ongoing corrections | Original review/day decision/gap facts, correction reason, supersession relationship, actor, version, and audit event | Corrections append new records; originals remain readable and active-branch rules are enforced |
 | 15 | Closure or transition | Episode status, discharge/closure source, remaining open gaps, final handoff, and unresolved benefits/authorization facts | Qualified staff record the lifecycle transition; no automatic discharge or placement decision |
@@ -214,19 +222,16 @@ The workflow is behaving correctly when the test proves that:
 Please provide these three grouped answers. They are the only gates needed to
 turn this scenario from a narrative draft into deterministic synthetic data:
 
-1. **Facility and acceptance:** What are the exact sending and receiving
-   facility names, organization ownership, sending/receiving units, explicit
-   facility timezone source/reference, and has Ocean's accepted the patient? Is
-   April's central-intake role for Ochsner or Ocean's?
-2. **Legal and clinical source packet:** What are the PEC/order issue and
-   expiration times, issuing jurisdiction, medical-clearance facts, exact
+1. **PEC and timezone:** What exact issue time, jurisdiction, order reference,
+   and explicit facility-owned timezone/source reference should be used for the
+   2026-07-18 72-hour PEC window? The scenario now records Dr. Jim Halpert as
+   the coroner source and the expected expiration date as 2026-07-21.
+2. **Clinical source packet:** What are the medical-clearance facts, exact
    suicide-risk assessment, aggression incident details, allergies, ADL
-   baseline, and the source/date for the dementia diagnosis?
-3. **Benefits, medication, and roles:** What does "Aetna Amanda" mean, what
-   are the exact medication strengths/routes/frequencies/last doses, how should
-   the Medicare benefit narrative be interpreted, and is Victor both social
-   worker and UR reviewer or are those separate people? Also confirm whether
-   "processing the Marsh" means processing the MAR.
+   baseline, and source/date for the dementia diagnosis?
+3. **Benefits and medication:** What does "Aetna Amanda" mean, what are the
+   exact medication strengths/routes/frequencies/last doses, and how should the
+   Medicare benefit narrative be represented as source-reported data?
 
 Until these answers are supplied, this document remains a synthetic scenario
 draft and must not be loaded as canonical case state or used to claim a real
