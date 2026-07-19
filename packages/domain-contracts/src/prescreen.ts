@@ -294,6 +294,9 @@ export const PrescreenAssessmentVersionSchema = z
     changeReason: z.string().min(1).max(2000).optional(),
     willingness: z.enum(PATIENT_WILLINGNESS_STATES),
     orientation: OrientationObservationSchema,
+    /** Routing inputs persist with the version so the derived pathway stays reconstructable after attestation. */
+    immediateMedicalStabilizationRequired: z.boolean().default(false),
+    activeEmergencyOrLegalProcess: z.boolean().default(false),
     possiblePathway: z.enum(POSSIBLE_PATHWAYS),
     answers: z.array(AssessmentAnswerSchema),
     sources: z.array(PrescreenSourceReferenceSchema),

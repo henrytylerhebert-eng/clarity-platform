@@ -1,8 +1,8 @@
 # Prescreen service test manifest (Phase 2)
 
-**Files:** `tests/unit/prescreen-service.test.ts` (20 tests, in-memory — no
+**Files:** `tests/unit/prescreen-service.test.ts` (25 tests, in-memory — no
 database), `tests/unit/prescreen-contracts.test.ts` (35 tests, Phase 1
-contracts). Run 2026-07-19 locally: **55/55**; root suite **323/323**.
+contracts). Run 2026-07-19 locally: **60/60**; root suite **328/328**.
 
 ## Owner completion criteria → tests
 

@@ -550,6 +550,119 @@ describe("prescreen command service (Phase 2, in-memory gateway)", () => {
     ).toThrow(PrescreenNotFoundError);
   });
 
+  it("keeps assessment ids tenant-scoped: another organization reusing the same id neither collides nor is disclosed", () => {
+    startDraftAttest(); // ORG_A owns asv_syn_1
+    const startedB = service.startEncounter({
+      organizationId: ORG_B,
+      actor: assessor,
+      idempotencyKey: "start-b-000001",
+      occurredAt: T0,
+      caseId: "case_syn_b1",
+      currentLocation: "Synthetic ED B",
+      presentingConcern: "Synthetic concern B",
+    });
+    // ORG_B can freely use the id ORG_A already used — no cross-tenant existence signal.
+    const saved = service.saveAssessmentDraft({
+      organizationId: ORG_B,
+      actor: assessor,
+      idempotencyKey: "draft-b-000001",
+      occurredAt: T0,
+      encounterId: startedB.encounterId,
+      draft: draft("asv_syn_1"),
+    });
+    expect(saved.status).toBe("DRAFT");
+    expect(gateway.getAssessmentVersion(ORG_B, "asv_syn_1").encounterId).toBe(startedB.encounterId);
+    expect(gateway.getAssessmentVersion(ORG_A, "asv_syn_1").status).toBe("ATTESTED");
+  });
+
+  it("records AGENT and SYSTEM command actors as SERVICE in the event envelope", () => {
+    const agentActor = { ...assessor, actorId: "actor_syn_agent_1", actorType: "AGENT" as const };
+    const started = service.startEncounter({
+      organizationId: ORG_A,
+      actor: agentActor,
+      idempotencyKey: "agent-start-0001",
+      occurredAt: T0,
+      caseId: "case_syn_agent",
+      currentLocation: "Synthetic ED",
+      presentingConcern: "Synthetic concern",
+    });
+    expect(started.status).toBe("DRAFT");
+    const envelope = gateway.outboxEnvelopes().at(-1);
+    expect(envelope?.actor.actorType).toBe("SERVICE");
+    expect(envelope?.actor.actorId).toBe("actor_syn_agent_1");
+  });
+
+  it("rejects submitting a superseded (non-current) assessment version", () => {
+    const { encounterId } = startDraftAttest();
+    service.createAssessmentSupplement({
+      organizationId: ORG_A,
+      actor: assessor,
+      idempotencyKey: "supplement-key-01",
+      occurredAt: T0,
+      encounterId,
+      parentAssessmentVersionId: "asv_syn_1",
+      reason: "Synthetic new collateral information",
+      draft: draft("asv_syn_2"),
+    });
+    // asv_syn_1 is immutable but no longer current; submission must cite asv_syn_2.
+    expect(() =>
+      service.submitPrescreen({
+        organizationId: ORG_A,
+        actor: assessor,
+        idempotencyKey: "submit-old-0001",
+        occurredAt: T0,
+        encounterId,
+        assessmentVersionId: "asv_syn_1",
+        target: "CENTRAL_INTAKE_REVIEW",
+        receivingOrganizationId: ORG_A,
+      }),
+    ).toThrow(/current assessment version/);
+    const submitted = service.submitPrescreen({
+      organizationId: ORG_A,
+      actor: assessor,
+      idempotencyKey: "submit-new-0001",
+      occurredAt: T0,
+      encounterId,
+      assessmentVersionId: "asv_syn_2",
+      target: "CENTRAL_INTAKE_REVIEW",
+      receivingOrganizationId: ORG_A,
+    });
+    expect(submitted.status).toBe("SUBMITTED");
+  });
+
+  it("persists routing inputs on stored versions and covers them with the content hash", () => {
+    const started = start();
+    service.saveAssessmentDraft({
+      organizationId: ORG_A,
+      actor: assessor,
+      idempotencyKey: "draft-key-0001",
+      occurredAt: T0,
+      encounterId: started.encounterId,
+      draft: draft("asv_syn_1", { immediateMedicalStabilizationRequired: true }),
+    });
+    const stored = gateway.getAssessmentVersion(ORG_A, "asv_syn_1");
+    expect(stored.immediateMedicalStabilizationRequired).toBe(true);
+    expect(stored.activeEmergencyOrLegalProcess).toBe(false);
+  });
+
+  it("returns deep snapshots: mutating a returned assessment does not touch internal state", () => {
+    const started = start();
+    service.saveAssessmentDraft({
+      organizationId: ORG_A,
+      actor: assessor,
+      idempotencyKey: "draft-key-0001",
+      occurredAt: T0,
+      encounterId: started.encounterId,
+      draft: draft("asv_syn_1"),
+    });
+    const snapshot = gateway.getAssessmentVersion(ORG_A, "asv_syn_1");
+    (snapshot.orientation.person as { status: string }).status = "NOT_ORIENTED";
+    (snapshot.answers as unknown[]).length = 0;
+    const fresh = gateway.getAssessmentVersion(ORG_A, "asv_syn_1");
+    expect(fresh.orientation.person.status).toBe("ORIENTED");
+    expect(fresh.answers).toHaveLength(1);
+  });
+
   it("rejects a supplement whose parent citation is valid but body reuses an existing version id", () => {
     const { encounterId } = startDraftAttest();
     expect(() =>
