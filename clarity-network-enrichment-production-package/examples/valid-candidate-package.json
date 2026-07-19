@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "clarity.network-enrichment.v1",
+  "runId": "run_demo_001",
+  "organizationId": "org_demo",
+  "entityResolution": {
+    "status": "PROBABLE_MATCH",
+    "selectedCandidateId": "entity_1",
+    "confidence": 0.72,
+    "margin": 0.3,
+    "reason": "Name, city and official domain align; human confirmation required.",
+    "candidates": [],
+    "requiresHumanReview": true
+  },
+  "candidates": [
+    {
+      "candidateId": "cand_1",
+      "fieldPath": "contactPoints.admissions.phone",
+      "currentValue": null,
+      "proposedValue": "3375550100",
+      "normalizedValue": "3375550100",
+      "reviewState": "CANDIDATE",
+      "operationalUseStatus": "REQUIRES_REVIEW",
+      "evidenceIds": [
+        "ev_1"
+      ],
+      "confidence": "HIGH",
+      "sourceEffectiveAt": null,
+      "lastHumanVerifiedAt": null,
+      "nextReviewAt": "2026-08-18T00:00:00.000Z",
+      "proposedReviewerRoles": [
+        "NETWORK_REVIEWER"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidenceId": "ev_1",
+      "sourceType": "OFFICIAL_ORGANIZATION",
+      "sourceTier": 1,
+      "sourceTitle": "Admissions",
+      "sourceUrl": "https://example.org/admissions",
+      "retrievedAt": "2026-07-19T00:00:00.000Z",
+      "publishedOrEffectiveAt": null,
+      "evidenceText": "Admissions phone listed on official page.",
+      "supportsFields": [
+        "contactPoints.admissions.phone"
+      ],
+      "scope": "CONTACT",
+      "confidence": "HIGH",
+      "contentHash": null
+    }
+  ],
+  "conflicts": [],
+  "unresolvedFields": [],
+  "limitations": [
+    "No authoritative public payer-plan detail was found."
+  ]
+}

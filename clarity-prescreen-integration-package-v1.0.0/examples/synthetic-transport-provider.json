@@ -1,0 +1,39 @@
+{
+  "providerId": "provider_synthetic_1",
+  "legalName": "Synthetic Secure Transport",
+  "doingBusinessAs": null,
+  "category": "CONTRACTED_SECURE_BEHAVIORAL_TRANSPORT",
+  "status": "CANDIDATE",
+  "serviceAreas": [
+    "Synthetic Parish"
+  ],
+  "supportedLegalStatuses": [
+    "OPC",
+    "PEC",
+    "CEC"
+  ],
+  "capabilities": [
+    "CONTINUOUS_SUPERVISION"
+  ],
+  "restrictions": [
+    "NOT_FOR_MEDICALLY_UNSTABLE_PATIENTS"
+  ],
+  "facilityApprovals": [],
+  "jurisdictionApprovals": [],
+  "credentials": [
+    {
+      "credentialType": "SYNTHETIC_CARRIER_AUTHORITY",
+      "identifier": "SYN-001",
+      "status": "PENDING",
+      "effectiveFrom": null,
+      "effectiveTo": null,
+      "verifiedAt": "2026-07-19T12:00:00Z",
+      "sourceReference": "synthetic-only"
+    }
+  ],
+  "insuranceVerifiedThrough": null,
+  "contractStatus": "PENDING",
+  "lastVerifiedAt": "2026-07-19T12:00:00Z",
+  "nextVerificationDueAt": null,
+  "verificationStatus": "UNKNOWN"
+}

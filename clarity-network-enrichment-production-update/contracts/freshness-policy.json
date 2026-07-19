@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0-proposed",
+  "days": {
+    "legalIdentity": 365,
+    "licenseCertification": 30,
+    "address": 180,
+    "website": 90,
+    "generalPhone": 60,
+    "admissionsPhone": 30,
+    "operatingHours": 30,
+    "personnel": 45,
+    "serviceLines": 90,
+    "payerParticipation": 30,
+    "admissionRequirements": 30,
+    "transportCapability": 30,
+    "capacity": 7,
+    "activeStatus": 30
+  }
+}

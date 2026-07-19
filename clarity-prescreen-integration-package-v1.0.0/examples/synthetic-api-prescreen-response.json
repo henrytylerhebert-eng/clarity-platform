@@ -1,0 +1,16 @@
+{
+  "encounterId": "enc_syn_01",
+  "caseId": "case_synthetic_1",
+  "status": "ATTESTED",
+  "version": 3,
+  "willingness": "WILLING",
+  "orientationGate": "PASS",
+  "possiblePathway": "POSSIBLE_FORMAL_VOLUNTARY_REVIEW",
+  "currentTarget": "CENTRAL_INTAKE_REVIEW",
+  "openBlockerCount": 0,
+  "freshness": {
+    "lastMaterialEventAt": "2026-07-19T12:10:00Z",
+    "stale": false
+  },
+  "updatedAt": "2026-07-19T12:10:00Z"
+}

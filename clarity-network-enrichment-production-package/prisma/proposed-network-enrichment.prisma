@@ -1,0 +1,109 @@
+// Proposed and unverified Prisma fragment. Codex must map names and relations to the live schema.
+
+enum NetworkEnrichmentRunStatus { REQUESTED RUNNING COMPLETED PARTIAL FAILED CANCELLED }
+enum NetworkReviewState { UNRESEARCHED CANDIDATE SOURCE_CONFIRMED HUMAN_CONFIRMED CONFLICT STALE REJECTED SUPERSEDED DEPRECATED }
+enum NetworkReviewDecisionType { APPROVE REJECT REQUEST_CLARIFICATION RESOLVE_CONFLICT SUPERSEDE SUSPEND MARK_STALE }
+
+model NetworkEnrichmentRun {
+  id                  String   @id @default(cuid())
+  organizationId      String
+  requestedEntityType String
+  requestedName       String
+  requestedCity       String?
+  requestedState      String?
+  status              NetworkEnrichmentRunStatus
+  schemaVersion       String
+  promptVersion       String
+  sourcePolicyVersion String
+  correlationId       String
+  createdById         String
+  createdAt           DateTime @default(now())
+  completedAt         DateTime?
+  version             Int      @default(1)
+  candidates          NetworkCandidateField[]
+  evidence            NetworkFieldEvidence[]
+  conflicts           NetworkConflictSet[]
+  @@index([organizationId, status, createdAt])
+}
+
+model NetworkCandidateField {
+  id                   String   @id @default(cuid())
+  organizationId       String
+  runId                String
+  run                   NetworkEnrichmentRun @relation(fields: [runId], references: [id])
+  canonicalEntityType  String
+  canonicalEntityId    String?
+  fieldPath             String
+  currentValueJson      Json?
+  proposedValueJson     Json?
+  normalizedValueJson   Json?
+  reviewState           NetworkReviewState
+  operationalUseStatus String
+  confidence            String
+  sourceEffectiveAt     DateTime?
+  lastHumanVerifiedAt   DateTime?
+  nextReviewAt          DateTime?
+  version               Int @default(1)
+  evidenceLinks         NetworkCandidateEvidence[]
+  decisions             NetworkReviewDecision[]
+  @@index([organizationId, reviewState, nextReviewAt])
+  @@index([organizationId, canonicalEntityType, canonicalEntityId, fieldPath])
+}
+
+model NetworkFieldEvidence {
+  id                   String @id @default(cuid())
+  organizationId       String
+  runId                String
+  run                   NetworkEnrichmentRun @relation(fields: [runId], references: [id])
+  sourceType            String
+  sourceTier            Int
+  sourceTitle           String
+  sourceUrl             String
+  retrievedAt           DateTime
+  publishedOrEffectiveAt DateTime?
+  evidenceText          String
+  scope                 String
+  confidence            String
+  contentHash           String?
+  links                 NetworkCandidateEvidence[]
+  @@index([organizationId, sourceType, retrievedAt])
+}
+
+model NetworkCandidateEvidence {
+  candidateId String
+  evidenceId  String
+  candidate   NetworkCandidateField @relation(fields: [candidateId], references: [id])
+  evidence    NetworkFieldEvidence @relation(fields: [evidenceId], references: [id])
+  @@id([candidateId, evidenceId])
+}
+
+model NetworkConflictSet {
+  id                       String @id @default(cuid())
+  organizationId           String
+  runId                    String
+  run                      NetworkEnrichmentRun @relation(fields: [runId], references: [id])
+  fieldPath                String
+  reason                   String
+  status                   String
+  resolutionDecisionId     String?
+  createdAt                DateTime @default(now())
+  resolvedAt               DateTime?
+  @@index([organizationId, status, createdAt])
+}
+
+model NetworkReviewDecision {
+  id              String @id @default(cuid())
+  organizationId  String
+  candidateId     String
+  candidate       NetworkCandidateField @relation(fields: [candidateId], references: [id])
+  decisionType    NetworkReviewDecisionType
+  actorId         String
+  actorRolesJson  Json
+  rationale       String?
+  previousState   NetworkReviewState
+  newState        NetworkReviewState
+  commandId       String @unique
+  correlationId   String
+  createdAt       DateTime @default(now())
+  @@index([organizationId, candidateId, createdAt])
+}

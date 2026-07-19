@@ -1,0 +1,8 @@
+surface,role_scope,detail_policy,status
+Case Dependency Map,demo-role-scoped,show operational summary only,implemented synthetic
+Restricted medical screening,demo-role-scoped,show placeholder instead of detail,implemented synthetic
+Legal status,demo-role-scoped,show counsel-review state; do not declare validity,implemented synthetic
+Benefits,demo-role-scoped,show non-guarantee financial lane,implemented synthetic
+Compliance audit,requires verified principal,not implemented beyond provenance summary,backend dependency
+Server filtering,requires verified principal,not implemented,backend dependency
+

@@ -1,0 +1,102 @@
+{
+  "profileId": "profile_synthetic_1",
+  "facilityId": "facility_synthetic_1",
+  "organizationId": "org_synthetic",
+  "version": 1,
+  "status": "DRAFT",
+  "effectiveFrom": "2026-08-01T00:00:00Z",
+  "effectiveTo": null,
+  "programs": [
+    {
+      "programId": "adult_ip",
+      "name": "Synthetic Adult Inpatient",
+      "ageMinimum": 18,
+      "ageMaximum": 120
+    }
+  ],
+  "packetRequirements": [
+    {
+      "requirementCode": "DEMOGRAPHICS",
+      "label": "Patient demographics",
+      "requiredness": "REQUIRED",
+      "conditionExpression": null,
+      "freshnessHours": null,
+      "blockingTargets": [
+        "CENTRAL_INTAKE_REVIEW"
+      ],
+      "resolutionWorkspace": "Packet",
+      "responsibleRoleCode": "PRESCREEN_ASSESSOR",
+      "sourceReference": "policy_synthetic#section-1"
+    }
+  ],
+  "medicalClearanceRules": [
+    {
+      "requirementCode": "MEDICAL_REVIEW",
+      "label": "Facility-defined medical review",
+      "requiredness": "CONDITIONAL",
+      "conditionExpression": "facility-approved synthetic condition",
+      "freshnessHours": 24,
+      "blockingTargets": [
+        "FACILITY_ROUTING"
+      ],
+      "resolutionWorkspace": "Medical",
+      "responsibleRoleCode": "MEDICAL_CLEARANCE_PROVIDER",
+      "sourceReference": "policy_synthetic#section-2"
+    }
+  ],
+  "inclusionReviewRules": [],
+  "exclusionReviewRules": [],
+  "acceptanceAuthority": [
+    {
+      "capability": "FACILITY_RESPONSE_RECORD",
+      "authorizedRoleCodes": [
+        "ACCEPTING_PRACTITIONER"
+      ],
+      "delegationConditions": []
+    }
+  ],
+  "transportRules": [
+    {
+      "ruleCode": "SECURED_INSTRUMENT_TRANSPORT",
+      "whenLegalStatuses": [
+        "OPC",
+        "PEC",
+        "CEC"
+      ],
+      "allowedCategories": [
+        "LAW_ENFORCEMENT_CUSTODY",
+        "LICENSED_AMBULANCE_EMS",
+        "CONTRACTED_SECURE_BEHAVIORAL_TRANSPORT"
+      ],
+      "blockedCategories": [
+        "FAMILY_OR_SUPPORT_TRANSPORT",
+        "SELF_TRANSPORT"
+      ],
+      "exceptionProcessCode": "FACILITY_APPROVED_EXCEPTION"
+    }
+  ],
+  "consentRuleSetIds": [
+    "consent_synthetic_v1"
+  ],
+  "requiredApprovalTypes": [
+    "CLINICAL",
+    "LEGAL",
+    "OPERATIONS",
+    "TRANSPORT"
+  ],
+  "approvals": [
+    {
+      "approvalType": "CLINICAL",
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null
+    }
+  ],
+  "sourceReferences": [
+    {
+      "documentVersionId": "doc_policy_synthetic_v1",
+      "location": "Section 1-2",
+      "label": "Synthetic policy source"
+    }
+  ]
+}

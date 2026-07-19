@@ -1,0 +1,62 @@
+{
+  "scenarioId": "SYN-02",
+  "title": "Willing Not Oriented",
+  "description": "Adult is willing but not oriented to time or situation.",
+  "syntheticOnly": true,
+  "assessment": {
+    "schemaVersion": "1.0.0",
+    "assessmentVersionId": "assess_syn_02",
+    "encounterId": "enc_syn_02",
+    "organizationId": "org_synthetic",
+    "versionNumber": 1,
+    "status": "DRAFT",
+    "createdAt": "2026-07-19T12:00:00Z",
+    "createdBy": "actor_synthetic",
+    "attestedAt": null,
+    "attestedBy": null,
+    "parentVersionId": null,
+    "changeReason": null,
+    "willingness": "WILLING",
+    "orientation": {
+      "observedAt": "2026-07-19T12:00:00Z",
+      "sourceId": "src_direct",
+      "domains": {
+        "person": {
+          "status": "ORIENTED",
+          "observation": "Synthetic observation."
+        },
+        "place": {
+          "status": "ORIENTED",
+          "observation": "Synthetic observation."
+        },
+        "time": {
+          "status": "NOT_ORIENTED",
+          "observation": "Synthetic observation."
+        },
+        "situation": {
+          "status": "NOT_ORIENTED",
+          "observation": "Synthetic observation."
+        }
+      }
+    },
+    "possiblePathway": "POSSIBLE_NONCONTESTED_PATHWAY",
+    "answers": [],
+    "sources": [
+      {
+        "sourceId": "src_direct",
+        "sourceType": "DIRECT_OBSERVATION",
+        "displayLabel": "Synthetic direct observation",
+        "documentVersionId": null,
+        "recordedAt": "2026-07-19T12:00:00Z"
+      }
+    ],
+    "contradictions": [],
+    "unknowns": [],
+    "emergencyInterrupt": null
+  },
+  "expected": {
+    "orientationGate": "FAIL",
+    "formalVoluntaryUnavailableAtPrescreen": true,
+    "noncontestedAdmissionNotYetAuthorized": true
+  }
+}
