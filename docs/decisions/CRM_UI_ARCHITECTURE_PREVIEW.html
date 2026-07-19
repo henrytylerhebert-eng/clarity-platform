@@ -1,0 +1,1261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clarity Directory CRM Preview</title>
+  <style>
+    :root {
+      --bg: #f5f6f2;
+      --surface: #ffffff;
+      --ink: #17211d;
+      --muted: #5f6b65;
+      --line: #d9dfd6;
+      --accent: #0f766e;
+      --accent-soft: #d9eeea;
+      --warn: #9a6700;
+      --warn-soft: #fff3cf;
+      --danger: #a33a2b;
+      --danger-soft: #ffe2dc;
+      --good: #207044;
+      --good-soft: #def3e6;
+      --focus: #195e83;
+      --focus-soft: #dcebf4;
+      --shadow: 0 18px 45px rgba(25, 39, 31, 0.08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .shell {
+      min-height: 100svh;
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: #10251f;
+      color: #f5f8f4;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      background: #dfeee4;
+      color: #10251f;
+      font-weight: 800;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .brand p,
+    .side-note,
+    .nav small,
+    .meta,
+    .subtext {
+      color: #a9b7b0;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav button {
+      width: 100%;
+      border: 0;
+      border-radius: 7px;
+      color: #dfeee4;
+      background: transparent;
+      padding: 10px 10px;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .nav button.active {
+      background: rgba(223, 238, 228, 0.12);
+      color: #ffffff;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      flex: 0 0 auto;
+    }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      background: rgba(245, 246, 242, 0.9);
+      border-bottom: 1px solid var(--line);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      backdrop-filter: blur(10px);
+    }
+
+    .topbar h2 {
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      line-height: 1;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .badge.info {
+      color: var(--focus);
+      background: var(--focus-soft);
+      border-color: #bed8e7;
+    }
+
+    .badge.warn {
+      color: var(--warn);
+      background: var(--warn-soft);
+      border-color: #f0d78a;
+    }
+
+    .badge.good {
+      color: var(--good);
+      background: var(--good-soft);
+      border-color: #b9dfc7;
+    }
+
+    .badge.danger {
+      color: var(--danger);
+      background: var(--danger-soft);
+      border-color: #f0c2bb;
+    }
+
+    .workspace {
+      min-width: 0;
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      border: 1px solid var(--line);
+      background: var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      background: var(--surface);
+      padding: 16px;
+      min-height: 86px;
+    }
+
+    .metric span,
+    label span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .setup-panel,
+    .portal-map,
+    .filters {
+      display: grid;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .setup-layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1.22fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .setup-summary {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcf9;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .setup-summary h3 {
+      font-size: 20px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .setup-summary p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .setup-steps {
+      display: grid;
+      gap: 1px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--line);
+    }
+
+    .setup-step {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      background: #ffffff;
+      padding: 12px;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .setup-step strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .setup-step span:not(.step-num):not(.badge) {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .module-lanes {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .module-lane {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcf9;
+      min-height: 128px;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+
+    .module-lane strong {
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .module-lane p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 1px;
+      border: 1px solid var(--line);
+      background: var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .portal-node {
+      min-height: 116px;
+      background: #fbfcf9;
+      padding: 14px;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+
+    .portal-node strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .portal-node p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .segments {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .segment {
+      border: 1px solid var(--line);
+      background: #f9faf7;
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+    }
+
+    .segment.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(160px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fbfcf9;
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    button:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+    }
+
+    .content {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.72fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .table-panel,
+    .profile,
+    .decision {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-head h3 {
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      background: #f9faf7;
+    }
+
+    tr {
+      transition: background 120ms ease;
+    }
+
+    tbody tr {
+      cursor: pointer;
+    }
+
+    tbody tr:hover,
+    tbody tr.selected {
+      background: var(--accent-soft);
+    }
+
+    .facility-name {
+      display: grid;
+      gap: 4px;
+    }
+
+    .facility-name strong {
+      font-size: 14px;
+    }
+
+    .profile {
+      position: sticky;
+      top: 90px;
+    }
+
+    .profile-body {
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .profile-title {
+      display: grid;
+      gap: 8px;
+    }
+
+    .profile-title h3 {
+      font-size: 20px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .field-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 130px minmax(0, 1fr);
+      gap: 12px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .field-row span:first-child {
+      color: var(--muted);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 12px;
+      background: #fbfcf9;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .primary,
+    .secondary {
+      border-radius: 7px;
+      padding: 10px 11px;
+      cursor: pointer;
+      border: 1px solid var(--line);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+
+    .secondary {
+      background: #fbfcf9;
+      color: var(--ink);
+    }
+
+    .decision {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .decision-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .decision-options button {
+      border: 1px solid var(--line);
+      background: #fbfcf9;
+      border-radius: 7px;
+      padding: 10px;
+      cursor: pointer;
+      text-align: left;
+      color: var(--ink);
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .decision-options button:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+
+    .decision-options button.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .decision-output {
+      min-height: 44px;
+      border-left: 3px solid var(--accent);
+      padding: 10px 12px;
+      background: #f7fbf8;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 1050px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .metrics,
+      .setup-layout,
+      .module-lanes,
+      .portal-grid,
+      .content,
+      .filter-grid,
+      .decision-options {
+        grid-template-columns: 1fr;
+      }
+
+      .profile {
+        position: static;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .workspace {
+        padding: 16px;
+      }
+
+      .table-panel {
+        overflow-x: auto;
+      }
+
+      table {
+        min-width: 760px;
+      }
+
+      .actions,
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Clarity workspace navigation">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <div>
+          <h1>Clarity</h1>
+          <p>Directory CRM preview</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button type="button"><span class="dot"></span>Command Center</button>
+        <button type="button" class="active"><span class="dot"></span>Directory CRM</button>
+        <button type="button"><span class="dot"></span>Packet Preview</button>
+        <button type="button"><span class="dot"></span>Routing Response</button>
+        <button type="button"><span class="dot"></span>Discharge Planning</button>
+        <button type="button"><span class="dot"></span>Product Studio</button>
+      </nav>
+
+      <p class="side-note">Static artifact. Synthetic records only. No live referral, placement, payer, clinical, legal, or production action.</p>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="meta">Selected workspace</p>
+          <h2>Clarity Directory CRM</h2>
+        </div>
+        <div class="badges" aria-label="Governance status">
+          <span class="badge warn">Needs review</span>
+          <span class="badge info">Internal preview</span>
+          <span class="badge danger">No live bed claim</span>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <section class="metrics" aria-label="Directory status metrics">
+          <div class="metric">
+            <span>Base account model</span>
+            <strong>Org portal</strong>
+            <p class="subtext">Parent org, locations, personnel</p>
+          </div>
+          <div class="metric">
+            <span>Network records</span>
+            <strong>19,000+</strong>
+            <p class="subtext">Directory persistence unverified</p>
+          </div>
+          <div class="metric">
+            <span>Portal users</span>
+            <strong>Personnel</strong>
+            <p class="subtext">Scoped by organization profile</p>
+          </div>
+          <div class="metric">
+            <span>Baseline timing</span>
+            <strong>Unknown</strong>
+            <p class="subtext">No measurements found</p>
+          </div>
+        </section>
+
+        <section class="setup-panel" aria-label="Organization setup workflow">
+          <div class="setup-layout">
+            <div class="setup-summary">
+              <div>
+                <p class="meta">Portal account spine</p>
+                <h3>Set up the organization, then unlock the right tools for its people.</h3>
+              </div>
+              <p>Each agency, hospital, provider, or crisis-response team starts with a parent profile. Locations, service lines, personnel, partner relationships, and workflow permissions sit underneath that profile.</p>
+              <div class="badges">
+                <span class="badge info">Universal login model</span>
+                <span class="badge warn">RBAC/RLS pending</span>
+              </div>
+            </div>
+            <div class="setup-steps" aria-label="Setup sequence">
+              <div class="setup-step">
+                <span class="step-num">1</span>
+                <div><strong>Organization profile</strong><span>Police department, acute hospital, crisis team, behavioral parent company, or resource provider.</span></div>
+                <span class="badge info">Base record</span>
+              </div>
+              <div class="setup-step">
+                <span class="step-num">2</span>
+                <div><strong>Locations and service lines</strong><span>ED campuses, central intake hubs, inpatient units, rehab, telemed consult, discharge resources.</span></div>
+                <span class="badge info">Configured</span>
+              </div>
+              <div class="setup-step">
+                <span class="step-num">3</span>
+                <div><strong>Personnel and access</strong><span>Officers, ED clinicians, intake coordinators, UR staff, nurses, discharge planners, admins.</span></div>
+                <span class="badge warn">Review gate</span>
+              </div>
+              <div class="setup-step">
+                <span class="step-num">4</span>
+                <div><strong>Partner workflows</strong><span>Referral, packet, bed request, consult, handoff, admitted operations, and discharge planning.</span></div>
+                <span class="badge danger">No live send</span>
+              </div>
+            </div>
+          </div>
+          <div class="module-lanes" aria-label="Workflow modules by organization type">
+            <div class="module-lane">
+              <strong>Law enforcement / crisis response</strong>
+              <p>Prescreen, source capture, custody context, field handoff, and limited case visibility.</p>
+              <span class="badge info">Access layer</span>
+            </div>
+            <div class="module-lane">
+              <strong>Acute hospital / ED</strong>
+              <p>Referral request, bed request, packet send, telemed consult request, case management, and discharge resources.</p>
+              <span class="badge warn">EMR integration unverified</span>
+            </div>
+            <div class="module-lane">
+              <strong>Behavioral health provider</strong>
+              <p>Central intake, facility response, admission readiness, admitted-phase operations, UR, and discharge planning.</p>
+              <span class="badge info">Service-line model</span>
+            </div>
+            <div class="module-lane">
+              <strong>Parent company admin</strong>
+              <p>Child locations, service-line setup, personnel permissions, verification status, and network governance.</p>
+              <span class="badge warn">Human approval</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="portal-map" aria-label="Portal account model">
+          <div class="panel-head" style="padding:0;border:0;">
+            <div>
+              <h3>Base CRM portal model</h3>
+              <p class="subtext">Every organization starts with a profile, then configures locations, service lines, personnel, and allowed workflows.</p>
+            </div>
+            <span class="badge warn">Future RBAC/RLS decision</span>
+          </div>
+          <div class="portal-grid">
+            <div class="portal-node">
+              <strong>Parent organization</strong>
+              <p>Police department, hospital system, behavioral health company, crisis-response agency.</p>
+            </div>
+            <div class="portal-node">
+              <strong>Locations</strong>
+              <p>ED campus, inpatient facility, outpatient clinic, response station, central intake hub.</p>
+            </div>
+            <div class="portal-node">
+              <strong>Service lines</strong>
+              <p>Prescreen, bed request, telemed consult, intake, admitted operations, discharge planning.</p>
+            </div>
+            <div class="portal-node">
+              <strong>Personnel</strong>
+              <p>Officers, ED clinicians, intake coordinators, nurses, case managers, admins.</p>
+            </div>
+            <div class="portal-node">
+              <strong>Network workflows</strong>
+              <p>Referral, packet, consult, bed request, handoff, utilization review, disposition.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="filters" aria-label="Network CRM filters">
+          <div class="segments" id="segments"></div>
+          <div class="filter-grid">
+            <label>
+              <span>Search</span>
+              <input id="query" type="search" placeholder="Organization, city, personnel, service line">
+            </label>
+            <label>
+              <span>Organization type</span>
+              <select id="org-type">
+                <option value="all">All organization types</option>
+                <option value="law-enforcement">Law enforcement</option>
+                <option value="crisis-response">Crisis response</option>
+                <option value="acute-hospital">Acute hospital</option>
+                <option value="behavioral-provider">Behavioral provider</option>
+                <option value="resource-provider">Resource provider</option>
+              </select>
+            </label>
+            <label>
+              <span>Verification</span>
+              <select id="verification">
+                <option value="all">All verification states</option>
+                <option value="source-confirmed">Source-confirmed</option>
+                <option value="stale">Stale</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </label>
+            <label>
+              <span>Workflow context</span>
+              <select id="workflow">
+                <option value="prescreen">Prescreen access</option>
+                <option value="routing">Admission routing</option>
+                <option value="consult">Telemed consult</option>
+                <option value="discharge">Discharge planning</option>
+                <option value="admin">Admin verification</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="content">
+          <div class="table-panel">
+            <div class="panel-head">
+              <div>
+                <h3>Network organizations and resources</h3>
+                <p class="subtext" id="result-count">0 matches</p>
+              </div>
+              <span class="badge warn">No autonomous decisions</span>
+            </div>
+            <table aria-label="Network CRM results">
+              <thead>
+                <tr>
+                  <th style="width: 30%">Organization</th>
+                  <th style="width: 15%">Type</th>
+                  <th style="width: 18%">Service lines</th>
+                  <th style="width: 17%">Portal tools</th>
+                  <th style="width: 20%">Review state</th>
+                </tr>
+              </thead>
+              <tbody id="results"></tbody>
+            </table>
+          </div>
+
+          <aside class="profile" aria-label="Organization profile">
+            <div class="panel-head">
+              <div>
+                <h3>Organization profile</h3>
+                <p class="subtext">Account, personnel, service lines, and facility truth stay separate</p>
+              </div>
+            </div>
+            <div class="profile-body" id="profile"></div>
+          </aside>
+        </section>
+
+        <section class="decision" aria-label="Feedback decision">
+          <div>
+            <h3>Review decision</h3>
+            <p class="subtext">Select the next authorization path for this CRM architecture.</p>
+          </div>
+          <div class="decision-options" id="decision-options">
+            <button type="button" data-decision="ui">Approve UI prototype slice</button>
+            <button type="button" data-decision="backend">Backend/API/RLS first</button>
+            <button type="button" data-decision="revise">Revise architecture</button>
+          </div>
+          <div class="decision-output" id="decision-output">Recommended: approve a UI prototype slice first, with synthetic/read-only data and no live routing.</div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const categories = ["All", "Prescreen", "Hospital", "Behavioral", "Discharge", "Admin"];
+    const facilities = [
+      {
+        id: "lafayette-police",
+        name: "Lafayette Police Department",
+        city: "Lafayette",
+        category: "Prescreen",
+        orgType: "law-enforcement",
+        service: "Field referral and custody handoff",
+        coverage: ["medicare", "medicaid"],
+        verification: "source-confirmed",
+        capacity: "Unknown",
+        status: "Synthetic portal profile",
+        parent: "Municipal agency",
+        personnel: "Officers, supervisors, evidence/custody reviewers",
+        serviceLines: ["Field prescreen", "Source capture", "Custody context", "Handoff"],
+        portalTools: ["Prescreen", "Guided intake", "Custody ledger"],
+        capabilities: ["Start referral", "Capture source facts", "Request crisis/ER handoff"],
+        exclusions: ["No clinical determination", "No placement decision", "No payer access"],
+        requirements: ["Officer identity", "Source/custody facts", "Handoff destination"],
+        history: "Can support prescreen referrals and custody-source context.",
+        contact: "Personnel-scoped portal login"
+      },
+      {
+        id: "lafayette-crisis-response",
+        name: "Lafayette Community Crisis Response",
+        city: "Lafayette",
+        category: "Prescreen",
+        orgType: "crisis-response",
+        service: "Community triage and mobile response",
+        coverage: ["unknown"],
+        verification: "unknown",
+        capacity: "Unknown",
+        status: "Proposed profile type",
+        parent: "Community response organization",
+        personnel: "Crisis responders, triage coordinators, supervisors",
+        serviceLines: ["Triage", "Prescreen", "De-escalation", "Warm handoff"],
+        portalTools: ["Prescreen", "Case overview", "Packet prep"],
+        capabilities: ["Assist triage", "Document observed facts", "Coordinate handoff"],
+        exclusions: ["No legal-status validation", "No autonomous disposition"],
+        requirements: ["Safety context", "Collateral status", "Receiving handoff"],
+        history: "No referral history in prototype.",
+        contact: "Personnel-scoped portal login"
+      },
+      {
+        id: "lafayette-general-ed",
+        name: "Lafayette General Emergency Department",
+        city: "Lafayette",
+        category: "Hospital",
+        orgType: "acute-hospital",
+        service: "ED behavioral-health access",
+        coverage: ["medicare", "medicaid"],
+        verification: "source-confirmed",
+        capacity: "Unknown",
+        status: "Synthetic hospital profile",
+        parent: "Acute care hospital",
+        personnel: "ED clinicians, case managers, discharge planners, admins",
+        serviceLines: ["Referral", "Bed request", "Packet send", "Telemed consult"],
+        portalTools: ["Referral request", "Packet send", "Consult request", "Discharge resources"],
+        capabilities: ["EMR-adjacent referral", "Request bed", "Request telemed psych consult"],
+        exclusions: ["No EMR integration verified", "No live bed reservation"],
+        requirements: ["Medical clearance", "Referral packet", "Consult request reason"],
+        history: "Can send synthetic packets to central intake or receiving providers.",
+        contact: "Hospital personnel portal"
+      },
+      {
+        id: "oceans-parent",
+        name: "Oceans Behavioral Health Parent Company",
+        city: "Louisiana",
+        category: "Behavioral",
+        orgType: "behavioral-provider",
+        service: "Parent organization with locations and service lines",
+        coverage: ["medicare", "medicaid"],
+        verification: "source-confirmed",
+        capacity: "Unknown",
+        status: "Synthetic parent profile",
+        parent: "Parent company",
+        personnel: "Executives, intake admins, clinicians, UR, discharge planners",
+        serviceLines: ["Central intake", "Inpatient", "Admitted operations", "UR", "Discharge planning"],
+        portalTools: ["Org admin", "Intake module", "Episode operations", "UR", "Discharge planning"],
+        capabilities: ["Configure child locations", "Manage personnel access", "Operate central intake"],
+        exclusions: ["No production account provisioning", "No automatic acceptance"],
+        requirements: ["Approved service lines", "Location profiles", "Personnel roles"],
+        history: "Parent profile owns location/service-line setup in proposed model.",
+        contact: "Organization-admin portal"
+      },
+      {
+        id: "oceans-lafayette-central-intake",
+        name: "Oceans Lafayette Central Intake",
+        city: "Lafayette",
+        category: "Behavioral",
+        orgType: "behavioral-provider",
+        service: "Central intake partnered with ERs",
+        coverage: ["medicare"],
+        verification: "stale",
+        capacity: "Unknown",
+        status: "Stale verification",
+        parent: "Oceans Behavioral Health Parent Company",
+        personnel: "Intake coordinators, reviewing clinicians, UR staff",
+        serviceLines: ["Referral intake", "Packet review", "Acceptance response", "Admitted phase"],
+        portalTools: ["Intake queue", "Routing response", "Admission readiness", "Episode operations"],
+        capabilities: ["Receive packets", "Respond accept/decline/request info", "Start admitted phase"],
+        exclusions: ["Capacity not live", "Requires human acceptance"],
+        requirements: ["Packet preview", "Medical clearance", "Legal status source"],
+        history: "Accepted 1 synthetic packet; requested no additional info.",
+        contact: "Central intake personnel portal"
+      },
+      {
+        id: "acadian-stepdown",
+        name: "Acadian Stepdown Nursing",
+        city: "New Iberia",
+        category: "Discharge",
+        orgType: "resource-provider",
+        service: "Skilled nursing and rehab",
+        coverage: ["medicare"],
+        verification: "unknown",
+        capacity: "Unknown",
+        status: "Unknown review state",
+        parent: "Independent resource provider",
+        personnel: "Admissions coordinator, nursing contact",
+        serviceLines: ["Skilled nursing", "Rehab", "Medication support"],
+        portalTools: ["Resource profile", "Discharge referral candidate"],
+        capabilities: ["Skilled nursing", "Medication support", "Mobility support"],
+        exclusions: ["Behavioral acuity needs review"],
+        requirements: ["Discharge plan", "Medication list", "Functional assessment"],
+        history: "No referral history in prototype.",
+        contact: "Internal resource profile"
+      },
+      {
+        id: "gulf-south-cardiology",
+        name: "Gulf South Cardiology Group",
+        city: "Lafayette",
+        category: "Discharge",
+        orgType: "resource-provider",
+        service: "Cardiology",
+        coverage: ["medicare"],
+        verification: "stale",
+        capacity: "Unknown",
+        status: "Stale verification",
+        parent: "Independent specialist group",
+        personnel: "Referral coordinator, specialist office admin",
+        serviceLines: ["Specialist consult", "Medication-risk review"],
+        portalTools: ["Resource profile", "Specialty referral candidate"],
+        capabilities: ["Specialist consult", "Medication-risk review"],
+        exclusions: ["Not a receiving psychiatric facility"],
+        requirements: ["Consult reason", "Medication list", "Recent vitals"],
+        history: "No referral history in prototype.",
+        contact: "Internal resource profile"
+      }
+    ];
+
+    const state = {
+      category: "All",
+      selectedId: facilities[0].id
+    };
+
+    const segmentsEl = document.querySelector("#segments");
+    const resultsEl = document.querySelector("#results");
+    const profileEl = document.querySelector("#profile");
+    const resultCountEl = document.querySelector("#result-count");
+    const queryEl = document.querySelector("#query");
+    const orgTypeEl = document.querySelector("#org-type");
+    const verificationEl = document.querySelector("#verification");
+    const workflowEl = document.querySelector("#workflow");
+    const decisionOptionsEl = document.querySelector("#decision-options");
+    const decisionOutputEl = document.querySelector("#decision-output");
+
+    function badgeClass(value) {
+      if (value === "source-confirmed") return "good";
+      if (value === "stale") return "warn";
+      if (value === "Unknown" || value === "unknown") return "danger";
+      return "info";
+    }
+
+    function labelForVerification(value) {
+      if (value === "source-confirmed") return "Source-confirmed";
+      if (value === "stale") return "Stale";
+      return "Unknown";
+    }
+
+    function currentFacilities() {
+      const query = queryEl.value.trim().toLowerCase();
+      const orgType = orgTypeEl.value;
+      const verification = verificationEl.value;
+
+      return facilities.filter((facility) => {
+        const matchesCategory = state.category === "All" || facility.category === state.category;
+        const haystack = [
+          facility.name,
+          facility.city,
+          facility.category,
+          facility.orgType,
+          facility.service,
+          facility.parent,
+          facility.personnel,
+          facility.serviceLines.join(" "),
+          facility.portalTools.join(" "),
+          facility.capabilities.join(" "),
+          facility.requirements.join(" ")
+        ].join(" ").toLowerCase();
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesOrgType = orgType === "all" || facility.orgType === orgType;
+        const matchesVerification = verification === "all" || facility.verification === verification;
+        return matchesCategory && matchesQuery && matchesOrgType && matchesVerification;
+      });
+    }
+
+    function renderSegments() {
+      segmentsEl.innerHTML = "";
+      categories.forEach((category) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = category === state.category ? "segment active" : "segment";
+        button.textContent = category;
+        button.addEventListener("click", () => {
+          state.category = category;
+          render();
+        });
+        segmentsEl.appendChild(button);
+      });
+    }
+
+    function renderResults(rows) {
+      resultsEl.innerHTML = "";
+      resultCountEl.textContent = `${rows.length} ${rows.length === 1 ? "match" : "matches"}`;
+
+      if (!rows.some((facility) => facility.id === state.selectedId) && rows[0]) {
+        state.selectedId = rows[0].id;
+      }
+
+      rows.forEach((facility) => {
+        const row = document.createElement("tr");
+        row.className = facility.id === state.selectedId ? "selected" : "";
+        row.innerHTML = `
+          <td>
+            <div class="facility-name">
+              <strong>${facility.name}</strong>
+              <span class="subtext">${facility.city} - ${facility.service}</span>
+            </div>
+          </td>
+          <td>${facility.orgType.replaceAll("-", " ")}</td>
+          <td>${facility.serviceLines.slice(0, 2).join(", ")}</td>
+          <td>${facility.portalTools.slice(0, 2).join(", ")}</td>
+          <td><span class="badge ${badgeClass(facility.verification)}">${labelForVerification(facility.verification)}</span></td>
+        `;
+        row.addEventListener("click", () => {
+          state.selectedId = facility.id;
+          render();
+        });
+        resultsEl.appendChild(row);
+      });
+
+      if (!rows.length) {
+        const row = document.createElement("tr");
+        row.innerHTML = '<td colspan="5">No matching synthetic organization profiles.</td>';
+        resultsEl.appendChild(row);
+      }
+    }
+
+    function renderProfile(rows) {
+      const facility = facilities.find((item) => item.id === state.selectedId) || rows[0] || facilities[0];
+      const workflow = workflowEl.value;
+      const actionLabel = workflow === "admin" ? "Queue verification" : workflow === "discharge" ? "Add to discharge shortlist" : workflow === "consult" ? "Prepare consult request" : workflow === "prescreen" ? "Start prescreen handoff" : "Add to routing shortlist";
+      const secondaryLabel = workflow === "admin" ? "Review personnel access" : "Compare profile";
+
+      profileEl.innerHTML = `
+        <div class="profile-title">
+          <h3>${facility.name}</h3>
+          <div class="badges">
+            <span class="badge info">${facility.category}</span>
+            <span class="badge ${badgeClass(facility.verification)}">${labelForVerification(facility.verification)}</span>
+          </div>
+        </div>
+        <div class="field-list">
+          <div class="field-row"><span>Location</span><strong>${facility.city}</strong></div>
+          <div class="field-row"><span>Parent org</span><strong>${facility.parent}</strong></div>
+          <div class="field-row"><span>Service</span><strong>${facility.service}</strong></div>
+          <div class="field-row"><span>Personnel</span><strong>${facility.personnel}</strong></div>
+          <div class="field-row"><span>Capacity</span><strong>${facility.capacity}</strong></div>
+          <div class="field-row"><span>Contact</span><strong>${facility.contact}</strong></div>
+          <div class="field-row"><span>Referral history</span><strong>${facility.history}</strong></div>
+        </div>
+        <div>
+          <p class="meta">Service lines</p>
+          <div class="chips">${facility.serviceLines.map((item) => `<span class="chip">${item}</span>`).join("")}</div>
+        </div>
+        <div>
+          <p class="meta">Portal tools</p>
+          <div class="chips">${facility.portalTools.map((item) => `<span class="chip">${item}</span>`).join("")}</div>
+        </div>
+        <div>
+          <p class="meta">Capabilities</p>
+          <div class="chips">${facility.capabilities.map((item) => `<span class="chip">${item}</span>`).join("")}</div>
+        </div>
+        <div>
+          <p class="meta">Requirements</p>
+          <div class="chips">${facility.requirements.map((item) => `<span class="chip">${item}</span>`).join("")}</div>
+        </div>
+        <div>
+          <p class="meta">Exclusions and cautions</p>
+          <div class="chips">${facility.exclusions.map((item) => `<span class="chip">${item}</span>`).join("")}</div>
+        </div>
+        <div class="actions">
+          <button type="button" class="primary">${actionLabel}</button>
+          <button type="button" class="secondary">${secondaryLabel}</button>
+        </div>
+        <p class="subtext">Actions are review intents only. They do not provision real accounts, connect to an EMR, send packets, reserve beds, authorize care, or update production records.</p>
+      `;
+    }
+
+    function renderDecision(event) {
+      const selected = event.target.closest("button");
+      if (!selected) return;
+      [...decisionOptionsEl.querySelectorAll("button")].forEach((button) => button.classList.remove("active"));
+      selected.classList.add("active");
+      const decision = selected.dataset.decision;
+      if (decision === "ui") {
+        decisionOutputEl.textContent = "Approve the lightweight base CRM portal prototype with synthetic organization profiles, personnel/service-line mapping, and guardrail tests.";
+      } else if (decision === "backend") {
+        decisionOutputEl.textContent = "Pause UI build and create a backend/API/RLS decision packet covering organizations, personnel, service lines, tenant-scoped search, profile updates, and referral history.";
+      } else {
+        decisionOutputEl.textContent = "Revise persona mapping, approved fields, or governance language before any implementation work is authorized.";
+      }
+    }
+
+    function render() {
+      renderSegments();
+      const rows = currentFacilities();
+      renderResults(rows);
+      renderProfile(rows);
+    }
+
+    [queryEl, orgTypeEl, verificationEl, workflowEl].forEach((control) => {
+      control.addEventListener("input", render);
+      control.addEventListener("change", render);
+    });
+    decisionOptionsEl.addEventListener("click", renderDecision);
+    decisionOptionsEl.querySelector('[data-decision="ui"]').classList.add("active");
+
+    render();
+  </script>
+</body>
+</html>

@@ -138,4 +138,31 @@ describe("App smoke", () => {
     await user.click(screen.getByRole("button", { name: "Parking Lot" }));
     expect(screen.getByRole("heading", { name: "Production auth, tenancy, and release controls" })).toBeInTheDocument();
   });
+
+  it("opens the synthetic Directory CRM workspace and keeps actions review-gated", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+
+    await user.selectOptions(screen.getByRole("combobox"), "field");
+    await user.click(screen.getByRole("button", { name: "Directory CRM" }));
+
+    expect((await screen.findAllByRole("heading", { name: "Directory CRM" })).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Base portal CRM for organization profiles/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Synthetic only").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("No live send").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Lafayette Police Department").length).toBeGreaterThan(0);
+    expect(screen.getByText("Prepare prescreen handoff")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Organization type"), "acute-hospital");
+    expect(screen.getAllByText("Lafayette General Emergency Department").length).toBeGreaterThan(0);
+    expect(screen.queryAllByText("Lafayette Police Department")).toHaveLength(0);
+
+    await user.clear(screen.getByPlaceholderText(/Organization, city/i));
+    await user.type(screen.getByPlaceholderText(/Organization, city/i), "telemed");
+    expect(screen.getByText("Prepare telemed consult request")).toBeInTheDocument();
+    expect(screen.queryByText("Send referral")).not.toBeInTheDocument();
+    expect(screen.queryByText("Reserve bed")).not.toBeInTheDocument();
+    expect(screen.queryByText("Provision user")).not.toBeInTheDocument();
+  });
 });
