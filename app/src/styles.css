@@ -1541,3 +1541,87 @@ textarea {
 @media (max-width: 560px) {
   .studio-status-strip { grid-template-columns: 1fr; }
 }
+
+/* Journey Monitor */
+.journey-bar {
+  position: relative;
+  display: flex;
+  height: 10px;
+  min-width: 90px;
+  border-radius: 5px;
+  background: #e3e9ee;
+  overflow: hidden;
+}
+
+.journey-bar-fill {
+  background: #2f7d6d;
+  border-radius: 5px 0 0 5px;
+  transition: width 0.3s ease;
+}
+
+.journey-bar-gap {
+  margin-left: auto;
+  background: repeating-linear-gradient(45deg, #d9c9a3, #d9c9a3 4px, #efe6d2 4px, #efe6d2 8px);
+}
+
+.journey-phase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.journey-phase-card {
+  border: 1px solid #dde4ea;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.journey-phase-card header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.journey-phase-card h4 {
+  margin: 0;
+}
+
+.journey-phase-card ul,
+.journey-handoff-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.journey-milestone-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.journey-milestone p {
+  margin: 2px 0 0;
+}
+
+.journey-handoff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.journey-handoff-card {
+  border: 1px solid #dde4ea;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.journey-handoff-card h4 {
+  margin: 0 0 8px;
+}

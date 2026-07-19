@@ -1,6 +1,7 @@
 export type WorkspaceId =
   | "queue"
   | "command"
+  | "journey"
   | "new"
   | "overview"
   | "intake"
@@ -20,6 +21,7 @@ export type WorkspaceId =
 export const allWorkspaceIds: WorkspaceId[] = [
   "queue",
   "command",
+  "journey",
   "new",
   "overview",
   "intake",
@@ -82,7 +84,7 @@ export const roles: RoleDefinition[] = [
     label: "Central intake coordinator",
     description: "Owns the pipeline: SLA clocks, packet completeness, routing, escalations.",
     mission: "Keep every case moving; escalate before clocks breach.",
-    workspaces: ["command", "queue", "new", "overview", "intake", "evidence", "medical", "legal", "benefits", "authorization", "packet", "routing", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "journey", "queue", "new", "overview", "intake", "evidence", "medical", "legal", "benefits", "authorization", "packet", "routing", "ledger", "training", "mock-admits"],
     defaultWorkspace: "command",
   },
   {
@@ -122,7 +124,7 @@ export const roles: RoleDefinition[] = [
     label: "Compliance / legal officer",
     description: "Watches custody integrity, counsel-validation queue, and clock breaches.",
     mission: "Prove the chain of custody; flag anything counsel has not validated.",
-    workspaces: ["command", "queue", "evidence", "legal", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "journey", "queue", "evidence", "legal", "ledger", "training", "mock-admits"],
     defaultWorkspace: "ledger",
   },
   {
@@ -130,8 +132,8 @@ export const roles: RoleDefinition[] = [
     label: "Executive / program director",
     description: "Read-focused pipeline oversight. Full metrics dashboard arrives in v0.3.",
     mission: "See throughput and risk at a glance; measure before claiming improvement.",
-    workspaces: ["command", "queue", "ledger", "training", "mock-admits", "studio"],
-    defaultWorkspace: "command",
+    workspaces: ["command", "journey", "queue", "ledger", "training", "mock-admits", "studio"],
+    defaultWorkspace: "journey",
   },
 ];
 

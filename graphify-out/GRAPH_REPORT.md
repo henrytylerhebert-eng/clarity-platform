@@ -1,16 +1,16 @@
 # Graph Report - review-pull-push-requests-8d60aa  (2026-07-18)
 
 ## Corpus Check
-- 566 files · ~437,363 words
+- 569 files · ~440,399 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 15276 nodes · 16854 edges · 1242 communities (1139 shown, 103 thin omitted)
+- 15302 nodes · 16920 edges · 1241 communities (1138 shown, 103 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 11 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ebb8ec52`
+- Built from commit: `889e0c82`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1177,7 +1177,6 @@
 - [[_COMMUNITY_Community 1238|Community 1238]]
 - [[_COMMUNITY_Community 1239|Community 1239]]
 - [[_COMMUNITY_Community 1240|Community 1240]]
-- [[_COMMUNITY_Community 1241|Community 1241]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `stage1_immediate_safety_and_risk` - 30 edges
@@ -1203,11 +1202,11 @@
 - `createHarness()` --calls--> `createPrismaClient()`  [EXTRACTED]
   tests/integration/helpers/harness.ts → packages/case-repository/src/prismaClient.ts
 
-## Communities (1242 total, 103 thin omitted)
+## Communities (1241 total, 103 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.06
-Nodes (34): AccessDocumentCommand, AccessDocumentCommandSchema, baseEnvelope, ClassifyDocumentCommand, ClassifyDocumentCommandSchema, CreateDocumentVersionCommand, CreateDocumentVersionCommandSchema, RATIONALE_REQUIRED_CLASSIFICATIONS (+26 more)
+Cohesion: 0.11
+Nodes (23): AccessDocumentCommand, AccessDocumentCommandSchema, baseEnvelope, ClassifyDocumentCommand, ClassifyDocumentCommandSchema, CreateDocumentVersionCommand, CreateDocumentVersionCommandSchema, RATIONALE_REQUIRED_CLASSIFICATIONS (+15 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.04
@@ -1218,7 +1217,7 @@ Cohesion: 0.03
 Nodes (66): createHarness(), createTenantRecords(), Harness, TenantFixture, TEST_ACTOR, tickingClock(), failingRepo, failingWriter (+58 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.05
+Cohesion: 0.04
 Nodes (37): Actor, auditor, authSpec, benefits, bytes(), fixture(), intake, target (+29 more)
 
 ### Community 4 - "Community 4"
@@ -1251,7 +1250,7 @@ Nodes (48): authorization, requestedLevelOfCare, status, benefits, authorization
 
 ### Community 11 - "Community 11"
 Cohesion: 0.05
-Nodes (44): minimum, type, type, items, type, type, value_set, enum (+36 more)
+Nodes (40): minimum, type, type, type, value_set, enum, type, format (+32 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.05
@@ -1271,15 +1270,15 @@ Nodes (18): all_messages(), build_parser(), build_worker_prompt(), detect_sensit
 
 ### Community 16 - "Community 16"
 Cohesion: 0.06
-Nodes (25): Tone, base, reading, caseIsEscalated(), ClockReading, ClockStatus, readCaseClocks(), StatusBadge() (+17 more)
+Nodes (36): Tone, StatusBadge(), Tone, caseIsEscalated(), readCaseClocks(), deriveHandoffFeed(), deriveJourney(), HandoffGroup (+28 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.04
-Nodes (43): AnalyticsEventExport, AcuityProfile, AgeBand, AnalyticsEvent, AppState, Assessment, AuditLog, Bed (+35 more)
+Cohesion: 0.07
+Nodes (24): caseOneKey, caseTwoKey, clinical, episodeOneKey, episodeTwoKey, intake, key, patientCaseIds (+16 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.06
-Nodes (17): failingRepo, failingWriter, key, serialized, intake, failingService, failingWriter, intake (+9 more)
+Cohesion: 0.04
+Nodes (28): failingRepo, failingWriter, key, serialized, intake, failingService, failingWriter, intake (+20 more)
 
 ### Community 19 - "Community 19"
 Cohesion: 0.06
@@ -1358,8 +1357,8 @@ Cohesion: 0.06
 Nodes (28): AcuityProfile, AgeBand, AnalyticsEvent, AppState, Assessment, AuditLog, Bed, Case (+20 more)
 
 ### Community 38 - "Community 38"
-Cohesion: 0.08
-Nodes (12): CaseAuditRecord, CaseAuditWriter, PrismaCaseAuditWriter, TxClient, CreateLegalStatusRecordParams, PrismaLegalStatusGateway, legalStatusRowToDomain(), parseEnum() (+4 more)
+Cohesion: 0.11
+Nodes (11): CaseAuditRecord, CaseAuditWriter, PrismaCaseAuditWriter, TxClient, CreateLegalStatusRecordParams, legalStatusRowToDomain(), parseEnum(), assertActor() (+3 more)
 
 ### Community 39 - "Community 39"
 Cohesion: 0.08
@@ -1383,11 +1382,11 @@ Nodes (11): code:text (clarity-platform/), Findings, P1 - Canonical source confl
 
 ### Community 44 - "Community 44"
 Cohesion: 0.05
-Nodes (48): syntheticEpisodeDayInput, syntheticOriginalEvent, ActiveDecisionRange, ActiveDecisionRangeSchema, activeGovernedEvents(), addDays(), AdmissionRecordedEventPayloadSchema, appendGovernedEventCorrection() (+40 more)
+Nodes (50): syntheticEpisodeDayInput, syntheticOriginalEvent, ActiveDecisionRange, ActiveDecisionRangeSchema, activeGovernedEvents(), addDays(), AdmissionRecordedEventPayloadSchema, appendGovernedEventCorrection() (+42 more)
 
 ### Community 45 - "Community 45"
-Cohesion: 0.07
-Nodes (29): sensitivity_classes, default_access, default_access, default_access, default_access, default_access, default_access, default_access (+21 more)
+Cohesion: 0.06
+Nodes (33): sensitivity_classes, default_access, default_access, default_access, default_access, default_access, default_access, default_access (+25 more)
 
 ### Community 46 - "Community 46"
 Cohesion: 0.07
@@ -1427,7 +1426,7 @@ Nodes (11): Anti-patterns to avoid, Architecture layers, code:mermaid (flowchart
 
 ### Community 55 - "Community 55"
 Cohesion: 0.03
-Nodes (77): FIXTURE_DIR, fixtures, serialized, domainToCreateRow(), parseEnum(), PersistedCase, rowToDomain(), assertActor() (+69 more)
+Nodes (78): FIXTURE_DIR, fixtures, serialized, domainToCreateRow(), parseEnum(), PersistedCase, rowToDomain(), assertActor() (+70 more)
 
 ### Community 56 - "Community 56"
 Cohesion: 0.08
@@ -1542,8 +1541,8 @@ Cohesion: 0.08
 Nodes (12): AccessDocumentParams, ClassifyDocumentParams, CreateDocumentVersionParams, DocumentConcurrencyConflictError, DocumentFailureAuditParams, DocumentNotFoundError, DuplicateDocumentContentError, PrismaDocumentGateway (+4 more)
 
 ### Community 84 - "Community 84"
-Cohesion: 0.04
-Nodes (36): AccessDocumentParams, ClassifyDocumentParams, CreateDocumentVersionParams, DocumentConcurrencyConflictError, DocumentFailureAuditParams, DocumentNotFoundError, DuplicateDocumentContentError, PrismaDocumentGateway (+28 more)
+Cohesion: 0.11
+Nodes (18): documentRowToDomain(), parseEnum(), ClarityDocument, DOCUMENT_CLASSIFICATION_STATUSES, DOCUMENT_CLASSIFICATION_TRANSITIONS, DOCUMENT_TYPES, DocumentClassificationStatus, DocumentStorage (+10 more)
 
 ### Community 85 - "Community 85"
 Cohesion: 0.04
@@ -1582,8 +1581,8 @@ Cohesion: 0.17
 Nodes (11): 10. Reporting And Metrics, 11. Technical Architecture, 12. Security And Privacy, 13. MVP Boundary, 1. Product Thesis, 2. Users, 6. Pitfall Guard System, 7. Legal And Custody Architecture (+3 more)
 
 ### Community 94 - "Community 94"
-Cohesion: 0.03
-Nodes (50): address, ASSERTIONS, auth, body, caseCommands, caseData, flat, provider (+42 more)
+Cohesion: 0.04
+Nodes (47): address, ASSERTIONS, auth, body, caseCommands, caseData, flat, provider (+39 more)
 
 ### Community 95 - "Community 95"
 Cohesion: 0.07
@@ -1647,7 +1646,7 @@ Nodes (19): actions, Actor, auditor, broken, brokenStorage, bytes(), content, er
 
 ### Community 110 - "Community 110"
 Cohesion: 0.05
-Nodes (39): actions, Actor, auditor, broken, brokenStorage, bytes(), content, err (+31 more)
+Nodes (38): actions, Actor, auditor, broken, brokenStorage, bytes(), content, err (+30 more)
 
 ### Community 111 - "Community 111"
 Cohesion: 0.08
@@ -1658,8 +1657,8 @@ Cohesion: 0.07
 Nodes (38): WorkspaceId, assessAuthorizationReadiness(), AUTHORIZATION_READINESS_GAPS, AUTHORIZATION_STATUSES, AuthorizationReadiness, AuthorizationReadinessGap, AuthorizationStatus, buildEvidenceLedger() (+30 more)
 
 ### Community 113 - "Community 113"
-Cohesion: 0.04
-Nodes (53): Actor, asTenantA, auditor, bytes(), clinical, fixture(), intake, sysAdmin (+45 more)
+Cohesion: 0.05
+Nodes (50): baseEnvelope, AddEvidenceToContradictionGroupCommand, AddEvidenceToContradictionGroupCommandSchema, ApproveEvidenceCommand, ApproveEvidenceCommandSchema, CorrectCandidateEvidenceCommand, CorrectCandidateEvidenceCommandSchema, CreateCandidateEvidenceCommand (+42 more)
 
 ### Community 114 - "Community 114"
 Cohesion: 0.04
@@ -1690,8 +1689,8 @@ Cohesion: 0.09
 Nodes (21): 1.1 The 8-hour vs 12-hour OPC examination conflict is real, 1.2 The 12-hour transport/delivery deadline is statutory — but NOT printed on the form, 1.3 72-hour OPC validity — confirmed on both form and statute, 1.4 The "28 Day" checkbox conflict is real, 1.5 Signer eligibility and NP verbal approval — confirmed, 1.6 Telehealth — Act 148 of 2025 verified from the enrolled act, 1.7 Exam-before-signature window — confirmed, 1.8 CEC 72-hour independent examination — confirmed (+13 more)
 
 ### Community 121 - "Community 121"
-Cohesion: 0.09
-Nodes (21): AssignCaseCommand, AssignCaseCommandSchema, baseEnvelope, caseEnvelope, CloseCaseCommand, CloseCaseCommandSchema, CreateCaseCommand, CreateCaseCommandSchema (+13 more)
+Cohesion: 0.06
+Nodes (26): COMMAND_AUDIT_ACTIONS, TERMINAL_STATUSES, AssignCaseCommand, AssignCaseCommandSchema, baseEnvelope, caseEnvelope, CloseCaseCommand, CloseCaseCommandSchema (+18 more)
 
 ### Community 122 - "Community 122"
 Cohesion: 0.09
@@ -1714,8 +1713,12 @@ Cohesion: 0.05
 Nodes (42): 1.1 The 8-hour vs 12-hour OPC examination conflict is real, 1.2 The 12-hour transport/delivery deadline is statutory — but NOT printed on the form, 1.3 72-hour OPC validity — confirmed on both form and statute, 1.4 The "28 Day" checkbox conflict is real, 1.5 Signer eligibility and NP verbal approval — confirmed, 1.6 Telehealth — Act 148 of 2025 verified from the enrolled act, 1.7 Exam-before-signature window — confirmed, 1.8 CEC 72-hour independent examination — confirmed (+34 more)
 
 ### Community 127 - "Community 127"
-Cohesion: 0.05
-Nodes (51): COMMAND_AUDIT_ACTIONS, TERMINAL_STATUSES, AssignCaseCommand, AssignCaseCommandSchema, baseEnvelope, caseEnvelope, CloseCaseCommand, CloseCaseCommandSchema (+43 more)
+Cohesion: 0.04
+Nodes (54): COMMAND_AUDIT_ACTIONS, TERMINAL_STATUSES, AssignCaseCommand, AssignCaseCommandSchema, baseEnvelope, caseEnvelope, CloseCaseCommand, CloseCaseCommandSchema (+46 more)
+
+### Community 128 - "Community 128"
+Cohesion: 0.11
+Nodes (16): Actor, auditor, benefits, bytes(), clinicalActor, coverageInput(), fixture(), flaky (+8 more)
 
 ### Community 129 - "Community 129"
 Cohesion: 0.10
@@ -1730,12 +1733,12 @@ Cohesion: 0.10
 Nodes (21): properties, type, format, type, type, maxLength, type, type (+13 more)
 
 ### Community 132 - "Community 132"
-Cohesion: 0.10
-Nodes (21): type, value_set, sensitivity, type, type, type, type, value_set (+13 more)
+Cohesion: 0.11
+Nodes (18): type, value_set, sensitivity, type, type, type, type, value_set (+10 more)
 
 ### Community 133 - "Community 133"
-Cohesion: 0.10
-Nodes (21): format, type, type, properties, type, collected_at, interpretation, loinc_code (+13 more)
+Cohesion: 0.08
+Nodes (24): format, type, type, properties, required, type, type, collected_at (+16 more)
 
 ### Community 134 - "Community 134"
 Cohesion: 0.10
@@ -1767,7 +1770,7 @@ Nodes (40): error_counts, #DIV/0!, #REF!, formula_count, formula_error_count, er
 
 ### Community 141 - "Community 141"
 Cohesion: 0.05
-Nodes (56): input, raw, result, sealedInstrument, baseInstrument(), CecInput, executePec(), issueOpc() (+48 more)
+Nodes (57): input, raw, result, sealedInstrument, baseInstrument(), CecInput, executePec(), issueOpc() (+49 more)
 
 ### Community 142 - "Community 142"
 Cohesion: 0.10
@@ -1811,7 +1814,7 @@ Nodes (25): conditionCheckbox, findingCheckbox, recentDate, user, changed, Memor
 
 ### Community 152 - "Community 152"
 Cohesion: 0.08
-Nodes (31): breached, chips, nowIso, countTone(), FocusChip, getRoleFocus(), ids, allWorkspaceIds (+23 more)
+Nodes (32): breached, chips, nowIso, countTone(), FocusChip, getRoleFocus(), ids, allWorkspaceIds (+24 more)
 
 ### Community 153 - "Community 153"
 Cohesion: 0.16
@@ -1823,7 +1826,7 @@ Nodes (36): compilerOptions, allowJs, allowSyntheticDefaultImports, esModuleInte
 
 ### Community 155 - "Community 155"
 Cohesion: 0.11
-Nodes (19): required, type, required, type, required, type, required, type (+11 more)
+Nodes (19): required, type, required, type, required, type, repeatable_groups, collateral_source (+11 more)
 
 ### Community 156 - "Community 156"
 Cohesion: 0.07
@@ -1887,19 +1890,19 @@ Nodes (12): ClarityDocument, DOCUMENT_CLASSIFICATION_STATUSES, DOCUMENT_CLASSIFI
 
 ### Community 171 - "Community 171"
 Cohesion: 0.04
-Nodes (43): CaseAuditRecord, CaseAuditWriter, PrismaCaseAuditWriter, TxClient, CreateLegalStatusRecordParams, legalStatusRowToDomain(), parseEnum(), LEGAL_STATUS_TYPES (+35 more)
+Nodes (41): CaseAuditRecord, CaseAuditWriter, PrismaCaseAuditWriter, TxClient, CreateLegalStatusRecordParams, legalStatusRowToDomain(), parseEnum(), LEGAL_STATUS_TYPES (+33 more)
 
 ### Community 172 - "Community 172"
 Cohesion: 0.07
 Nodes (26): 10. Clinical intelligence, 11. Legal-status intelligence, 12. Benefits verification, 13. Payer memory, 14. Authorization, 15. Patient financial education, 16. Facility intelligence and routing, 17. Packet and communication (+18 more)
 
 ### Community 173 - "Community 173"
-Cohesion: 0.14
-Nodes (18): byLabel, checklist, mutated, buildPacketForCase(), computePacketChecklist(), computePacketCompleteness(), PacketChecklistItem, Props (+10 more)
+Cohesion: 0.09
+Nodes (17): AccessDocumentParams, ClassifyDocumentParams, CreateDocumentVersionParams, DocumentConcurrencyConflictError, DocumentFailureAuditParams, DocumentNotFoundError, DuplicateDocumentContentError, UploadDocumentParams (+9 more)
 
 ### Community 174 - "Community 174"
-Cohesion: 0.10
-Nodes (22): items, type, uniqueItems, items, title, type, uniqueItems, x-clarity-field-id (+14 more)
+Cohesion: 0.07
+Nodes (29): items, type, uniqueItems, items, title, type, uniqueItems, x-clarity-field-id (+21 more)
 
 ### Community 175 - "Community 175"
 Cohesion: 0.13
@@ -2022,8 +2025,8 @@ Cohesion: 0.18
 Nodes (10): 1) Lane header, 2) Protocol + request status, 3) Verified scope, 4) PROMPT CHECK, 5) Required work, 6) Track sections, 7) Risks + decisions, 8) Verification (+2 more)
 
 ### Community 205 - "Community 205"
-Cohesion: 0.07
-Nodes (35): baseEnvelope, AddEvidenceToContradictionGroupCommand, AddEvidenceToContradictionGroupCommandSchema, ApproveEvidenceCommand, ApproveEvidenceCommandSchema, CorrectCandidateEvidenceCommand, CorrectCandidateEvidenceCommandSchema, CreateCandidateEvidenceCommand (+27 more)
+Cohesion: 0.11
+Nodes (14): EvidenceCommandService, assertContradictionReviewPermitted(), assertEvidenceCreatePermitted(), assertEvidenceReviewPermitted(), AUTHORIZATION, BENEFITS, CLINICAL, CONTRADICTION_REVIEW_ROLES (+6 more)
 
 ### Community 206 - "Community 206"
 Cohesion: 0.06
@@ -2042,8 +2045,8 @@ Cohesion: 0.06
 Nodes (30): AgeGroup, AIOutputDTO, AssessmentDTO, CaseStatus, ClinicianRiskLevel, CustodyLedgerEventDTO, FacilityResponseType, LegalInstrumentType (+22 more)
 
 ### Community 210 - "Community 210"
-Cohesion: 0.06
-Nodes (39): baseAssessment, baseCase, baseLegalInstrument, baseMedicalNecessity, guards, selfHarmRisk, evaluatePitfallGuards(), findProhibitedLanguage() (+31 more)
+Cohesion: 0.03
+Nodes (78): baseAssessment, baseCase, baseLegalInstrument, baseMedicalNecessity, guards, selfHarmRisk, evaluatePitfallGuards(), findProhibitedLanguage() (+70 more)
 
 ### Community 211 - "Community 211"
 Cohesion: 0.07
@@ -2126,8 +2129,8 @@ Cohesion: 0.13
 Nodes (14): Acceptance criteria, code:text (/docs/ops-intelligence/), CODEX MASTER PROMPT — Rebuild Reporting Metrics Ops and Budget into Sustainable Clarity Ops Intelligence, Critical rebuild principle, Data model, Final response from Codex should include, First task, Guardrails (+6 more)
 
 ### Community 231 - "Community 231"
-Cohesion: 0.06
-Nodes (25): auditor, benefits, bGateway, bService, clinical, compliance, intake, key (+17 more)
+Cohesion: 0.05
+Nodes (26): auditor, benefits, bGateway, bService, clinical, compliance, intake, key (+18 more)
 
 ### Community 232 - "Community 232"
 Cohesion: 0.07
@@ -2142,8 +2145,8 @@ Cohesion: 0.13
 Nodes (13): 1. Four commands, one new package, 2. Coverage must cite approved insurance evidence, 3. Member/group/policy identifiers are structurally unacceptable, 4. Existing binding contracts are honored, not reinvented, 5. Coverage status is a rolled-up, version-guarded aggregate, 6. Schema change (justified; tables verified empty), 7. Financial education records honest uncertainty, 8. Audit metadata carries references, not amounts or identifiers (+5 more)
 
 ### Community 235 - "Community 235"
-Cohesion: 0.08
-Nodes (12): intake, failingService, failingWriter, intake, ConcurrencyConflictError, CaseCommandService, COMMAND_AUDIT_ACTIONS, assertPermitted() (+4 more)
+Cohesion: 0.10
+Nodes (13): consumer, consumerA, consumerB, DelayedConsumer, dispatcher, FailingConsumer, OutboxConsumer, OutboxDeliveryMessage (+5 more)
 
 ### Community 236 - "Community 236"
 Cohesion: 0.07
@@ -2198,8 +2201,8 @@ Cohesion: 0.24
 Nodes (4): assertValidKey(), InMemoryDocumentStorage, keyFor(), LocalFilesystemObjectStorage
 
 ### Community 249 - "Community 249"
-Cohesion: 0.08
-Nodes (14): assertValidKey(), InMemoryDocumentStorage, InvalidStorageKeyError, keyFor(), LocalFilesystemObjectStorage, StoredDocumentNotFoundError, DocumentStorage, StoredDocument (+6 more)
+Cohesion: 0.24
+Nodes (4): assertValidKey(), InMemoryDocumentStorage, keyFor(), LocalFilesystemObjectStorage
 
 ### Community 250 - "Community 250"
 Cohesion: 0.07
@@ -2290,12 +2293,12 @@ Cohesion: 0.08
 Nodes (24): 01 — Pre-Package Workspace Inventory, 1. `app/` — working prototype (48 files) — **CURRENT, WORKING CODE**, 2. `docs/00–09` — canonical Jul 8 architecture docs (10 files) — **CURRENT (for the crisis-platform generation)**, 3. `clarity-mh-architecture/` — extracted Jul 8 package (40 files) — **CURRENT source docs; partially superseded by docs/**, 4. `Clarity MH /` — raw source materials (8 files; trailing space in dirname) — **SOURCE MATERIAL**, 5. `reporting-metrics-rebuild-package/` (13 files) — **CURRENT, self-contained analysis**, 6. `source-notes/` (2 files) — **SOURCE MATERIAL**, 7. Root and config (+16 more)
 
 ### Community 272 - "Community 272"
-Cohesion: 0.10
-Nodes (19): code:text (docs/repository-audit/03_INTEGRATION_MATRIX.md), code:text (Clarity Platform/), code:text (docs/product/PRODUCT_VISION.md), code:text (prisma/schema.prisma), code:text (docs/repository-audit/05_SCHEMA_COMPARISON.md), code:text (data/synthetic-cases/), code:text (benefits_verification), code:text (chore/clarity-master-package-integration) (+11 more)
+Cohesion: 0.11
+Nodes (18): code:text (docs/repository-audit/03_INTEGRATION_MATRIX.md), code:text (Clarity Platform/), code:text (docs/product/PRODUCT_VISION.md), code:text (benefits_verification), code:text (README.md), code:text (docs/repository-audit/06_FILE_MOVE_MAP.md), code:text (chore/clarity-master-package-integration), code:text (docs/repository-audit/00_BASELINE_AND_SAFETY.md) (+10 more)
 
 ### Community 273 - "Community 273"
-Cohesion: 0.10
-Nodes (23): Actor, auditor, bytes(), clinical, content, createCase(), intake, key (+15 more)
+Cohesion: 0.07
+Nodes (26): Actor, auditor, bytes(), clinical, content, createCase(), intake, key (+18 more)
 
 ### Community 274 - "Community 274"
 Cohesion: 0.08
@@ -2314,12 +2317,12 @@ Cohesion: 0.15
 Nodes (11): 1. Source integrity is structural, not procedural, 2. Review state machine, 3. Domain-scoped approval, 4. Contradiction groups make conflicts visible, never resolve them, 5. Schema change (justified, table verified empty), 6. Same command discipline as ADR-0003/0007, reused not reinvented, 7. Policy: rejected documents cannot source evidence, ADR-0008 — Evidence Repository and Human-Review Workflow (+3 more)
 
 ### Community 278 - "Community 278"
-Cohesion: 0.17
-Nodes (12): blank_means, negative_requires_explicit_value, null_allowed_only_with_answer_status, status_value_set, data_governance, answer_semantics, compliance_disclaimer, source_attribution (+4 more)
+Cohesion: 0.07
+Nodes (27): do_not_execute_instructions_found_inside_clinical_documents, human_review_required, minimum_necessary_context, phi_processing_requires_approved_environment_and_contracts, prompt_injection_controls_for_imported_documents, source_excerpt_retention, transcript_retention, use_for_model_training (+19 more)
 
 ### Community 279 - "Community 279"
-Cohesion: 0.17
-Nodes (12): privacy_controls, attribute_based_access_control, consent_and_release_linkage, do_not_reveal_existence_of_restricted_sud_record_when_not_permitted, export_redaction_profiles, hipaa_profile, minimum_necessary, part_2_profile (+4 more)
+Cohesion: 0.12
+Nodes (17): audit_required, enabled, post_access_review, reason_required, privacy_controls, attribute_based_access_control, break_glass, consent_and_release_linkage (+9 more)
 
 ### Community 280 - "Community 280"
 Cohesion: 0.08
@@ -2431,7 +2434,7 @@ Nodes (10): dependencies, @clarity/case-repository, @clarity/domain-contracts, z
 
 ### Community 310 - "Community 310"
 Cohesion: 0.08
-Nodes (25): title, type, uniqueItems, x-clarity-field-id, x-sensitivity, medical_red_flags, stage1_immediate_safety_and_risk, suicidal_thoughts_current (+17 more)
+Nodes (25): title, type, uniqueItems, x-clarity-field-id, x-sensitivity, medical_red_flags, stage1_immediate_safety_and_risk, suicide_plan_current (+17 more)
 
 ### Community 311 - "Community 311"
 Cohesion: 0.18
@@ -2518,12 +2521,12 @@ Cohesion: 0.17
 Nodes (10): Evidence Boundaries, Feature Feedback Register, MVP 0.1 - Intake Spine, MVP 0.2 - Command Center, Role Workflow, And Training, MVP 0.3 - Metrics And Utilization Review Excellence, POC Pilot - Stakeholder Walkthroughs, POC Stakeholder Feedback Roadmap, Production Readiness - Parking Lot Until POC Evidence (+2 more)
 
 ### Community 332 - "Community 332"
-Cohesion: 0.15
-Nodes (19): tampered, buildEventHash(), canonicalJson(), sealLedgerEvents(), sha256(), verifyLedgerChain(), createSeedState(), minutesAgo() (+11 more)
+Cohesion: 0.08
+Nodes (37): tampered, buildEventHash(), canonicalJson(), sealLedgerEvents(), sha256(), verifyLedgerChain(), byLabel, checklist (+29 more)
 
 ### Community 333 - "Community 333"
-Cohesion: 0.09
-Nodes (13): PrismaLegalStatusGateway, ReferralReadiness, compareClinicalUrgency(), describeReadiness(), ReferralReadiness, rows, suspicious, uninsuredEmergent (+5 more)
+Cohesion: 0.14
+Nodes (12): ReferralReadiness, compareClinicalUrgency(), describeReadiness(), ReferralReadiness, rows, suspicious, uninsuredEmergent, wealthyRoutine (+4 more)
 
 ### Community 334 - "Community 334"
 Cohesion: 0.20
@@ -2622,16 +2625,16 @@ Cohesion: 0.20
 Nodes (8): Authority Order, Clarity Three-Agent Bridge Protocol, Direct Worker Rules, Evidence and Safety, Layout, Message Contract, Operator Commands, Roles
 
 ### Community 358 - "Community 358"
-Cohesion: 0.13
-Nodes (17): workspaceItems, ApiError, apiLogin(), apiLogout(), apiRecordDecisionRationale(), DecisionRationaleResult, describeApiError(), request() (+9 more)
+Cohesion: 0.10
+Nodes (18): workspaceItems, AnalyticsEventExport, AnalyticsEventExport, createAnalyticsEvent(), ApiError, apiLogin(), apiLogout(), apiRecordDecisionRationale() (+10 more)
 
 ### Community 359 - "Community 359"
 Cohesion: 0.16
 Nodes (9): PayerMemoryEntry, assertNotUsedAsVerification(), createPayerMemoryEntry(), PayerMemoryEntry, presentPayerMemory(), entry, presented, entry (+1 more)
 
 ### Community 360 - "Community 360"
-Cohesion: 0.07
-Nodes (29): permission_model, decision_inputs, default, principles, section_permissions, product, care_settings, clarity_api_contract_supplied (+21 more)
+Cohesion: 0.13
+Nodes (15): permission_model, decision_inputs, default, principles, section_permissions, prompts, architect_prompt, finalizer_prompt (+7 more)
 
 ### Community 361 - "Community 361"
 Cohesion: 0.25
@@ -2743,7 +2746,7 @@ Nodes (8): 1. Foundation schema, 2. Expanded target schema, 3. Required develope
 
 ### Community 389 - "Community 389"
 Cohesion: 0.09
-Nodes (17): CaseChanges, CommandDecision, CommandResult, ConcurrencyConflictError, CreateCaseParams, ExecuteCommandParams, IdempotencyConflictError, isIdempotencyUniqueViolation() (+9 more)
+Nodes (16): CaseChanges, CommandDecision, CommandResult, ConcurrencyConflictError, CreateCaseParams, ExecuteCommandParams, IdempotencyConflictError, isIdempotencyUniqueViolation() (+8 more)
 
 ### Community 390 - "Community 390"
 Cohesion: 0.22
@@ -2954,8 +2957,8 @@ Cohesion: 0.50
 Nodes (4): Epic 3 — Intake case workflow, Issue 3.1 — `/cases` list, Issue 3.2 — `/cases/new`, Issue 3.3 — Guided call coach
 
 ### Community 442 - "Community 442"
-Cohesion: 0.10
-Nodes (30): AUTHORIZATION_DAY_OUTCOMES, AUTHORIZATION_REVIEW_CORRECTION_REASONS, AUTHORIZATION_REVIEW_STATUSES, AUTHORIZATION_REVIEW_TYPES, AuthorizationDayDecision, AuthorizationDayOutcome, AuthorizationReview, AuthorizationReviewCorrection (+22 more)
+Cohesion: 0.16
+Nodes (12): base, reading, caseIsEscalated(), ClockReading, ClockStatus, readCaseClocks(), ClockReading, ClockStatus (+4 more)
 
 ### Community 443 - "Community 443"
 Cohesion: 0.17
@@ -3026,8 +3029,8 @@ Cohesion: 0.29
 Nodes (7): enum, title, type, x-clarity-field-id, x-sensitivity, x-value-set, law_enforcement_involvement
 
 ### Community 460 - "Community 460"
-Cohesion: 0.29
-Nodes (7): referral_source_type, enum, title, type, x-clarity-field-id, x-sensitivity, x-value-set
+Cohesion: 0.13
+Nodes (8): DEFAULT_DOCUMENT_VALIDATION, DocumentValidationConfig, DocumentValidationError, DocumentValidationPolicy, DEFAULT_DOCUMENT_VALIDATION, DocumentValidationConfig, DocumentValidationError, DocumentValidationPolicy
 
 ### Community 461 - "Community 461"
 Cohesion: 0.29
@@ -3066,8 +3069,8 @@ Cohesion: 0.17
 Nodes (12): Authorization, BenefitVerification, ClaimOutcome, ContractRateRecord, EligibilityVerification, FinancialEducationRecord, Insurance and payer, InsuranceCoverage (+4 more)
 
 ### Community 470 - "Community 470"
-Cohesion: 0.10
-Nodes (22): AdmissionHandoffCommandSchema, canTransitionEpisodeStatus(), CASE_EPISODE_RELATIONSHIPS, CaseEpisodeLink, CaseEpisodeRelationship, DATE_ONLY_SCHEMA, DateOnly, DOMAIN_ID_SCHEMA (+14 more)
+Cohesion: 0.14
+Nodes (14): product, care_settings, clarity_api_contract_supplied, clinical_and_compliance_note, created_at, id, implementation_note, integration_mode (+6 more)
 
 ### Community 471 - "Community 471"
 Cohesion: 0.05
@@ -3226,8 +3229,8 @@ Cohesion: 0.29
 Nodes (6): Clarity Platform, code:bash (npm install            # root workspace (app + packages)), Ground rules, Quick start, Repository map, Status
 
 ### Community 511 - "Community 511"
-Cohesion: 0.08
-Nodes (16): COMMAND_AUDIT_ACTIONS, TERMINAL_STATUSES, TerminalCaseError, CommandName, WORKSTREAM_ROLE_POLICY, auditor, benefits, bGateway (+8 more)
+Cohesion: 0.24
+Nodes (4): assertValidKey(), InMemoryDocumentStorage, keyFor(), LocalFilesystemObjectStorage
 
 ### Community 512 - "Community 512"
 Cohesion: 0.25
@@ -3258,8 +3261,8 @@ Cohesion: 0.22
 Nodes (8): Epic 3 — Intake case workflow, Epic 7 — AI/MCP support, Epics and Implementation Issues, Issue 3.1 — `/cases` list, Issue 3.2 — `/cases/new`, Issue 3.3 — Guided call coach, Issue 7.1 — AI output model and mock provider, Issue 7.2 — Missing fields assistant
 
 ### Community 519 - "Community 519"
-Cohesion: 0.07
-Nodes (27): title, type, x-clarity-field-id, x-sensitivity, title, type, x-clarity-field-id, x-sensitivity (+19 more)
+Cohesion: 0.08
+Nodes (24): title, type, x-clarity-field-id, x-sensitivity, maxLength, title, type, x-clarity-field-id (+16 more)
 
 ### Community 520 - "Community 520"
 Cohesion: 0.40
@@ -3286,8 +3289,8 @@ Cohesion: 0.33
 Nodes (6): enum, title, type, x-clarity-field-id, x-sensitivity, duplicate_record_check_status
 
 ### Community 526 - "Community 526"
-Cohesion: 0.03
-Nodes (68): asRuntimeRole(), asRuntimeTenant(), migration, PROTECTED_TABLES, consumer, consumerA, consumerB, DelayedConsumer (+60 more)
+Cohesion: 0.02
+Nodes (125): asRuntimeRole(), asRuntimeTenant(), migration, PROTECTED_TABLES, acceptedFacilityResponseId, admissionCommand(), admit(), base (+117 more)
 
 ### Community 527 - "Community 527"
 Cohesion: 0.33
@@ -3891,7 +3894,7 @@ Nodes (7): 01 — Repository Map, Applications and packages, Data stores & jobs,
 
 ### Community 680 - "Community 680"
 Cohesion: 0.11
-Nodes (19): AcknowledgementStatus, COVERAGE_ORDERS, COVERAGE_STATUSES, CoverageOrder, CoverageStatus, coverageStatusFromEligibility(), CoverageType, EducationMethod (+11 more)
+Nodes (18): AcknowledgementStatus, COVERAGE_STATUSES, CoverageOrder, CoverageStatus, coverageStatusFromEligibility(), CoverageType, EducationMethod, EducationRecipientType (+10 more)
 
 ### Community 681 - "Community 681"
 Cohesion: 0.13
@@ -3914,8 +3917,8 @@ Cohesion: 0.50
 Nodes (3): Capability Statement, Clarity Three-Agent Bridge Configuration, Current Boundaries
 
 ### Community 686 - "Community 686"
-Cohesion: 0.12
-Nodes (21): baseEnvelope, ACKNOWLEDGEMENT_STATUSES, ClarityBenefitVerification, ClarityCoverage, ClarityEligibilityVerification, COVERAGE_TYPES, EDUCATION_METHODS, EDUCATION_RECIPIENT_TYPES (+13 more)
+Cohesion: 0.11
+Nodes (22): baseEnvelope, ACKNOWLEDGEMENT_STATUSES, ClarityBenefitVerification, ClarityCoverage, ClarityEligibilityVerification, COVERAGE_ORDERS, COVERAGE_TYPES, EDUCATION_METHODS (+14 more)
 
 ### Community 687 - "Community 687"
 Cohesion: 0.18
@@ -4134,8 +4137,8 @@ Cohesion: 0.07
 Nodes (26): Adapter registry, Agency submission and acknowledgement boundary, Canonical adapter interface, code:ts (export type SourceKind =), code:mermaid (flowchart LR), code:text (validated command), code:text (sourceSystem + fileHash + mappingProfileVersion + rowStableK), Collection strategy (+18 more)
 
 ### Community 761 - "Community 761"
-Cohesion: 0.67
-Nodes (3): code:text (README.md), code:text (docs/repository-audit/06_FILE_MOVE_MAP.md), Phase 10 — Final integration outputs
+Cohesion: 0.20
+Nodes (6): InvalidStorageKeyError, StoredDocumentNotFoundError, DocumentStorage, StoredDocument, InvalidStorageKeyError, StoredDocumentNotFoundError
 
 ### Community 763 - "Community 763"
 Cohesion: 0.33
@@ -4502,7 +4505,7 @@ Cohesion: 0.10
 Nodes (22): additionalProperties, properties, required, type, additionalProperties, properties, required, type (+14 more)
 
 ### Community 942 - "Community 942"
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (8): AppendOnlyAuditLog, assertNoRestrictedFields(), AuditEvent, RESTRICTED_AUDIT_FIELDS, AppendOnlyAuditLog, assertNoRestrictedFields(), AuditEvent, RESTRICTED_AUDIT_FIELDS
 
 ### Community 943 - "Community 943"
@@ -4539,7 +4542,7 @@ Nodes (14): baseUrl, databaseName, databaseUrl(), envFile, parsed, replayEpisode
 
 ### Community 951 - "Community 951"
 Cohesion: 0.12
-Nodes (15): API and Service Contracts, Boundary rules, Caching, code:json ({), code:ts (export interface GovernedEventProjector {), code:json ({), code:json ({), Correct authorization review (+7 more)
+Nodes (15): API and Service Contracts, Boundary rules, Caching, code:ts (export interface ApiError {), code:json ({), code:ts (export interface GovernedEventProjector {), code:json ({), Correct authorization review (+7 more)
 
 ### Community 952 - "Community 952"
 Cohesion: 0.12
@@ -4813,10 +4816,6 @@ Nodes (9): Completion evidence, Dependencies, Goal, Likely files/packages, Rollb
 Cohesion: 0.22
 Nodes (8): After S1 approval, Checks Codex should run after approval, code:text (You are working in the live `clarity-platform` repository.), Codex Execution Handoff, Files Codex is expected to touch for S1, Prompt for Codex, Scope of this prompt, What Codex should verify before editing
 
-### Community 1020 - "Community 1020"
-Cohesion: 0.13
-Nodes (14): CaseEpisodeLinkSchema, EpisodeSchema, FacilityTimezoneConfigSchema, serviceDateForInstant(), AuthorizationDayDecisionSchema, AuthorizationReviewCorrectionSchema, AuthorizationReviewSchema, canTransitionDocumentationGap() (+6 more)
-
 ### Community 1021 - "Community 1021"
 Cohesion: 0.15
 Nodes (13): 3.10 Document Review, 3.11 Decision Support, 3.12 Creative Development, 3.1 Research, 3.2 Strategic Analysis, 3.3 Writing and Rewriting, 3.4 Summarization, 3.5 Brainstorming (+5 more)
@@ -4908,10 +4907,6 @@ Nodes (7): Correction, Empty, Error, Loading, Review/attestation, Shared state b
 ### Community 1043 - "Community 1043"
 Cohesion: 0.29
 Nodes (6): code:text (S0 Decisions/preflight), Files expected in first coding PR (S1 only), Implementation Sequence, Later slices, Proposed repository placement, Sequence overview
-
-### Community 1044 - "Community 1044"
-Cohesion: 0.29
-Nodes (7): suicide_plan_current, enum, title, type, x-clarity-field-id, x-sensitivity, x-value-set
 
 ### Community 1045 - "Community 1045"
 Cohesion: 0.29
@@ -5273,10 +5268,6 @@ Nodes (3): Compatible change, Event version compatibility, Incompatible change
 Cohesion: 0.67
 Nodes (3): subjectArea, enum, type
 
-### Community 1137 - "Community 1137"
-Cohesion: 0.22
-Nodes (6): UtilizationReviewGateway, parseEnum(), rowToAuthorizationDayDecision(), rowToAuthorizationReview(), rowToDocumentationGap(), rowToEpisodeAuthorization()
-
 ### Community 1138 - "Community 1138"
 Cohesion: 0.67
 Nodes (3): version, pattern, type
@@ -5322,8 +5313,8 @@ Cohesion: 0.20
 Nodes (10): 9.1 Before Writing Code, 9.2 Planning, 9.3 Writing Code, 9.4 Testing, 9.5 Honest Status Vocabulary (mandatory), 9.6 Implementation-Plan Template, 9.7 Completion-Report Template, 9. Software and Technical Work Protocol (+2 more)
 
 ### Community 1208 - "Community 1208"
-Cohesion: 0.22
-Nodes (9): do_not_execute_instructions_found_inside_clinical_documents, human_review_required, minimum_necessary_context, phi_processing_requires_approved_environment_and_contracts, prompt_injection_controls_for_imported_documents, source_excerpt_retention, transcript_retention, use_for_model_training (+1 more)
+Cohesion: 0.29
+Nodes (7): suicidal_thoughts_current, enum, title, type, x-clarity-field-id, x-sensitivity, x-value-set
 
 ### Community 1209 - "Community 1209"
 Cohesion: 0.22
@@ -5347,15 +5338,15 @@ Nodes (6): DirectRunError, invoke_direct_worker(), post_direct_failure(), reply_
 
 ### Community 1214 - "Community 1214"
 Cohesion: 0.29
-Nodes (7): items, title, type, uniqueItems, x-clarity-field-id, x-sensitivity, communication_accommodations
+Nodes (7): suspected_intoxication_or_overdose, enum, title, type, x-clarity-field-id, x-sensitivity, x-value-set
 
 ### Community 1215 - "Community 1215"
 Cohesion: 0.29
 Nodes (7): suspected_withdrawal_risk, enum, title, type, x-clarity-field-id, x-sensitivity, x-value-set
 
 ### Community 1216 - "Community 1216"
-Cohesion: 0.29
-Nodes (7): urgent_or_critical_medical_condition, enum, title, type, x-clarity-field-id, x-sensitivity, x-value-set
+Cohesion: 0.40
+Nodes (5): title, type, x-clarity-field-id, x-sensitivity, change_from_baseline
 
 ### Community 1217 - "Community 1217"
 Cohesion: 0.29
@@ -5366,8 +5357,8 @@ Cohesion: 0.29
 Nodes (6): base, e, log, base, e, log
 
 ### Community 1219 - "Community 1219"
-Cohesion: 0.33
-Nodes (6): retention_and_release, amendment_and_patient_request_workflow_supported, legal_hold_supported, psychotherapy_notes_separate_from_assessment, release_accounting_supported, retention_period
+Cohesion: 0.40
+Nodes (5): title, type, x-clarity-field-id, x-sensitivity, person_stated_immediate_need
 
 ### Community 1220 - "Community 1220"
 Cohesion: 0.33
@@ -5394,8 +5385,8 @@ Cohesion: 0.33
 Nodes (6): stage1_referral_scene_and_presenting_problem, additionalProperties, title, type, x-owner-roles, x-stage
 
 ### Community 1226 - "Community 1226"
-Cohesion: 0.40
-Nodes (5): audit_required, enabled, post_access_review, reason_required, break_glass
+Cohesion: 0.50
+Nodes (4): items, type, type, consequences
 
 ### Community 1227 - "Community 1227"
 Cohesion: 0.40
@@ -5445,8 +5436,12 @@ Nodes (4): 8.1 Sequence (never skip ahead to solutions), 8.2 Feature Specificati
 Cohesion: 0.67
 Nodes (3): schema, name, version
 
+### Community 1239 - "Community 1239"
+Cohesion: 0.50
+Nodes (4): code:text (prisma/schema.prisma), code:text (docs/repository-audit/05_SCHEMA_COMPARISON.md), code:text (data/synthetic-cases/), Phase 7 — Integrate and validate the data artifacts
+
 ## Knowledge Gaps
-- **10074 isolated node(s):** `name`, `private`, `version`, `description`, `workspaces` (+10069 more)
+- **10083 isolated node(s):** `name`, `private`, `version`, `description`, `workspaces` (+10078 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **103 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -5455,15 +5450,15 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `properties` connect `Community 46` to `Community 1222`, `Community 1225`, `Community 174`, `Community 118`, `Community 310`, `Community 473`?**
   _High betweenness centrality (0.002) - this node is a cross-community bridge._
-- **Why does `AppendOnlyAuditLog` connect `Community 942` to `Community 1218`, `Community 1211`?**
-  _High betweenness centrality (0.002) - this node is a cross-community bridge._
-- **Why does `all_messages()` connect `Community 15` to `Community 942`?**
-  _High betweenness centrality (0.002) - this node is a cross-community bridge._
+- **Why does `properties` connect `Community 622` to `Community 257`, `Community 529`, `Community 530`, `Community 531`, `Community 532`, `Community 533`, `Community 46`, `Community 174`, `Community 464`, `Community 465`, `Community 466`, `Community 467`, `Community 620`, `Community 621`, `Community 623`, `Community 624`, `Community 625`, `Community 626`, `Community 627`, `Community 628`?**
+  _High betweenness centrality (0.001) - this node is a cross-community bridge._
+- **Why does `Obh1PhysicianEmergencyCertificate` connect `Community 401` to `Community 17`, `Community 23`?**
+  _High betweenness centrality (0.001) - this node is a cross-community bridge._
 - **What connects `name`, `private`, `version` to the rest of the system?**
-  _10075 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _10084 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.05568627450980392 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.04067796610169491 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.0318096765570703 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.026954177897574125 - nodes in this community are weakly interconnected._

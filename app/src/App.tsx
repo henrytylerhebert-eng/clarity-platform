@@ -15,10 +15,12 @@ import {
   PanelTop,
   PlusCircle,
   RotateCcw,
+  Route,
   Scale,
   ShieldCheck,
 } from "lucide-react";
 import { CaseQueue } from "./workspaces/CaseQueue";
+import { JourneyMonitor } from "./workspaces/JourneyMonitor";
 import { CommandCenter } from "./workspaces/CommandCenter";
 import { Bedboard } from "./workspaces/Bedboard";
 import { NewCase } from "./workspaces/NewCase";
@@ -65,6 +67,7 @@ import type {
 const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof LayoutDashboard }> = [
   { id: "queue", label: "Case Queue", icon: LayoutDashboard },
   { id: "command", label: "Command Center", icon: Gauge },
+  { id: "journey", label: "Journey Monitor", icon: Route },
   { id: "new", label: "New Case", icon: PlusCircle },
   { id: "overview", label: "Case Overview", icon: ClipboardList },
   { id: "intake", label: "Guided Intake", icon: FileText },
@@ -695,6 +698,7 @@ export function App() {
         <section className="content-region">
           {workspace === "queue" ? <CaseQueue state={state} selectedCaseId={activeCase.id} onSelect={(id) => { setSelectedCaseId(id); setWorkspace("overview"); }} /> : null}
           {workspace === "command" ? <CommandCenter state={state} onSelect={(id) => { setSelectedCaseId(id); setWorkspace("overview"); }} /> : null}
+          {workspace === "journey" ? <JourneyMonitor state={state} nowIso={nowIso} selectedCaseId={activeCase.id} onSelect={setSelectedCaseId} /> : null}
           {workspace === "new" ? <NewCase onCreate={handleCreateCase} /> : null}
           {workspace === "overview" ? <CaseOverview state={state} caseRecord={activeCase} /> : null}
           {workspace === "intake" ? <GuidedIntake state={state} caseId={activeCase.id} onAssessmentChange={handleAssessmentChange} onAddSourceAndRisk={handleAddSourceAndRisk} /> : null}
