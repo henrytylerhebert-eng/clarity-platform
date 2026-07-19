@@ -502,4 +502,160 @@ describe("Network enrichment synthetic command runtime", () => {
     expect(rejectBadVersion.status).toBe(409);
     expect(await rejectBadVersion.json()).toEqual({ error: "conflict" });
   });
+
+  it("returns conflict when approve/reject idempotency keys are reused with drifted payloads", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+
+    const approveReviewId = `network-review-${h.runId}-idem-conflict-approve`;
+    const submitForApproveRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId: approveReviewId,
+      caseId: `case-${h.runId}-idem-conflict-approve`,
+      sourceCandidateId: "candidate-idem-conflict-approve",
+      fieldPath: "facilityAdmissionProfiles.capacity",
+      currentValue: 1,
+      proposedValue: 2,
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-idem-conflict-approve`,
+      reason: "Idempotency drift setup",
+      correlationId: "corr-network-idem-conflict-approve",
+    });
+    expect(submitForApproveRes.status).toBe(200);
+    const submitPayload = (await submitForApproveRes.json()) as {
+      value: { review: { version: number } };
+      replayed: boolean;
+    };
+
+    const approveReplayConflict = await postNetworkEnrichmentApprove(token, {
+      reviewId: approveReviewId,
+      expectedVersion: submitPayload.value.review.version,
+      actorNotes: "first approval notes",
+      idempotencyKey: `synthetic-enrich-approve-${h.runId}-idem-conflict`,
+      correlationId: "corr-network-idem-conflict-approve-1",
+    });
+    expect(approveReplayConflict.status).toBe(200);
+
+    const approveDriftConflict = await postNetworkEnrichmentApprove(token, {
+      reviewId: approveReviewId,
+      expectedVersion: submitPayload.value.review.version,
+      actorNotes: "second approval notes",
+      idempotencyKey: `synthetic-enrich-approve-${h.runId}-idem-conflict`,
+      correlationId: "corr-network-idem-conflict-approve-2",
+    });
+    expect(approveDriftConflict.status).toBe(409);
+    expect(await approveDriftConflict.json()).toEqual({ error: "conflict" });
+
+    const rejectReviewId = `network-review-${h.runId}-idem-conflict-reject`;
+    const submitForRejectRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId: rejectReviewId,
+      caseId: `case-${h.runId}-idem-conflict-reject`,
+      sourceCandidateId: "candidate-idem-conflict-reject",
+      fieldPath: "facilityAdmissionProfiles.notes",
+      currentValue: "old",
+      proposedValue: "new",
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-idem-conflict-reject`,
+      reason: "Idempotency drift setup",
+      correlationId: "corr-network-idem-conflict-reject",
+    });
+    expect(submitForRejectRes.status).toBe(200);
+    const submitPayloadReject = (await submitForRejectRes.json()) as {
+      value: { review: { version: number } };
+      replayed: boolean;
+    };
+
+    const rejectReplayConflict = await postNetworkEnrichmentReject(token, {
+      reviewId: rejectReviewId,
+      expectedVersion: submitPayloadReject.value.review.version,
+      rejectionReason: "first rejection reason",
+      idempotencyKey: `synthetic-enrich-reject-${h.runId}-idem-conflict`,
+      correlationId: "corr-network-idem-conflict-reject-1",
+    });
+    expect(rejectReplayConflict.status).toBe(200);
+
+    const rejectDriftConflict = await postNetworkEnrichmentReject(token, {
+      reviewId: rejectReviewId,
+      expectedVersion: submitPayloadReject.value.review.version,
+      rejectionReason: "second rejection reason",
+      idempotencyKey: `synthetic-enrich-reject-${h.runId}-idem-conflict`,
+      correlationId: "corr-network-idem-conflict-reject-2",
+    });
+    expect(rejectDriftConflict.status).toBe(409);
+    expect(await rejectDriftConflict.json()).toEqual({ error: "conflict" });
+  });
+
+  it("returns not found for approve/reject against a missing review id", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+
+    const approveMissing = await postNetworkEnrichmentApprove(token, {
+      reviewId: `network-review-${h.runId}-missing`,
+      expectedVersion: 1,
+      actorNotes: "Missing review scenario",
+      idempotencyKey: `synthetic-enrich-approve-${h.runId}-missing`,
+      correlationId: "corr-network-missing-approve",
+    });
+    expect(approveMissing.status).toBe(404);
+    expect(await approveMissing.json()).toEqual({ error: "review_not_found" });
+
+    const rejectMissing = await postNetworkEnrichmentReject(token, {
+      reviewId: `network-review-${h.runId}-missing`,
+      expectedVersion: 1,
+      rejectionReason: "Missing review scenario",
+      idempotencyKey: `synthetic-enrich-reject-${h.runId}-missing`,
+      correlationId: "corr-network-missing-reject",
+    });
+    expect(rejectMissing.status).toBe(404);
+    expect(await rejectMissing.json()).toEqual({ error: "review_not_found" });
+  });
+
+  it("rejects transition to approve/reject for terminal-state reviews", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+
+    const reviewId = `network-review-${h.runId}-terminal`;
+    const submitRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId,
+      caseId: `case-${h.runId}-terminal`,
+      sourceCandidateId: "candidate-terminal",
+      fieldPath: "facilityAdmissionProfiles.capacity",
+      currentValue: 1,
+      proposedValue: 2,
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-terminal`,
+      reason: "terminal transition test",
+      correlationId: "corr-network-terminal",
+    });
+    expect(submitRes.status).toBe(200);
+    const submitPayload = (await submitRes.json()) as {
+      value: { review: { version: number } };
+      replayed: boolean;
+    };
+
+    const approved = await postNetworkEnrichmentApprove(token, {
+      reviewId,
+      expectedVersion: submitPayload.value.review.version,
+      actorNotes: "approve to terminal",
+      idempotencyKey: `synthetic-enrich-approve-${h.runId}-terminal`,
+      correlationId: "corr-network-terminal-approve",
+    });
+    expect(approved.status).toBe(200);
+
+    const rejectAfterApproved = await postNetworkEnrichmentReject(token, {
+      reviewId,
+      expectedVersion: submitPayload.value.review.version + 1,
+      rejectionReason: "should fail from terminal",
+      idempotencyKey: `synthetic-enrich-reject-${h.runId}-terminal`,
+      correlationId: "corr-network-terminal-reject",
+    });
+    expect(rejectAfterApproved.status).toBe(400);
+    expect(await rejectAfterApproved.json()).toEqual({ error: "invalid_request" });
+
+    const approvedAgain = await postNetworkEnrichmentApprove(token, {
+      reviewId,
+      expectedVersion: submitPayload.value.review.version + 1,
+      actorNotes: "second approve on terminal",
+      idempotencyKey: `synthetic-enrich-approve-${h.runId}-terminal-2`,
+      correlationId: "corr-network-terminal-approve-2",
+    });
+    expect(approvedAgain.status).toBe(400);
+    expect(await approvedAgain.json()).toEqual({ error: "invalid_request" });
+  });
 });

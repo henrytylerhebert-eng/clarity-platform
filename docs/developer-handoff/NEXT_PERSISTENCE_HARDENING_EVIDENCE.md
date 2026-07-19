@@ -258,6 +258,32 @@ Status: Completed (docs + route-level composition boundary)
   - worker/egress remains OFF,
   - no API behavior beyond synthetic enrichment routes beyond what is recorded here.
 
+## Packet 10 Runtime Boundary Evidence (Network Enrichment Review Route Hardening)
+
+Scope:
+
+- `tests/integration/api-service.test.ts`
+- `docs/decisions/NETWORK_ENRICHMENT_PACKET_10_REVIEW_AND_ACCEPTANCE_RECORD.md`
+
+Execution results:
+
+- Updated Packet 10 gate to `Approve Packet 10`.
+- Added regression coverage for:
+  - idempotency-key payload drift on approve/reject (`409 conflict`);
+  - missing review id handling on approve/reject (`404 review_not_found`);
+  - terminal-state transition attempts at HTTP boundary (`400 invalid_request`).
+- Added command-path-only runtime checks remain synthetic:
+  - no DB schema/egress/worker changes;
+  - no API contract changes beyond existing `network-enrichment/synthetic/reviews/*` route behavior.
+
+Verification commands executed for Packet 10:
+
+- `npx vitest run tests/integration/api-service.test.ts --root .` (pass)
+- `npx eslint tests/integration/api-service.test.ts` (pass)
+- `npm run lint --workspace=packages/network-enrichment-service` (pass)
+- `npm run test --workspace=packages/network-enrichment-service` (pass)
+- `npx tsc --noEmit` (pass)
+
 Evidence artifact:
 - `docs/decisions/NETWORK_ENRICHMENT_PACKET_2_PLUS_RUNTIME_ROUTE_GATEWAY_ADAPTER.md`
 

@@ -30,10 +30,10 @@ Finalize HTTP-bound runtime checks for network-enrichment synthetic routes so id
 
 ## Packet 10 Decision Path
 
-- Decision: `[ ] Approve Packet 10`  `[ ] Revise Packet 10`  `[ ] Defer Packet 10`
+- Decision: `[x] Approve Packet 10`  `[ ] Revise Packet 10`  `[ ] Defer Packet 10`
 - Owner: Tyler / product owner
 - Date: `2026-07-19`
-- Notes: Gate not yet selected.
+- Notes: Approved for runtime-only Packet 10 execution.
 
 ## Packet 10 Boundaries
 
