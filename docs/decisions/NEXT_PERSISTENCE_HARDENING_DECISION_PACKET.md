@@ -1,5 +1,5 @@
 ---
-status: H1 implemented and verified; remaining hardening decisions remain gated
+status: H1 implemented; H2 governance records drafted; production hardening remains gated
 owner: Tyler/product owner with technical and security review
 date: 2026-07-18
 data_boundary: synthetic only
@@ -22,15 +22,14 @@ vocabulary, and runtime decisions.
 
 ## Proposed Boundary
 
-If approved, the next slice would resolve and document:
+The remaining hardening work now resolves and documents:
 
 - database tenant enforcement and the timing of RLS;
 - migration promotion, restore, and recovery evidence;
-- production retry semantics for idempotency and concurrent admissions;
+- production retry ownership and observability after the H1 replay behavior;
 - outbox failure, retry, ownership, and observability boundaries;
 - governed event vocabulary for review corrections and documentation-gap
   transitions;
-- the `Episode.programId` domain-contract versus Prisma-nullability mismatch;
 - whether command services belong in a later repository-runtime slice.
 
 This packet does not authorize API routes, API framework changes, workers,
@@ -41,28 +40,28 @@ external integrations, deployment, production flags, or real data.
 
 | # | Decision | Current evidence | Human gate |
 |---:|---|---|---|
-| 1 | RLS timing and database tenant enforcement | S2 has organization predicates and cross-tenant tests; RLS is still OD-6. | Security and technical approval |
-| 2 | Migration recovery model | S2 migration is additive and applied locally; no production restore evidence exists. | Technical and operations approval |
+| 1 | RLS timing and database tenant enforcement | Design record drafted; S2 still uses organization predicates and has no RLS migration. | Security and technical approval |
+| 2 | Migration recovery model | Promotion/recovery checklist drafted; no production restore evidence exists. | Technical and operations approval |
 | 3 | Concurrent admission retry semantics | H1 targets only the acceptance unique conflict, re-reads the organization-scoped link, compares command identity, and distinguishes replay from conflict. | H1 verified; production retry/observability remains gated |
-| 4 | Outbox ownership and failure handling | S2 persists `PENDING` rows atomically; no dispatcher or retry worker exists. | Architecture and operations decision |
+| 4 | Outbox ownership and failure handling | Delivery boundary record drafted; S2 persists `PENDING` rows atomically and has no dispatcher or retry worker. | Architecture and operations decision |
 | 5 | Event vocabulary expansion | Review-row identifiers and gap-transition events lack dedicated S1 payload schemas. | Domain and governance decision |
 | 6 | Program identity contract | H1 aligns the Zod contracts, event payloads, mapper, and already-nullable Prisma column as nullable/source-owned. | H1 verified; revisit only if a canonical program hierarchy becomes required |
-| 7 | Command-service boundary | S2 uses a repository persistence adapter; HTTP/runtime work remains excluded. | Technical lead decision |
+| 7 | Command-service boundary | Boundary is recorded: episode writes require a role-gated command service before any HTTP exposure. | Technical lead decision |
 
-## Required Evidence Before Any Implementation
+## Required Evidence Before Production Hardening
 
-1. Tenant enforcement and RLS decision recorded in `OPEN_DECISIONS.md` or a
-   dedicated ADR.
+1. Tenant enforcement and RLS design reviewed and the OD-6 provider/session
+   decision recorded.
 2. Additive migration promotion and restore procedure reviewed by the
-   technical and security owners.
-3. Deterministic concurrency and replay semantics defined for the command
-   boundary. H1 evidence is recorded in the implementation section below.
-4. Outbox failure ownership and retry policy defined without adding a worker.
+   technical and operations owners.
+3. Production retry ownership and observability defined beyond H1's local
+   deterministic replay behavior.
+4. Outbox failure ownership and retry policy reviewed without adding a worker
+   implicitly.
 5. Event payload schemas either extended deliberately or the current
    interpretation accepted as an interim boundary.
-6. Program identity mismatch resolved without weakening the synthetic-only
-   contract accidentally.
-7. Explicit implementation approval naming files, tests, and exclusions.
+6. Explicit implementation approval naming files, tests, and exclusions for
+   any production-facing slice.
 
 ## Non-Goals
 
@@ -108,3 +107,15 @@ H1 verification: focused 36 tests passed; root 31 files / 258 tests passed;
 app 10 files / 64 tests passed; app build, typecheck, Prisma validation and
 generation, scoped lint, and `git diff --check` passed. Repository-wide lint
 remains blocked by the unrelated visualizer React ESLint incompatibility.
+
+## H2 Governance Records
+
+The following records are drafted and intentionally remain proposed:
+
+- `docs/decisions/RLS_TENANT_ENFORCEMENT_DESIGN.md`
+- `docs/decisions/S2_MIGRATION_PROMOTION_AND_RECOVERY_CHECKLIST.md`
+- `docs/decisions/OUTBOX_DELIVERY_BOUNDARY_DECISION.md`
+
+They are evidence and decision inputs, not authorization for RLS migrations,
+production migration promotion, outbox workers, external delivery, or real
+data.

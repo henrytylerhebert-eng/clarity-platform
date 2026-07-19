@@ -142,9 +142,9 @@ The team should keep these lanes separate:
 ### Lane D: persistence hardening and contract reconciliation
 
 - Owner: Human project owner with technical and security review; Antigravity coordinates; Codex prepares repository evidence; Claude proposes bounded options.
-- State: H1 implemented and verified on 2026-07-19. Remaining decisions stay gated; H1 covers only nullable program identity and targeted concurrent admission replay recovery.
+- State: H1 implemented and verified on 2026-07-19; H2 governance records drafted. Remaining production decisions stay gated.
 - Evidence: `docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md`, `docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md`, and `docs/developer-handoff/NEXT_PERSISTENCE_HARDENING_EVIDENCE.md`.
-- Boundary: RLS timing, migration recovery, outbox ownership, event vocabulary, and later command-service depth remain open; H1 recorded the bounded concurrency/replay and program-identity reconciliation decisions.
+- Boundary: RLS timing, migration recovery, outbox ownership, event vocabulary, and later command-service depth remain open. H1 covers bounded replay and program identity; H2 records the non-runtime governance inputs.
 - Excludes: production data, deployment, API routes, workers, outbox dispatch, analytics marts, dashboards, frontend, Product Studio, external integrations, and feature flags.
 
 ## Bridge Operating Procedure

@@ -37,6 +37,10 @@ require the human gates in the decision packet.
    source-owned Prisma `Episode.programId` column.
 8. The current repository adapter is a persistence boundary, not an HTTP or
    service-runtime boundary.
+9. The bridge health check now recognizes both absolute and repository-relative
+   watcher paths. `npm run bridge:status` reports `listener=running` for the
+   active `tail -f agent_bridge/claude_outbox.md` process, and the bridge suite
+   covers both path forms.
 
 ## Recommendations
 
@@ -105,14 +109,19 @@ Focused coverage includes nullable program contracts, sequential acceptance-key
 conflict handling, and two identical admissions racing through the real Prisma
 gateway with exactly one persisted episode, link, and governed event.
 
+The bridge health repair is limited to listener detection and its regression
+test. It does not claim Antigravity agent consumption, direct CLI support, or
+authentication; those remain runtime capabilities reported separately by the
+bridge.
+
 ## Proposed Next Implementation Shape
 
 The next bounded slice should be selected explicitly from:
 
 - event-vocabulary domain decision and explicit consumer requirements;
-- deterministic unique-conflict replay handling;
 - migration promotion/recovery documentation and tests;
-- a separately governed outbox delivery design.
+- the proposed RLS design and OD-6 provider/session decision;
+- the separately governed outbox delivery design.
 
 RLS, production deployment, workers, APIs, analytics, UX, integrations, and
 real data remain outside this proposed boundary.
