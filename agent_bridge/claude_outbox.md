@@ -46,3 +46,12 @@ Type: status
 Canonical message: `agents/bridge/inbox/antigravity/MSG-0044_codex-to-antigravity_claude-session-recovery.md`
 
 Current Clarity state: Claude is open in the canonical repository, but the latest MSG-0033 attempt failed with HTTP 429 session-limit exhaustion and produced no completed S2 implementation. The prior claude_manual_prompt.txt incorrectly dec
+
+## MSG-0049 bridge notification
+
+From: codex
+To: antigravity
+Type: task
+Canonical message: `agents/bridge/inbox/antigravity/MSG-0049_codex-to-antigravity_next-persistence-hardening-orchestration.md`
+
+Owner approved the next Clarity slice as decision work only. Read docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md and agents/bridge/BUILD_TO_GOAL.md. Coordinate exactly one Claude analysis assignment and later route the evidenc

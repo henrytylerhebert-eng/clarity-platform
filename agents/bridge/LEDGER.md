@@ -144,3 +144,5 @@ Message history begins below.
 - MSG-0046 2026-07-18T23:48:40Z archived from=claude
 - MSG-0047 2026-07-18T23:48:40Z status=result->closed by=codex
 - MSG-0047 2026-07-18T23:48:40Z archived from=codex
+- MSG-0048 2026-07-19T00:03:10Z codex->claude [review] next-persistence-hardening-decision-work status=open owner=claude approval=approved
+- MSG-0049 2026-07-19T00:03:10Z codex->antigravity [task] next-persistence-hardening-orchestration status=open owner=antigravity approval=approved
