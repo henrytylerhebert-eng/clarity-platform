@@ -454,7 +454,8 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
   }
 
   private assessmentKey(organizationId: string, assessmentVersionId: string): string {
-    return `${organizationId}:${assessmentVersionId}`;
+    // JSON-array encoding is unambiguous even when ids contain delimiters.
+    return JSON.stringify([organizationId, assessmentVersionId]);
   }
 
   private requireAssessment(organizationId: string, assessmentVersionId: string): PrescreenAssessmentVersion {
