@@ -575,6 +575,49 @@ describe("prescreen command service (Phase 2, in-memory gateway)", () => {
     expect(gateway.getAssessmentVersion(ORG_A, "asv_syn_1").status).toBe("ATTESTED");
   });
 
+  it("keeps tenant keys unambiguous when ids themselves contain the delimiter", () => {
+    // org "org_syn_a:x" + id "1" must never collide with org "org_syn_a" + id "x:1".
+    const orgOne = "org_syn_a:x";
+    const orgTwo = "org_syn_a";
+    const startedOne = service.startEncounter({
+      organizationId: orgOne,
+      actor: assessor,
+      idempotencyKey: "start-key-am-1",
+      occurredAt: T0,
+      caseId: "case_syn_am1",
+      currentLocation: "Synthetic ED",
+      presentingConcern: "Synthetic concern",
+    });
+    const startedTwo = service.startEncounter({
+      organizationId: orgTwo,
+      actor: assessor,
+      idempotencyKey: "start-key-am-2",
+      occurredAt: T0,
+      caseId: "case_syn_am2",
+      currentLocation: "Synthetic ED",
+      presentingConcern: "Synthetic concern",
+    });
+    service.saveAssessmentDraft({
+      organizationId: orgOne,
+      actor: assessor,
+      idempotencyKey: "draft-key-am-1",
+      occurredAt: T0,
+      encounterId: startedOne.encounterId,
+      draft: draft("1"),
+    });
+    service.saveAssessmentDraft({
+      organizationId: orgTwo,
+      actor: assessor,
+      idempotencyKey: "draft-key-am-2",
+      occurredAt: T0,
+      encounterId: startedTwo.encounterId,
+      draft: draft("x:1"),
+    });
+    expect(gateway.getAssessmentVersion(orgOne, "1").encounterId).toBe(startedOne.encounterId);
+    expect(gateway.getAssessmentVersion(orgTwo, "x:1").encounterId).toBe(startedTwo.encounterId);
+    expect(() => gateway.getAssessmentVersion(orgTwo, "1")).toThrow(PrescreenNotFoundError);
+  });
+
   it("records AGENT and SYSTEM command actors as SERVICE in the event envelope", () => {
     const agentActor = { ...assessor, actorId: "actor_syn_agent_1", actorType: "AGENT" as const };
     const started = service.startEncounter({
