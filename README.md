@@ -75,7 +75,7 @@ Where no measurement exists, the project says `No measurements found`. Where a c
 | `prisma/` | Canonical foundation schema (validated; initial migration generated) — ADR-0002 |
 | `data/synthetic-cases/` | Validated synthetic fixtures (3 of a planned 10) |
 | `data/mock-use-cohorts/` | Separated mock-use training cohorts; not canonical app seed data |
-| `docs/` | Canonical documentation: `product/`, `architecture/` (incl. ADRs), `workflows/`, `clinical/`, `legal/`, `payer-and-benefits/`, `governance/`, `security/`, `testing/`, `roadmap/`, `developer-handoff/`, `decisions/` |
+| `docs/` | Canonical documentation: `product/`, `architecture/` (incl. ADRs), `workflows/`, `discovery/`, `clinical/`, `legal/`, `payer-and-benefits/`, `governance/`, `security/`, `testing/`, `roadmap/`, `developer-handoff/`, `decisions/` |
 | `docs/mock-use/` | Fictitious chart/UR training reports for stakeholder walkthroughs |
 | `docs/00–09*.md` | Historical Jul 8 crisis-platform docs (preserved; see path-migration note in `00-architecture-index.md`) |
 | `docs/repository-audit/` | Full integration audit trail: inventories, integration matrix, conflict register, gap analysis, schema validation, file move map |
@@ -97,6 +97,7 @@ For potential customers or POC reviewers:
 For developers:
 
 - For human-supervised multi-agent work, start with agents/bridge/PROJECT_CONFIGURATION.md and agents/bridge/PROTOCOL.md.
+- For a new workflow or requirements-acquisition session, start with [docs/discovery/README.md](docs/discovery/README.md); it is documentation-only and does not authorize implementation.
 - Read `IMPLEMENTATION_STATUS.md` for what is complete, scaffolded, documented-only, blocked, and next.
 - Read `docs/roadmap/IMPLEMENTATION_ROADMAP.md` for the platform sequence.
 - Use `docs/developer-handoff/COMMAND_CENTER_MVP_PROMPT.md` for the next command-center/product-surface iteration.
