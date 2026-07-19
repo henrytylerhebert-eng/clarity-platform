@@ -1,5 +1,5 @@
 ---
-status: Preliminary Codex evidence; recommendations only
+status: Verified H1 implementation evidence; recommendations remain for later gates
 owner: Codex for repository evidence; human owner, technical lead, and security reviewer decide
 date: 2026-07-19
 data_boundary: synthetic only
@@ -11,10 +11,9 @@ related_packet: docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md
 ## Truth Boundary
 
 This is a repository-grounded evidence memo, not an approval record. Claude's
-approved analysis assignment is queued as `MSG-0048`; a direct recovery attempt
-failed with HTTP 429 session-limit exhaustion and was archived as `MSG-0050`
-and `MSG-0051`. The recommendations below are Codex analysis and require the
-human gates in the decision packet.
+options analysis arrived as `MSG-0052`. H1 implementation was then completed
+locally within the owner-approved boundary; remaining recommendations still
+require the human gates in the decision packet.
 
 ## Confirmed Facts
 
@@ -24,15 +23,18 @@ human gates in the decision packet.
    or RLS migration is present in the S2 migration.
 3. The S2 migration is additive and has been applied to the local synthetic
    `clarity_dev` database. No production promotion or restore evidence exists.
-4. Admission replay is deterministic on
-   `(organizationId, sourceAcceptanceId)`. A concurrent race can still surface
-   a unique-constraint error before a retry re-reads the accepted link.
+4. H1 admission replay is deterministic on
+   `(organizationId, sourceAcceptanceId)`: the targeted acceptance unique
+   conflict is re-read and exact command identity returns `replayed: true`;
+   mismatches throw `IdempotencyConflictError`, and unrelated unique errors
+   remain errors.
 5. Governed events and `PENDING` outbox rows are written in the same transaction
    as the source mutation and audit write. No dispatcher or worker exists.
 6. The S1 event vocabulary has an authorization-day-decision event but no
    dedicated review-recorded or documentation-gap-transition payload schema.
-7. `EpisodeSchema` requires `programId`, while the Prisma `Episode.programId`
-   column remains nullable/source-owned by the S2 decision.
+7. H1 aligns `EpisodeSchema`, `AdmissionHandoffCommandSchema`, both admission
+   event payload schemas, and the episode mapper with the already-nullable,
+   source-owned Prisma `Episode.programId` column.
 8. The current repository adapter is a persistence boundary, not an HTTP or
    service-runtime boundary.
 
@@ -53,11 +55,12 @@ ordering, and a named recovery owner before production migration work.
 
 ### 3. Concurrent admission retries
 
-Keep the source-acceptance natural key and active-admission guard. Add an
-explicit unique-conflict recovery policy in a later implementation slice:
-re-read the organization-scoped link, compare the command identity, and return
-the existing result only when the natural key matches. Do not hide unrelated
-unique violations as successful replays.
+H1 implemented the bounded recovery policy: re-read the organization-scoped
+link after the targeted unique conflict, compare case, facility, admission
+instant, and timezone source reference, and return the existing result only
+when the natural key and command identity match. Do not hide unrelated unique
+violations as successful replays. Production retry ownership and observability
+remain outside this slice.
 
 ### 4. Outbox ownership and failure handling
 
@@ -75,9 +78,10 @@ interpretations visibly interim.
 
 ### 6. Program identity
 
-Resolve whether `programId` is a required domain admission input or a nullable
-source-owned reference. Align the S1 Zod contract, Prisma nullability, mapper,
-and admission command together; do not fix only one layer.
+H1 resolved the bounded S2 mismatch as nullable/source-owned and aligned the
+S1 Zod contract, admission event payloads, mapper, and existing Prisma
+nullability together. A future canonical program hierarchy could reopen this
+decision as a deliberate breaking contract change.
 
 ### 7. Command-service boundary
 
@@ -85,12 +89,27 @@ Defer command services and HTTP routes until the hardening decisions are
 accepted. Keep the next implementation slice limited to the smallest approved
 repository or domain-contract change.
 
+## H1 Implementation Evidence
+
+Changed product files:
+
+- `packages/domain-contracts/src/episode.ts`
+- `packages/domain-contracts/src/analytics.ts`
+- `packages/case-repository/src/episodeMappers.ts`
+- `packages/case-repository/src/episodePersistenceGateway.ts`
+- `tests/unit/episode-utilization-contracts.test.ts`
+- `tests/unit/analytics-contracts.test.ts`
+- `tests/integration/s2-episode-persistence.test.ts`
+
+Focused coverage includes nullable program contracts, sequential acceptance-key
+conflict handling, and two identical admissions racing through the real Prisma
+gateway with exactly one persisted episode, link, and governed event.
+
 ## Proposed Next Implementation Shape
 
-No implementation is authorized by this memo. If the owner accepts the
-recommendations, the next bounded slice should be selected explicitly from:
+The next bounded slice should be selected explicitly from:
 
-- contract reconciliation for event vocabulary and `programId`;
+- event-vocabulary domain decision and explicit consumer requirements;
 - deterministic unique-conflict replay handling;
 - migration promotion/recovery documentation and tests;
 - a separately governed outbox delivery design.

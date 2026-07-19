@@ -9,6 +9,7 @@ data_boundary: synthetic only
 related_artifacts:
   - docs/decisions/S2_PERSISTENCE_DECISION_PACKET.md
   - docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md
+  - docs/developer-handoff/NEXT_PERSISTENCE_HARDENING_EVIDENCE.md
   - agents/bridge/BUILD_TO_GOAL.md
   - prisma/migrations/20260718231432_s2_episode_persistence/migration.sql
 ---
@@ -72,16 +73,16 @@ These were recorded rather than silently expanded:
 2. Documentation-gap creation emits a governed event; later gap transitions
    emit audit and append-only history but no governed event because no S1
    transition payload schema exists.
-3. `Episode.programId` remains required by the S1 domain contract while the
-   Prisma column is nullable for source-owned persistence. This mismatch is a
-   follow-up contract decision, not a production assumption.
+3. H1 reconciled `Episode.programId` as nullable/source-owned across the S1
+   domain contracts, admission event payloads, mapper, and already-nullable
+   Prisma column. No schema or migration change was required.
 
 ## Remaining Risks And Gates
 
 - RLS and database-level tenant enforcement remain outside S2 and are governed
   by OD-6.
-- A concurrent duplicate admission can receive a unique-constraint error; a
-  retry replays deterministically. Production retry semantics remain ungated.
+- H1 handles the targeted concurrent acceptance-key race deterministically;
+  production retry ownership and observability remain ungated.
 - Direct outbox-failure injection was not added; shared transaction boundaries
   are tested through audit failure rollback.
 - Full repository lint remains blocked by unrelated visualizer technical debt.
