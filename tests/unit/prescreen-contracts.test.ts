@@ -294,11 +294,31 @@ describe("consent authority evaluation (configured synthetic rules)", () => {
     });
     expect(result.allowed).toBe(false);
   });
+
+  it("fails closed when multiple approved rules match regardless of input order", () => {
+    const broadRule: ConsentAuthorityRule = {
+      ...syntheticConsentRule,
+      ruleId: "synthetic-jurisdiction-wide-admission",
+      facilityId: undefined,
+      relationshipEvidenceRequired: false,
+      clinicianReviewRequired: false,
+    };
+    const broadFirst = evaluateConsentAuthority([broadRule, syntheticConsentRule], syntheticConsentContext);
+    const specificFirst = evaluateConsentAuthority([syntheticConsentRule, broadRule], syntheticConsentContext);
+    expect(broadFirst).toEqual(specificFirst);
+    for (const result of [broadFirst, specificFirst]) {
+      expect(result.allowed).toBe(false);
+      expect(result.ruleId).toBeUndefined();
+      expect(result.unmetRequirements).toEqual(["AMBIGUOUS_APPROVED_RULES"]);
+      expect(result.reasons).toHaveLength(2);
+    }
+  });
 });
 
 const transportContext: TransportContext = {
   legalStatus: "OPC",
   instrumentId: "opc_synthetic_1",
+  sendingFacilityId: "facility-sending-1",
   destinationFacilityId: "facility-1",
   jurisdictionCode: "LA",
   serviceArea: "Lafayette Parish",
@@ -316,7 +336,7 @@ function syntheticProvider(overrides: Partial<TransportProvider> = {}): Transpor
     serviceAreas: ["Lafayette Parish"],
     capabilities: ["CONTINUOUS_SUPERVISION"],
     restrictions: [],
-    facilityApprovals: ["facility-1"],
+    facilityApprovals: ["facility-sending-1", "facility-1"],
     jurisdictionApprovals: ["LA"],
     ...overrides,
   };
@@ -364,6 +384,32 @@ describe("transport provider qualification (configured synthetic rule)", () => {
   it("blocks missing patient capabilities", () => {
     const result = qualifyTransportProvider(syntheticProvider({ capabilities: [] }), transportContext, rule);
     expect(result.disqualifiers).toContain("MISSING_CAPABILITY:CONTINUOUS_SUPERVISION");
+  });
+
+  it("blocks providers with unresolved restrictions", () => {
+    const result = qualifyTransportProvider(
+      syntheticProvider({ restrictions: ["Synthetic credential review remains open"] }),
+      transportContext,
+      rule,
+    );
+    expect(result.status).toBe("NOT_QUALIFIED");
+    expect(result.disqualifiers).toContain("UNRESOLVED_PROVIDER_RESTRICTION");
+  });
+
+  it("requires both sending- and receiving-facility approvals", () => {
+    const missingSending = qualifyTransportProvider(
+      syntheticProvider({ facilityApprovals: ["facility-1"] }),
+      transportContext,
+      rule,
+    );
+    expect(missingSending.disqualifiers).toContain("SENDING_FACILITY_APPROVAL_MISSING");
+
+    const missingReceiving = qualifyTransportProvider(
+      syntheticProvider({ facilityApprovals: ["facility-sending-1"] }),
+      transportContext,
+      rule,
+    );
+    expect(missingReceiving.disqualifiers).toContain("RECEIVING_FACILITY_APPROVAL_MISSING");
   });
 });
 

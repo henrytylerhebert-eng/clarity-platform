@@ -77,10 +77,10 @@ persistence:
 
 ## Follow-ups recorded for domain review (from external review on PR #19)
 
-- **Consent-rule precedence:** when multiple APPROVED rules match a context
-  (global vs facility/program-specific), the evaluator takes the first match.
-  A specificity-ordering policy is a configured-rule governance decision, not
-  decided here.
+- **Consent-rule precedence:** a specificity-ordering policy remains a
+  configured-rule governance decision. Until that policy is approved, multiple
+  matching APPROVED rules fail closed with `AMBIGUOUS_APPROVED_RULES`; input
+  array order cannot authorize consent.
 - **Fractional pediatric ages:** `consentAgeBandFor` deliberately accepts
   whole years only (bands change at 12/16/18); representing fractional ages
   would change the contract surface and needs domain review.
