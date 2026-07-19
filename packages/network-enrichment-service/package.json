@@ -1,0 +1,16 @@
+{
+  "name": "@clarity/network-enrichment-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Synthetic-only network-enrichment review command service (Packet 2). In-memory, no DB, no worker, no egress.",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run ./test/reviewCommands.test.ts --root ../.."
+  },
+  "dependencies": {
+    "@clarity/domain-contracts": "*",
+    "zod": "^3.24.1"
+  }
+}

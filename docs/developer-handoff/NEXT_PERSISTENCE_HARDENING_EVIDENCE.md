@@ -170,3 +170,66 @@ vocabulary is accepted; no new event type or consumer is implemented.
 
 Provider-backed RLS, production deployment, workers, APIs, analytics, UX,
 integrations, and real data remain outside this proposed boundary.
+
+## Packet 2: Network Enrichment Review-Service Slice (APPROVED for minimal implementation)
+
+This is the next approved narrow slice after Packet 2 decision closure:
+
+- Scope: in-memory review command service for network enrichment artifacts.
+- Synthetic boundary: no DB, no worker, no outbound integration.
+- Approved gates:
+  1. Reviewer-role mapping approved via existing `UserRole` aliases.
+  2. Canonical ownership approved on existing `Organization` / `FacilityProfile`,
+     with enrichment metadata kept synthetic.
+  3. ADR-0014 policy defaults approved as the Packet 2 baseline.
+  4. External worker/egress remains `OFF` in Packet 2.
+
+Recommended execution artifacts:
+
+- `packages/network-enrichment-service/src/reviewCommands.ts`
+- `packages/network-enrichment-service/src/reviewGateway.ts`
+- `packages/network-enrichment-service/src/index.ts`
+- `packages/network-enrichment-service/test/reviewCommands.test.ts`
+- optional `docs/decisions/NETWORK_ENRICHMENT_PACKET_2_REVIEW_AND_ACCEPTANCE_RECORD.md`
+
+This packet does not authorize:
+- any DB persistence,
+- API routes,
+- worker execution,
+- outbox delivery,
+- or any clinical/legal/placement autonomy.
+
+When these files are completed, review and acceptance should be recorded before
+the next persistence or runtime packet.
+
+## Packet 2 Execution Evidence (Network Enrichment Review Slice)
+
+Status: Completed (local code and tests in synthetic boundary; scope-limited review packet prepared).
+
+- Scope files implemented:
+  - `packages/domain-contracts/src/networkEnrichment.ts`
+  - `packages/network-enrichment-service/src/reviewCommands.ts`
+  - `packages/network-enrichment-service/src/reviewGateway.ts`
+  - `packages/network-enrichment-service/src/index.ts`
+  - `packages/network-enrichment-service/test/reviewCommands.test.ts`
+
+- Gate checks maintained:
+  - Reviewer-role mapping is Option A using existing `UserRole` aliases.
+  - Canonical ownership remains synthetic and organization-correct.
+  - ADR-0014 policy defaults not widened in this packet.
+  - External worker and egress remain OFF.
+
+- Safety assertions:
+  - No `prisma`/`database` imports in Packet 2 service/gateway.
+  - No outbound HTTP/fetch modules added.
+  - No API route or server bootstrap added.
+
+- Verification executed:
+  - `npm run lint --workspace=packages/network-enrichment-service` (pass)
+  - `npx tsc --noEmit` (pass)
+  - `npm run test --workspace=packages/network-enrichment-service` (pass, 1 file / 5 tests)
+
+- Verification commands prepared:
+  - `npm run lint --workspace=packages/network-enrichment-service`
+  - `npx tsc --noEmit`
+  - `npm run test --workspace=packages/network-enrichment-service`
