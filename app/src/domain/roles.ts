@@ -1,7 +1,6 @@
 export type WorkspaceId =
   | "queue"
   | "command"
-  | "directory-crm"
   | "dependency-map"
   | "journey"
   | "new"
@@ -27,7 +26,6 @@ export type WorkspaceId =
 export const allWorkspaceIds: WorkspaceId[] = [
   "queue",
   "command",
-  "directory-crm",
   "dependency-map",
   "journey",
   "new",
@@ -88,7 +86,7 @@ export const roles: RoleDefinition[] = [
     label: "Field responder",
     description: "Field intake capture: start a case, run field-mode assessment, hand off.",
     mission: "Capture the story once, on scene, without clinical jargon.",
-    workspaces: ["new", "prescreen", "directory-crm", "intake", "overview", "ledger", "training", "mock-admits"],
+    workspaces: ["new", "prescreen", "intake", "overview", "ledger", "training", "mock-admits"],
     defaultWorkspace: "new",
   },
   {
@@ -96,7 +94,7 @@ export const roles: RoleDefinition[] = [
     label: "Central intake coordinator",
     description: "Owns the pipeline: SLA clocks, packet completeness, routing, escalations.",
     mission: "Keep every case moving; escalate before clocks breach.",
-    workspaces: ["command", "directory-crm", "dependency-map", "journey", "queue", "new", "prescreen", "overview", "intake", "evidence", "medical", "legal", "benefits", "authorization", "admit", "episode", "packet", "routing", "discharge", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "dependency-map", "journey", "queue", "new", "prescreen", "overview", "intake", "evidence", "medical", "legal", "benefits", "authorization", "admit", "episode", "packet", "routing", "discharge", "ledger", "training", "mock-admits"],
     defaultWorkspace: "command",
   },
   {
@@ -104,7 +102,7 @@ export const roles: RoleDefinition[] = [
     label: "Clinician reviewer",
     description: "Reviews assessments, risk formulations, and medical-necessity drafts.",
     mission: "Turn drafts into clinically defensible documentation.",
-    workspaces: ["journey", "directory-crm", "queue", "overview", "intake", "evidence", "medical", "legal", "admit", "discharge", "episode", "ledger", "training", "mock-admits"],
+    workspaces: ["journey", "queue", "overview", "intake", "evidence", "medical", "legal", "admit", "discharge", "episode", "ledger", "training", "mock-admits"],
     defaultWorkspace: "queue",
   },
   {
@@ -112,7 +110,7 @@ export const roles: RoleDefinition[] = [
     label: "UR / benefits specialist",
     description: "Runs the financial lane in parallel: verification, payer documentation gaps.",
     mission: "Clear the financial lane without ever blocking the clinical lane.",
-    workspaces: ["command", "directory-crm", "dependency-map", "queue", "overview", "medical", "benefits", "authorization", "admit", "episode", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "dependency-map", "queue", "overview", "medical", "benefits", "authorization", "admit", "episode", "ledger", "training", "mock-admits"],
     defaultWorkspace: "benefits",
   },
   {
@@ -120,7 +118,7 @@ export const roles: RoleDefinition[] = [
     label: "Receiving facility",
     description: "Reviews incoming packets and responds accept, decline, or request info.",
     mission: "Respond fast with a reason the network can learn from.",
-    workspaces: ["directory-crm", "packet", "routing", "admit", "ledger", "training", "mock-admits"],
+    workspaces: ["packet", "routing", "admit", "ledger", "training", "mock-admits"],
     defaultWorkspace: "routing",
   },
   {
@@ -128,7 +126,7 @@ export const roles: RoleDefinition[] = [
     label: "Charge nurse (inpatient)",
     description: "Milieu-aware bed placement; final say on accept or override with reason.",
     mission: "Place for milieu safety, not just bed availability.",
-    workspaces: ["directory-crm", "bedboard", "overview", "admit", "discharge", "ledger", "training", "mock-admits"],
+    workspaces: ["bedboard", "overview", "admit", "discharge", "ledger", "training", "mock-admits"],
     defaultWorkspace: "bedboard",
   },
   {
@@ -136,7 +134,7 @@ export const roles: RoleDefinition[] = [
     label: "Compliance / legal officer",
     description: "Watches custody integrity, counsel-validation queue, and clock breaches.",
     mission: "Prove the chain of custody; flag anything counsel has not validated.",
-    workspaces: ["command", "directory-crm", "dependency-map", "journey", "queue", "evidence", "legal", "admit", "discharge", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "dependency-map", "journey", "queue", "evidence", "legal", "admit", "discharge", "ledger", "training", "mock-admits"],
     defaultWorkspace: "ledger",
   },
   {
@@ -144,7 +142,7 @@ export const roles: RoleDefinition[] = [
     label: "Executive / program director",
     description: "Read-focused pipeline oversight. Full metrics dashboard arrives in v0.3.",
     mission: "See throughput and risk at a glance; measure before claiming improvement.",
-    workspaces: ["command", "directory-crm", "dependency-map", "journey", "queue", "admit", "discharge", "ledger", "training", "mock-admits", "studio"],
+    workspaces: ["command", "dependency-map", "journey", "queue", "admit", "discharge", "ledger", "training", "mock-admits", "studio"],
     defaultWorkspace: "command",
   },
 ];

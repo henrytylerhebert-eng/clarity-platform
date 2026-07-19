@@ -2462,227 +2462,21 @@ textarea {
   padding-top: 12px;
 }
 
-.directory-crm-workspace {
-  color: #17212b;
-}
-
-.directory-crm-hero {
-  background: linear-gradient(180deg, #ffffff 0%, #f7fbfb 100%);
-}
-
-.directory-crm-hero > p {
-  max-width: 860px;
-  margin: 0;
-  color: #526173;
-  line-height: 1.5;
-}
-
-.directory-crm-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid #dce7ea;
-  border-radius: 8px;
-  background: #dce7ea;
-}
-
-.directory-crm-metrics > div {
-  min-width: 0;
-  padding: 14px;
-  background: #ffffff;
-}
-
-.directory-crm-metrics strong {
-  display: block;
-  margin: 4px 0;
-  font-size: 18px;
-}
-
-.directory-crm-metrics p {
-  margin: 0;
-  color: #526173;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.directory-setup-rail {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.directory-setup-step {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-  min-width: 0;
-  border: 1px solid #e1e9ed;
-  border-radius: 8px;
-  padding: 12px;
-  background: #fbfcfd;
-}
-
-.directory-setup-step .badge {
-  grid-column: 2;
-  justify-self: start;
-}
-
-.directory-step-number {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border-radius: 999px;
-  background: #d9f0ef;
-  color: #174548;
-  font-weight: 800;
-}
-
-.directory-setup-step h4,
-.directory-module-lane h3,
-.directory-profile-section h4,
-.directory-profile-block strong {
-  margin: 0;
-}
-
-.directory-setup-step p,
-.directory-module-lane p,
-.directory-profile-block span {
-  margin: 5px 0 0;
-  color: #526173;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.directory-module-lanes {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.directory-module-lane {
-  box-shadow: none;
-}
-
-.directory-filter-grid {
-  display: grid;
-  grid-template-columns: minmax(260px, 1.4fr) repeat(3, minmax(170px, 1fr));
-  gap: 12px;
-  align-items: end;
-}
-
-.directory-filter-grid label {
-  display: grid;
-  gap: 6px;
-  color: #526173;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.directory-filter-grid input,
-.directory-filter-grid select {
-  width: 100%;
-  border: 1px solid #dce7ea;
-  border-radius: 7px;
-  padding: 9px 10px;
-  background: #ffffff;
-  color: #17212b;
-}
-
-.directory-crm-split {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.75fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.selected-row {
-  background: #eef8f8;
-}
-
-.directory-profile-inspector {
-  position: sticky;
-  top: 108px;
-}
-
-.directory-profile-facts {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-}
-
-.directory-profile-facts > div {
-  display: grid;
-  grid-template-columns: 110px minmax(0, 1fr);
-  gap: 10px;
-  border-bottom: 1px solid #e7edf1;
-  padding-bottom: 8px;
-}
-
-.directory-profile-facts dt {
-  color: #526173;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.directory-profile-facts dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-.directory-profile-section {
-  display: grid;
-  gap: 10px;
-  border-top: 1px solid #e1e9ed;
-  padding-top: 12px;
-}
-
-.directory-profile-block {
-  display: grid;
-  gap: 3px;
-  border-left: 3px solid #5ba4a6;
-  padding-left: 10px;
-}
-
-.directory-intent-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
 @media (max-width: 1100px) {
   .admission-checkpoint-rail,
-  .journey-phase-grid,
-  .directory-setup-rail,
-  .directory-module-lanes,
-  .directory-filter-grid,
-  .directory-crm-split {
+  .journey-phase-grid {
     grid-template-columns: repeat(3, minmax(220px, 1fr));
-  }
-
-  .directory-crm-split {
-    grid-template-columns: 1fr;
-  }
-
-  .directory-profile-inspector {
-    position: static;
   }
 }
 
 @media (max-width: 760px) {
   .journey-context-strip,
-  .intake-stage-strip,
-  .directory-crm-metrics {
+  .intake-stage-strip {
     grid-template-columns: 1fr 1fr;
   }
 
   .admission-checkpoint-rail,
-  .journey-phase-grid,
-  .directory-setup-rail,
-  .directory-module-lanes,
-  .directory-filter-grid {
+  .journey-phase-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2706,11 +2500,6 @@ textarea {
   }
 
   .nursing-summary-strip {
-    grid-template-columns: 1fr;
-  }
-
-  .directory-crm-metrics,
-  .directory-profile-facts > div {
     grid-template-columns: 1fr;
   }
 

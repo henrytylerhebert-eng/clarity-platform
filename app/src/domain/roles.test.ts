@@ -28,12 +28,6 @@ describe("role definitions", () => {
     }
   });
 
-  it("keeps the Directory CRM visible to every stakeholder segment", () => {
-    for (const role of roles) {
-      expect(role.workspaces).toContain("directory-crm");
-    }
-  });
-
   it("falls back to the demo role for unknown ids", () => {
     expect(getRole("nope" as never).id).toBe("all");
   });
