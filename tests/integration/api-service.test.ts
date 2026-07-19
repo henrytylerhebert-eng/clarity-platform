@@ -375,4 +375,33 @@ describe("Network enrichment synthetic command runtime", () => {
     expect(rejectPayload.value.review.version).toBe(2);
     expect(rejectPayload.replayed).toBe(false);
   });
+
+  it("rejects network enrichment payloads that attempt to smuggle principal fields", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+    const reviewId = `network-review-${h.runId}-smuggle`;
+    const basePayload = {
+      reviewId,
+      caseId: `case-${h.runId}-smuggle`,
+      sourceCandidateId: "candidate-smuggle",
+      fieldPath: "facilityAdmissionProfiles.capacity",
+      currentValue: 1,
+      proposedValue: 2,
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-smuggle`,
+      reason: "Smuggling test",
+      correlationId: "corr-network-smuggle",
+    };
+
+    const forgedPayloads = [
+      { ...basePayload, organizationId: h.tenantB.organizationId },
+      { ...basePayload, actor: { actorId: "attacker", roles: ["SYSTEM_ADMIN"] } },
+      { ...basePayload, roles: ["SYSTEM_ADMIN"] },
+    ];
+
+    for (const forgedPayload of forgedPayloads) {
+      const forgedRes = await postNetworkEnrichmentSubmit(token, forgedPayload);
+      expect(forgedRes.status).toBe(400);
+      expect(await forgedRes.json()).toEqual({ error: "invalid_request" });
+    }
+  });
 });
