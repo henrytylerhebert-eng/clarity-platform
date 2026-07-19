@@ -35,6 +35,7 @@ const handoff = {
 describe("episode contracts", () => {
   it("accepts a synthetic handoff and rejects caller-owned envelope fields", () => {
     expect(AdmissionHandoffCommandSchema.parse(handoff)).toEqual(handoff);
+    expect(AdmissionHandoffCommandSchema.parse({ ...handoff, programId: null }).programId).toBeNull();
     for (const field of ["organizationId", "actorId", "roles", "acceptanceDecision"]) {
       expect(AdmissionHandoffCommandSchema.safeParse({ ...handoff, [field]: "forbidden" }).success).toBe(false);
     }
@@ -66,6 +67,23 @@ describe("episode contracts", () => {
         updatedAt: "2026-07-19T04:30:00Z",
       }).status,
     ).toBe("ACTIVE");
+    expect(
+      EpisodeSchema.parse({
+        id: "episode-syn-null-program",
+        organizationId: "org-syn-1",
+        sourceCaseId: "case-syn-1",
+        facilityId: "facility-syn-1",
+        programId: null,
+        unitId: null,
+        facilityTimezone: handoff.facilityTimezone,
+        admittedAt: handoff.admittedAt,
+        serviceDate: "2026-07-18",
+        status: "ACTIVE",
+        version: 1,
+        createdAt: "2026-07-19T04:30:00Z",
+        updatedAt: "2026-07-19T04:30:00Z",
+      }).programId,
+    ).toBeNull();
   });
 
   it("validates the case-to-episode link shape", () => {

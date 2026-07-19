@@ -21,7 +21,7 @@ export function rowToEpisode(row: EpisodeRow): Episode {
     organizationId: row.organizationId,
     sourceCaseId: row.sourceCaseId,
     facilityId: row.facilityId,
-    programId: row.programId!,
+    programId: row.programId,
     unitId: row.unitId,
     facilityTimezone: {
       facilityTimezone: row.facilityTimezone,

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import {
   AdmissionHandoffCommandSchema,
   AdmissionRecordedEventPayloadSchema,
@@ -22,7 +22,7 @@ import {
   type GovernedEventEnvelope,
 } from "@clarity/domain-contracts";
 import { CaseNotFoundError } from "./prismaCaseRepository.js";
-import { ConcurrencyConflictError } from "./caseCommandGateway.js";
+import { ConcurrencyConflictError, IdempotencyConflictError } from "./caseCommandGateway.js";
 import { PrismaCaseAuditWriter, type CaseAuditWriter, type TxClient } from "./auditWriter.js";
 
 /**
@@ -104,6 +104,30 @@ export class InvalidDocumentationGapTransitionError extends Error {
     super(`Invalid documentation-gap transition: ${from} -> ${to}`);
     this.name = "InvalidDocumentationGapTransitionError";
   }
+}
+
+function isAdmissionAcceptanceUniqueViolation(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") return false;
+  const target = error.meta?.target;
+  const targetName = Array.isArray(target) ? target.join("_") : String(target ?? "");
+  return (
+    String(error.meta?.modelName ?? "").includes("CaseEpisodeLink") &&
+    targetName.includes("organizationId") &&
+    targetName.includes("sourceAcceptanceId")
+  );
+}
+
+function admissionIdentityMatches(
+  link: { caseId: string },
+  episode: { facilityId: string; admittedAt: Date; timezoneSourceReferenceId: string },
+  command: AdmissionHandoffCommand,
+): boolean {
+  return (
+    link.caseId === command.sourceCaseId &&
+    episode.facilityId === command.facilityId &&
+    episode.admittedAt.getTime() === new Date(command.admittedAt).getTime() &&
+    episode.timezoneSourceReferenceId === command.facilityTimezone.sourceReferenceId
+  );
 }
 
 /** Deterministic key-sorted JSON so the payload hash is content-addressed. */
@@ -276,6 +300,22 @@ export interface RecordAdmissionResult {
   admissionEventId: string | null;
   outboxRecordId: string | null;
   replayed: boolean;
+}
+
+function replayAdmissionResult(
+  link: { id: string },
+  episode: { id: string; serviceDate: string; status: string; version: number },
+): RecordAdmissionResult {
+  return {
+    episodeId: episode.id,
+    caseEpisodeLinkId: link.id,
+    serviceDate: episode.serviceDate,
+    status: episode.status,
+    version: episode.version,
+    admissionEventId: null,
+    outboxRecordId: null,
+    replayed: true,
+  };
 }
 
 export interface DayDecisionInput {
@@ -471,7 +511,8 @@ export class PrismaEpisodePersistenceGateway {
     const occurredAt = this.now();
     const correlationId = params.correlationId ?? randomUUID();
 
-    return this.prisma.$transaction(async (tx) => {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
       const caseRow = await tx.behavioralHealthCase.findFirst({
         where: { id: command.sourceCaseId, organizationId: params.organizationId },
         select: { id: true },
@@ -511,16 +552,10 @@ export class PrismaEpisodePersistenceGateway {
         const existingEpisode = await tx.episode.findFirstOrThrow({
           where: { id: existingLink.episodeId, organizationId: params.organizationId },
         });
-        return {
-          episodeId: existingEpisode.id,
-          caseEpisodeLinkId: existingLink.id,
-          serviceDate: existingEpisode.serviceDate,
-          status: existingEpisode.status,
-          version: existingEpisode.version,
-          admissionEventId: null,
-          outboxRecordId: null,
-          replayed: true,
-        };
+        if (!admissionIdentityMatches(existingLink, existingEpisode, command)) {
+          throw new IdempotencyConflictError(command.acceptedFacilityResponseId);
+        }
+        return replayAdmissionResult(existingLink, existingEpisode);
       }
 
       const activeAdmission = await tx.caseEpisodeLink.findFirst({
@@ -631,7 +666,31 @@ export class PrismaEpisodePersistenceGateway {
         outboxRecordId: outboxId,
         replayed: false,
       };
-    });
+      });
+    } catch (error) {
+      if (!isAdmissionAcceptanceUniqueViolation(error)) throw error;
+
+      // A concurrent writer may have won the acceptance natural-key race.
+      // Re-read only after the losing transaction has rolled back, then treat
+      // an exact command identity as a replay and any mismatch as a conflict.
+      const existingLink = await this.prisma.caseEpisodeLink.findUnique({
+        where: {
+          organizationId_sourceAcceptanceId: {
+            organizationId: params.organizationId,
+            sourceAcceptanceId: command.acceptedFacilityResponseId,
+          },
+        },
+      });
+      if (!existingLink) throw error;
+      const existingEpisode = await this.prisma.episode.findFirst({
+        where: { id: existingLink.episodeId, organizationId: params.organizationId },
+      });
+      if (!existingEpisode) throw error;
+      if (!admissionIdentityMatches(existingLink, existingEpisode, command)) {
+        throw new IdempotencyConflictError(command.acceptedFacilityResponseId);
+      }
+      return replayAdmissionResult(existingLink, existingEpisode);
+    }
   }
 
   /** Episode-owned authorization requirement fact (thin create + audit). */

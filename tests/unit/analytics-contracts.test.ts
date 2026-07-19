@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   activeGovernedEvents,
+  AdmissionRecordedEventPayloadSchema,
   appendGovernedEventCorrection,
   classifyMetricMeasurement,
   DRAFT_METRIC_DEFINITIONS,
   deriveEpisodeDayAuthorizationState,
   EpisodeDayAuthorizationStateDerivedEventPayloadSchema,
+  EpisodeCreatedEventPayloadSchema,
   GovernedEventEnvelopeSchema,
   MetricDefinitionSchema,
   parseGovernedEvent,
@@ -87,6 +89,39 @@ describe("deterministic episode-day authorization derivation", () => {
 });
 
 describe("governed event envelopes and append-only corrections", () => {
+  it("allows source-owned admission events to omit an unresolved program", () => {
+    expect(
+      EpisodeCreatedEventPayloadSchema.parse({
+        episodeId: "episode-syn-1",
+        sourceCaseId: "case-syn-1",
+        relationship: "ADMISSION_SOURCE",
+        facilityId: "facility-syn-1",
+        programId: null,
+        unitId: null,
+        facilityTimezone: "America/Chicago",
+        status: "ACTIVE",
+        resultingEpisodeVersion: 1,
+      }).programId,
+    ).toBeNull();
+    expect(
+      AdmissionRecordedEventPayloadSchema.parse({
+        episodeId: "episode-syn-1",
+        sourceCaseId: "case-syn-1",
+        admissionRecordId: "link-syn-1",
+        acceptedFacilityResponseId: "response-syn-1",
+        facilityId: "facility-syn-1",
+        programId: null,
+        unitId: null,
+        facilityTimezone: "America/Chicago",
+        admittedAt: "2026-07-19T04:30:00Z",
+        serviceDate: "2026-07-18",
+        sourcePacketVersionId: null,
+        sourceCustodyEventId: null,
+        attestationCode: "AUTHORIZED_ADMISSION_RECORDED",
+      }).programId,
+    ).toBeNull();
+  });
+
   it("validates an event envelope separately from its payload schema", () => {
     const parsed = GovernedEventEnvelopeSchema.parse(syntheticOriginalEvent);
     expect(parsed.eventType.name).toBe("AUTHORIZATION_REVIEW_RECORDED");

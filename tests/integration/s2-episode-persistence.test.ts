@@ -7,6 +7,7 @@ import {
   EpisodeGateway,
   FacilityNotFoundError,
   GovernedEventGateway,
+  IdempotencyConflictError,
   InvalidDocumentationGapTransitionError,
   PrismaEpisodePersistenceGateway,
   ReviewAlreadySupersededError,
@@ -223,6 +224,40 @@ describe("admission handoff", () => {
     expect(await h.prisma.episode.count({ where: { sourceCaseId: caseId } })).toBe(1);
     expect(await h.prisma.caseEpisodeLink.count({ where: { caseId } })).toBe(1);
     expect(await h.prisma.governedEvent.count({ where: { caseId, eventTypeName: "ADMISSION_RECORDED" } })).toBe(1);
+  });
+
+  it("replays exactly one winner when identical admissions race", async () => {
+    const caseId = await createCase(h.tenantA, "admit-concurrent-replay");
+    const command = admissionCommand(caseId);
+    const [first, second] = await Promise.all([
+      gateway.recordAdmission({ organizationId: h.tenantA.organizationId, command, actor: actorA }),
+      gateway.recordAdmission({ organizationId: h.tenantA.organizationId, command, actor: actorA }),
+    ]);
+
+    expect([first.replayed, second.replayed].sort()).toEqual([false, true]);
+    expect(first.episodeId).toBe(second.episodeId);
+    expect(await h.prisma.episode.count({ where: { sourceCaseId: caseId } })).toBe(1);
+    expect(await h.prisma.caseEpisodeLink.count({ where: { caseId } })).toBe(1);
+    expect(await h.prisma.governedEvent.count({ where: { caseId, eventTypeName: "ADMISSION_RECORDED" } })).toBe(1);
+  });
+
+  it("rejects acceptance-key reuse when the command identity differs", async () => {
+    const firstCaseId = await createCase(h.tenantA, "admit-idempotency-first");
+    const secondCaseId = await createCase(h.tenantA, "admit-idempotency-second");
+    const acceptedFacilityResponseId = randomUUID();
+    await gateway.recordAdmission({
+      organizationId: h.tenantA.organizationId,
+      command: admissionCommand(firstCaseId, { acceptedFacilityResponseId }),
+      actor: actorA,
+    });
+
+    await expect(
+      gateway.recordAdmission({
+        organizationId: h.tenantA.organizationId,
+        command: admissionCommand(secondCaseId, { acceptedFacilityResponseId }),
+        actor: actorA,
+      }),
+    ).rejects.toBeInstanceOf(IdempotencyConflictError);
   });
 
   it("enforces at most one active admission-source episode per case", async () => {
