@@ -59,3 +59,4 @@ Explicitly deprioritized by the product owner — do not schedule; revisit when 
 | Item | Added | Why parked | Where specified |
 |---|---|---|---|
 | Facility policies/procedures/SOP ingestion pipeline (to auto-inform documentation configuration and the CIA runtime) | 2026-07-17 | Appropriate for the roadmap but not a high priority now, per product owner | `docs/workflows/INTAKE_TO_ADMISSION_WORKFLOW.md` R8 |
+| Inpatient behavioral hospital operations hierarchy, role/KPI registry, department dashboards, compliance tasks, and vendor oversight | 2026-07-19 | Parking-lot info dump for the future operations piece; not an implementation authorization or compliance model | `docs/product/INPATIENT_BEHAVIORAL_HOSPITAL_OPERATIONS_PARKING_LOT.md` |
