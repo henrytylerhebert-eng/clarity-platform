@@ -83,7 +83,9 @@ These were recorded rather than silently expanded:
 - RLS and database-level tenant enforcement remain outside S2 and are governed
   by OD-6.
 - H1 handles the targeted concurrent acceptance-key race deterministically;
-  production retry ownership and observability remain ungated.
+  H3 adds a database-enforced active-admission guard for different acceptance
+  ids and maps the losing write to `ActiveAdmissionExistsError`. Production
+  migration promotion, retry ownership, and observability remain ungated.
 - Direct outbox-failure injection was not added; shared transaction boundaries
   are tested through audit failure rollback.
 - Root and nested-project lint boundaries are explicit and passing; the

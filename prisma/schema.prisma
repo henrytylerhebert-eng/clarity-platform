@@ -1151,8 +1151,9 @@ model Episode {
 }
 
 /// Case-to-episode relationship. The (organization, acceptance) uniqueness
-/// makes admission recording idempotent and enforces the single-admission
-/// invariant: one accepted facility response yields exactly one link.
+/// makes admission recording idempotent and the additive active-episode index
+/// on Episode enforces the one-active-admission-source invariant. One accepted
+/// facility response yields exactly one link.
 model CaseEpisodeLink {
   id                    String                  @id @default(cuid())
   organizationId        String

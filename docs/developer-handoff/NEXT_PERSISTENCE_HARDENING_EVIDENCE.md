@@ -1,5 +1,5 @@
 ---
-status: Verified H1 implementation evidence; recommendations remain for later gates
+status: Verified H1 and H3 implementation evidence; recommendations remain for later gates
 owner: Codex for repository evidence; human owner, technical lead, and security reviewer decide
 date: 2026-07-19
 data_boundary: synthetic only
@@ -41,6 +41,11 @@ require the human gates in the decision packet.
    watcher paths. `npm run bridge:status` reports `listener=running` for the
    active `tail -f agent_bridge/claude_outbox.md` process, and the bridge suite
    covers both path forms.
+10. H3 adds the additive migration
+    `20260719011500_s2_active_admission_guard`, which enforces one `ACTIVE`
+    admission-source episode per case at the database boundary. The gateway
+    maps the losing Prisma unique conflict to `ActiveAdmissionExistsError`.
+    The focused concurrent test passes with different acceptance ids.
 
 ## Recommendations
 
@@ -69,11 +74,15 @@ remain outside this slice. The command identity is intentionally partial:
 not compared. A same-acceptance reuse that changes one of those fields replays
 by the current contract; full admission-snapshot binding is deferred.
 
-H1 does not close the separate race where different acceptance ids admit the
-same case concurrently. The active-admission guard is an application-level
-pre-check. A future migration-gated slice must design and test a database
-constraint or equivalent transaction strategy for one active
-admission-source episode per case.
+H3 closes the separate race where different acceptance ids admit the same case
+concurrently. The application-level active-admission pre-check remains for
+fast domain feedback, and the additive partial unique index is the authoritative
+database boundary. The losing write is translated to
+`ActiveAdmissionExistsError`, and the focused integration test proves exactly
+one active episode and one case link remain.
+
+Production promotion, backup/restore evidence, and operational retry ownership
+remain outside this local synthetic-only slice.
 
 ### 4. Outbox ownership and failure handling
 
@@ -122,6 +131,19 @@ The bridge health repair is limited to listener detection and its regression
 test. It does not claim Antigravity agent consumption, direct CLI support, or
 authentication; those remain runtime capabilities reported separately by the
 bridge.
+
+## H3 Implementation Evidence
+
+Changed product files:
+
+- `prisma/migrations/20260719011500_s2_active_admission_guard/migration.sql`
+- `packages/case-repository/src/episodePersistenceGateway.ts`
+- `tests/integration/s2-episode-persistence.test.ts`
+
+The migration is additive and contains a partial unique index on
+`Episode.sourceCaseId` for `status = 'ACTIVE'`. The gateway handles the
+database conflict without treating unrelated unique violations as replay
+success. The focused S2 suite passes 16 tests after this change.
 
 ## Proposed Next Implementation Shape
 

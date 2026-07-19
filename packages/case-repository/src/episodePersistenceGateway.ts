@@ -117,6 +117,16 @@ function isAdmissionAcceptanceUniqueViolation(error: unknown): boolean {
   );
 }
 
+function isActiveAdmissionUniqueViolation(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") return false;
+  const target = error.meta?.target;
+  const targetName = Array.isArray(target) ? target.join("_") : String(target ?? "");
+  return (
+    String(error.meta?.modelName ?? "").includes("Episode") &&
+    (targetName.includes("sourceCaseId") || targetName.includes("Episode_active_source_case_key"))
+  );
+}
+
 function admissionIdentityMatches(
   link: { caseId: string },
   episode: { facilityId: string; admittedAt: Date; timezoneSourceReferenceId: string },
@@ -668,6 +678,9 @@ export class PrismaEpisodePersistenceGateway {
       };
       });
     } catch (error) {
+      if (isActiveAdmissionUniqueViolation(error)) {
+        throw new ActiveAdmissionExistsError(command.sourceCaseId);
+      }
       if (!isAdmissionAcceptanceUniqueViolation(error)) throw error;
 
       // A concurrent writer may have won the acceptance natural-key race.

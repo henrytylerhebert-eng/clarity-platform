@@ -272,6 +272,30 @@ describe("admission handoff", () => {
     ).rejects.toBeInstanceOf(ActiveAdmissionExistsError);
   });
 
+  it("enforces the active-admission invariant at the database boundary for different acceptance ids", async () => {
+    const caseId = await createCase(h.tenantA, "admit-concurrent-different-acceptance");
+    const [first, second] = await Promise.allSettled([
+      gateway.recordAdmission({
+        organizationId: h.tenantA.organizationId,
+        command: admissionCommand(caseId),
+        actor: actorA,
+      }),
+      gateway.recordAdmission({
+        organizationId: h.tenantA.organizationId,
+        command: admissionCommand(caseId),
+        actor: actorA,
+      }),
+    ]);
+
+    const fulfilled = [first, second].filter((result) => result.status === "fulfilled");
+    const rejected = [first, second].filter((result) => result.status === "rejected");
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0]).toMatchObject({ reason: expect.any(ActiveAdmissionExistsError) });
+    expect(await h.prisma.episode.count({ where: { sourceCaseId: caseId, status: "ACTIVE" } })).toBe(1);
+    expect(await h.prisma.caseEpisodeLink.count({ where: { caseId } })).toBe(1);
+  });
+
   it("rejects cross-tenant cases, cross-tenant facilities, and lineage that does not match the active configuration", async () => {
     const caseA = await createCase(h.tenantA, "admit-tenancy");
     // Tenant B cannot see tenant A's case.

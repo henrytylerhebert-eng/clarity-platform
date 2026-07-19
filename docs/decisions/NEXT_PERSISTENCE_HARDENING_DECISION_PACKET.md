@@ -1,5 +1,5 @@
 ---
-status: H1 implemented; H2 governance records drafted; production hardening remains gated
+status: H1 and H3 implemented; H2 governance records drafted; production hardening remains gated
 owner: Tyler/product owner with technical and security review
 date: 2026-07-18
 data_boundary: synthetic only
@@ -42,7 +42,7 @@ external integrations, deployment, production flags, or real data.
 |---:|---|---|---|
 | 1 | RLS timing and database tenant enforcement | Design record drafted; S2 still uses organization predicates and has no RLS migration. | Security and technical approval |
 | 2 | Migration recovery model | Promotion/recovery checklist drafted; no production restore evidence exists. | Technical and operations approval |
-| 3 | Concurrent admission retry semantics | H1 targets only the same-acceptance unique conflict, re-reads the organization-scoped link, and compares the approved partial command identity. Different acceptance ids can still race through the application-level active-admission guard. | H1 verified; partial-index migration fix remains gated |
+| 3 | Concurrent admission retry semantics | H1 handles same-acceptance replay. H3 adds an additive partial unique index for one ACTIVE admission-source episode per case and maps the losing database conflict to `ActiveAdmissionExistsError`. | H1/H3 verified locally; migration promotion and recovery remain gated |
 | 4 | Outbox ownership and failure handling | Delivery boundary record drafted; S2 persists `PENDING` rows atomically and has no dispatcher or retry worker. | Architecture and operations decision |
 | 5 | Event vocabulary expansion | Review-row identifiers and gap-transition events lack dedicated S1 payload schemas. | Domain and governance decision |
 | 6 | Program identity contract | H1 aligns the Zod contracts, event payloads, mapper, and already-nullable Prisma column as nullable/source-owned. | H1 verified; revisit only if a canonical program hierarchy becomes required |
@@ -92,8 +92,8 @@ external integrations, deployment, production flags, or real data.
   (targeted same-acceptance replay recovery with explicit conflict handling).
 - Constraints: no Prisma schema or migration, RLS, workers, APIs, event
   vocabulary, UI, deployment, external integration, or real data.
-- Notes: This is the implementation authorization for the H1 slice only. It
-  does not approve production hardening or the different-acceptance-id race
+- Notes: This was the implementation authorization for the H1 slice only. It
+  did not approve production hardening or the different-acceptance-id race
   fix described in Decision 3.
 
 ## H1 Implementation Record
@@ -140,12 +140,37 @@ is an explicit current contract, not an accidental claim of full-payload
 idempotency; it must be revisited if the source acceptance key is later
 required to bind the complete admission snapshot.
 
-H1 does not make different acceptance ids mutually exclusive under concurrent
-writes. The active-admission `findFirst` guard remains application-level and
-can race. The next gated persistence slice must design and test a database
-constraint or equivalent transaction strategy for one active
-admission-source episode per case; a partial unique index on active episodes is
-one candidate, not an approved migration.
+H3 closes the different-acceptance-id race at the database boundary with the
+additive migration
+`20260719011500_s2_active_admission_guard`. The partial unique index permits a
+later admission after the prior episode is no longer `ACTIVE`, while concurrent
+admissions for the same source case produce one success and one
+`ActiveAdmissionExistsError`. The gateway still keeps the application-level
+pre-check for an immediate domain response; the database constraint is the
+authoritative race boundary.
+
+H3 is verified only against the local synthetic database. Production
+promotion, backup/restore evidence, and operational retry ownership remain
+gated by the migration and operations decisions below.
+
+## H3 Implementation Record
+
+The owner instruction to keep building after the independent H1/H2 audit
+authorized the smallest remaining repository hardening item without opening
+the production gates:
+
+- add the additive partial unique index for one active admission-source
+  episode per case;
+- translate the resulting Prisma unique conflict into the existing
+  `ActiveAdmissionExistsError` domain error;
+- add a deterministic concurrent integration test using different acceptance
+  ids;
+- preserve the exclusions for RLS, production promotion, workers, APIs,
+  event-vocabulary expansion, UI, deployment, external integrations, and real
+  data.
+
+The migration is applied to the local synthetic database. No production
+promotion or rollback claim is made.
 
 ## H2 Governance Records
 

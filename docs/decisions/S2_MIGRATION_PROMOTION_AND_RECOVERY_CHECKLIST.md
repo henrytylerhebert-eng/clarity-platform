@@ -71,6 +71,7 @@ document.
 
 ## Current Local Evidence
 
-The local synthetic database currently reports all ten repository migrations
-up to date through `npx prisma migrate status`. This is local verification only;
-it is not promotion, backup, restore, or production evidence.
+The local synthetic database currently reports all eleven repository migrations
+up to date through `npx prisma migrate status`, including the additive
+`20260719011500_s2_active_admission_guard` migration. This is local verification
+only; it is not promotion, backup, restore, or production evidence.
