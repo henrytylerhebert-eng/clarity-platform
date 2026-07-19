@@ -27,3 +27,4 @@ related_adrs: ADR-0001, ADR-0002
 | OD-10 | The 7 missing synthetic cases (recreate vs. obtain) | Product owner | Evaluation coverage |
 | OD-11 | Payer criteria packs and facility authorization rules (unknown in both generations) | Revenue cycle | Benefits/auth workflows beyond schema |
 | OD-12 | Baseline operational measurements (transfer timing, acceptance rate, packet completeness) | Product owner | ROI claims, pilot design |
+| OD-13 | Network enrichment service and worker boundary (role mapping, canonical ownership, ADR-0014 policy defaults, and egress approval) | Product owner + technical lead + security | Network enrichment service scope and production-safe handoff |
