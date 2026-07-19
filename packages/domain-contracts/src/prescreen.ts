@@ -528,6 +528,15 @@ export function evaluateConsentAuthority(
       rule.actionCode === context.actionCode &&
       rule.admissionPathways.includes(context.admissionPathway),
   );
+  if (candidates.length > 1) {
+    return {
+      allowed: false,
+      unmetRequirements: ["AMBIGUOUS_APPROVED_RULES"],
+      reasons: candidates
+        .map((candidate) => `MATCHED_APPROVED_RULE:${candidate.ruleId}:v${candidate.version}`)
+        .sort(),
+    };
+  }
   const rule = candidates[0];
   if (!rule) return { allowed: false, unmetRequirements: ["NO_APPROVED_RULE"], reasons: [] };
   const unmet: string[] = [];
@@ -629,6 +638,7 @@ export type TransportProvider = z.infer<typeof TransportProviderSchema>;
 export interface TransportContext {
   readonly legalStatus: PrescreenLegalStatus;
   readonly instrumentId?: string;
+  readonly sendingFacilityId: string;
   readonly destinationFacilityId?: string;
   readonly jurisdictionCode: string;
   readonly serviceArea: string;
@@ -667,15 +677,20 @@ export function qualifyTransportProvider(
   }
   if (!provider.supportedLegalStatuses.includes(context.legalStatus)) disqualifiers.push("LEGAL_STATUS_NOT_SUPPORTED");
   if (!provider.serviceAreas.includes(context.serviceArea)) disqualifiers.push("SERVICE_AREA_NOT_SUPPORTED");
+  // Restrictions have no resolution state in this bounded contract, so any
+  // entry remains unresolved and must fail closed.
+  if (provider.restrictions.length > 0) disqualifiers.push("UNRESOLVED_PROVIDER_RESTRICTION");
   for (const capability of context.requiredCapabilities) {
     if (!provider.capabilities.includes(capability)) disqualifiers.push(`MISSING_CAPABILITY:${capability}`);
   }
+  if (!provider.facilityApprovals.includes(context.sendingFacilityId)) {
+    disqualifiers.push("SENDING_FACILITY_APPROVAL_MISSING");
+  }
   if (
     context.destinationFacilityId &&
-    provider.facilityApprovals.length > 0 &&
     !provider.facilityApprovals.includes(context.destinationFacilityId)
   ) {
-    disqualifiers.push("FACILITY_APPROVAL_MISSING");
+    disqualifiers.push("RECEIVING_FACILITY_APPROVAL_MISSING");
   }
   if (provider.jurisdictionApprovals.length > 0 && !provider.jurisdictionApprovals.includes(context.jurisdictionCode)) {
     disqualifiers.push("JURISDICTION_APPROVAL_MISSING");
