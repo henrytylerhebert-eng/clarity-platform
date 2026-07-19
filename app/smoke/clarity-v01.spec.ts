@@ -12,7 +12,7 @@ test('case queue and custody verification render across viewports', async ({ pag
 
   await page.getByRole('button', { name: 'Custody Ledger' }).click();
   await page.getByRole('button', { name: 'Verify custody chain' }).click();
-  await expect(page.getByText('Verified')).toBeVisible();
+  await expect(page.locator('main .badge-good').filter({ hasText: 'Verified' }).first()).toBeVisible();
 
   await page.screenshot({
     path: `/tmp/clarity-v01-${testInfo.project.name}.png`,
@@ -41,7 +41,7 @@ test('reviewer can create a case and carry a source-linked finding into the pack
   await page.getByRole('button', { name: 'Create case' }).click();
   await expect(page.getByRole('heading', { name: 'Case Overview' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Guided Intake' }).click();
+  await page.getByRole('button', { name: 'Guided Intake', exact: true }).click();
   await page.getByLabel('Presenting problem').fill('ED crisis referral with safety concerns and collateral pending.');
   await page.getByRole('button', { name: 'Add source-linked risk' }).click();
   await expect(page.locator('.risk-row span', { hasText: 'Source-linked risk finding needs clinician review.' })).toBeVisible();
@@ -54,7 +54,7 @@ test('packet-ready case shows review gates and accepts mock routing updates', as
   await expect(page.getByText('Needs clinician review', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Legal Status' }).click();
-  await expect(page.getByText('Counsel validation required', { exact: true }).last()).toBeVisible();
+  await expect(page.getByText(/require counsel validation before enforcement/i)).toBeVisible();
 
   await page.getByRole('button', { name: 'Packet Preview' }).click();
   await expect(page.getByRole('heading', { name: 'Assessment summary' })).toBeVisible();
@@ -173,7 +173,81 @@ test('intake case can generate and send a packet with custody events', async ({ 
   await expect(page.getByText('PACKET_HASH_SEALED').first()).toBeVisible();
   await expect(page.getByText('PACKET_SENT').first()).toBeVisible();
   await page.getByRole('button', { name: 'Verify custody chain' }).click();
-  await expect(page.getByText('Verified')).toBeVisible();
+  await expect(page.locator('main .badge-good').filter({ hasText: 'Verified' }).first()).toBeVisible();
+});
+
+test('dependency map shows target-specific blockers, list equivalence, and workspace return context', async ({ page }, testInfo) => {
+  await page.getByLabel('Viewing as').selectOption('central');
+  await page.getByRole('button', { name: 'Dependency Map' }).click();
+  await expect(page.getByRole('heading', { name: 'Case Dependency Map' })).toBeVisible();
+  await expect(page.getByText(/No universal readiness score/i)).toBeVisible();
+  await page.getByLabel('Target transition').selectOption('packet-transmission');
+  await page.getByLabel('Workstream').selectOption('Legal status');
+  await expect(page.getByRole('heading', { name: 'Legal status counsel validation' })).toBeVisible();
+  await page.getByRole('button', { name: 'List' }).click();
+  await expect(page.getByRole('table', { name: 'Case dependency structured list' })).toBeVisible();
+  await page.getByRole('button', { name: /Open legal/i }).click();
+  await expect(page.getByRole('heading', { name: 'Legal Status' })).toBeVisible();
+  await page.getByRole('button', { name: 'Dependency Map' }).click();
+  await expect(page.getByLabel('Target transition')).toHaveValue('packet-transmission');
+  expect(await page.evaluate(() => document.body.scrollWidth <= window.innerWidth + 1)).toBeTruthy();
+
+  await page.screenshot({
+    path: `/tmp/clarity-dependency-map-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
+});
+
+test('central intake can trace prescreen, staged intake, admit checkpoints, and discharge planning', async ({ page }, testInfo) => {
+  await page.getByLabel('Viewing as').selectOption('central');
+
+  await page.getByRole('button', { name: 'Journey Monitor' }).click();
+  await expect(page.getByRole('heading', { name: 'Patient Journey Monitor' })).toBeVisible();
+  await expect(page.getByText('Psychiatrist acceptance').first()).toBeVisible();
+  await expect(page.getByText('Medical clearance approval').first()).toBeVisible();
+  await expect(page.getByText(/No universal readiness score/i)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Benefits Verification' }).click();
+  await expect(page.getByRole('heading', { name: 'Medicaid operations profile' }).first()).toBeVisible();
+  await expect(page.getByText('POC configuration')).toBeVisible();
+  for (const profile of ['Medicare', 'Medicaid', 'VA care pathway', 'Commercial']) {
+    await page.getByRole('tab', { name: profile, exact: true }).click();
+    await expect(page.getByRole('heading', { name: `${profile === 'VA care pathway' ? 'VA' : profile} operations profile` }).first()).toBeVisible();
+  }
+  expect(await page.evaluate(() => document.body.scrollWidth <= window.innerWidth + 1)).toBeTruthy();
+
+  await page.getByRole('button', { name: 'Prescreen' }).click();
+  await expect(page.getByRole('heading', { name: 'Prescreen' })).toBeVisible();
+  await page.getByLabel('Triage status').selectOption('Reviewed');
+  await page.getByLabel('Human disposition').selectOption('Continue to intake');
+  await expect(page.getByText('Reviewed').first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Guided Intake', exact: true }).click();
+  await page.getByRole('tab', { name: /Stage 2/ }).click();
+  await expect(page.getByText(/registered nurse verifies the handoff/i)).toBeVisible();
+  await expect(page.getByLabel('Nurse identifier')).toBeVisible();
+  await expect(page.getByLabel('Current medical stability')).toBeVisible();
+  await expect(page.getByLabel('Medication reconciliation')).toBeVisible();
+  await expect(page.getByText(/Nursing documentation is source-linked/i)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Admission Readiness' }).click();
+  await expect(page.getByRole('heading', { name: 'Admission Readiness' })).toBeVisible();
+  await expect(page.getByText(/Medical clearance is separate from nursing screening/i)).toBeVisible();
+  await page.getByLabel('Acceptance status').selectOption('Accepted');
+  await page.getByLabel('Clearance status').selectOption('Approved');
+  await expect(page.getByText('Approved').first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Discharge Planning' }).click();
+  await expect(page.getByRole('heading', { name: 'Discharge Planning' })).toBeVisible();
+  await expect(page.getByText('Housing and placement')).toBeVisible();
+  await expect(page.getByText('Psychiatric medication management')).toBeVisible();
+  await page.getByLabel('Disposition review status').selectOption('Needs authorized review');
+  expect(await page.evaluate(() => document.body.scrollWidth <= window.innerWidth + 1)).toBeTruthy();
+
+  await page.screenshot({
+    path: `/tmp/clarity-journey-components-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
 });
 
 test('mock admit lab filters the synthetic cohort and preserves review gates', async ({ page }) => {

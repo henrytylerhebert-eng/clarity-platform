@@ -165,4 +165,93 @@ describe("App smoke", () => {
     expect(screen.queryByText("Reserve bed")).not.toBeInTheDocument();
     expect(screen.queryByText("Provision user")).not.toBeInTheDocument();
   });
+
+  it("opens the read-only dependency map, filters it, and preserves target context across workspace navigation", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+
+    await user.selectOptions(screen.getByRole("combobox"), "central");
+    await user.click(screen.getByRole("button", { name: "Dependency Map" }));
+    expect(await screen.findByRole("heading", { name: "Case Dependency Map" })).toBeInTheDocument();
+    expect(screen.getByText(/does not make clinical, legal, payer, placement/i)).toBeInTheDocument();
+    expect(screen.getByText(/No universal readiness score/i)).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText(/Target transition/i), "packet-transmission");
+    await user.selectOptions(screen.getByLabelText(/^Workstream$/i), "Legal status");
+    expect(screen.getByRole("heading", { name: "Legal status counsel validation" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "List" }));
+    expect(screen.getByRole("table", { name: "Case dependency structured list" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Open legal/i }));
+    expect(await screen.findByRole("heading", { name: "Legal Status" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Dependency Map" }));
+    expect(screen.getByLabelText(/Target transition/i)).toHaveValue("packet-transmission");
+  });
+
+  it("opens the Central Intake journey workspaces and keeps the admission gates separate", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+
+    await user.selectOptions(screen.getByRole("combobox"), "central");
+    await user.click(screen.getByRole("button", { name: "Journey Monitor" }));
+    expect(await screen.findByRole("heading", { name: "Patient Journey Monitor" })).toBeInTheDocument();
+    expect(screen.getByText(/Psychiatrist acceptance/)).toBeInTheDocument();
+    expect(screen.getByText(/Medical clearance approval/)).toBeInTheDocument();
+    expect(screen.getByText(/No universal readiness score/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Prescreen" }));
+    expect(await screen.findByRole("heading", { name: "Prescreen" })).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Triage status"), "Reviewed");
+    await user.selectOptions(screen.getByLabelText("Human disposition"), "Continue to intake");
+
+    await user.click(screen.getByRole("button", { name: "Admission Readiness" }));
+    expect(await screen.findByRole("heading", { name: "Admission Readiness" })).toBeInTheDocument();
+    expect(screen.getByText(/Medical clearance is separate from nursing screening/)).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Acceptance status"), "Accepted");
+    await user.selectOptions(screen.getByLabelText("Clearance status"), "Approved");
+    expect(screen.getByText(/separate human checkpoints/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Discharge Planning" }));
+    expect(await screen.findByRole("heading", { name: "Discharge Planning" })).toBeInTheDocument();
+    expect(screen.getByText("Housing and placement")).toBeInTheDocument();
+    expect(screen.getByText("Primary-care follow-up")).toBeInTheDocument();
+    expect(screen.getByText("Psychiatric medication management")).toBeInTheDocument();
+    expect(screen.getByText(/Default prompts require confirmation/)).toBeInTheDocument();
+  });
+
+  it("records a source-linked nursing Stage 2 and creates the case-owned episode after admit gates", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("button", { name: "Guided Intake" }));
+    await user.click(screen.getByRole("tab", { name: /Stage 2/ }));
+    await user.type(screen.getByLabelText("Nurse identifier"), "Synthetic RN 004");
+    await user.type(screen.getByLabelText("Nurse credentials"), "RN");
+    await user.selectOptions(screen.getByLabelText("Stage 1 handoff"), "Reviewed");
+    await user.selectOptions(screen.getByLabelText("Reconciliation status"), "Reconciled");
+    await user.selectOptions(screen.getByLabelText("Current medical stability"), "Stable for current setting");
+    await user.selectOptions(screen.getByLabelText("Medication reconciliation"), "Complete and verified");
+    await user.selectOptions(screen.getByLabelText("Record status"), "Complete");
+    await user.click(screen.getByRole("checkbox", { name: /RN attestation recorded/i }));
+    expect(await screen.findByText(/Stage 2 is complete for this synthetic case/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Milieu Bedboard" }));
+    await user.click(screen.getByRole("button", { name: "Accept recommendation" }));
+
+    await user.click(screen.getByRole("button", { name: "Admission Readiness" }));
+    await user.selectOptions(screen.getByLabelText("Acceptance status"), "Accepted");
+    await user.selectOptions(screen.getByLabelText("Clearance status"), "Approved");
+    await user.click(screen.getByRole("button", { name: /Record synthetic arrival/i }));
+    await user.click(screen.getByRole("button", { name: /Create case-owned admission episode/i }));
+    await user.selectOptions(screen.getByLabelText("Admission orders"), "Recorded");
+    await user.selectOptions(screen.getByLabelText("Initial post-admission review"), "Recorded");
+
+    await user.click(screen.getByRole("button", { name: "Episode & UR" }));
+    expect(await screen.findByText("episode-case-004")).toBeInTheDocument();
+    expect(screen.getByText(/Episode-owned utilization review for/)).toBeInTheDocument();
+  });
 });

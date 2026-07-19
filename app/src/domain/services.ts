@@ -1,4 +1,5 @@
 import type { AppState, RiskFinding, SourceReference } from "./types";
+import { getOperationsPayerProfile, type OperationsPayerProfileId } from "./payerProfiles";
 
 /**
  * Prototype-side mirrors of the evidence, benefits, and authorization services that live in
@@ -165,6 +166,12 @@ export interface CoverageSnapshot {
   planName: string;
   coverageOrder: "PRIMARY" | "SECONDARY";
   coverageType: string;
+  coverageTypeLabel: string;
+  payerProfileId: OperationsPayerProfileId | null;
+  payerProfileLabel: string;
+  payerProfileVersion: string | null;
+  payerProfileReviewStatus: "Pending domain-owner review" | "Not applicable";
+  payerVerificationPrompts: readonly string[];
   coverageStatus: CoverageStatus;
   eligibilityStatus: EligibilityStatus;
   verificationMethod: VerificationMethod;
@@ -182,11 +189,17 @@ function hashCode(value: string): number {
   return Math.abs(hash);
 }
 
-const DEMO_PAYERS = [
-  { payerName: "Louisiana Medicaid", planName: "Healthy Louisiana", coverageType: "MEDICAID" },
-  { payerName: "Blue Cross Blue Shield LA", planName: "Employer PPO", coverageType: "COMMERCIAL" },
-  { payerName: "Medicare", planName: "Part A/B", coverageType: "MEDICARE" },
-  { payerName: "Self-pay", planName: "No third-party coverage", coverageType: "SELF_PAY" },
+const DEMO_PAYER_LANES: Array<{
+  payerProfileId: OperationsPayerProfileId | null;
+  payerName: string;
+  planName: string;
+  coverageType: string;
+}> = [
+  { payerProfileId: "medicaid", payerName: "Synthetic Medicaid Health", planName: "Managed Medicaid", coverageType: "MEDICAID" },
+  { payerProfileId: "commercial", payerName: "Synthetic Commercial Health", planName: "Employer PPO", coverageType: "COMMERCIAL" },
+  { payerProfileId: "medicare", payerName: "Synthetic Medicare", planName: "Part A/B", coverageType: "MEDICARE" },
+  { payerProfileId: "va", payerName: "Synthetic Veterans Care", planName: "VA referral pathway", coverageType: "OTHER" },
+  { payerProfileId: null, payerName: "Self-pay", planName: "No third-party coverage", coverageType: "SELF_PAY" },
 ];
 
 /**
@@ -195,7 +208,8 @@ const DEMO_PAYERS = [
  */
 export function deriveCoverage(caseId: string): CoverageSnapshot {
   const seed = hashCode(caseId);
-  const payer = DEMO_PAYERS[seed % DEMO_PAYERS.length];
+  const payer = DEMO_PAYER_LANES[seed % DEMO_PAYER_LANES.length];
+  const profile = payer.payerProfileId ? getOperationsPayerProfile(payer.payerProfileId) : null;
   const isSelfPay = payer.coverageType === "SELF_PAY";
   // Self-pay has no third-party coverage to verify, so it can never carry a verifier or a
   // benefit quote — only payer-backed coverage reaches a verified state.
@@ -203,6 +217,11 @@ export function deriveCoverage(caseId: string): CoverageSnapshot {
   return {
     coverageId: `coverage-${caseId}`,
     ...payer,
+    coverageTypeLabel: profile?.coverageTypeLabel ?? (isSelfPay ? "Self-pay" : payer.coverageType),
+    payerProfileLabel: profile?.label ?? "No payer profile",
+    payerProfileVersion: profile?.version ?? null,
+    payerProfileReviewStatus: profile?.reviewStatus ?? "Not applicable",
+    payerVerificationPrompts: profile?.verificationPrompts ?? [],
     coverageOrder: "PRIMARY",
     coverageStatus: isSelfPay ? "UNABLE_TO_VERIFY" : verified ? "ACTIVE" : "UNVERIFIED",
     eligibilityStatus: isSelfPay ? "FAILED" : verified ? "ACTIVE_CONFIRMED" : "PENDING",

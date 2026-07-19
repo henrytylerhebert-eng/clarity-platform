@@ -3,7 +3,10 @@ export type DirectoryOrganizationType =
   | "crisis-response"
   | "acute-hospital"
   | "behavioral-provider"
-  | "resource-provider";
+  | "resource-provider"
+  | "substance-use-rehab"
+  | "assisted-living"
+  | "coroner";
 
 export type DirectoryWorkflowContext =
   | "all"
@@ -109,6 +112,9 @@ export const directoryOrganizationTypeLabels: Record<DirectoryOrganizationType, 
   "acute-hospital": "Acute hospital / ED",
   "behavioral-provider": "Behavioral provider",
   "resource-provider": "Resource provider",
+  "substance-use-rehab": "Substance use / Rehab",
+  "assisted-living": "Assisted living",
+  "coroner": "Coroner / Medical examiner",
 };
 
 export const directoryReviewStateLabels: Record<DirectoryReviewState, string> = {
@@ -494,6 +500,120 @@ export const directoryCrmOrganizations: DirectoryOrganization[] = [
     ],
     partnerRelationships: [],
   },
+  {
+    id: "acadiana-recovery",
+    name: "Acadiana Recovery Center",
+    type: "substance-use-rehab",
+    category: "behavioral",
+    parentName: "Independent rehab",
+    city: "Lafayette",
+    summary: "Addiction program and detox center for substance use recovery.",
+    reviewState: "unknown",
+    verificationNote: "Synthetic organization profile. Detox beds not integrated.",
+    modules: ["episode-operations", "discharge-planning"],
+    allowedIntentLabels: ["Prepare ED referral", "Queue profile verification"],
+    locations: [
+      { id: "arc-detox", name: "Detox unit", kind: "Inpatient detox", city: "Lafayette", serviceLineIds: ["arc-detox-line"] },
+    ],
+    serviceLines: [
+      {
+        id: "arc-detox-line",
+        name: "Inpatient detoxification",
+        workflowContext: "behavioral",
+        capabilities: ["Medical detox", "Addiction counseling"],
+        requirements: ["Medical clearance", "SUD diagnosis"],
+        blockedActions: ["No live capacity claim"],
+        capacityStatus: "Unknown",
+        reviewState: "unknown",
+      },
+    ],
+    personnel: [
+      {
+        id: "arc-intake",
+        label: "Rehab intake coordinator",
+        peopleExample: "Addiction specialist or intake nurse",
+        modules: ["episode-operations"],
+        reviewState: "unknown",
+      },
+    ],
+    partnerRelationships: [],
+  },
+  {
+    id: "lafayette-assisted-living",
+    name: "Lafayette Assisted Living",
+    type: "assisted-living",
+    category: "discharge",
+    parentName: "Independent resource provider",
+    city: "Lafayette",
+    summary: "Assisted living facility providing long-term placement for stable patients.",
+    reviewState: "unknown",
+    verificationNote: "Synthetic source-confirmed baseline.",
+    modules: ["discharge-planning", "profile-verification"],
+    allowedIntentLabels: ["Add discharge candidate", "Queue profile verification"],
+    locations: [
+      { id: "lal-main", name: "Main facility", kind: "Assisted living", city: "Lafayette", serviceLineIds: ["lal-residential"] },
+    ],
+    serviceLines: [
+      {
+        id: "lal-residential",
+        name: "Long-term assisted living",
+        workflowContext: "discharge",
+        capabilities: ["Residential placement", "Daily living support"],
+        requirements: ["Stable condition", "Functional assessment"],
+        blockedActions: ["Not an acute psychiatric facility", "No live bed hold"],
+        capacityStatus: "Unknown",
+        reviewState: "unknown",
+      },
+    ],
+    personnel: [
+      {
+        id: "lal-director",
+        label: "Admissions director",
+        peopleExample: "Facility administrator",
+        modules: ["discharge-planning"],
+        reviewState: "unknown",
+      },
+    ],
+    partnerRelationships: [],
+  },
+  {
+    id: "lafayette-coroner",
+    name: "Lafayette Parish Coroner's Office",
+    type: "coroner",
+    category: "prescreen",
+    parentName: "Parish government",
+    city: "Lafayette",
+    summary: "Coroner office for Order of Protective Custody (OPC) and forensic psychiatric holds.",
+    reviewState: "source-confirmed",
+    verificationNote: "Synthetic coroner profile. OPC generation is not legally binding.",
+    modules: ["prescreen", "guided-intake", "custody-ledger"],
+    allowedIntentLabels: ["Prepare prescreen handoff", "Queue profile verification"],
+    locations: [
+      { id: "lpc-office", name: "Coroner's Office", kind: "Government office", city: "Lafayette", serviceLineIds: ["lpc-opc"] },
+    ],
+    serviceLines: [
+      {
+        id: "lpc-opc",
+        name: "OPC and forensic hold authorization",
+        workflowContext: "prescreen",
+        capabilities: ["Authorize OPC", "Forensic holds", "Medical examiner clearance"],
+        requirements: ["Danger to self/others", "Physician request"],
+        blockedActions: ["No live OPC generation", "No digital signature"],
+        capacityStatus: "Unknown",
+        reviewState: "source-confirmed",
+      },
+    ],
+    personnel: [
+      {
+        id: "lpc-investigator",
+        label: "Coroner investigator",
+        peopleExample: "Deputy coroner or forensic investigator",
+        modules: ["prescreen", "custody-ledger"],
+        reviewState: "source-confirmed",
+      },
+    ],
+    partnerRelationships: [],
+  }
 ];
 
 export function filterDirectoryOrganizations(

@@ -19,6 +19,7 @@ export default tseslint.config(
       "graphify-out/**",
       "reference/**",
       "reporting-metrics-rebuild-package/**",
+      "tools/**/.venv/**",
       // clarity-platform-visualizer is a separate nested repository with its
       // own ESLint/runtime dependencies and lint command.
       "clarity-platform-visualizer/**",

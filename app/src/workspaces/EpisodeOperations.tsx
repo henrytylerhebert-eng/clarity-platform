@@ -11,10 +11,12 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { StatusBadge } from "../components/StatusBadge";
+import { getAdmissionEpisode } from "../domain/admissionEpisode";
 import { getEpisodeProjection, type EpisodeCoverageOutcome, type EpisodeRiskFlagCode } from "../domain/episodeProjection";
-import type { Case } from "../domain/types";
+import type { AppState, Case } from "../domain/types";
 
 interface Props {
+  state: AppState;
   caseRecord: Case;
 }
 
@@ -86,8 +88,31 @@ function riskTone(code: EpisodeRiskFlagCode): "warn" | "danger" | "info" {
   return "info";
 }
 
-export function EpisodeOperations({ caseRecord }: Props) {
-  const projection = getEpisodeProjection(caseRecord.id, caseRecord.patientToken.displayName);
+export function EpisodeOperations({ state, caseRecord }: Props) {
+  const baseProjection = getEpisodeProjection(caseRecord.id, caseRecord.patientToken.displayName);
+  const caseEpisode = getAdmissionEpisode(state, caseRecord.id);
+  const projection = caseEpisode ? {
+    ...baseProjection,
+    episode: {
+      ...baseProjection.episode,
+      id: caseEpisode.id,
+      status: caseEpisode.status,
+      admittedAt: caseEpisode.admittedAt,
+      serviceDate: caseEpisode.serviceDate,
+      facilityName: caseEpisode.facilityName,
+      programName: caseEpisode.programId ?? "Program not linked",
+      unitName: caseEpisode.unitId ?? "Unit not linked",
+      facilityTimezone: caseEpisode.facilityTimezone,
+      timezoneReferenceId: caseEpisode.timezoneSourceReferenceId,
+    },
+    admissionLink: {
+      ...baseProjection.admissionLink,
+      relationship: caseEpisode.relationship,
+      sourceAcceptanceId: caseEpisode.sourceAcceptanceId,
+      linkedAt: caseEpisode.linkedAt,
+      linkedBy: caseEpisode.linkedBy,
+    },
+  } : baseProjection;
   const approvedDays = projection.episodeDays.filter((day) => day.outcome === "APPROVED").length;
   const flaggedDays = projection.episodeDays.filter((day) => day.riskFlags.length > 0).length;
   const openGaps = projection.documentationGaps.filter((gap) => gap.status !== "RESOLVED").length;
@@ -98,7 +123,7 @@ export function EpisodeOperations({ caseRecord }: Props) {
         <div className="panel-title">
           <div>
             <div className="icon-title"><Activity size={18} /><h2>Episode &amp; UR</h2></div>
-            <p>Episode-owned utilization review for <strong>{projection.caseLabel}</strong>. This is a read-only synthetic projection of the S1/S2 contracts.</p>
+            <p>Episode-owned utilization review for <strong>{projection.caseLabel}</strong>. This is a read-only synthetic projection of the case-owned episode record and the bounded S1/S2 contracts.</p>
           </div>
           <div className="topbar-badges">
             <StatusBadge tone="info">Episode-owned</StatusBadge>

@@ -1,6 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import { StatusBadge } from "../components/StatusBadge";
 import { BENEFIT_DISCLAIMER, deriveCoverage, type CoverageSnapshot } from "../domain/services";
+import { PayerProfileWalkthrough } from "./PayerProfileWalkthrough";
 
 interface Props {
   caseId: string;
@@ -43,7 +44,7 @@ export function BenefitsVerification({ caseId }: Props) {
         </div>
         <div className="kv-grid">
           <span className="label">Coverage order</span><span>{coverage.coverageOrder}</span>
-          <span className="label">Coverage type</span><span>{coverage.coverageType.replace(/_/g, " ")}</span>
+          <span className="label">Coverage type</span><span>{coverage.coverageTypeLabel}</span>
           <span className="label">Eligibility</span>
           <span>
             <StatusBadge tone={eligibilityTone(coverage.eligibilityStatus)}>
@@ -58,6 +59,30 @@ export function BenefitsVerification({ caseId }: Props) {
           </span>
         </div>
       </article>
+
+      {coverage.payerProfileId ? (
+        <article className="subtle-panel">
+          <div className="stage-summary-head">
+            <h3>{coverage.payerProfileLabel}</h3>
+            <StatusBadge tone="warn">POC configuration</StatusBadge>
+          </div>
+          <div className="kv-grid">
+            <span className="label">Profile version</span><span>{coverage.payerProfileVersion}</span>
+            <span className="label">Review status</span><span>{coverage.payerProfileReviewStatus}</span>
+          </div>
+          <p className="benefit-disclaimer">
+            This operations profile supplies review prompts only. It is not current-patient verification,
+            payer policy, a payment guarantee, or an authorization decision.
+          </p>
+          <ul className="gap-list">
+            {coverage.payerVerificationPrompts.map((prompt) => (
+              <li key={prompt}><StatusBadge tone="info">prompt</StatusBadge><span>{prompt}</span></li>
+            ))}
+          </ul>
+        </article>
+      ) : null}
+
+      <PayerProfileWalkthrough initialProfileId={coverage.payerProfileId} />
 
       {coverage.benefitQuote ? (
         <article className="subtle-panel">
