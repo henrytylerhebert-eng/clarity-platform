@@ -3,6 +3,7 @@ import {
   BadgeCheck,
   BedDouble,
   BookOpenCheck,
+  Building2,
   ClipboardCheck,
   ClipboardList,
   Activity,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import { CaseQueue } from "./workspaces/CaseQueue";
 import { CommandCenter } from "./workspaces/CommandCenter";
+import { DirectoryCrm } from "./workspaces/DirectoryCrm";
 import { Bedboard } from "./workspaces/Bedboard";
 import { NewCase } from "./workspaces/NewCase";
 import { CaseOverview } from "./workspaces/CaseOverview";
@@ -67,6 +69,7 @@ import type {
 const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof LayoutDashboard }> = [
   { id: "queue", label: "Case Queue", icon: LayoutDashboard },
   { id: "command", label: "Command Center", icon: Gauge },
+  { id: "directory-crm", label: "Directory CRM", icon: Building2 },
   { id: "new", label: "New Case", icon: PlusCircle },
   { id: "overview", label: "Case Overview", icon: ClipboardList },
   { id: "intake", label: "Guided Intake", icon: FileText },
@@ -565,6 +568,7 @@ export function App() {
   const activeCase = selectedCase ?? state.cases[0];
   const isMockAdmitLab = workspace === "mock-admits";
   const isProductStudio = workspace === "studio";
+  const isDirectoryCrm = workspace === "directory-crm";
   const focusChips = getRoleFocus(roleId, state, activeCase.id, new Date().toISOString());
 
   return (
@@ -660,8 +664,8 @@ export function App() {
       <main className="main-surface">
         <header className="topbar">
           <div>
-            <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : "Selected case"}</span>
-            <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : activeCase.patientToken.displayName}</h2>
+            <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isDirectoryCrm ? "Network workspace" : "Selected case"}</span>
+            <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : isDirectoryCrm ? "Clarity Directory CRM" : activeCase.patientToken.displayName}</h2>
           </div>
           <div className="topbar-badges">
             {isMockAdmitLab ? (
@@ -674,6 +678,12 @@ export function App() {
                 <StatusBadge tone="info">Synthetic registry</StatusBadge>
                 <StatusBadge tone="warn">Review-gated</StatusBadge>
               </>
+            ) : isDirectoryCrm ? (
+              <>
+                <StatusBadge tone="danger">Synthetic only</StatusBadge>
+                <StatusBadge tone="warn">Needs review</StatusBadge>
+                <StatusBadge tone="danger">No live send</StatusBadge>
+              </>
             ) : (
               <>
                 <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
@@ -684,7 +694,7 @@ export function App() {
           </div>
         </header>
 
-        {!isMockAdmitLab && !isProductStudio && focusChips.length ? (
+        {!isMockAdmitLab && !isProductStudio && !isDirectoryCrm && focusChips.length ? (
           <div className="focus-strip" aria-label="Role focus summary">
             {focusChips.map((chip) => (
               <div className="focus-chip" key={chip.label}>
@@ -698,6 +708,7 @@ export function App() {
         <section className="content-region">
           {workspace === "queue" ? <CaseQueue state={state} selectedCaseId={activeCase.id} onSelect={(id) => { setSelectedCaseId(id); setWorkspace("overview"); }} /> : null}
           {workspace === "command" ? <CommandCenter state={state} onSelect={(id) => { setSelectedCaseId(id); setWorkspace("overview"); }} /> : null}
+          {workspace === "directory-crm" ? <DirectoryCrm /> : null}
           {workspace === "new" ? <NewCase onCreate={handleCreateCase} /> : null}
           {workspace === "overview" ? <CaseOverview state={state} caseRecord={activeCase} /> : null}
           {workspace === "intake" ? <GuidedIntake state={state} caseId={activeCase.id} onAssessmentChange={handleAssessmentChange} onAddSourceAndRisk={handleAddSourceAndRisk} /> : null}
