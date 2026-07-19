@@ -42,9 +42,9 @@ external integrations, deployment, production flags, or real data.
 | # | Decision | Current evidence | Human gate |
 |---:|---|---|---|
 | 1 | RLS timing and database tenant enforcement | Recommended OD-6 posture accepted; a bounded local synthetic RLS slice now supplements the S2 organization predicates. Provider, pooling, runtime role, broader policy coverage, and security review remain open. | Provider-backed security and technical approval |
-| 2 | Migration recovery model | Promotion/recovery checklist and deterministic local migration-integrity test are recorded; no fresh-database, provider restore, or production promotion evidence exists. | Technical and operations approval |
+| 2 | Migration recovery model | Forward-only promotion/recovery ownership and evidence gates are now recorded; local migration status and integrity checks pass, but no fresh-database, provider restore, or production promotion evidence exists. | Technical and operations approval |
 | 3 | Concurrent admission retry semantics | H1 handles same-acceptance replay. H3 adds an additive partial unique index for one ACTIVE admission-source episode per case and maps the losing database conflict to `ActiveAdmissionExistsError`. | H1/H3 verified locally; migration promotion and recovery remain gated |
-| 4 | Outbox ownership and failure handling | Delivery boundary record drafted; S2 persists `PENDING` rows atomically and has no dispatcher or retry worker. | Architecture and operations decision |
+| 4 | Outbox ownership and failure handling | Persistence owner, future delivery owner, consumer owner, security owner, and operations/replay responsibilities are now recommended; S2 persists `PENDING` rows atomically and has no dispatcher or retry worker. | Architecture and operations decision |
 | 5 | Event vocabulary expansion | Current bounded vocabulary is accepted: three emitted events, with audit/history-only actions and the draft derived event kept separate. No approved runtime consumer is identified for expansion. | Expansion requires a named consumer and domain/governance decision |
 | 6 | Program identity contract | H1 aligns the Zod contracts, event payloads, mapper, and already-nullable Prisma column as nullable/source-owned. | H1 verified; revisit only if a canonical program hierarchy becomes required |
 | 7 | Command-service boundary | Boundary is recorded: episode writes require a role-gated command service before any HTTP exposure. | Technical lead decision |
@@ -81,8 +81,9 @@ external integrations, deployment, production flags, or real data.
 - Date: 2026-07-18
 - Notes: Tyler approved the bounded decision-work slice. The later explicit
   execution request authorized the local synthetic OD-6 RLS helper, migration,
-  and tests. This does not authorize provider-backed or production RLS,
-  workers, runtime deployment, or external changes.
+  and tests. The next execution request authorized the migration/recovery and
+  outbox ownership design update. This does not authorize provider-backed or
+  production RLS, workers, runtime deployment, or external changes.
 
 ## Owner Decision: H1 Implementation Authorization
 
@@ -175,12 +176,13 @@ promotion or rollback claim is made.
 
 ## H2 Governance Records
 
-The following records are drafted and intentionally remain proposed:
+The following records contain the recommended operating design and intentionally
+remain pending technical/operations acceptance:
 
 - `docs/decisions/RLS_TENANT_ENFORCEMENT_DESIGN.md`
 - `docs/decisions/S2_MIGRATION_PROMOTION_AND_RECOVERY_CHECKLIST.md`
 - `docs/decisions/OUTBOX_DELIVERY_BOUNDARY_DECISION.md`
 
-They are evidence and decision inputs, not authorization for RLS migrations,
-production migration promotion, outbox workers, external delivery, or real
+They are evidence and decision inputs, not authorization for provider-backed
+RLS, production migration promotion, outbox workers, external delivery, or real
 data.

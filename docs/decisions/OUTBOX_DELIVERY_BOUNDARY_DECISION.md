@@ -1,5 +1,5 @@
 ---
-status: Proposed boundary; architecture and operations decision required
+status: Recommended ownership design; architecture and operations acceptance required
 owner: Technical lead with operations review
 date: 2026-07-19
 data_boundary: synthetic only
@@ -24,6 +24,21 @@ delivery configuration.
 - The source-of-truth operational facts remain transactional records; governed
   events and outbox records are separate append-oriented delivery artifacts.
 
+## Ownership Model
+
+| Responsibility | Owner | Current boundary |
+|---|---|---|
+| Source mutation, governed event, and outbox write | Case repository / persistence owner | Owns one atomic transaction; may only create the `PENDING` outbox record |
+| Delivery runtime | Future separately deployed integration/runtime owner | Owns claiming, leases, attempts, retry scheduling, and delivery status only after a separate approval |
+| Target contract and consumer idempotency | Named target-system owner | Owns accepted event types, schema versions, deduplication, and acknowledgement behavior |
+| Secrets, tenant authorization, and network access | Security/platform owner | Owns credentials, target allowlists, tenant boundaries, and rotation |
+| Operations and replay | Named operations owner | Owns alerts, dead-letter review, operator replay, and incident records |
+| Product and scope approval | Human project owner | Approves the target, event allowlist, data boundary, and any production rollout |
+
+The repository owner is not the delivery owner. A future dispatcher must not
+reach back into source tables to invent or amend clinical, legal, admission,
+placement, payer, or authorization facts.
+
 ## Recommended Boundary
 
 Keep the repository gateway responsible only for atomic persistence. A future
@@ -38,6 +53,12 @@ delivery slice should own:
 
 The future slice must not infer clinical, legal, admission, placement, payer,
 or authorization decisions from delivery state.
+
+The recommended delivery contract is at-least-once. `governedEventId` is the
+stable source event identity and must be carried as the consumer idempotency
+key. A delivery attempt may fail, retry, or be replayed without changing the
+source fact, governed envelope, or original outbox record. Delivery status is
+operational state, not a replacement for source truth.
 
 ## Options
 
@@ -56,8 +77,13 @@ or authorization decisions from delivery state.
 - Observability, alerting, and operator permissions.
 - Tenant enforcement and secret/configuration ownership.
 
+The owner must also name the first target consumer and the delivery runtime
+owner. Without both, the repository remains the only implemented owner and the
+outbox remains persistence-only.
+
 ## Gate
 
 No outbox worker, scheduler, lease/attempt migration, external delivery, or
 API surface is authorized by this document. The S2 outbox remains a
-transactional `PENDING` record only.
+transactional `PENDING` record only. The ownership model above is a
+recommendation awaiting architecture and operations acceptance.
