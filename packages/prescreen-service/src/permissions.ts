@@ -1,16 +1,17 @@
+import type { UserRole } from "@clarity/domain-contracts";
 import { PrescreenPermissionDeniedError } from "./errors.js";
 
 /**
  * Prescreen role policy — explicit, injected configuration.
  *
- * The repository's UserRole enum has no roles for the prescreen actors the
- * source package describes (crisis-response officers, prescreen assessors,
- * Central Intake staff, authorized practitioners), and silently mapping
- * them onto existing unrelated roles is prohibited by the approved Phase 2
- * constraints. Until the owner records the role-mapping decision
- * (docs/decisions/PRESCREEN_ROLE_MAPPING_DECISION_PACKET.md), the service
- * takes its policy as an explicit constructor input and only the clearly
- * synthetic policy below exists. No production role taxonomy is asserted.
+ * The owner resolved the role-mapping decision packet on 2026-07-19
+ * (ADR-0014): exactly two equivalences are ruled for the same-organization
+ * slice — INTAKE_COORDINATOR ≡ Central Intake coordinator and
+ * PHYSICIAN_REVIEWER ≡ authorized practitioner (PMHNP signer authority is
+ * configured policy, not enum membership). External/field actors are
+ * deferred to the cross-organization design, not mapped. The policy stays
+ * an explicit constructor input: the production constant below encodes the
+ * ruling, and the synthetic policy remains for tests.
  */
 
 export const PRESCREEN_COMMAND_NAMES = [
@@ -49,6 +50,24 @@ export const SYNTHETIC_PRESCREEN_TEST_POLICY: PrescreenRolePolicy = {
     SYNTHETIC_PRESCREEN_ROLES.readOnly,
   ],
 };
+
+/**
+ * Production policy per the ADR-0014 ruling, derived fail-closed from the
+ * package's role-permission matrix: matrix "conditional" capabilities are
+ * not granted. Attestation is held by the authorized practitioner in this
+ * slice; the external assessor's attest capability arrives only with the
+ * cross-organization design. No other role — including SYSTEM_ADMIN and
+ * ORGANIZATION_ADMIN — receives any prescreen capability.
+ */
+export const PRESCREEN_PRODUCTION_POLICY = {
+  StartPrescreenEncounter: ["INTAKE_COORDINATOR"],
+  SaveAssessmentDraft: ["INTAKE_COORDINATOR"],
+  AttestAssessment: ["PHYSICIAN_REVIEWER"],
+  CreateAssessmentSupplement: ["INTAKE_COORDINATOR"],
+  SubmitPrescreen: ["INTAKE_COORDINATOR"],
+  UpdatePacketRequirement: ["INTAKE_COORDINATOR"],
+  EvaluateTargetReadiness: ["INTAKE_COORDINATOR", "PHYSICIAN_REVIEWER"],
+} as const satisfies Readonly<Record<PrescreenCommandName, readonly UserRole[]>>;
 
 /** Raised before any read, so authorization failures disclose nothing about resources. */
 export function assertPrescreenPermitted(

@@ -561,7 +561,17 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     execute: () => PrescreenCommandResult,
   ): PrescreenCommandResult {
     const key = `${cmd.organizationId}:${cmd.actor.actorId}:${commandName}:${cmd.idempotencyKey}`;
-    const { correlationId: _correlationId, idempotencyKey: _idempotencyKey, ...body } = cmd;
+    // occurredAt is excluded from the fingerprint: the key identifies the
+    // command's intent, and the arrival time of a retry is not intent. The
+    // API layer server-stamps occurredAt per request (ADR-0014), so keeping
+    // it in the fingerprint would turn every legitimate HTTP retry into an
+    // IDEMPOTENCY_KEY_REUSED conflict. First write wins for stored times.
+    const {
+      correlationId: _correlationId,
+      idempotencyKey: _idempotencyKey,
+      occurredAt: _occurredAt,
+      ...body
+    } = cmd;
     const fingerprint = sha256Hex(body);
     const prior = this.idempotency.get(key);
     if (prior) {
