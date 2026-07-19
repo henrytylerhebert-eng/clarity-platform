@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarity.example/schemas/transport-provider-profile.schema.json",
+  "title": "Transport Provider Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "providerId",
+    "legalName",
+    "category",
+    "status",
+    "serviceAreas",
+    "supportedLegalStatuses",
+    "credentials",
+    "lastVerifiedAt",
+    "verificationStatus"
+  ],
+  "properties": {
+    "providerId": {
+      "type": "string"
+    },
+    "legalName": {
+      "type": "string"
+    },
+    "doingBusinessAs": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "category": {
+      "enum": [
+        "LAW_ENFORCEMENT_CUSTODY",
+        "LICENSED_AMBULANCE_EMS",
+        "CONTRACTED_SECURE_BEHAVIORAL_TRANSPORT",
+        "INTERFACILITY_CLINICAL_TRANSPORT",
+        "TRANSPORTATION_BROKER",
+        "NEMT_CARRIER"
+      ]
+    },
+    "status": {
+      "enum": [
+        "CANDIDATE",
+        "ACTIVE",
+        "SUSPENDED",
+        "EXPIRED",
+        "RESTRICTED",
+        "INACTIVE"
+      ]
+    },
+    "serviceAreas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supportedLegalStatuses": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "VOLUNTARY",
+          "NONCONTESTED",
+          "OPC",
+          "PEC",
+          "CEC",
+          "COURT_ORDER",
+          "OTHER"
+        ]
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "restrictions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "facilityApprovals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "jurisdictionApprovals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "credentials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "credentialType",
+          "identifier",
+          "status",
+          "verifiedAt"
+        ],
+        "properties": {
+          "credentialType": {
+            "type": "string"
+          },
+          "identifier": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "VALID",
+              "PENDING",
+              "EXPIRED",
+              "SUSPENDED",
+              "UNKNOWN"
+            ]
+          },
+          "effectiveFrom": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "effectiveTo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "verifiedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceReference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "insuranceVerifiedThrough": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "contractStatus": {
+      "enum": [
+        "NOT_REQUIRED",
+        "NOT_ON_FILE",
+        "PENDING",
+        "ACTIVE",
+        "EXPIRED",
+        "TERMINATED"
+      ]
+    },
+    "lastVerifiedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nextVerificationDueAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "verificationStatus": {
+      "enum": [
+        "VERIFIED",
+        "PARTIAL",
+        "STALE",
+        "BLOCKED",
+        "UNKNOWN"
+      ]
+    }
+  }
+}

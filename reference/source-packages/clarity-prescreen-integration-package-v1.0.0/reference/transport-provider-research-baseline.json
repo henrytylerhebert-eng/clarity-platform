@@ -1,0 +1,48 @@
+{
+  "status": "RESEARCH_BASELINE_NOT_LIVE_REGISTRY",
+  "verifiedThrough": "2026-07-19",
+  "providers": [
+    {
+      "displayName": "Law enforcement",
+      "category": "LAW_ENFORCEMENT_CUSTODY",
+      "publicFinding": "May execute OPC pickup and may transport under valid authority depending on pathway.",
+      "productionStatus": "JURISDICTION_AND_ASSIGNMENT_CHECK_REQUIRED",
+      "sourceUrls": [
+        "https://legis.la.gov/Legis/Law.aspx?d=85247",
+        "https://www.legis.la.gov/legis/Law.aspx?d=85245"
+      ]
+    },
+    {
+      "displayName": "Acadian Ambulance",
+      "category": "LICENSED_AMBULANCE_EMS",
+      "publicFinding": "Ambulance and medical transport organization.",
+      "productionStatus": "LIVE_LICENSE_SERVICE_AREA_CONTRACT_CAPABILITY_CHECK_REQUIRED",
+      "sourceUrls": [
+        "https://acadianambulance.com/",
+        "https://ldh.la.gov/assets/oph/ems/AmbulanceStandards/EMSProvidersforWebsite.pdf"
+      ]
+    },
+    {
+      "displayName": "Secure Patient Delivery",
+      "category": "CONTRACTED_SECURE_BEHAVIORAL_TRANSPORT",
+      "publicFinding": "Public contact page advertises PEC transports. LPSC Docket T-38018 was open on 2026-07-19 and concerns proposed cancellation of Common Carrier Certificate No. 8647 for annual-report/fee noncompliance.",
+      "productionStatus": "BLOCKED_OR_CONDITIONAL_PENDING_DOCKET_OUTCOME_AND_LIVE_REGULATORY_CREDENTIAL_INSURANCE_CONTRACT_LOCAL_AUTHORITY_CHECK",
+      "sourceUrls": [
+        "https://www.spdllc.com/contato-1",
+        "https://lpscpubvalence.lpsc.louisiana.gov/portal/PSC/DocketDetails?docketId=32891",
+        "https://lpscpubvalence.lpsc.louisiana.gov/portal/PSC/DocumentDetails?documentId=180841"
+      ]
+    },
+    {
+      "displayName": "MediTrans",
+      "category": "TRANSPORTATION_BROKER",
+      "publicFinding": "Transportation broker/network coordinator; actual carrier may differ.",
+      "productionStatus": "CAPTURE_AND_QUALIFY_ACTUAL_CARRIER",
+      "sourceUrls": [
+        "https://ldh.la.gov/medicaid/medical-transportation-provider-resources",
+        "https://ldh.la.gov/medicaid/medical-transportation",
+        "https://meditrans.com/transportation-providers/"
+      ]
+    }
+  ]
+}

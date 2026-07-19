@@ -1,0 +1,28 @@
+export function createEventEnvelope(input) {
+    return {
+        eventId: input.eventId,
+        schemaName: "clarity.prescreen.event",
+        schemaVersion: "1.0.0",
+        eventType: input.eventType,
+        organizationId: input.organizationId,
+        ...(input.facilityId === undefined ? {} : { facilityId: input.facilityId }),
+        ...(input.programId === undefined ? {} : { programId: input.programId }),
+        ...(input.caseId === undefined ? {} : { caseId: input.caseId }),
+        ...(input.encounterId === undefined ? {} : { encounterId: input.encounterId }),
+        aggregateType: input.aggregateType,
+        aggregateId: input.aggregateId,
+        aggregateVersion: input.aggregateVersion,
+        eventTime: input.eventTime,
+        recordedTime: input.recordedTime,
+        actor: input.actor,
+        source: input.source,
+        correlationId: input.correlationId,
+        ...(input.causationId === undefined ? {} : { causationId: input.causationId }),
+        ...(input.idempotencyKey === undefined ? {} : { idempotencyKey: input.idempotencyKey }),
+        phiClassification: input.phiClassification ?? "RESTRICTED_PHI",
+        dataQualityState: input.dataQualityState ?? "VALIDATED",
+        reviewState: input.reviewState ?? "NOT_REQUIRED",
+        ...(input.supersedesEventId === undefined ? {} : { supersedesEventId: input.supersedesEventId }),
+        payload: input.payload,
+    };
+}

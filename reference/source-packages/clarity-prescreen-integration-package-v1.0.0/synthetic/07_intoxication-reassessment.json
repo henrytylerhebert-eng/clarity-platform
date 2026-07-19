@@ -1,0 +1,65 @@
+{
+  "scenarioId": "SYN-07",
+  "title": "Intoxication Reassessment",
+  "description": "Temporary intoxication is suspected; reassessment timing is clinician-owned.",
+  "syntheticOnly": true,
+  "assessment": {
+    "schemaVersion": "1.0.0",
+    "assessmentVersionId": "assess_syn_07",
+    "encounterId": "enc_syn_07",
+    "organizationId": "org_synthetic",
+    "versionNumber": 1,
+    "status": "DRAFT",
+    "createdAt": "2026-07-19T12:00:00Z",
+    "createdBy": "actor_synthetic",
+    "attestedAt": null,
+    "attestedBy": null,
+    "parentVersionId": null,
+    "changeReason": null,
+    "willingness": "FLUCTUATING",
+    "orientation": {
+      "observedAt": "2026-07-19T12:00:00Z",
+      "sourceId": "src_direct",
+      "domains": {
+        "person": {
+          "status": "ORIENTED",
+          "observation": "Synthetic observation."
+        },
+        "place": {
+          "status": "UNKNOWN",
+          "observation": "Synthetic observation."
+        },
+        "time": {
+          "status": "NOT_ORIENTED",
+          "observation": "Synthetic observation."
+        },
+        "situation": {
+          "status": "UNKNOWN",
+          "observation": "Synthetic observation."
+        }
+      }
+    },
+    "possiblePathway": "UNDETERMINED",
+    "answers": [],
+    "sources": [
+      {
+        "sourceId": "src_direct",
+        "sourceType": "DIRECT_OBSERVATION",
+        "displayLabel": "Synthetic direct observation",
+        "documentVersionId": null,
+        "recordedAt": "2026-07-19T12:00:00Z"
+      }
+    ],
+    "contradictions": [],
+    "unknowns": [
+      "reassessment_time",
+      "medical_disposition"
+    ],
+    "emergencyInterrupt": null
+  },
+  "expected": {
+    "reassessmentTaskRequired": true,
+    "patientCapacityPredictionProhibited": true,
+    "aggregateTimingTrendEligible": true
+  }
+}

@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarity.example/schemas/facility-admission-profile.schema.json",
+  "title": "Facility Admission Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileId",
+    "facilityId",
+    "version",
+    "status",
+    "effectiveFrom",
+    "programs",
+    "packetRequirements",
+    "medicalClearanceRules",
+    "transportRules",
+    "requiredApprovalTypes",
+    "sourceReferences"
+  ],
+  "properties": {
+    "profileId": {
+      "type": "string"
+    },
+    "facilityId": {
+      "type": "string"
+    },
+    "organizationId": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "ACTIVE",
+        "SUSPENDED",
+        "SUPERSEDED"
+      ]
+    },
+    "effectiveFrom": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "effectiveTo": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "programs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "programId",
+          "name"
+        ],
+        "properties": {
+          "programId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ageMinimum": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "ageMaximum": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "packetRequirements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirement"
+      }
+    },
+    "medicalClearanceRules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirement"
+      }
+    },
+    "inclusionReviewRules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirement"
+      }
+    },
+    "exclusionReviewRules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirement"
+      }
+    },
+    "acceptanceAuthority": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "capability",
+          "authorizedRoleCodes"
+        ],
+        "properties": {
+          "capability": {
+            "type": "string"
+          },
+          "authorizedRoleCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "delegationConditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "transportRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ruleCode",
+          "whenLegalStatuses",
+          "allowedCategories"
+        ],
+        "properties": {
+          "ruleCode": {
+            "type": "string"
+          },
+          "whenLegalStatuses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowedCategories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blockedCategories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exceptionProcessCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "consentRuleSetIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requiredApprovalTypes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "CLINICAL",
+          "LEGAL",
+          "OPERATIONS",
+          "PRIVACY",
+          "SECURITY",
+          "TRANSPORT",
+          "PRODUCT"
+        ]
+      }
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "approvalType",
+          "status"
+        ],
+        "properties": {
+          "approvalType": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "EXPIRED"
+            ]
+          },
+          "approvedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "approvedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "sourceReferences": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "documentVersionId",
+          "location"
+        ],
+        "properties": {
+          "documentVersionId": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirementCode",
+        "label",
+        "requiredness",
+        "blockingTargets",
+        "resolutionWorkspace",
+        "sourceReference"
+      ],
+      "properties": {
+        "requirementCode": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "requiredness": {
+          "enum": [
+            "REQUIRED",
+            "CONDITIONAL",
+            "WHEN_AVAILABLE",
+            "SUPPORTING",
+            "PROHIBITED",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "conditionExpression": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "freshnessHours": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "blockingTargets": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "CENTRAL_INTAKE_REVIEW",
+              "AUTHORIZED_PRACTITIONER_REVIEW",
+              "FACILITY_ROUTING",
+              "TRANSPORT_PLANNING",
+              "RECEIVING_HANDOFF"
+            ]
+          }
+        },
+        "resolutionWorkspace": {
+          "type": "string"
+        },
+        "responsibleRoleCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceReference": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

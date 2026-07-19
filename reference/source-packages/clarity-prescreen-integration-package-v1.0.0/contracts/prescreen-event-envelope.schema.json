@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarity.example/schemas/prescreen-event-envelope.schema.json",
+  "title": "Prescreen Event Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "schemaName",
+    "schemaVersion",
+    "eventType",
+    "organizationId",
+    "eventTime",
+    "recordedTime",
+    "actor",
+    "source",
+    "correlationId",
+    "phiClassification",
+    "dataQualityState",
+    "payload"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "schemaName": {
+      "const": "clarity.prescreen.event"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "eventType": {
+      "type": "string"
+    },
+    "organizationId": {
+      "type": "string"
+    },
+    "facilityId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "programId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "caseId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "encounterId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "aggregateType": {
+      "type": "string"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "eventTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recordedTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor": {
+      "type": "object",
+      "required": [
+        "actorType",
+        "actorId"
+      ],
+      "properties": {
+        "actorType": {
+          "enum": [
+            "USER",
+            "SOURCE_SYSTEM",
+            "SERVICE"
+          ]
+        },
+        "actorId": {
+          "type": "string"
+        },
+        "roleCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "sourceSystem"
+      ],
+      "properties": {
+        "sourceSystem": {
+          "type": "string"
+        },
+        "sourceObjectId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mappingVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "correlationId": {
+      "type": "string"
+    },
+    "causationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "idempotencyKey": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "phiClassification": {
+      "enum": [
+        "RESTRICTED_PHI",
+        "SENSITIVE_OPERATIONAL",
+        "DEIDENTIFIED_OPERATIONAL",
+        "PUBLIC_REFERENCE"
+      ]
+    },
+    "dataQualityState": {
+      "enum": [
+        "VALIDATED",
+        "PARTIAL",
+        "DISPUTED",
+        "CORRECTED",
+        "LATE",
+        "INVALID"
+      ]
+    },
+    "reviewState": {
+      "enum": [
+        "NOT_REQUIRED",
+        "DRAFT",
+        "PENDING",
+        "APPROVED",
+        "REJECTED"
+      ]
+    },
+    "supersedesEventId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    }
+  }
+}
