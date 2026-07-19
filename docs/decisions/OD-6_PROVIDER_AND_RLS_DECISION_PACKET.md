@@ -1,5 +1,5 @@
 ---
-status: Proposed; owner and security acceptance required
+status: Recommended posture accepted; provider/session implementation remains gated
 decision: OD-6
 owner: Tyler/product owner with technical and security review
 date: 2026-07-19
@@ -184,11 +184,15 @@ worker, outbox delivery, or production data is authorized by this packet.
 
 ## Owner Decision
 
-- Decision: `[ ] Accept recommended posture`  `[ ] Select provider/connection option`  `[ ] Revise`  `[ ] Defer`
-- Provider: `[Pending owner selection]`
+- Decision: `[x] Accept recommended posture`  `[ ] Select provider/connection option`  `[ ] Revise`  `[ ] Defer`
+- Provider: `[Pending provider selection]`
 - Connection/pooling mode: `[Pending provider verification]`
 - Owner: `Tyler / product owner`
 - Security reviewer: `[Pending]`
-- Date: `[Pending]`
-- Notes: Application predicates remain the verified synthetic-only control until
-  this decision and the required provider-backed tests are accepted.
+- Date: `2026-07-19`
+- Notes: Tyler accepted all recommendations in this packet. Provider identity,
+  connection/pooling mode, security reviewer, provider-backed tests, and
+  implementation authorization remain open because acceptance did not specify
+  those operational facts. Application predicates remain the verified
+  synthetic-only control. No provider account, secret, RLS migration,
+  deployment, or live data is authorized by this acceptance.

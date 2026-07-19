@@ -170,10 +170,10 @@ but they do not change those gates.
 
 ### Next decision
 
-Move to the next decision gate: review
-`docs/decisions/OD-6_PROVIDER_AND_RLS_DECISION_PACKET.md` for provider/session
-and RLS posture,
-then migration recovery and outbox ownership. Keep the accepted three-event
+The OD-6 posture is now accepted. Move to the remaining operational gate:
+select the provider and connection/pooling mode, name the security reviewer,
+and produce provider-backed isolation evidence before any RLS implementation.
+Then address migration recovery and outbox ownership. Keep the accepted three-event
 vocabulary in force; defer new review-level, documentation-gap-transition, and
 derived events until a named consumer and owner are accepted. No code is
 authorized by this note.

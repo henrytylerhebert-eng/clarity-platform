@@ -1,5 +1,5 @@
 ---
-status: Proposed design; security and provider decision required
+status: Accepted posture; provider and implementation details remain gated
 owner: Technical lead with security review
 date: 2026-07-19
 data_boundary: synthetic only
@@ -56,6 +56,8 @@ Before implementation, the owner and security reviewer must decide:
 ## Gate
 
 No RLS migration, Prisma policy helper, tenant-context middleware, or provider
-configuration change is authorized by this document. The current application
-predicates remain the verified synthetic-only control until OD-6 and the
-security review are resolved.
+configuration change is authorized by this document. The owner accepted the
+recommended posture in the OD-6 packet, but provider identity, connection mode,
+security review, provider-backed tests, and implementation authorization remain
+open. The current application predicates remain the verified synthetic-only
+control.
