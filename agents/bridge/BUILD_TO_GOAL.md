@@ -142,7 +142,7 @@ The team should keep these lanes separate:
 ### Lane D: persistence hardening and contract reconciliation
 
 - Owner: Human project owner with technical and security review; Antigravity coordinates; Codex prepares repository evidence; Claude proposes bounded options.
-- State: H1 and H3 implemented and verified; H2 governance records drafted and independently audited. The current synthetic-only scope is complete; remaining production decisions stay gated.
+- State: H1 and H3 implemented and verified; H2 governance records drafted and independently audited; the bounded local OD-6 episode-persistence RLS slice is implemented and verified. Remaining provider-backed and production decisions stay gated.
 - Evidence: `docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md`, `docs/developer-handoff/S2_REVIEW_AND_ACCEPTANCE_RECORD.md`, and `docs/developer-handoff/NEXT_PERSISTENCE_HARDENING_EVIDENCE.md`.
 - Boundary: RLS timing, migration recovery, outbox ownership, event-vocabulary expansion, and later command-service depth remain open. H1 covers bounded replay and program identity; H3 closes the local active-admission race; H2 records the non-runtime governance inputs.
 - Excludes: production data, deployment, API routes, workers, outbox dispatch, analytics marts, dashboards, frontend, Product Studio, external integrations, and feature flags.
@@ -157,26 +157,25 @@ The team should keep these lanes separate:
 
 ### Current gate after H1/H2
 
-The current bounded synthetic-only goal is complete and recorded in the
-implementation status, hardening packet, and Claude audit. H3 has resolved the
-local active-admission race constraint. The current event vocabulary is
-accepted; the next executable slice requires explicit owner/security/technical
-decisions for OD-6 provider/RLS posture, migration promotion and recovery, and
-outbox delivery ownership. Expansion beyond the accepted three events remains
-gated on named consumers and domain review. Those gates are named rather than
-silently converted into implementation scope. The WDP and protective-custody
-session now provide the requirements-acquisition layer for future domain work,
-but they do not change those gates.
+The bounded synthetic-only goal is moving through its hardening sequence and is
+recorded in the implementation status, hardening packet, and Claude audit. H3
+has resolved the local active-admission race constraint. The current event
+vocabulary is accepted. The OD-6 posture is accepted and the local
+transaction-context/RLS slice is verified; provider, pooling, broader policy
+coverage, security review, migration recovery, and production rollout remain
+gated. Expansion beyond the accepted three events remains gated on named
+consumers and domain review. The WDP and protective-custody session provide the
+requirements-acquisition layer for future domain work, but do not change those
+gates.
 
 ### Next decision
 
-The OD-6 posture is now accepted. Move to the remaining operational gate:
-select the provider and connection/pooling mode, name the security reviewer,
-and produce provider-backed isolation evidence before any RLS implementation.
-Then address migration recovery and outbox ownership. Keep the accepted three-event
-vocabulary in force; defer new review-level, documentation-gap-transition, and
-derived events until a named consumer and owner are accepted. No code is
-authorized by this note.
+The next decision is provider/session selection and security review for a
+provider-backed extension of the local RLS boundary. In parallel, prepare the
+migration promotion/recovery and outbox ownership packets without adding
+workers or delivery. Keep the accepted three-event vocabulary in force; defer
+new review-level, documentation-gap-transition, and derived events until a
+named consumer and owner are accepted.
 
 ## Bridge Operating Procedure
 

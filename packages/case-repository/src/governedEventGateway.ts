@@ -1,5 +1,6 @@
 import { GovernedEventEnvelopeSchema, type GovernedEventEnvelope } from "@clarity/domain-contracts";
 import type { PrismaClient } from "@prisma/client";
+import { withTenantContext } from "./tenantContext.js";
 
 /**
  * Read-side query gateway for governed events.
@@ -16,12 +17,12 @@ export class GovernedEventGateway {
   constructor(private readonly prisma: PrismaClient) {}
 
   async getEvent(organizationId: string, eventId: string): Promise<GovernedEventEnvelope | null> {
-    const row = await this.prisma.governedEvent.findUnique({
+    const row = await withTenantContext(this.prisma, organizationId, (tx) => tx.governedEvent.findUnique({
       where: {
         id: eventId,
         organizationId,
       },
-    });
+    }));
     if (!row) return null;
     // Re-validate on the way out so a hand-edited row cannot masquerade as a
     // governed envelope.

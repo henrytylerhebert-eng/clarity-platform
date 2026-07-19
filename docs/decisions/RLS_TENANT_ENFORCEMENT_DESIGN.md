@@ -1,5 +1,5 @@
 ---
-status: Accepted posture; provider and implementation details remain gated
+status: Accepted posture; bounded local synthetic slice verified; provider implementation remains gated
 owner: Technical lead with security review
 date: 2026-07-19
 data_boundary: synthetic only
@@ -17,15 +17,24 @@ accepted owner/security decision when one exists.
 ## Purpose
 
 Define the evidence and decisions required before PostgreSQL row-level
-security becomes part of the Clarity persistence boundary. This record does
-not add policies, change Prisma schema, or authorize production data.
+security becomes part of the production Clarity persistence boundary. This
+record also documents the bounded local synthetic RLS slice executed after the
+OD-6 posture acceptance. It does not authorize production data.
 
 ## Current Repository Boundary
 
 - S2 gateways scope reads and writes with `organizationId` predicates.
 - Cross-organization rejection is covered by deterministic integration tests.
-- `prisma/migrations/20260718231432_s2_episode_persistence/migration.sql`
-  contains no RLS policy or tenant-context machinery.
+- `packages/case-repository/src/tenantContext.ts` sets transaction-local
+  tenant context for the S2 episode persistence gateways.
+- `prisma/migrations/20260719123000_od6_episode_persistence_rls/migration.sql`
+  enables direct organization policies for the bounded S2 episode-persistence
+  tables.
+- `tests/integration/od6-rls.test.ts` proves local no-context denial,
+  cross-tenant read/write isolation, rollback cleanup, non-bypass runtime role
+  posture, and concurrent context separation.
+- `AuditEvent`, `CommandIdempotencyRecord`, inherited child records, and
+  global/reference models remain outside this local policy migration.
 - Prisma uses the configured database connection; the provider, pooling mode,
   and role/session model for production are not recorded as accepted.
 
@@ -34,7 +43,7 @@ not add policies, change Prisma schema, or authorize production data.
 | Option | Description | Assessment |
 |---|---|---|
 | A | Keep application predicates as the only enforcement through the synthetic pilot boundary. | Lowest implementation change; not sufficient as the final production defense-in-depth posture. |
-| B | Add RLS policies to the S2 tables now. | Rejected for now: provider, pooling, tenant context, policy coverage, and error-equivalence tests are unresolved. |
+| B | Add a bounded RLS boundary to the S2 episode-persistence tables locally. | Implemented for synthetic `clarity_dev`; provider, pooling, broader policy coverage, and production role controls remain unresolved. |
 | C | Accept the application predicates for the current synthetic boundary and design RLS before any real data or production pilot. | Recommended. Preserves the current tested boundary while making the security gate explicit. |
 
 ## Recommended Design Inputs
@@ -55,9 +64,9 @@ Before implementation, the owner and security reviewer must decide:
 
 ## Gate
 
-No RLS migration, Prisma policy helper, tenant-context middleware, or provider
-configuration change is authorized by this document. The owner accepted the
-recommended posture in the OD-6 packet, but provider identity, connection mode,
-security review, provider-backed tests, and implementation authorization remain
-open. The current application predicates remain the verified synthetic-only
-control.
+The owner accepted the recommended posture in the OD-6 packet, and the
+explicit execution request authorized the bounded local synthetic migration,
+helper, and tests described above. Provider identity, connection mode,
+security review, provider-backed tests, broader policy coverage, and production
+implementation authorization remain open. Application predicates remain
+required alongside the local RLS boundary.

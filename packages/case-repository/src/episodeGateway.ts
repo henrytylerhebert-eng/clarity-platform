@@ -1,6 +1,7 @@
 import type { Episode, CaseEpisodeLink } from "@clarity/domain-contracts";
 import type { PrismaClient } from "@prisma/client";
 import { rowToEpisode, rowToCaseEpisodeLink } from "./episodeMappers.js";
+import { withTenantContext } from "./tenantContext.js";
 
 /**
  * Read-side query gateway for episodes and case-to-episode links.
@@ -18,23 +19,23 @@ export class EpisodeGateway {
   constructor(private readonly prisma: PrismaClient) {}
 
   async getEpisode(organizationId: string, episodeId: string): Promise<Episode | null> {
-    const row = await this.prisma.episode.findUnique({
+    const row = await withTenantContext(this.prisma, organizationId, (tx) => tx.episode.findUnique({
       where: {
         id: episodeId,
         organizationId,
       },
-    });
+    }));
     return row ? rowToEpisode(row) : null;
   }
 
   async getCaseEpisodeLinks(organizationId: string, caseId: string): Promise<CaseEpisodeLink[]> {
-    const rows = await this.prisma.caseEpisodeLink.findMany({
+    const rows = await withTenantContext(this.prisma, organizationId, (tx) => tx.caseEpisodeLink.findMany({
       where: {
         organizationId,
         caseId,
       },
       orderBy: { linkedAt: "asc" },
-    });
+    }));
     return rows.map(rowToCaseEpisodeLink);
   }
 }

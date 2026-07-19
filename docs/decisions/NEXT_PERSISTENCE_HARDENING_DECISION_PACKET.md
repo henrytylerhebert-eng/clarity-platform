@@ -41,7 +41,7 @@ external integrations, deployment, production flags, or real data.
 
 | # | Decision | Current evidence | Human gate |
 |---:|---|---|---|
-| 1 | RLS timing and database tenant enforcement | Recommended OD-6 posture accepted; S2 still uses organization predicates and has no RLS migration. Provider, pooling, runtime role, policy coverage, and security review remain open. | Provider-backed security and technical approval |
+| 1 | RLS timing and database tenant enforcement | Recommended OD-6 posture accepted; a bounded local synthetic RLS slice now supplements the S2 organization predicates. Provider, pooling, runtime role, broader policy coverage, and security review remain open. | Provider-backed security and technical approval |
 | 2 | Migration recovery model | Promotion/recovery checklist and deterministic local migration-integrity test are recorded; no fresh-database, provider restore, or production promotion evidence exists. | Technical and operations approval |
 | 3 | Concurrent admission retry semantics | H1 handles same-acceptance replay. H3 adds an additive partial unique index for one ACTIVE admission-source episode per case and maps the losing database conflict to `ActiveAdmissionExistsError`. | H1/H3 verified locally; migration promotion and recovery remain gated |
 | 4 | Outbox ownership and failure handling | Delivery boundary record drafted; S2 persists `PENDING` rows atomically and has no dispatcher or retry worker. | Architecture and operations decision |
@@ -67,7 +67,7 @@ external integrations, deployment, production flags, or real data.
 ## Non-Goals
 
 - No production database or live tenant data.
-- No RLS migration until the security gate is recorded.
+- No provider-backed or production RLS rollout until the security gate is recorded.
 - No outbox worker or external delivery.
 - No API routes or service runtime.
 - No analytics projection, marts, dashboards, or UX.
@@ -79,10 +79,10 @@ external integrations, deployment, production flags, or real data.
 - Decision: `[x] Approve decision work`  `[ ] Revise packet`  `[ ] Defer`
 - Owner: Tyler / product owner
 - Date: 2026-07-18
-- Notes: Tyler approved the bounded decision-work slice. This authorizes
-  evidence gathering, option analysis, and updates to canonical decision
-  records only. It does not authorize code, migrations, RLS, workers, runtime,
-  deployment, or external changes.
+- Notes: Tyler approved the bounded decision-work slice. The later explicit
+  execution request authorized the local synthetic OD-6 RLS helper, migration,
+  and tests. This does not authorize provider-backed or production RLS,
+  workers, runtime deployment, or external changes.
 
 ## Owner Decision: H1 Implementation Authorization
 

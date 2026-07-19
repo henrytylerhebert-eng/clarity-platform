@@ -24,6 +24,7 @@ import {
 import { CaseNotFoundError } from "./prismaCaseRepository.js";
 import { ConcurrencyConflictError, IdempotencyConflictError } from "./caseCommandGateway.js";
 import { PrismaCaseAuditWriter, type CaseAuditWriter, type TxClient } from "./auditWriter.js";
+import { withTenantContext } from "./tenantContext.js";
 
 /**
  * S2 persistence gateway (docs/decisions/S2_PERSISTENCE_DECISION_PACKET.md,
@@ -459,7 +460,7 @@ export class PrismaEpisodePersistenceGateway {
       sourceReferenceId: params.sourceReferenceId,
     });
     const occurredAt = this.now();
-    return this.prisma.$transaction(async (tx) => {
+    return withTenantContext(this.prisma, params.organizationId, async (tx) => {
       const facility = await tx.facilityProfile.findFirst({
         where: { id: params.facilityProfileId, organizationId: params.organizationId },
         select: { id: true },
@@ -522,7 +523,7 @@ export class PrismaEpisodePersistenceGateway {
     const correlationId = params.correlationId ?? randomUUID();
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      return await withTenantContext(this.prisma, params.organizationId, async (tx) => {
       const caseRow = await tx.behavioralHealthCase.findFirst({
         where: { id: command.sourceCaseId, organizationId: params.organizationId },
         select: { id: true },
@@ -686,18 +687,18 @@ export class PrismaEpisodePersistenceGateway {
       // A concurrent writer may have won the acceptance natural-key race.
       // Re-read only after the losing transaction has rolled back, then treat
       // an exact command identity as a replay and any mismatch as a conflict.
-      const existingLink = await this.prisma.caseEpisodeLink.findUnique({
+      const existingLink = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.caseEpisodeLink.findUnique({
         where: {
           organizationId_sourceAcceptanceId: {
             organizationId: params.organizationId,
             sourceAcceptanceId: command.acceptedFacilityResponseId,
           },
         },
-      });
+      }));
       if (!existingLink) throw error;
-      const existingEpisode = await this.prisma.episode.findFirst({
+      const existingEpisode = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.episode.findFirst({
         where: { id: existingLink.episodeId, organizationId: params.organizationId },
-      });
+      }));
       if (!existingEpisode) throw error;
       if (!admissionIdentityMatches(existingLink, existingEpisode, command)) {
         throw new IdempotencyConflictError(command.acceptedFacilityResponseId);
@@ -709,7 +710,7 @@ export class PrismaEpisodePersistenceGateway {
   /** Episode-owned authorization requirement fact (thin create + audit). */
   async recordEpisodeAuthorization(params: RecordEpisodeAuthorizationParams) {
     const occurredAt = this.now();
-    return this.prisma.$transaction(async (tx) => {
+    return withTenantContext(this.prisma, params.organizationId, async (tx) => {
       await this.assertEpisodeOwnership(tx, params.organizationId, params.episodeId);
       const created = await tx.episodeAuthorization.create({
         data: {
@@ -755,7 +756,7 @@ export class PrismaEpisodePersistenceGateway {
     const occurredAt = this.now();
     const correlationId = params.correlationId ?? randomUUID();
 
-    return this.prisma.$transaction(async (tx) => {
+    return withTenantContext(this.prisma, params.organizationId, async (tx) => {
       const episode = await this.assertEpisodeOwnership(tx, params.organizationId, params.episodeId);
       const authorization = await tx.episodeAuthorization.findFirst({
         where: { id: params.episodeAuthorizationId, organizationId: params.organizationId, episodeId: params.episodeId },
@@ -871,7 +872,7 @@ export class PrismaEpisodePersistenceGateway {
     const occurredAt = this.now();
     const correlationId = params.correlationId ?? randomUUID();
 
-    return this.prisma.$transaction(async (tx) => {
+    return withTenantContext(this.prisma, params.organizationId, async (tx) => {
       const original = await tx.authorizationReview.findFirst({
         where: { id: params.originalReviewId, organizationId: params.organizationId },
         include: { dayDecisions: true },
@@ -1031,7 +1032,7 @@ export class PrismaEpisodePersistenceGateway {
   async recordDocumentationGap(params: RecordDocumentationGapParams) {
     const occurredAt = this.now();
     const correlationId = params.correlationId ?? randomUUID();
-    return this.prisma.$transaction(async (tx) => {
+    return withTenantContext(this.prisma, params.organizationId, async (tx) => {
       const episode = await this.assertEpisodeOwnership(tx, params.organizationId, params.episodeId);
       const gap = await tx.documentationGap.create({
         data: {
@@ -1114,7 +1115,7 @@ export class PrismaEpisodePersistenceGateway {
    */
   async transitionDocumentationGap(params: TransitionDocumentationGapParams) {
     const occurredAt = this.now();
-    return this.prisma.$transaction(async (tx) => {
+    return withTenantContext(this.prisma, params.organizationId, async (tx) => {
       const gap = await tx.documentationGap.findFirst({
         where: { id: params.documentationGapId, organizationId: params.organizationId },
       });
@@ -1159,7 +1160,7 @@ export class PrismaEpisodePersistenceGateway {
         },
         occurredAt,
       });
-      return tx.documentationGap.findFirstOrThrow({ where: { id: gap.id } });
+      return tx.documentationGap.findFirstOrThrow({ where: { id: gap.id, organizationId: params.organizationId } });
     });
   }
 }

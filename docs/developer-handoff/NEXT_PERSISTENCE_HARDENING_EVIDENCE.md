@@ -19,8 +19,9 @@ require the human gates in the decision packet.
 
 1. S2 persists organization predicates in the Prisma gateway and exercises
    cross-organization rejection in `tests/integration/s2-episode-persistence.test.ts`.
-2. The canonical schema uses PostgreSQL through `DATABASE_URL`; no RLS policy
-   or RLS migration is present in the S2 migration.
+2. The canonical schema uses PostgreSQL through `DATABASE_URL`; the bounded
+   local OD-6 migration adds direct tenant policies for episode-persistence
+   records. No provider-backed or production RLS evidence exists.
 3. The S2 migration is additive and has been applied to the local synthetic
    `clarity_dev` database. No production promotion or restore evidence exists.
 4. H1 admission replay is deterministic on
@@ -51,10 +52,12 @@ require the human gates in the decision packet.
 
 ### 1. RLS and tenant enforcement
 
-Keep organization predicates as the S2 application-layer control. Defer RLS
-until the provider, connection/session model, migration ownership, and
-security test strategy are accepted in OD-6 or a dedicated ADR. Do not add an
-RLS migration as a mechanical follow-up.
+Keep organization predicates as the S2 application-layer control. The local
+synthetic OD-6 slice now adds transaction-local context and direct tenant
+policies for the bounded episode-persistence tables. Defer provider-backed
+policy expansion until the provider, connection/session model, migration
+ownership, and security test strategy are accepted. Do not treat the local
+migration as production rollout evidence.
 
 ### 2. Migration recovery
 
@@ -158,12 +161,12 @@ The next bounded slice should be selected explicitly from:
 
 - event-vocabulary expansion only if a named consumer and explicit requirements
   are accepted;
-- the proposed RLS design and OD-6 provider/session decision;
+- the provider-backed extension of the accepted OD-6 posture;
 - the separately governed outbox delivery design.
 
 The event-vocabulary decision packet is recorded at
 `docs/decisions/EVENT_VOCABULARY_DECISION_PACKET.md`. Its current bounded
 vocabulary is accepted; no new event type or consumer is implemented.
 
-RLS, production deployment, workers, APIs, analytics, UX, integrations, and
-real data remain outside this proposed boundary.
+Provider-backed RLS, production deployment, workers, APIs, analytics, UX,
+integrations, and real data remain outside this proposed boundary.

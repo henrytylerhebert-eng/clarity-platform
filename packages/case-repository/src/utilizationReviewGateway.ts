@@ -11,6 +11,7 @@ import {
   rowToAuthorizationDayDecision,
   rowToDocumentationGap,
 } from "./utilizationReviewMappers.js";
+import { withTenantContext } from "./tenantContext.js";
 
 /**
  * Read-side query gateway for episode-owned utilization-review facts.
@@ -30,31 +31,31 @@ export class UtilizationReviewGateway {
   constructor(private readonly prisma: PrismaClient) {}
 
   async getEpisodeAuthorization(organizationId: string, id: string): Promise<EpisodeAuthorization | null> {
-    const row = await this.prisma.episodeAuthorization.findUnique({
+    const row = await withTenantContext(this.prisma, organizationId, (tx) => tx.episodeAuthorization.findUnique({
       where: { id, organizationId },
-    });
+    }));
     return row ? rowToEpisodeAuthorization(row) : null;
   }
 
   async getAuthorizationReview(organizationId: string, id: string): Promise<AuthorizationReview | null> {
-    const row = await this.prisma.authorizationReview.findUnique({
+    const row = await withTenantContext(this.prisma, organizationId, (tx) => tx.authorizationReview.findUnique({
       where: { id, organizationId },
-    });
+    }));
     return row ? rowToAuthorizationReview(row) : null;
   }
 
   async getAuthorizationDayDecisions(organizationId: string, episodeId: string): Promise<AuthorizationDayDecision[]> {
-    const rows = await this.prisma.authorizationDayDecision.findMany({
+    const rows = await withTenantContext(this.prisma, organizationId, (tx) => tx.authorizationDayDecision.findMany({
       where: { episodeId, organizationId },
       orderBy: { startDate: "asc" },
-    });
+    }));
     return rows.map(rowToAuthorizationDayDecision);
   }
 
   async getDocumentationGap(organizationId: string, id: string): Promise<DocumentationGap | null> {
-    const row = await this.prisma.documentationGap.findUnique({
+    const row = await withTenantContext(this.prisma, organizationId, (tx) => tx.documentationGap.findUnique({
       where: { id, organizationId },
-    });
+    }));
     return row ? rowToDocumentationGap(row) : null;
   }
 }

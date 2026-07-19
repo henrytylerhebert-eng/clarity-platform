@@ -1,5 +1,5 @@
 ---
-status: Recommended posture accepted; provider/session implementation remains gated
+status: Recommended posture accepted; bounded local synthetic slice verified; provider/session implementation remains gated
 decision: OD-6
 owner: Tyler/product owner with technical and security review
 date: 2026-07-19
@@ -16,9 +16,10 @@ related_decisions:
 ## Purpose
 
 Resolve the database provider/session posture and the conditions for
-PostgreSQL row-level security (RLS) without claiming production readiness or
-adding an RLS migration. This packet turns the existing RLS design into a
-decision-ready boundary.
+PostgreSQL row-level security (RLS) without claiming production readiness.
+This packet turns the existing RLS design into a decision-ready boundary and
+records the bounded local synthetic implementation that followed the accepted
+posture.
 
 ## Confirmed Repository Evidence
 
@@ -31,7 +32,7 @@ decision-ready boundary.
 | Development identity | `LocalDevIdentityProvider` is synthetic and development-only | It cannot be used as a production identity provider or tenant authority |
 | Production identity direction | ADR-0011 recommends a managed OIDC adapter behind the existing port | OIDC provider/account selection remains deployment work |
 | API direction | ADR-0012 accepts the thin Fastify direction in part and keeps hosting/RLS separately gated | API acceptance does not authorize provider or RLS rollout |
-| Current RLS state | No RLS policies, tenant context helper, or RLS migration exists | No production isolation claim is made |
+| Current RLS state | The local synthetic database now has a transaction-local context helper, an additive episode-persistence RLS migration, and deterministic isolation tests | No provider-backed or production isolation claim is made; broader model coverage remains open |
 | Connection state | No accepted provider, pooling mode, runtime DB role, or break-glass model is recorded | `SET LOCAL` behavior and connection reuse require an explicit design and test |
 
 ## Recommended Posture
@@ -59,8 +60,31 @@ Accept the following provider-neutral posture for the initial controlled pilot:
    pooling, operational ownership, and cost requirements are explicitly
    accepted.
 
-This is a security and architecture recommendation, not an implementation
-authorization.
+This is a security and architecture posture. It does not authorize provider
+selection, production configuration, live data, or deployment. A separate
+explicit execution request authorized the bounded local synthetic slice below.
+
+## Bounded Local Synthetic Implementation
+
+The following local-only slice is implemented and verified:
+
+- `packages/case-repository/src/tenantContext.ts` sets
+  `app.current_organization_id` with `set_config(..., true)` inside each S2
+  episode-persistence transaction.
+- `prisma/migrations/20260719123000_od6_episode_persistence_rls/migration.sql`
+  enables and forces direct tenant policies for timezone lineage, episodes,
+  case links, episode-owned authorization, documentation gaps, governed
+  events, and transactional outbox rows.
+- Episode, utilization-review, governed-event, and persistence gateway reads
+  and writes establish the context before accessing protected records.
+- `tests/integration/od6-rls.test.ts` proves no-context denial, cross-tenant
+  isolation, rollback cleanup, non-bypass runtime-role posture, and separate
+  concurrent contexts against local `clarity_dev`.
+
+The slice intentionally leaves `AuditEvent`, `CommandIdempotencyRecord`,
+inherited child models, global/reference models, provider configuration, and
+production role management outside its policy migration. Existing application
+organization predicates remain required for those paths.
 
 ## Provider And Connection Options
 
@@ -167,9 +191,9 @@ tests must prove:
 
 ## Rollout And Recovery Boundary
 
-If OD-6 is accepted, a later implementation slice may add the smallest
-provider-specific context adapter, additive RLS policy migration, runtime-role
-configuration, and deterministic isolation tests. It must be preceded by:
+The local synthetic slice is complete. A later provider-backed implementation
+slice may extend policy coverage and runtime-role configuration. It must be
+preceded by:
 
 - provider, region, pooling, backup, and operational ownership acceptance;
 - a migration/recovery plan linked to
@@ -179,8 +203,8 @@ configuration, and deterministic isolation tests. It must be preceded by:
 - a policy coverage review and provider-backed isolation test;
 - explicit owner and security approval naming files and commands.
 
-No RLS migration, provider account, secret, deployment, live tenant, API route,
-worker, outbox delivery, or production data is authorized by this packet.
+No provider account, secret, deployment, live tenant, API route, worker, outbox
+delivery, or production data is authorized by this packet.
 
 ## Owner Decision
 
@@ -190,9 +214,11 @@ worker, outbox delivery, or production data is authorized by this packet.
 - Owner: `Tyler / product owner`
 - Security reviewer: `[Pending]`
 - Date: `2026-07-19`
-- Notes: Tyler accepted all recommendations in this packet. Provider identity,
-  connection/pooling mode, security reviewer, provider-backed tests, and
-  implementation authorization remain open because acceptance did not specify
-  those operational facts. Application predicates remain the verified
-  synthetic-only control. No provider account, secret, RLS migration,
-  deployment, or live data is authorized by this acceptance.
+- Notes: Tyler accepted all recommendations in this packet. The explicit
+  execution request authorized the bounded local synthetic slice recorded
+  above. Provider identity, connection/pooling mode, security reviewer,
+  provider-backed tests, broader policy coverage, and production implementation
+  authorization remain open because acceptance did not specify those
+  operational facts. Application predicates remain required alongside the
+  local RLS boundary. No provider account, secret, deployment, or live data is
+  authorized by this acceptance.
