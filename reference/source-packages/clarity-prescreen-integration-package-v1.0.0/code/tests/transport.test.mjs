@@ -26,15 +26,13 @@ test('family transport is blocked for configured OPC path', () => {
 });
 
 test('missing instrument blocks secured instrument transport', () => {
-  const withoutInstrument = { ...context };
-  delete withoutInstrument.instrumentId;
+  const { instrumentId, ...withoutInstrument } = context;
   const result = qualifyTransportProvider(provider(), withoutInstrument, rule);
   assert(result.disqualifiers.includes('TRANSPORT_AUTHORITY_MISSING'));
 });
 
 test('missing destination blocks qualification', () => {
-  const withoutDestination = { ...context };
-  delete withoutDestination.destinationFacilityId;
+  const { destinationFacilityId, ...withoutDestination } = context;
   const result = qualifyTransportProvider(provider(), withoutDestination, rule);
   assert(result.disqualifiers.includes('TRANSPORT_DESTINATION_NOT_CONFIRMED'));
 });
