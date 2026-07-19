@@ -1,0 +1,366 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarity.example/schemas/prescreen-assessment.schema.json",
+  "title": "Prescreen Assessment Version",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "assessmentVersionId",
+    "encounterId",
+    "organizationId",
+    "versionNumber",
+    "status",
+    "createdAt",
+    "createdBy",
+    "willingness",
+    "orientation",
+    "answers",
+    "sources"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "assessmentVersionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "encounterId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "organizationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "versionNumber": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": [
+        "DRAFT",
+        "ATTESTED",
+        "CORRECTED",
+        "SUPERSEDED"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdBy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "attestedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "attestedBy": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "parentVersionId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "changeReason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2000
+    },
+    "willingness": {
+      "enum": [
+        "WILLING",
+        "NON_OPPOSED",
+        "OPPOSED",
+        "UNABLE_TO_EXPRESS",
+        "FLUCTUATING",
+        "UNKNOWN",
+        "NOT_ASSESSED"
+      ]
+    },
+    "orientation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observedAt",
+        "domains"
+      ],
+      "properties": {
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sourceId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "domains": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "person",
+            "place",
+            "time",
+            "situation"
+          ],
+          "properties": {
+            "person": {
+              "$ref": "#/$defs/orientationFinding"
+            },
+            "place": {
+              "$ref": "#/$defs/orientationFinding"
+            },
+            "time": {
+              "$ref": "#/$defs/orientationFinding"
+            },
+            "situation": {
+              "$ref": "#/$defs/orientationFinding"
+            }
+          }
+        }
+      }
+    },
+    "possiblePathway": {
+      "enum": [
+        "POSSIBLE_FORMAL_VOLUNTARY_REVIEW",
+        "POSSIBLE_NONCONTESTED_PATHWAY",
+        "EMERGENCY_OR_LEGAL_REVIEW_REQUIRED",
+        "MEDICAL_STABILIZATION_REQUIRED",
+        "COMMUNITY_OR_OTHER_DISPOSITION",
+        "UNDETERMINED"
+      ]
+    },
+    "answers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/answer"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "contradictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contradictionId",
+          "statementIds",
+          "status"
+        ],
+        "properties": {
+          "contradictionId": {
+            "type": "string"
+          },
+          "statementIds": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "enum": [
+              "OPEN",
+              "REVIEWED",
+              "RESOLVED_WITH_RATIONALE"
+            ]
+          },
+          "resolution": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000
+          }
+        }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "emergencyInterrupt": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "triggerCode",
+        "activatedAt",
+        "protocolReference"
+      ],
+      "properties": {
+        "triggerCode": {
+          "type": "string"
+        },
+        "activatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "protocolReference": {
+          "type": "string"
+        },
+        "outcome": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        }
+      }
+    }
+  },
+  "$defs": {
+    "orientationFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "ORIENTED",
+            "NOT_ORIENTED",
+            "UNABLE_TO_ASSESS",
+            "NOT_ASSESSED",
+            "UNKNOWN"
+          ]
+        },
+        "observation": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        }
+      }
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answerId",
+        "questionCode",
+        "valueState",
+        "sourceIds",
+        "recordedAt",
+        "recordedBy"
+      ],
+      "properties": {
+        "answerId": {
+          "type": "string"
+        },
+        "questionCode": {
+          "type": "string"
+        },
+        "valueState": {
+          "enum": [
+            "ANSWERED",
+            "UNKNOWN",
+            "NOT_ASSESSED",
+            "DECLINED_TO_ANSWER",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "array",
+            "object",
+            "null"
+          ]
+        },
+        "narrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10000
+        },
+        "sourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recordedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recordedBy": {
+          "type": "string"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "sourceType",
+        "recordedAt"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string"
+        },
+        "sourceType": {
+          "enum": [
+            "DIRECT_OBSERVATION",
+            "PATIENT_REPORT",
+            "FAMILY_SUPPORT_REPORT",
+            "FACILITY_STAFF_REPORT",
+            "LAW_ENFORCEMENT_REPORT",
+            "CLINICIAN_REPORT",
+            "DOCUMENT",
+            "SYSTEM_DERIVED",
+            "UNKNOWN"
+          ]
+        },
+        "displayLabel": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        },
+        "documentVersionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recordedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

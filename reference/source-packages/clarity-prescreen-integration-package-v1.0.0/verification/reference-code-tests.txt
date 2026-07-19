@@ -1,0 +1,204 @@
+
+> clarity-prescreen-reference@1.0.0 test
+> npm run build && node --test tests/*.test.mjs
+
+
+> clarity-prescreen-reference@1.0.0 build
+> tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: age bands are deterministic
+ok 1 - age bands are deterministic
+  ---
+  duration_ms: 1.412404
+  type: 'test'
+  ...
+# Subtest: approved rule allows matching signer when all requirements are met
+ok 2 - approved rule allows matching signer when all requirements are met
+  ---
+  duration_ms: 0.344711
+  type: 'test'
+  ...
+# Subtest: relationship evidence is enforced
+ok 3 - relationship evidence is enforced
+  ---
+  duration_ms: 0.195756
+  type: 'test'
+  ...
+# Subtest: wrong signer type is not treated as authority
+ok 4 - wrong signer type is not treated as authority
+  ---
+  duration_ms: 0.173933
+  type: 'test'
+  ...
+# Subtest: draft rule cannot authorize a consent action
+ok 5 - draft rule cannot authorize a consent action
+  ---
+  duration_ms: 0.634058
+  type: 'test'
+  ...
+# Subtest: no facility rule fails closed
+ok 6 - no facility rule fails closed
+  ---
+  duration_ms: 0.116516
+  type: 'test'
+  ...
+# Subtest: orientation gate passes only when all four domains are oriented
+ok 7 - orientation gate passes only when all four domains are oriented
+  ---
+  duration_ms: 1.653793
+  type: 'test'
+  ...
+# Subtest: willing and oriented routes to possible formal voluntary review
+ok 8 - willing and oriented routes to possible formal voluntary review
+  ---
+  duration_ms: 0.391431
+  type: 'test'
+  ...
+# Subtest: willing but not fully oriented routes to possible noncontested pathway
+ok 9 - willing but not fully oriented routes to possible noncontested pathway
+  ---
+  duration_ms: 0.150437
+  type: 'test'
+  ...
+# Subtest: non-opposed with unknown orientation routes to possible noncontested pathway
+ok 10 - non-opposed with unknown orientation routes to possible noncontested pathway
+  ---
+  duration_ms: 0.111548
+  type: 'test'
+  ...
+# Subtest: opposed routes to emergency or legal review without choosing an instrument
+ok 11 - opposed routes to emergency or legal review without choosing an instrument
+  ---
+  duration_ms: 0.175255
+  type: 'test'
+  ...
+# Subtest: medical stabilization overrides other possible pathways
+ok 12 - medical stabilization overrides other possible pathways
+  ---
+  duration_ms: 0.107653
+  type: 'test'
+  ...
+# Subtest: valid encounter transition succeeds
+ok 13 - valid encounter transition succeeds
+  ---
+  duration_ms: 0.214714
+  type: 'test'
+  ...
+# Subtest: invalid encounter transition fails deterministically
+ok 14 - invalid encounter transition fails deterministically
+  ---
+  duration_ms: 0.356449
+  type: 'test'
+  ...
+# Subtest: target readiness is ready when no target blockers exist
+ok 15 - target readiness is ready when no target blockers exist
+  ---
+  duration_ms: 0.90378
+  type: 'test'
+  ...
+# Subtest: missing target requirement is a blocker with resolution metadata
+ok 16 - missing target requirement is a blocker with resolution metadata
+  ---
+  duration_ms: 0.180303
+  type: 'test'
+  ...
+# Subtest: received but under review is a warning rather than a blocker
+ok 17 - received but under review is a warning rather than a blocker
+  ---
+  duration_ms: 0.16521
+  type: 'test'
+  ...
+# Subtest: not applicable with authority satisfies the requirement
+ok 18 - not applicable with authority satisfies the requirement
+  ---
+  duration_ms: 0.169086
+  type: 'test'
+  ...
+# Subtest: start is idempotent for same actor, command, key, and body
+ok 19 - start is idempotent for same actor, command, key, and body
+  ---
+  duration_ms: 1.379524
+  type: 'test'
+  ...
+# Subtest: idempotency key reuse with changed body fails
+ok 20 - idempotency key reuse with changed body fails
+  ---
+  duration_ms: 0.778045
+  type: 'test'
+  ...
+# Subtest: draft, attest, and supplement preserve versions
+ok 21 - draft, attest, and supplement preserve versions
+  ---
+  duration_ms: 0.989845
+  type: 'test'
+  ...
+# Subtest: attested assessment cannot be edited as a draft
+ok 22 - attested assessment cannot be edited as a draft
+  ---
+  duration_ms: 0.398882
+  type: 'test'
+  ...
+# Subtest: optimistic concurrency conflict is detected
+ok 23 - optimistic concurrency conflict is detected
+  ---
+  duration_ms: 0.208505
+  type: 'test'
+  ...
+# Subtest: tenant isolation returns not found rather than leaking resource existence
+ok 24 - tenant isolation returns not found rather than leaking resource existence
+  ---
+  duration_ms: 0.161033
+  type: 'test'
+  ...
+# Subtest: verified contracted secure provider can qualify under configured OPC rule
+ok 25 - verified contracted secure provider can qualify under configured OPC rule
+  ---
+  duration_ms: 1.263198
+  type: 'test'
+  ...
+# Subtest: family transport is blocked for configured OPC path
+ok 26 - family transport is blocked for configured OPC path
+  ---
+  duration_ms: 0.240023
+  type: 'test'
+  ...
+# Subtest: missing instrument blocks secured instrument transport
+ok 27 - missing instrument blocks secured instrument transport
+  ---
+  duration_ms: 0.168484
+  type: 'test'
+  ...
+# Subtest: missing destination blocks qualification
+ok 28 - missing destination blocks qualification
+  ---
+  duration_ms: 0.135966
+  type: 'test'
+  ...
+# Subtest: stale provider credentials block qualification
+ok 29 - stale provider credentials block qualification
+  ---
+  duration_ms: 0.13864
+  type: 'test'
+  ...
+# Subtest: service-area mismatch blocks qualification
+ok 30 - service-area mismatch blocks qualification
+  ---
+  duration_ms: 0.111649
+  type: 'test'
+  ...
+# Subtest: missing patient capability blocks qualification
+ok 31 - missing patient capability blocks qualification
+  ---
+  duration_ms: 0.163337
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 229.783218

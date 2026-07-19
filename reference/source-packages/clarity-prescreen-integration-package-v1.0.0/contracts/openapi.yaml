@@ -1,0 +1,1067 @@
+openapi: 3.1.0
+info:
+  title: Clarity Prescreen & Referral Orchestration API
+  version: 1.0.0
+  description: Proposed contract. Actor, roles, and organization are derived from the authenticated principal and are never
+    accepted from the request body.
+servers:
+- url: /api
+security:
+- bearerAuth: []
+tags:
+- name: Prescreens
+- name: Tasks
+- name: Packets
+- name: Facility Review
+- name: Transport
+- name: Configuration
+paths:
+  /prescreens:
+    post:
+      tags:
+      - Prescreens
+      summary: Start a prescreen encounter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePrescreenRequest'
+      responses:
+        '201':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': &id001
+          $ref: '#/components/responses/ErrorResponse'
+        '401': &id002
+          $ref: '#/components/responses/ErrorResponse'
+        '403': &id003
+          $ref: '#/components/responses/ErrorResponse'
+        '404': &id004
+          $ref: '#/components/responses/ErrorResponse'
+        '409': &id005
+          $ref: '#/components/responses/ErrorResponse'
+        '422': &id006
+          $ref: '#/components/responses/ErrorResponse'
+        '429': &id007
+          $ref: '#/components/responses/ErrorResponse'
+      parameters: []
+    get:
+      tags:
+      - Prescreens
+      summary: List role-scoped prescreens
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      responses:
+        '200':
+          description: Page of prescreens
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - items
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PrescreenSummary'
+                  nextCursor:
+                    type:
+                    - string
+                    - 'null'
+                  freshness:
+                    type: object
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+  /prescreens/{encounterId}:
+    get:
+      tags:
+      - Prescreens
+      summary: Get a role-filtered prescreen projection
+      parameters:
+      - name: encounterId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Prescreen projection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrescreenSummary'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+  /prescreens/{encounterId}/draft:
+    put:
+      tags:
+      - Prescreens
+      summary: Save assessment draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveDraftRequest'
+      responses:
+        '200':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: encounterId
+        in: path
+        required: true
+        schema:
+          type: string
+  /prescreens/{encounterId}/attest:
+    post:
+      tags:
+      - Prescreens
+      summary: Attest the current assessment draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttestRequest'
+      responses:
+        '200':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: encounterId
+        in: path
+        required: true
+        schema:
+          type: string
+  /prescreens/{encounterId}/supplements:
+    post:
+      tags:
+      - Prescreens
+      summary: Create a versioned assessment supplement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplementRequest'
+      responses:
+        '201':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: encounterId
+        in: path
+        required: true
+        schema:
+          type: string
+  /prescreens/{encounterId}/submit:
+    post:
+      tags:
+      - Prescreens
+      summary: Submit an attested assessment to a named review target
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+      responses:
+        '200':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: encounterId
+        in: path
+        required: true
+        schema:
+          type: string
+  /prescreens/{encounterId}/information-requests:
+    post:
+      tags:
+      - Tasks
+      summary: Create a structured information request and task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InformationRequest'
+      responses:
+        '201':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: encounterId
+        in: path
+        required: true
+        schema:
+          type: string
+  /prescreens/{encounterId}/packets:
+    post:
+      tags:
+      - Packets
+      summary: Create an immutable referral packet version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PacketRequest'
+      responses:
+        '201':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: encounterId
+        in: path
+        required: true
+        schema:
+          type: string
+  /prescreens/{encounterId}/facility-responses:
+    post:
+      tags:
+      - Facility Review
+      summary: Record an authorized facility response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FacilityResponseRequest'
+      responses:
+        '201':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: encounterId
+        in: path
+        required: true
+        schema:
+          type: string
+  /prescreens/{encounterId}/transport-plans:
+    post:
+      tags:
+      - Transport
+      summary: Create a transport plan and server-owned qualification result
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransportPlanRequest'
+      responses:
+        '201':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: encounterId
+        in: path
+        required: true
+        schema:
+          type: string
+  /transport-plans/{transportPlanId}/custody-events:
+    post:
+      tags:
+      - Transport
+      summary: Append a custody or transport event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustodyEventRequest'
+      responses:
+        '201':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: transportPlanId
+        in: path
+        required: true
+        schema:
+          type: string
+  /transport/providers/qualified:
+    get:
+      tags:
+      - Transport
+      summary: Return providers qualified for the supplied case context
+      parameters:
+      - name: encounterId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: legalStatus
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: destinationFacilityId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Qualified providers
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - items
+                - evaluatedAt
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QualifiedProvider'
+                  evaluatedAt:
+                    type: string
+                    format: date-time
+                  profileVersionIds:
+                    type: array
+                    items:
+                      type: string
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+  /configuration/facility-profiles:
+    post:
+      tags:
+      - Configuration
+      summary: Create a draft facility admission profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./facility-admission-profile.schema.json
+      responses:
+        '201':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters: []
+  /configuration/facility-profiles/{profileId}/approve:
+    post:
+      tags:
+      - Configuration
+      summary: Record an authorized profile approval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttestRequest'
+      responses:
+        '200':
+          description: Command accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+      parameters:
+      - name: profileId
+        in: path
+        required: true
+        schema:
+          type: string
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-or-OIDC-access-token
+  parameters: {}
+  schemas:
+    CommandMeta:
+      type: object
+      additionalProperties: false
+      required:
+      - idempotencyKey
+      - correlationId
+      properties:
+        idempotencyKey:
+          type: string
+          minLength: 8
+          maxLength: 200
+        correlationId:
+          type: string
+          minLength: 1
+          maxLength: 200
+        causationId:
+          type:
+          - string
+          - 'null'
+        expectedVersion:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+    Error:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          - requestId
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            retryable:
+              type: boolean
+    PrescreenSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - encounterId
+      - caseId
+      - status
+      - version
+      - willingness
+      - orientationGate
+      - updatedAt
+      properties:
+        encounterId:
+          type: string
+        caseId:
+          type: string
+        status:
+          enum:
+          - DRAFT
+          - ATTESTED
+          - SUBMITTED
+          - CENTRAL_INTAKE_REVIEW
+          - NEEDS_INFORMATION
+          - AUTHORIZED_REVIEW
+          - FACILITY_ROUTING
+          - TRANSPORT_PLANNING
+          - HANDED_OFF
+          - REDIRECTED
+          - DECLINED
+          - CANCELLED
+        version:
+          type: integer
+        willingness:
+          type: string
+        orientationGate:
+          enum:
+          - PASS
+          - FAIL
+          - UNKNOWN
+        possiblePathway:
+          type:
+          - string
+          - 'null'
+        currentTarget:
+          type:
+          - string
+          - 'null'
+        openBlockerCount:
+          type: integer
+          minimum: 0
+        freshness:
+          type: object
+          properties:
+            lastMaterialEventAt:
+              type: string
+              format: date-time
+            stale:
+              type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+    CreatePrescreenRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - currentLocation
+      - referralSource
+      - presentingConcern
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        caseId:
+          type:
+          - string
+          - 'null'
+        temporaryIdentity:
+          type:
+          - object
+          - 'null'
+          additionalProperties: false
+          properties:
+            displayName:
+              type:
+              - string
+              - 'null'
+            approximateAge:
+              type:
+              - integer
+              - 'null'
+              minimum: 0
+              maximum: 125
+            sexOrGender:
+              type:
+              - string
+              - 'null'
+        currentLocation:
+          type: string
+          maxLength: 500
+        referralSource:
+          type: object
+          required:
+          - organizationName
+          - callbackNumber
+          properties:
+            organizationName:
+              type: string
+            contactName:
+              type:
+              - string
+              - 'null'
+            role:
+              type:
+              - string
+              - 'null'
+            callbackNumber:
+              type: string
+        presentingConcern:
+          type: string
+          maxLength: 5000
+        rapidSafety:
+          type: object
+          additionalProperties: false
+          properties:
+            immediateMedicalEmergency:
+              enum:
+              - 'YES'
+              - 'NO'
+              - UNKNOWN
+              - NOT_ASSESSED
+            immediateDanger:
+              enum:
+              - 'YES'
+              - 'NO'
+              - UNKNOWN
+              - NOT_ASSESSED
+            approvedProtocolActivated:
+              type: boolean
+    SaveDraftRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - assessment
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        assessment:
+          $ref: ./prescreen-assessment.schema.json
+    AttestRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - attestation
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        attestation:
+          type: object
+          additionalProperties: false
+          required:
+          - accuracyToKnowledge
+          - sourcesReviewed
+          - unknownsAcknowledged
+          properties:
+            accuracyToKnowledge:
+              const: true
+            sourcesReviewed:
+              type: boolean
+            unknownsAcknowledged:
+              type: boolean
+            note:
+              type:
+              - string
+              - 'null'
+              maxLength: 2000
+    SupplementRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - parentAssessmentVersionId
+      - reason
+      - changes
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        parentAssessmentVersionId:
+          type: string
+        reason:
+          type: string
+          maxLength: 2000
+        changes:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+            - path
+            - changeType
+            - sourceIds
+            properties:
+              path:
+                type: string
+              changeType:
+                enum:
+                - ADD
+                - CORRECT
+                - CLARIFY
+                - SUPERSEDE
+              value: {}
+              sourceIds:
+                type: array
+                items:
+                  type: string
+    SubmitRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - assessmentVersionId
+      - target
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        assessmentVersionId:
+          type: string
+        target:
+          enum:
+          - CENTRAL_INTAKE_REVIEW
+          - AUTHORIZED_PRACTITIONER_REVIEW
+          - FACILITY_ROUTING
+        facilityId:
+          type:
+          - string
+          - 'null'
+        programId:
+          type:
+          - string
+          - 'null'
+    InformationRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - requestType
+      - description
+      - ownerRoleCode
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        requestType:
+          type: string
+        description:
+          type: string
+          maxLength: 4000
+        ownerRoleCode:
+          type: string
+        ownerOrganizationId:
+          type:
+          - string
+          - 'null'
+        dueAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        requirementCode:
+          type:
+          - string
+          - 'null'
+        communicationChannel:
+          type:
+          - string
+          - 'null'
+    PacketRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - assessmentVersionId
+      - target
+      - items
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        assessmentVersionId:
+          type: string
+        target:
+          type: string
+        facilityProfileVersionId:
+          type:
+          - string
+          - 'null'
+        items:
+          type: array
+          items:
+            type: object
+            required:
+            - requirementCode
+            - status
+            properties:
+              requirementCode:
+                type: string
+              status:
+                type: string
+              documentVersionId:
+                type:
+                - string
+                - 'null'
+              unavailableReason:
+                type:
+                - string
+                - 'null'
+    FacilityResponseRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - packetVersionId
+      - response
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        packetVersionId:
+          type: string
+        response:
+          enum:
+          - INFORMATION_REQUESTED
+          - UNDER_REVIEW
+          - ACCEPTED
+          - DECLINED
+          - REDIRECTED
+        reasonCode:
+          type:
+          - string
+          - 'null'
+        rationale:
+          type:
+          - string
+          - 'null'
+          maxLength: 4000
+        conditions:
+          type: array
+          items:
+            type: string
+        authorizedReviewerId:
+          type:
+          - string
+          - 'null'
+    TransportPlanRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - legalStatus
+      - destinationFacilityId
+      - patientNeeds
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        legalStatus:
+          enum:
+          - VOLUNTARY
+          - NONCONTESTED
+          - OPC
+          - PEC
+          - CEC
+          - COURT_ORDER
+          - OTHER
+        instrumentId:
+          type:
+          - string
+          - 'null'
+        destinationFacilityId:
+          type: string
+        destinationProgramId:
+          type:
+          - string
+          - 'null'
+        patientNeeds:
+          type: array
+          items:
+            type: string
+        arrangingOrganizationId:
+          type:
+          - string
+          - 'null'
+        requestedProviderId:
+          type:
+          - string
+          - 'null'
+    CustodyEventRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - meta
+      - eventType
+      - occurredAt
+      properties:
+        meta:
+          $ref: '#/components/schemas/CommandMeta'
+        eventType:
+          enum:
+          - AUTHORITY_RECEIVED
+          - PICKUP_REQUESTED
+          - PROVIDER_QUALIFIED
+          - DISPATCH_ACCEPTED
+          - TAKEN_INTO_CUSTODY
+          - CUSTODY_TRANSFERRED
+          - DEPARTED
+          - ARRIVED
+          - DOCUMENTS_TRANSFERRED
+          - RECEIVING_ACCEPTED
+          - EXCEPTION
+          - CANCELLED
+        occurredAt:
+          type: string
+          format: date-time
+        providerId:
+          type:
+          - string
+          - 'null'
+        actorDisplay:
+          type:
+          - string
+          - 'null'
+        location:
+          type:
+          - string
+          - 'null'
+        note:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+    QualifiedProvider:
+      type: object
+      additionalProperties: false
+      required:
+      - providerId
+      - legalName
+      - category
+      - qualificationStatus
+      - verifiedAt
+      properties:
+        providerId:
+          type: string
+        legalName:
+          type: string
+        category:
+          type: string
+        qualificationStatus:
+          enum:
+          - QUALIFIED
+          - CONDITIONAL
+          - NOT_QUALIFIED
+        conditions:
+          type: array
+          items:
+            type: string
+        disqualifiers:
+          type: array
+          items:
+            type: string
+        verifiedAt:
+          type: string
+          format: date-time
+        ruleVersionIds:
+          type: array
+          items:
+            type: string
+    CommandResult:
+      type: object
+      additionalProperties: false
+      required:
+      - objectId
+      - version
+      - status
+      - correlationId
+      properties:
+        objectId:
+          type: string
+        version:
+          type: integer
+        status:
+          type: string
+        correlationId:
+          type: string
+        replayed:
+          type: boolean
+  responses:
+    ErrorResponse:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

@@ -1,0 +1,19 @@
+resource,action,required_capability,additional_predicates,failure_behavior
+PrescreenEncounter,create,PRESCREEN_CREATE,active organization membership,generic 403/401
+PrescreenEncounter,view,PRESCREEN_VIEW,organization + case relationship + field projection,404-equivalent for unauthorized identifiers
+AssessmentDraft,update,PRESCREEN_EDIT_DRAFT,assigned case; DRAFT state; expected version,409 on version conflict
+AssessmentVersion,attest,PRESCREEN_ATTEST,assigned case; required fields; no emergency hard-stop unresolved,422 with field-safe details
+AssessmentVersion,supplement,PRESCREEN_SUPPLEMENT,case relationship; parent version exists; reason/source,404-equivalent outside scope
+CentralIntakeSubmission,review,CENTRAL_INTAKE_REVIEW,receiving facility/program scope; access grant,404-equivalent outside scope
+WorkflowTask,create,TASK_CREATE,case relationship; owner target allowed,422 when owner/scope invalid
+ReferralPacket,create,PACKET_CREATE,exact assessment/doc versions; target profile access,409 if referenced versions changed
+AuthorizedReview,record,CLINICAL_REVIEW_RECORD,active credential/delegation; facility/program scope,403 without authority
+LegalInstrument,record,LEGAL_INSTRUMENT_RECORD,jurisdiction role/authority; source document,403 without authority
+FacilityResponse,record,FACILITY_RESPONSE_RECORD,receiving facility + reviewer authority,403 without authority
+TransportProvider,queryQualified,TRANSPORT_PLAN_CREATE,case; destination; legal status; live profile,no unrestricted registry exposure
+TransportPlan,create,TRANSPORT_PLAN_CREATE,server qualification; destination confirmed; profile current,422 with disqualifier codes
+CustodyEvent,append,TRANSPORT_CUSTODY_ACCEPT,assigned trip/custody role; event sequence valid,409 invalid sequence
+FacilityProfile,draft,FACILITY_PROFILE_DRAFT,facility onboarding assignment,403 outside assignment
+FacilityProfile,approve,FACILITY_PROFILE_APPROVE,matching approval type; source/test complete,422 unmet approval prerequisites
+Audit,view,AUDIT_VIEW,purpose + organization/case scope; field minimization,404-equivalent outside scope
+OperationalTrend,view,AGGREGATE_TREND_VIEW,approved aggregate scope + suppression,empty/suppressed rather than patient exposure
