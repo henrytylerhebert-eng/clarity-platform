@@ -235,3 +235,28 @@ Status: Completed (local code and tests in synthetic boundary; scope-limited rev
   - `npm run lint --workspace=packages/network-enrichment-service`
   - `npx tsc --noEmit`
   - `npm run test --workspace=packages/network-enrichment-service`
+
+## Packet 2+ Runtime Route Adapter Evidence (Synthetic, API Boundary)
+
+Status: Completed (docs + route-level composition boundary)
+
+- Implemented route files:
+  - `packages/api-service/src/reviewCommandCaller.ts`
+  - `packages/api-service/src/server.ts`
+  - `packages/api-service/src/devMain.ts`
+  - `packages/api-service/src/index.ts`
+- Implementation verification test:
+  - `tests/integration/api-service.test.ts` (11 tests passed)
+- Cross-package test command:
+  - `npx vitest run tests/integration/api-service.test.ts --root .`
+- Scope constraints retained:
+  - synthetic-only command caller default,
+  - no Prisma/database imports added in API/service runtime lane,
+  - no worker or outbound transport added.
+- Gate decisions retained:
+  - Packet 2 Decision Packet Option A approvals remain in force,
+  - worker/egress remains OFF,
+  - no API behavior beyond synthetic enrichment routes beyond what is recorded here.
+
+Evidence artifact:
+- `docs/decisions/NETWORK_ENRICHMENT_PACKET_2_PLUS_RUNTIME_ROUTE_GATEWAY_ADAPTER.md`

@@ -23,6 +23,11 @@ of Packet 2.
 - `docs/developer-handoff/NEXT_PERSISTENCE_HARDENING_EVIDENCE.md`
 - `packages/network-enrichment-service/src/runtime.ts`
 - `packages/network-enrichment-service/test/reviewRuntime.test.ts`
+- `packages/api-service/src/reviewCommandCaller.ts`
+- `packages/api-service/src/server.ts`
+- `packages/api-service/src/devMain.ts`
+- `packages/api-service/src/index.ts`
+- `tests/integration/api-service.test.ts`
 
 ## Acceptance Checklist
 
@@ -34,6 +39,8 @@ of Packet 2.
 - [x] Unit tests passed for submit/approve/reject and role mapping.
 - [x] Scope file references match this implementation.
 - [x] Runtime integration hook scaffold matches in-memory Packet 2 boundary.
+- [x] Route-level API synthetic command path is explicitly documented and exercised in integration.
+- [x] Network-enrichment command caller is exported from `@clarity/api-service` for explicit composition.
 
 ## Owner Decision
 
