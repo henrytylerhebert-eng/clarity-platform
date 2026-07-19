@@ -1,5 +1,5 @@
 ---
-status: Recommended posture accepted; bounded local synthetic slice verified; provider/session implementation remains gated
+status: Provider/session choice recorded; bounded local synthetic slice verified; provider-backed implementation remains gated
 decision: OD-6
 owner: Tyler/product owner with technical and security review
 date: 2026-07-19
@@ -25,7 +25,7 @@ posture.
 
 | Area | Confirmed fact | Consequence |
 |---|---|---|
-| Database engine | `prisma/schema.prisma` uses the PostgreSQL Prisma provider and `DATABASE_URL` | The application contract is PostgreSQL-compatible, but no production provider is selected |
+| Database engine | `prisma/schema.prisma` uses the PostgreSQL Prisma provider and `DATABASE_URL` | The application contract is PostgreSQL-compatible |
 | Current database scope | Integration tests are guarded to local `clarity_dev` on localhost | Local evidence cannot be promoted to provider or production evidence |
 | Application tenancy | Current gateways include `organizationId` in tenant-owned query and write predicates | Application isolation is the verified synthetic control |
 | Identity | `AuthenticationService` verifies a token, then loads roles and organization from the database-backed session/principal | RLS context must come from server-authenticated principal state, never request input |
@@ -33,7 +33,7 @@ posture.
 | Production identity direction | ADR-0011 recommends a managed OIDC adapter behind the existing port | OIDC provider/account selection remains deployment work |
 | API direction | ADR-0012 accepts the thin Fastify direction in part and keeps hosting/RLS separately gated | API acceptance does not authorize provider or RLS rollout |
 | Current RLS state | The local synthetic database now has a transaction-local context helper, an additive episode-persistence RLS migration, and deterministic isolation tests | No provider-backed or production isolation claim is made; broader model coverage remains open |
-| Connection state | No accepted provider, pooling mode, runtime DB role, or break-glass model is recorded | `SET LOCAL` behavior and connection reuse require an explicit design and test |
+| Connection state | Tyler recorded Google Cloud SQL for PostgreSQL in `us-central1` with direct connections | Provider credentials, runtime roles, break-glass procedure, and provider-backed tests remain to be configured and verified |
 
 ## Recommended Posture
 
@@ -56,13 +56,13 @@ Accept the following provider-neutral posture for the initial controlled pilot:
 6. Do not use session-scoped tenant state. Transaction-local state must expire
    at transaction end so connection reuse cannot carry one organization's
    context into another request.
-7. Keep the provider name open until data residency, region, backup/restore,
-   pooling, operational ownership, and cost requirements are explicitly
-   accepted.
+7. Use Google Cloud SQL for PostgreSQL in `us-central1` with direct
+   connections for the first provider-backed proof. Revisit pooling only after
+   the direct-connection path and recovery evidence are verified.
 
-This is a security and architecture posture. It does not authorize provider
-selection, production configuration, live data, or deployment. A separate
-explicit execution request authorized the bounded local synthetic slice below.
+This records the selected provider/session direction. It does not authorize
+production configuration, live data, or deployment. A separate explicit
+execution request authorized the bounded local synthetic slice below.
 
 ## Bounded Local Synthetic Implementation
 
@@ -96,7 +96,7 @@ This is direct technical evidence for the local boundary. It is not a selected
 production provider, provider-backed pooling evidence, or human security
 acceptance.
 
-## Provider And Connection Options
+## Provider And Connection Decision
 
 | Option | Description | Decision posture |
 |---|---|---|
@@ -105,12 +105,13 @@ acceptance.
 | C | Database-per-tenant or schema-per-tenant isolation | Deferred; materially changes routing, migrations, operations, and the current shared-schema contract |
 | D | RLS enabled immediately on the local synthetic database | Rejected as a decision shortcut; local enablement would not resolve provider, runtime-role, policy-coverage, or recovery questions |
 
-### Recommendation
+### Recorded Choice
 
-Choose Option A or B only after the owner selects a provider and confirms the
-connection mode. The application contract should require transaction-local
-context and remain valid for either a direct connection or a verified
-transaction pool. Option C is not needed for the current shared-schema design.
+Tyler selected Option A for the first provider-backed proof: Google Cloud SQL
+for PostgreSQL, `us-central1`, direct connections. The application contract
+continues to require transaction-local context and organization predicates.
+Transaction pooling remains a later compatibility decision, not an implicit
+change to this slice.
 
 ## Tenant Context Contract
 
@@ -201,11 +202,12 @@ tests must prove:
 
 ## Rollout And Recovery Boundary
 
-The local synthetic slice is complete. A later provider-backed implementation
-slice may extend policy coverage and runtime-role configuration. It must be
-preceded by:
+The local synthetic slice is complete. The selected provider-backed
+implementation may extend policy coverage and runtime-role configuration. It
+must be preceded by:
 
-- provider, region, pooling, backup, and operational ownership acceptance;
+- provider, region, direct-connection, backup, and operational ownership
+  acceptance;
 - a migration/recovery plan linked to
   `S2_MIGRATION_PROMOTION_AND_RECOVERY_CHECKLIST.md`;
 - a backward-compatible application deployment that can set context before
@@ -218,17 +220,16 @@ delivery, or production data is authorized by this packet.
 
 ## Owner Decision
 
-- Decision: `[x] Accept recommended posture`  `[ ] Select provider/connection option`  `[ ] Revise`  `[ ] Defer`
-- Provider: `[Pending provider selection]`
-- Connection/pooling mode: `[Pending provider verification]`
-- Owner: `Tyler / product owner`
-- Security reviewer: `[Pending]`
+- Decision: `[x] Accept recommended posture`  `[x] Select provider/connection option`  `[ ] Revise`  `[ ] Defer`
+- Provider: `Google Cloud SQL for PostgreSQL`
+- Region: `us-central1`
+- Connection/pooling mode: `Direct connection`
+- Owner/security approver: `Tyler Hebert / Clarity product owner`
 - Date: `2026-07-19`
-- Notes: Tyler accepted all recommendations in this packet. The explicit
-  execution request authorized the bounded local synthetic slice recorded
-  above. Provider identity, connection/pooling mode, security reviewer,
-  provider-backed tests, broader policy coverage, and production implementation
-  authorization remain open because acceptance did not specify those
-  operational facts. Application predicates remain required alongside the
-  local RLS boundary. No provider account, secret, deployment, or live data is
-  authorized by this acceptance.
+- Notes: Tyler accepted the recommended posture and selected the provider,
+  region, and direct connection mode. The local synthetic slice is verified.
+  `gcloud` is installed locally, but no authenticated account or project was
+  available during this pass, so provider-backed tests, Cloud SQL role setup,
+  backup/restore, and production implementation remain unverified. Application
+  predicates remain required alongside the local RLS boundary. No provider
+  secret, live tenant, or production deployment is authorized by this record.

@@ -40,6 +40,19 @@ The repository owner is not the delivery owner. A future dispatcher must not
 reach back into source tables to invent or amend clinical, legal, admission,
 placement, payer, or authorization facts.
 
+## First Consumer Contract
+
+| Field | Recorded value |
+|---|---|
+| Receiving system | `Bayside Hospital Clarity Intake Receiver` |
+| Event types | `ADMISSION_RECORDED`, `AUTHORIZATION_DAY_DECISION_RECORDED`, `DOCUMENTATION_GAP_RECORDED` |
+| Runtime owner | `Zack Morris / Bayside Hospital` |
+| Environment | Staging, synthetic data only |
+| Secret/configuration owner | `Tyler Hebert / Clarity product owner` |
+
+This names the first consumer contract. It does not claim that a Bayside
+Hospital endpoint, credential, deployment, or external integration exists.
+
 ## Recommended Boundary
 
 Keep the repository gateway responsible only for atomic persistence. A future
@@ -78,9 +91,9 @@ operational state, not a replacement for source truth.
 - Observability, alerting, and operator permissions.
 - Tenant enforcement and secret/configuration ownership.
 
-The owner must also name the first target consumer and the delivery runtime
-owner. Without both, the repository remains the only implemented owner and the
-outbox remains persistence-only.
+The first target consumer and runtime owner are now named. Provider endpoint,
+authentication, deployment, lease/retry implementation, and operational
+acceptance remain required before external delivery.
 
 ## Local Synthetic Evidence
 

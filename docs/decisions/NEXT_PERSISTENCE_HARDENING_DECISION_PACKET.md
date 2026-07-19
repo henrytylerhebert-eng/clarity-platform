@@ -1,5 +1,5 @@
 ---
-status: H1 and H3 implemented; H2 governance records drafted; production hardening remains gated
+status: H1/H3 and local synthetic hardening implemented; provider-backed execution remains gated
 owner: Tyler/product owner with technical and security review
 date: 2026-07-18
 data_boundary: synthetic only
@@ -41,11 +41,11 @@ external integrations, deployment, production flags, or real data.
 
 | # | Decision | Current evidence | Human gate |
 |---:|---|---|---|
-| 1 | RLS timing and database tenant enforcement | Recommended OD-6 posture accepted; a bounded local synthetic RLS slice now supplements the S2 organization predicates. Provider, pooling, runtime role, broader policy coverage, and security review remain open. | Provider-backed security and technical approval |
-| 2 | Migration recovery model | Forward-only promotion/recovery ownership and evidence gates are recorded; local fresh replay and disposable backup/restore now pass, but no provider restore or production promotion evidence exists. | Technical and operations approval |
+| 1 | RLS timing and database tenant enforcement | Google Cloud SQL for PostgreSQL in `us-central1` with direct connections is selected; local RLS is verified, while Cloud SQL roles, provider-backed tests, broader policy coverage, and deployment remain open. | Provider-backed security and technical approval |
+| 2 | Migration recovery model | Forward-only promotion/recovery ownership and evidence gates are recorded; local fresh replay and disposable backup/restore pass, but no Cloud SQL restore or production promotion evidence exists. | Technical and operations approval |
 | 3 | Concurrent admission retry semantics | H1 handles same-acceptance replay. H3 adds an additive partial unique index for one ACTIVE admission-source episode per case and maps the losing database conflict to `ActiveAdmissionExistsError`. | H1/H3 verified locally; migration promotion and recovery remain gated |
-| 4 | Outbox ownership and failure handling | Persistence owner, future delivery owner, consumer owner, security owner, and operations/replay responsibilities are recommended; the local synthetic dispatcher is verified, while S2 still has no external worker or consumer. | Architecture and operations decision |
-| 5 | Event vocabulary expansion | Current bounded vocabulary is accepted: three emitted events, with audit/history-only actions and the draft derived event kept separate. No approved runtime consumer is identified for expansion. | Expansion requires a named consumer and domain/governance decision |
+| 4 | Outbox ownership and failure handling | Persistence owner, future delivery owner, consumer owner, security owner, and operations/replay responsibilities are recommended; the local synthetic dispatcher is verified and `Bayside Hospital Clarity Intake Receiver` is named as the first consumer contract, while no external worker exists. | Architecture and operations decision |
+| 5 | Event vocabulary expansion | Current bounded vocabulary is accepted: three emitted events, with audit/history-only actions and the draft derived event kept separate. A named synthetic staging consumer contract exists, but no deployed external consumer or expansion requirement exists. | Expansion requires a named consumer and domain/governance decision |
 | 6 | Program identity contract | H1 aligns the Zod contracts, event payloads, mapper, and already-nullable Prisma column as nullable/source-owned. | H1 verified; revisit only if a canonical program hierarchy becomes required |
 | 7 | Command-service boundary | Boundary is recorded: episode writes require a role-gated command service before any HTTP exposure. | Technical lead decision |
 

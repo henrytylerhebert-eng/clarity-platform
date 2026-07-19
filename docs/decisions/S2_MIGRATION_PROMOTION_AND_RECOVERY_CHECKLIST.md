@@ -34,6 +34,18 @@ production database, destructive schema changes, or live tenant data.
 No single application request, repository gateway, or delivery worker may act
 as the migration or recovery owner.
 
+## Selected Provider Target
+
+- Provider: Google Cloud SQL for PostgreSQL
+- Region: `us-central1`
+- Connection mode: direct connection
+- Human approval owner: Tyler Hebert / Clarity product owner
+- Promotion and recovery operator: `[Pending named operations operator]`
+
+The local verifier is complete, but a Cloud SQL change window, backup/restore
+point, service account, and named operations operator are not yet available in
+the local session.
+
 ## Promotion Preconditions
 
 - [ ] Release commit, branch, and migration set are recorded.

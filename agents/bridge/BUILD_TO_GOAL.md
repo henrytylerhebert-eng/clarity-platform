@@ -170,14 +170,14 @@ gates.
 
 ### Next decision
 
-The next decision is technical/operations acceptance of the migration
-promotion/recovery ownership model and the outbox ownership model, followed by
-provider/session selection and security review for any provider-backed RLS
-extension. Local fresh replay/restore and synthetic outbox delivery are now
-verified; a real consumer and production delivery runtime remain gated. Keep
-the accepted three-event vocabulary in force; defer new review-level,
-documentation-gap-transition, and derived events until a named consumer and
-owner are accepted.
+The next execution gate is provider-backed verification: configure the selected
+GCP project and Cloud SQL instance, name the operations operator, verify the
+direct-connection runtime role and RLS policies, and run the provider migration
+and restore checks. The first consumer contract is named as `Bayside Hospital
+Clarity Intake Receiver`, owned at runtime by Zack Morris; external endpoint,
+credentials, and deployment remain gated. Keep the accepted three-event
+vocabulary in force; defer new review-level, documentation-gap-transition, and
+derived events until a named consumer and owner are accepted.
 
 ## Bridge Operating Procedure
 
