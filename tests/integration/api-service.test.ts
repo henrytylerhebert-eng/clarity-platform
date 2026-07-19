@@ -3,6 +3,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaAuthGateway, PrismaCaseCommandGateway } from "@clarity/case-repository";
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
+import {
+  InMemoryPrescreenGateway,
+  PRESCREEN_PRODUCTION_POLICY,
+  PrescreenCommandService,
+} from "@clarity/prescreen-service";
 import { createApiServer } from "@clarity/api-service";
 import type { UserRole } from "@clarity/domain-contracts";
 import { createHarness, type Harness } from "./helpers/harness.js";
@@ -82,7 +87,8 @@ beforeAll(async () => {
 
   const auth = new AuthenticationService(provider, new PrismaAuthGateway(h.prisma));
   const caseCommands = new CaseCommandService(new PrismaCaseCommandGateway(h.prisma));
-  server = createApiServer({ auth, caseCommands });
+  const prescreen = new PrescreenCommandService(new InMemoryPrescreenGateway(), PRESCREEN_PRODUCTION_POLICY);
+  server = createApiServer({ auth, caseCommands, prescreen });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   if (address === null || typeof address === "string") throw new Error("no ephemeral port assigned");
