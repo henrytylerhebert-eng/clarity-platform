@@ -404,4 +404,102 @@ describe("Network enrichment synthetic command runtime", () => {
       expect(await forgedRes.json()).toEqual({ error: "invalid_request" });
     }
   });
+
+  it("rejects network enrichment approve/reject payloads that attempt to smuggle principal fields", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+
+    const reviewId = `network-review-${h.runId}-smuggle-authz`;
+    const submitPayloadRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId,
+      caseId: `case-${h.runId}-smuggle-authz`,
+      sourceCandidateId: "candidate-smuggle-authz",
+      fieldPath: "facilityAdmissionProfiles.capacity",
+      currentValue: 1,
+      proposedValue: 2,
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-smuggle-authz`,
+      reason: "Smuggling authz test",
+      correlationId: "corr-network-smuggle-authz",
+    });
+    expect(submitPayloadRes.status).toBe(200);
+    const submitPayload = (await submitPayloadRes.json()) as {
+      value: { review: { version: number } };
+      replayed: boolean;
+    };
+
+    const forgedApprovals = [
+      { organizationId: h.tenantB.organizationId },
+      { actor: { actorId: "attacker", roles: ["SYSTEM_ADMIN"] } },
+      { roles: ["SYSTEM_ADMIN"] },
+    ];
+    for (const forged of forgedApprovals) {
+      const forgedApprove = await postNetworkEnrichmentApprove(token, {
+        reviewId,
+        expectedVersion: submitPayload.value.review.version,
+        actorNotes: "Smuggling attempt",
+        idempotencyKey: `synthetic-enrich-approve-${h.runId}-smuggle-authz`,
+        correlationId: "corr-network-smuggle-authz-approve",
+        ...forged,
+      } as Record<string, unknown>);
+      expect(forgedApprove.status).toBe(400);
+      expect(await forgedApprove.json()).toEqual({ error: "invalid_request" });
+    }
+
+    const forgedRejects = [
+      { organizationId: h.tenantB.organizationId },
+      { actor: { actorId: "attacker", roles: ["SYSTEM_ADMIN"] } },
+      { roles: ["SYSTEM_ADMIN"] },
+    ];
+    for (const forged of forgedRejects) {
+      const forgedReject = await postNetworkEnrichmentReject(token, {
+        reviewId,
+        expectedVersion: submitPayload.value.review.version,
+        rejectionReason: "Smuggling attempt",
+        idempotencyKey: `synthetic-enrich-reject-${h.runId}-smuggle-authz`,
+        correlationId: "corr-network-smuggle-authz-reject",
+        ...forged,
+      } as Record<string, unknown>);
+      expect(forgedReject.status).toBe(400);
+      expect(await forgedReject.json()).toEqual({ error: "invalid_request" });
+    }
+  });
+
+  it("maps review version mismatch to conflict for approve/reject transitions", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+
+    const reviewId = `network-review-${h.runId}-conflict`;
+    const submitRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId,
+      caseId: `case-${h.runId}-conflict`,
+      sourceCandidateId: "candidate-conflict",
+      fieldPath: "facilityAdmissionProfiles.capacity",
+      currentValue: 1,
+      proposedValue: 2,
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-conflict`,
+      reason: "Conflict mapping test",
+      correlationId: "corr-network-conflict",
+    });
+    expect(submitRes.status).toBe(200);
+
+    const approveBadVersion = await postNetworkEnrichmentApprove(token, {
+      reviewId,
+      expectedVersion: 999,
+      actorNotes: "Out-of-date version",
+      idempotencyKey: `synthetic-enrich-approve-${h.runId}-conflict`,
+      correlationId: "corr-network-conflict-approve",
+    });
+    expect(approveBadVersion.status).toBe(409);
+    expect(await approveBadVersion.json()).toEqual({ error: "conflict" });
+
+    const rejectBadVersion = await postNetworkEnrichmentReject(token, {
+      reviewId,
+      expectedVersion: 888,
+      rejectionReason: "Out-of-date version",
+      idempotencyKey: `synthetic-enrich-reject-${h.runId}-conflict`,
+      correlationId: "corr-network-conflict-reject",
+    });
+    expect(rejectBadVersion.status).toBe(409);
+    expect(await rejectBadVersion.json()).toEqual({ error: "conflict" });
+  });
 });

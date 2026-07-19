@@ -260,3 +260,25 @@ Status: Completed (docs + route-level composition boundary)
 
 Evidence artifact:
 - `docs/decisions/NETWORK_ENRICHMENT_PACKET_2_PLUS_RUNTIME_ROUTE_GATEWAY_ADAPTER.md`
+
+## Packet 9: Network Enrichment API Runtime Boundary Hardening
+
+Status: Completed (route-level synthetic boundary hardening + error visibility)
+
+- Scope for this packet:
+  - `tests/integration/api-service.test.ts`
+- Added checks:
+  - Principal-field smuggling rejection (`organizationId`, `actor`, `roles`) for `approve` and `reject` routes.
+  - Stale expectedVersion transition mapping to `409 conflict`.
+- Execution verification:
+  - `npx vitest run tests/integration/api-service.test.ts --root .` (14 tests passed)
+  - `npx eslint tests/integration/api-service.test.ts` (pass)
+  - `npm run lint --workspace=packages/network-enrichment-service` (pass)
+  - `npm run test --workspace=packages/network-enrichment-service` (pass)
+  - `npx tsc --noEmit` (pass)
+- Gate/Policy posture retained:
+  - Packet 2+ runtime adapter remains synthetic-only by default.
+  - No Prisma/DB imports introduced in Packet 9 files.
+  - No outbound transport or worker introduced.
+- Evidence artifact:
+  - `docs/decisions/NETWORK_ENRICHMENT_PACKET_9_REVIEW_AND_ACCEPTANCE_RECORD.md`
