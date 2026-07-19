@@ -1,0 +1,459 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarity.example/schemas/network-enrichment-v1.json",
+  "title": "Clarity Network Enrichment Candidate Package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "runId",
+    "organizationId",
+    "entityResolution",
+    "candidates",
+    "evidence",
+    "conflicts",
+    "unresolvedFields",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "clarity.network-enrichment.v1"
+    },
+    "runId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "organizationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "entityResolution": {
+      "$ref": "#/$defs/entityResolution"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/candidateField"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/conflict"
+      }
+    },
+    "unresolvedFields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unresolved"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      }
+    }
+  },
+  "$defs": {
+    "jsonValue": {},
+    "resolutionStatus": {
+      "enum": [
+        "MATCHED",
+        "PROBABLE_MATCH",
+        "AMBIGUOUS",
+        "NO_MATCH",
+        "CONFLICT",
+        "INACTIVE_OR_CLOSED"
+      ]
+    },
+    "reviewState": {
+      "enum": [
+        "UNRESEARCHED",
+        "CANDIDATE",
+        "SOURCE_CONFIRMED",
+        "HUMAN_CONFIRMED",
+        "CONFLICT",
+        "STALE",
+        "REJECTED",
+        "SUPERSEDED",
+        "DEPRECATED"
+      ]
+    },
+    "sourceType": {
+      "enum": [
+        "OFFICIAL_ORGANIZATION",
+        "FEDERAL_GOVERNMENT",
+        "LOUISIANA_DEPARTMENT_OF_HEALTH",
+        "MEDICARE_CMS",
+        "OFFICIAL_LICENSING_OR_GOVERNMENT_DIRECTORY",
+        "LOCAL_GOVERNMENT",
+        "ACCREDITED_DIRECTORY",
+        "REPUTABLE_SECONDARY",
+        "COMMERCIAL_DIRECTORY",
+        "DISCOVERY_ONLY"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ]
+    },
+    "matchSignal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal",
+        "weight",
+        "matched",
+        "detail"
+      ],
+      "properties": {
+        "signal": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weight": {
+          "type": "number"
+        },
+        "matched": {
+          "type": "boolean"
+        },
+        "detail": {
+          "type": "string"
+        }
+      }
+    },
+    "scoredCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidateId",
+        "rawScore",
+        "normalizedScore",
+        "hardConflict",
+        "signals"
+      ],
+      "properties": {
+        "candidateId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rawScore": {
+          "type": "number"
+        },
+        "normalizedScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "hardConflict": {
+          "type": "boolean"
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/matchSignal"
+          }
+        }
+      }
+    },
+    "entityResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "selectedCandidateId",
+        "confidence",
+        "margin",
+        "reason",
+        "candidates",
+        "requiresHumanReview"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/resolutionStatus"
+        },
+        "selectedCandidateId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "margin": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scoredCandidate"
+          }
+        },
+        "requiresHumanReview": {
+          "type": "boolean"
+        }
+      }
+    },
+    "candidateField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidateId",
+        "fieldPath",
+        "currentValue",
+        "proposedValue",
+        "normalizedValue",
+        "reviewState",
+        "operationalUseStatus",
+        "evidenceIds",
+        "confidence",
+        "sourceEffectiveAt",
+        "lastHumanVerifiedAt",
+        "nextReviewAt",
+        "proposedReviewerRoles"
+      ],
+      "properties": {
+        "candidateId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fieldPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "currentValue": {},
+        "proposedValue": {},
+        "normalizedValue": {},
+        "reviewState": {
+          "$ref": "#/$defs/reviewState"
+        },
+        "operationalUseStatus": {
+          "enum": [
+            "RESEARCH_ONLY",
+            "REQUIRES_REVIEW",
+            "APPROVED_REFERENCE",
+            "APPROVED_OPERATIONAL",
+            "SUSPENDED",
+            "RETIRED"
+          ]
+        },
+        "evidenceIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "sourceEffectiveAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "lastHumanVerifiedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "nextReviewAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "proposedReviewerRoles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceId",
+        "sourceType",
+        "sourceTier",
+        "sourceTitle",
+        "sourceUrl",
+        "retrievedAt",
+        "publishedOrEffectiveAt",
+        "evidenceText",
+        "supportsFields",
+        "scope",
+        "confidence"
+      ],
+      "properties": {
+        "evidenceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceType": {
+          "$ref": "#/$defs/sourceType"
+        },
+        "sourceTier": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "sourceTitle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "publishedOrEffectiveAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "evidenceText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "supportsFields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "scope": {
+          "enum": [
+            "ORGANIZATION",
+            "LOCATION",
+            "PROGRAM",
+            "CONTACT",
+            "PAYER",
+            "ADMISSION_PROFILE",
+            "TRANSPORT"
+          ]
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "contentHash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        }
+      }
+    },
+    "conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conflictId",
+        "fieldPath",
+        "candidateIds",
+        "reason",
+        "recommendedReviewerRoles"
+      ],
+      "properties": {
+        "conflictId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fieldPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidateIds": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recommendedReviewerRoles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "unresolved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fieldPath",
+        "reason",
+        "recommendedAction"
+      ],
+      "properties": {
+        "fieldPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recommendedAction": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+action,NETWORK_RESEARCHER,NETWORK_REVIEWER,FACILITY_ADMIN,FACILITY_CLINICAL_GOVERNANCE,FACILITY_LEGAL_COMPLIANCE,PAYER_BENEFITS_REVIEWER,COMPLIANCE_REVIEWER,SYSTEM_ADMIN
+start_run,allow,allow,allow,deny,deny,deny,deny,deny
+submit_candidate_package,allow,deny,deny,deny,deny,deny,deny,deny
+read_review_queue,own_scope,allow,own_facility,clinical_scope,legal_scope,payer_scope,compliance_scope,deny
+approve_identity,deny,allow,own_facility,deny,deny,deny,allow,deny
+approve_admissions_contact,deny,allow,allow,deny,deny,deny,deny,deny
+approve_clinical_criteria,deny,deny,deny,allow,deny,deny,deny,deny
+approve_legal_custody,deny,deny,deny,deny,allow,deny,deny,deny
+approve_payer_participation,deny,deny,deny,deny,deny,allow,deny,deny
+resolve_conflict,deny,scope_based,scope_based,scope_based,scope_based,scope_based,scope_based,deny
+override_tenant_scope,deny,deny,deny,deny,deny,deny,deny,deny

@@ -1,0 +1,294 @@
+[
+  {
+    "id": "exact-match",
+    "target": {
+      "name": "Oceans Behavioral Hospital Lafayette",
+      "city": "Lafayette",
+      "state": "LA",
+      "website": "https://oceanshealthcare.com"
+    },
+    "candidates": [
+      {
+        "id": "ocean-laf",
+        "name": "Oceans Behavioral Hospital Lafayette",
+        "city": "Lafayette",
+        "state": "LA",
+        "website": "https://www.oceanshealthcare.com",
+        "status": "ACTIVE"
+      },
+      {
+        "id": "ocean-hou",
+        "name": "Oceans Behavioral Hospital",
+        "city": "Houston",
+        "state": "TX",
+        "website": "https://oceanshealthcare.com",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "MATCHED",
+    "expectedId": "ocean-laf"
+  },
+  {
+    "id": "same-name-different-city",
+    "target": {
+      "name": "Community Hospital",
+      "city": "Lafayette",
+      "state": "LA"
+    },
+    "candidates": [
+      {
+        "id": "a",
+        "name": "Community Hospital",
+        "city": "Lafayette",
+        "state": "LA",
+        "status": "ACTIVE"
+      },
+      {
+        "id": "b",
+        "name": "Community Hospital",
+        "city": "Monroe",
+        "state": "LA",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "PROBABLE_MATCH",
+    "expectedId": "a"
+  },
+  {
+    "id": "parent-vs-campus",
+    "target": {
+      "name": "Acme Health North Campus",
+      "city": "Baton Rouge",
+      "state": "LA",
+      "website": "https://north.acme.example"
+    },
+    "candidates": [
+      {
+        "id": "parent",
+        "name": "Acme Health",
+        "city": "Baton Rouge",
+        "state": "LA",
+        "website": "https://acme.example",
+        "status": "ACTIVE"
+      },
+      {
+        "id": "campus",
+        "name": "Acme Health North Campus",
+        "city": "Baton Rouge",
+        "state": "LA",
+        "website": "https://north.acme.example",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "MATCHED",
+    "expectedId": "campus"
+  },
+  {
+    "id": "program-vs-hospital",
+    "target": {
+      "name": "General Hospital Behavioral Health Unit",
+      "city": "Lake Charles",
+      "state": "LA"
+    },
+    "candidates": [
+      {
+        "id": "hospital",
+        "name": "General Hospital",
+        "city": "Lake Charles",
+        "state": "LA",
+        "status": "ACTIVE"
+      },
+      {
+        "id": "program",
+        "name": "General Hospital Behavioral Health Unit",
+        "city": "Lake Charles",
+        "state": "LA",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "PROBABLE_MATCH",
+    "expectedId": "program"
+  },
+  {
+    "id": "renamed-facility",
+    "target": {
+      "name": "Old River Behavioral Center",
+      "city": "Alexandria",
+      "state": "LA"
+    },
+    "candidates": [
+      {
+        "id": "new",
+        "name": "River Behavioral Center",
+        "aliases": [
+          "Old River Behavioral Center"
+        ],
+        "city": "Alexandria",
+        "state": "LA",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "PROBABLE_MATCH",
+    "expectedId": "new"
+  },
+  {
+    "id": "closed-historical-site",
+    "target": {
+      "name": "Closed Care Center",
+      "city": "Shreveport",
+      "state": "LA",
+      "website": "https://closed.example"
+    },
+    "candidates": [
+      {
+        "id": "closed",
+        "name": "Closed Care Center",
+        "city": "Shreveport",
+        "state": "LA",
+        "website": "https://closed.example",
+        "status": "CLOSED"
+      }
+    ],
+    "expectedStatus": "INACTIVE_OR_CLOSED",
+    "expectedId": "closed"
+  },
+  {
+    "id": "official-id-conflict",
+    "target": {
+      "name": "Alpha Hospital",
+      "city": "New Orleans",
+      "state": "LA",
+      "identifiers": [
+        {
+          "type": "license",
+          "value": "LA-100"
+        }
+      ]
+    },
+    "candidates": [
+      {
+        "id": "alpha",
+        "name": "Alpha Hospital",
+        "city": "New Orleans",
+        "state": "LA",
+        "identifiers": [
+          {
+            "type": "license",
+            "value": "LA-999"
+          }
+        ],
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "CONFLICT",
+    "expectedId": null
+  },
+  {
+    "id": "ambiguous-two-campuses",
+    "target": {
+      "name": "Unity Medical Center",
+      "state": "LA"
+    },
+    "candidates": [
+      {
+        "id": "u1",
+        "name": "Unity Medical Center",
+        "city": "Lafayette",
+        "state": "LA",
+        "status": "ACTIVE"
+      },
+      {
+        "id": "u2",
+        "name": "Unity Medical Center",
+        "city": "Baton Rouge",
+        "state": "LA",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "AMBIGUOUS",
+    "expectedId": null
+  },
+  {
+    "id": "no-match",
+    "target": {
+      "name": "Nonexistent Recovery",
+      "city": "Houma",
+      "state": "LA"
+    },
+    "candidates": [
+      {
+        "id": "other",
+        "name": "Different Organization",
+        "city": "Monroe",
+        "state": "LA",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "NO_MATCH",
+    "expectedId": null
+  },
+  {
+    "id": "phone-corroboration",
+    "target": {
+      "name": "Bayou Recovery",
+      "city": "Thibodaux",
+      "state": "LA",
+      "phone": "(985) 555-1000"
+    },
+    "candidates": [
+      {
+        "id": "bayou",
+        "name": "Bayou Recovery LLC",
+        "city": "Thibodaux",
+        "state": "LA",
+        "phone": "985-555-1000",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "MATCHED",
+    "expectedId": "bayou"
+  },
+  {
+    "id": "domain-corroboration",
+    "target": {
+      "name": "Northshore Psychiatry",
+      "city": "Covington",
+      "state": "LA",
+      "website": "northshore.example"
+    },
+    "candidates": [
+      {
+        "id": "north",
+        "name": "Northshore Psychiatry, LLC",
+        "city": "Covington",
+        "state": "LA",
+        "website": "https://www.northshore.example/admissions",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "MATCHED",
+    "expectedId": "north"
+  },
+  {
+    "id": "alias-with-city",
+    "target": {
+      "name": "ARC Lafayette",
+      "city": "Lafayette",
+      "state": "LA"
+    },
+    "candidates": [
+      {
+        "id": "arc",
+        "name": "Acadiana Recovery Center",
+        "aliases": [
+          "ARC Lafayette"
+        ],
+        "city": "Lafayette",
+        "state": "LA",
+        "status": "ACTIVE"
+      }
+    ],
+    "expectedStatus": "PROBABLE_MATCH",
+    "expectedId": "arc"
+  }
+]

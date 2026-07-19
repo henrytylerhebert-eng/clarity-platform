@@ -1,0 +1,43 @@
+openapi: 3.1.0
+info:
+  title: Clarity Network Enrichment API
+  version: 1.0.0-proposed
+paths:
+  /api/network-enrichment/runs:
+    post:
+      summary: Start an enrichment run
+      security: [{ bearerAuth: [] }]
+      responses:
+        '202': { description: Accepted }
+        '401': { description: Authentication failed }
+        '403': { description: Permission denied }
+  /api/network-enrichment/runs/{runId}:
+    get:
+      summary: Read a tenant-scoped enrichment run
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: runId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Run }
+        '404': { description: Not found }
+  /api/network-enrichment/candidates/{candidateId}/approve:
+    post:
+      summary: Approve a candidate field through a controlled command
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: candidateId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Approved }
+        '409': { description: Concurrency conflict }
+        '422': { description: Review or validation requirement }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

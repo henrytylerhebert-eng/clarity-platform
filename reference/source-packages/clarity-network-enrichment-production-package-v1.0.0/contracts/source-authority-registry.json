@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0-proposed",
+  "tiers": [
+    {
+      "tier": 1,
+      "type": "OFFICIAL_ORGANIZATION",
+      "operational": true
+    },
+    {
+      "tier": 2,
+      "type": "FEDERAL_GOVERNMENT",
+      "operational": true
+    },
+    {
+      "tier": 3,
+      "type": "LOUISIANA_DEPARTMENT_OF_HEALTH",
+      "operational": true
+    },
+    {
+      "tier": 4,
+      "type": "MEDICARE_CMS",
+      "operational": true
+    },
+    {
+      "tier": 5,
+      "type": "OFFICIAL_LICENSING_OR_GOVERNMENT_DIRECTORY",
+      "operational": true
+    },
+    {
+      "tier": 6,
+      "type": "LOCAL_GOVERNMENT",
+      "operational": true
+    },
+    {
+      "tier": 7,
+      "type": "ACCREDITED_DIRECTORY",
+      "operational": false
+    },
+    {
+      "tier": 8,
+      "type": "REPUTABLE_SECONDARY",
+      "operational": false
+    },
+    {
+      "tier": 9,
+      "type": "COMMERCIAL_DIRECTORY",
+      "operational": false
+    },
+    {
+      "tier": 10,
+      "type": "DISCOVERY_ONLY",
+      "operational": false
+    }
+  ]
+}
