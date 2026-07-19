@@ -41,7 +41,7 @@ external integrations, deployment, production flags, or real data.
 | # | Decision | Current evidence | Human gate |
 |---:|---|---|---|
 | 1 | RLS timing and database tenant enforcement | Design record drafted; S2 still uses organization predicates and has no RLS migration. | Security and technical approval |
-| 2 | Migration recovery model | Promotion/recovery checklist drafted; no production restore evidence exists. | Technical and operations approval |
+| 2 | Migration recovery model | Promotion/recovery checklist and deterministic local migration-integrity test are recorded; no fresh-database, provider restore, or production promotion evidence exists. | Technical and operations approval |
 | 3 | Concurrent admission retry semantics | H1 handles same-acceptance replay. H3 adds an additive partial unique index for one ACTIVE admission-source episode per case and maps the losing database conflict to `ActiveAdmissionExistsError`. | H1/H3 verified locally; migration promotion and recovery remain gated |
 | 4 | Outbox ownership and failure handling | Delivery boundary record drafted; S2 persists `PENDING` rows atomically and has no dispatcher or retry worker. | Architecture and operations decision |
 | 5 | Event vocabulary expansion | Review-row identifiers and gap-transition events lack dedicated S1 payload schemas. | Domain and governance decision |

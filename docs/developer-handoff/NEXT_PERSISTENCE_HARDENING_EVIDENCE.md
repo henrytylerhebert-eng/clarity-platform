@@ -62,6 +62,12 @@ Treat Prisma migration application as forward-only. Require a reviewed
 promotion checklist, backup/restore evidence, backward-compatible application
 ordering, and a named recovery owner before production migration work.
 
+The repository now has a deterministic local integrity check at
+`tests/integration/migration-integrity.test.ts`. It verifies the local
+`_prisma_migrations` ledger and the H3 partial index without writing product
+data. Fresh-database replay, provider restore, and production promotion remain
+unverified.
+
 ### 3. Concurrent admission retries
 
 H1 implemented the bounded recovery policy: re-read the organization-scoped
@@ -150,7 +156,6 @@ success. The focused S2 suite passes 16 tests after this change.
 The next bounded slice should be selected explicitly from:
 
 - event-vocabulary domain decision and explicit consumer requirements;
-- migration promotion/recovery documentation and tests;
 - the proposed RLS design and OD-6 provider/session decision;
 - the separately governed outbox delivery design.
 

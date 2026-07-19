@@ -75,3 +75,18 @@ The local synthetic database currently reports all eleven repository migrations
 up to date through `npx prisma migrate status`, including the additive
 `20260719011500_s2_active_admission_guard` migration. This is local verification
 only; it is not promotion, backup, restore, or production evidence.
+
+## Deterministic Local Migration Evidence
+
+Run the read-only integration check from the repository root:
+
+```bash
+npx vitest run tests/integration/migration-integrity.test.ts
+```
+
+The check is hard-guarded to local `clarity_dev`. It verifies that every
+repository migration directory appears in `_prisma_migrations` with a
+successful, non-rolled-back record, and that the H3 active-admission index is
+present with its unique `sourceCaseId` and `status = 'ACTIVE'` predicate.
+This proves local migration integrity only; it does not prove fresh-database
+replay in CI, provider backup/restore, production promotion, or recovery.
