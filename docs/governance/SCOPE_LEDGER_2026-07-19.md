@@ -15,6 +15,11 @@ The scope branches are reconstructed from the pre-slice base plus the shared
 ledger so each requested scope remains independently reviewable; no existing
 commit is rewritten.
 
+After this ledger was reconciled, `codex/om/sync-main` advanced again with
+`e82c966` (`feat: add synthetic directory crm prototype`). That concurrent
+commit is preserved on `sync-main`; the isolated Directory branch below is a
+clean reconstruction of the same scope and is not claimed to replace it.
+
 ## Branches
 
 | Scope | Branch | Commit intent | Boundary |
@@ -41,7 +46,12 @@ The four branches inherit a small ledger-only base commit from `codex/om/scope-l
 
 ### Shared-file note
 
-The current app uses one workspace registry and one stylesheet. The POC branch carries the current app-shell changes in `app/src/App.tsx`, `app/src/App.test.tsx`, `app/src/domain/roles.ts`, `app/src/domain/roles.test.ts`, `app/src/domain/services.ts`, `app/src/domain/types.ts`, and `app/src/styles.css`. Those files contain a small amount of Directory CRM registration because the dirty worktree was developed in parallel. The Directory branch keeps its domain, workspace, and discovery artifacts separately; merging both branches requires a deliberate hunk-level reconciliation of those shared files.
+The source worktree uses one workspace registry and one stylesheet. The scope
+branches split the shared files deliberately: the POC branch owns Journey,
+Prescreen, Stage 2, Admit, Discharge, and Payer wiring; the Directory branch
+owns Directory-only navigation, tests, roles, and styles. Combining both
+branches later still requires an ordinary merge review of those shared files,
+but neither isolated branch depends on the other branch's component files.
 
 ### Not included
 
