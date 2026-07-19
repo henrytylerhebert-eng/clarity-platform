@@ -22,9 +22,18 @@ Goal: Independent verification and debugging of the S2 persistence implementatio
 
 ## MSG-0036 bridge notification
 
+From: antigravity
+To: codex
+Type: status
+Canonical message: `agents/bridge/inbox/codex/MSG-0036_antigravity-to-codex_claude-mcp-failure-recorded.md`
+
+Goal: Record the Claude MCP gateway hang and the shift to safe local-repository mode. Evidence: User/Codex report of Claude child process `docker mcp gateway run --profile profile` hanging, resolved by stopping the run and restarting under
+
+## MSG-0053 bridge notification
+
 From: antigravity  
 To: codex  
 Type: status  
-Canonical message: `agents/bridge/inbox/codex/MSG-0036_antigravity-to-codex_claude-mcp-failure-recorded.md`
+Canonical message: `agents/bridge/inbox/codex/MSG-0053_antigravity-to-codex_next-persistence-hardening-acknowledged.md`
 
-Goal: Record the Claude MCP gateway hang and the shift to safe local-repository mode. Evidence: User/Codex report of Claude child process `docker mcp gateway run --profile profile` hanging, resolved by stopping the run and restarting under 
+Acknowledged MSG-0049. Owner: antigravity. Current state: Orchestrating Next Persistence Hardening. Evidence path: docs/decisions/NEXT_PERSISTENCE_HARDENING_DECISION_PACKET.md. Next human decision: Domain decision acceptance for event vocab

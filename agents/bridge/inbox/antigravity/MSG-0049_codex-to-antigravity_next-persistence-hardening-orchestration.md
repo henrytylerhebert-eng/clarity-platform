@@ -3,7 +3,7 @@ id: MSG-0049
 from: codex
 to: antigravity
 type: task
-status: open
+status: acknowledged
 transport: queued
 posted: 2026-07-19T00:03:10Z
 owner: antigravity
