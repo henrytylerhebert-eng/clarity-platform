@@ -34,6 +34,9 @@ export default defineConfig({
       "@clarity/auth-service": fileURLToPath(
         new URL("./packages/auth-service/src/index.ts", import.meta.url),
       ),
+      "@clarity/prescreen-service": fileURLToPath(
+        new URL("./packages/prescreen-service/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {
