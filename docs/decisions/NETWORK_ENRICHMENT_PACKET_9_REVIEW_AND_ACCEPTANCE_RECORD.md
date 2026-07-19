@@ -30,10 +30,10 @@ Lock network-enrichment HTTP boundary behavior for `approve` and `reject` routes
 
 ## Packet 9 Decision Path
 
-- Decision: `[ ] Approve Packet 9`  `[ ] Revise Packet 9`  `[ ] Defer Packet 9`
+- Decision: `[x] Approve Packet 9`  `[ ] Revise Packet 9`  `[ ] Defer Packet 9`
 - Owner: Tyler / product owner
 - Date: `2026-07-19`
-- Notes: Hold at unselected decision state until reviewer signoff.
+- Notes: Packet 9 runtime hardening accepted. Packet 10 can proceed only after a new explicit scope/gate packet is defined.
 
 ## Packet 9 Boundaries
 
