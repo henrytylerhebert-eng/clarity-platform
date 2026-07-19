@@ -4,6 +4,17 @@ Date: 2026-07-19
 Base: `codex/om/sync-main` at `504037c93762d1cea4875064aa5491b67373e93d`  
 Purpose: separate the current dirty worktree into reviewable local branches without changing the source checkout.
 
+During ledger creation, `codex/om/sync-main` advanced to `884a8a0` with three
+commits. Those commits are preserved as existing work and are assigned here:
+
+- `fb9f5dd` `feat: add prescreen domain contract slice` -> Prescreen integration.
+- `5489b5e` `feat: add synthetic operations backbone` -> Directory and operations.
+- `884a8a0` `fix: replay admissions across active-check races` -> Journey POC admission persistence support.
+
+The scope branches are reconstructed from the pre-slice base plus the shared
+ledger so each requested scope remains independently reviewable; no existing
+commit is rewritten.
+
 ## Branches
 
 | Scope | Branch | Commit intent | Boundary |
