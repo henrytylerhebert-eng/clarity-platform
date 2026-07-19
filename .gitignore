@@ -30,3 +30,7 @@ agents/bridge/.bridge.lock
 agents/bridge/.bridge-*
 __pycache__/
 *.py[cod]
+
+# Packet 6 boundary policy: local worktree and local memory DB are out-of-band
+agent_bridge/memory.db
+clarity-platform-persistence-hardening/
