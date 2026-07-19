@@ -20,6 +20,20 @@ test('case queue and custody verification render across viewports', async ({ pag
   });
 });
 
+test('episode-owned UR workspace keeps outcomes, risks, and provenance visible', async ({ page }, testInfo) => {
+  await page.getByRole('button', { name: 'Episode & UR' }).click();
+  await expect(page.getByRole('heading', { name: 'Episode & UR' })).toBeVisible();
+  await expect(page.getByText('Separate authorization-risk flags')).toBeVisible();
+  await expect(page.getByText('FACILITY_CONFIGURATION')).toBeVisible();
+  await expect(page.getByText('DRAFT · not approved')).toBeVisible();
+  expect(await page.evaluate(() => document.body.scrollWidth <= window.innerWidth + 1)).toBeTruthy();
+
+  await page.screenshot({
+    path: `/tmp/clarity-episode-ur-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
+});
+
 test('reviewer can create a case and carry a source-linked finding into the packet', async ({ page }) => {
   await page.getByRole('button', { name: 'New Case' }).click();
   await page.getByLabel('Patient token').fill(`DEMO-${Date.now()}`);

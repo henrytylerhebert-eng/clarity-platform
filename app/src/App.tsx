@@ -5,6 +5,7 @@ import {
   BookOpenCheck,
   ClipboardCheck,
   ClipboardList,
+  Activity,
   FileCheck2,
   FileSearch,
   FileText,
@@ -31,6 +32,7 @@ import { apiLogin, apiLogout, describeApiError, type VerifiedPrincipal } from ".
 import { EvidenceReview } from "./workspaces/EvidenceReview";
 import { BenefitsVerification } from "./workspaces/BenefitsVerification";
 import { AuthorizationReadiness } from "./workspaces/AuthorizationReadiness";
+import { EpisodeOperations } from "./workspaces/EpisodeOperations";
 import { PacketPreview } from "./workspaces/PacketPreview";
 import { RoutingResponse } from "./workspaces/RoutingResponse";
 import { CustodyLedger } from "./workspaces/CustodyLedger";
@@ -73,6 +75,7 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "legal", label: "Legal Status", icon: Scale },
   { id: "benefits", label: "Benefits Verification", icon: BadgeCheck },
   { id: "authorization", label: "Authorization Readiness", icon: ClipboardCheck },
+  { id: "episode", label: "Episode & UR", icon: Activity },
   { id: "packet", label: "Packet Preview", icon: ShieldCheck },
   { id: "routing", label: "Routing Response", icon: Network },
   { id: "bedboard", label: "Milieu Bedboard", icon: BedDouble },
@@ -702,6 +705,7 @@ export function App() {
           {workspace === "medical" ? <MedicalNecessity snapshot={bundle?.medicalNecessity} onChange={handleMedicalChange} /> : null}
           {workspace === "benefits" ? <BenefitsVerification caseId={activeCase.id} /> : null}
           {workspace === "authorization" ? <AuthorizationReadiness caseId={activeCase.id} onNavigateWorkspace={setWorkspace} /> : null}
+          {workspace === "episode" ? <EpisodeOperations caseRecord={activeCase} /> : null}
           {workspace === "legal" ? (
             <LegalStatus
               caseId={activeCase.id}

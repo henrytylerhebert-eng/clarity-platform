@@ -32,6 +32,25 @@ describe("App smoke", () => {
     expect(await screen.findByText("Verified")).toBeInTheDocument();
   });
 
+  it("shows episode-owned utilization with separate coverage outcomes, risks, and audit history", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("button", { name: "Episode & UR" }));
+
+    expect(await screen.findByRole("heading", { name: "Episode & UR" })).toBeInTheDocument();
+    expect(screen.getByText("Episode-owned")).toBeInTheDocument();
+    expect(screen.getByText(/Pre-admission authorization readiness remains/)).toBeInTheDocument();
+    expect(screen.getByText("Separate authorization-risk flags")).toBeInTheDocument();
+    expect(screen.getAllByText("Day at risk").length).toBeGreaterThan(0);
+    expect(screen.getByText("Approved")).toBeInTheDocument();
+    expect(screen.getByText("Not required")).toBeInTheDocument();
+    expect(screen.getAllByText("Jul 8, 2026").length).toBeGreaterThan(0);
+    expect(screen.getByText("Correction supersedes event-004-review; original preserved")).toBeInTheDocument();
+    expect(screen.getByText("DRAFT · not approved")).toBeInTheDocument();
+  });
+
   it("issues an OPC and executes a sealed PEC for a fresh case in Legal Status", async () => {
     const user = userEvent.setup();
     render(<App />);
