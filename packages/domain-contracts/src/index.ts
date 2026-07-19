@@ -17,5 +17,6 @@ export * from "./legalStatus.js";
 export * from "./evidence.js";
 export * from "./authentication.js";
 export * from "./episode.js";
+export * from "./prescreen.js";
 export * from "./utilizationReview.js";
 export * from "./analytics.js";
