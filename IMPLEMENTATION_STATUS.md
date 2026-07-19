@@ -1,6 +1,6 @@
 # Implementation Status
 
-**As of 2026-07-19** on local `main`. Current HEAD: `1538cb3624b948438b0dbaf3196a231be31111d1`; worktree clean and branch is 57 commits ahead of `origin/main`. Current verification evidence: root tests 258/258, app tests 64/64, bridge tests 3/3, typecheck, app production build, Prisma validation/generation/status, scoped lint, and `git diff --check` pass. Repository-wide `npm run lint` remains blocked by the unrelated `clarity-platform-visualizer` React ESLint incompatibility. A capability appears in exactly one bucket. "Verified" means it ran in the current local verification pass unless a historical count is explicitly labeled.
+**As of 2026-07-19** on the local `main` checkout. Current verification evidence: root tests 258/258, app tests 64/64, bridge tests 3/3, typecheck, app production build, Prisma validation/generation/status, root lint, nested visualizer lint, scoped lint, and `git diff --check` pass. The exact branch, HEAD, and worktree state must be rechecked before each task. A capability appears in exactly one bucket. "Verified" means it ran in the current local verification pass unless a historical count is explicitly labeled.
 
 ## Current Clarity Persistence And Coordination Slice
 
@@ -73,4 +73,4 @@
 
 ~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011).
 
-**Current action:** complete the independent Claude audit of commits `a5c7462` through `1538cb3`, then record any findings before opening the next human decision gate. The next implementation slice remains blocked on the relevant owner/security decisions: ADR-0012 API/hosting/tenancy, OD-6 provider/RLS, migration promotion, outbox delivery ownership, and event-vocabulary semantics. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
+**Current action:** Claude's independent audit of H1/H2 is acceptable and its findings are recorded. The next implementation slice remains blocked on the relevant owner/security decisions: ADR-0012 API/hosting/tenancy, OD-6 provider/RLS, migration promotion, outbox delivery ownership, event-vocabulary semantics, and the different-acceptance-id active-admission race. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
