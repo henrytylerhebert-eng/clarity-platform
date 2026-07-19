@@ -7,7 +7,7 @@
   "description": "Synthetic-only network-enrichment review command service (Packet 2). In-memory, no DB, no worker, no egress.",
   "scripts": {
     "lint": "eslint .",
-    "test": "vitest run ./test/reviewCommands.test.ts --root ../.."
+    "test": "vitest run ./test/*.test.ts --root ../.."
   },
   "dependencies": {
     "@clarity/domain-contracts": "*",

@@ -212,6 +212,8 @@ Status: Completed (local code and tests in synthetic boundary; scope-limited rev
   - `packages/network-enrichment-service/src/reviewGateway.ts`
   - `packages/network-enrichment-service/src/index.ts`
   - `packages/network-enrichment-service/test/reviewCommands.test.ts`
+  - `packages/network-enrichment-service/src/runtime.ts`
+  - `packages/network-enrichment-service/test/reviewRuntime.test.ts`
 
 - Gate checks maintained:
   - Reviewer-role mapping is Option A using existing `UserRole` aliases.
@@ -227,7 +229,7 @@ Status: Completed (local code and tests in synthetic boundary; scope-limited rev
 - Verification executed:
   - `npm run lint --workspace=packages/network-enrichment-service` (pass)
   - `npx tsc --noEmit` (pass)
-  - `npm run test --workspace=packages/network-enrichment-service` (pass, 1 file / 5 tests)
+  - `npm run test --workspace=packages/network-enrichment-service` (pass, 2 files / 7 tests)
 
 - Verification commands prepared:
   - `npm run lint --workspace=packages/network-enrichment-service`
