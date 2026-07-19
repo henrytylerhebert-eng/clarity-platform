@@ -1,5 +1,5 @@
 ---
-status: Proposed decision packet; no implementation authorization
+status: Decision work approved; implementation remains gated
 owner: Tyler/product owner with technical and security review
 date: 2026-07-18
 data_boundary: synthetic only
@@ -75,8 +75,10 @@ external integrations, deployment, production flags, or real data.
 
 ## Owner Decision
 
-- Decision: `[ ] Approve decision work`  `[ ] Revise packet`  `[ ] Defer`
+- Decision: `[x] Approve decision work`  `[ ] Revise packet`  `[ ] Defer`
 - Owner: Tyler / product owner
-- Date: `[Pending]`
-- Notes: This packet is a decision boundary only. It does not authorize code
-  changes until the decisions and evidence above are accepted.
+- Date: 2026-07-18
+- Notes: Tyler approved the bounded decision-work slice. This authorizes
+  evidence gathering, option analysis, and updates to canonical decision
+  records only. It does not authorize code, migrations, RLS, workers, runtime,
+  deployment, or external changes.
