@@ -65,6 +65,248 @@ export interface Encounter {
   insuranceStatus: "Unknown" | "Pending verification" | "Verified" | "Not provided";
 }
 
+export type HumanTriageStatus = "Not started" | "In progress" | "Needs authorized review" | "Reviewed";
+export type HumanDisposition =
+  | "Not recorded"
+  | "Continue to intake"
+  | "Emergency protocol activated"
+  | "Medical evaluation required"
+  | "Pending information"
+  | "Alternate setting considered";
+
+export interface PrescreenRecord {
+  id: string;
+  caseId: string;
+  referralSource: string;
+  referralReceivedAt: string;
+  currentLocation: string;
+  presentingConcern: string;
+  immediateSafety: string;
+  medicalConcerns: string;
+  custodyContext: string;
+  urgency: "Routine" | "Urgent" | "Emergent" | "Unknown";
+  collateralStatus: "Missing" | "Partial" | "Documented" | "Unknown";
+  triageStatus: HumanTriageStatus;
+  humanDisposition: HumanDisposition;
+  assignedOwner: string;
+  nextAction: string;
+  sourceReferenceIds: string[];
+  updatedAt: string;
+}
+
+export type AdmissionCheckpointKind =
+  | "psychiatrist-acceptance"
+  | "medical-clearance"
+  | "operational-readiness"
+  | "arrival-handoff"
+  | "admission-episode";
+
+export type AdmissionCheckpointStatus =
+  | "Pending"
+  | "In progress"
+  | "Needs review"
+  | "Accepted"
+  | "Approved"
+  | "Complete"
+  | "Declined"
+  | "Blocked"
+  | "Not built";
+
+export interface AdmissionCheckpoint {
+  id: string;
+  caseId: string;
+  kind: AdmissionCheckpointKind;
+  status: AdmissionCheckpointStatus;
+  owner: string;
+  reviewAuthority: string;
+  note: string;
+  sourceArtifactIds: string[];
+  occurredAt?: string;
+  updatedAt: string;
+}
+
+export interface MedicalClearanceRecord {
+  id: string;
+  caseId: string;
+  status: "Pending" | "In progress" | "Needs review" | "Approved" | "Not approved";
+  reviewedBy?: string;
+  reviewedAt?: string;
+  facilityPolicyReference?: string;
+  note: string;
+  sourceReferenceIds: string[];
+  updatedAt: string;
+}
+
+export type NursingAssessmentStatus = "Not started" | "In progress" | "Needs review" | "Safety interrupt" | "Complete" | "Amendment in progress";
+export type NursingAnswerState = "Answered" | "Unknown" | "Unable to obtain" | "Declined" | "Not assessed" | "Not applicable" | "Conflicting";
+export type NursingHandoffStatus = "Reviewed" | "Not reviewed" | "Conflicting" | "Not applicable";
+export type NursingReconciliationStatus = "Not started" | "Reconciled" | "Partially reconciled" | "Conflict open" | "Not applicable";
+export type NursingMedicalStability = "Stable for current setting" | "Requires urgent provider review" | "Requires emergency transfer" | "Unable to determine";
+export type NursingMedicationStatus = "Complete and verified" | "Complete, partially verified" | "Incomplete, pending" | "Unable to complete";
+export type NursingObservationRecommendation = "Routine" | "Increased observation" | "Continuous observation recommendation" | "Unable to determine";
+export type NursingOrderStatus = "Ordered" | "Pending provider review" | "Not ordered" | "Not applicable";
+
+export interface NursingVitalSigns {
+  id: string;
+  capturedAt: string;
+  temperature: string;
+  heartRate: string;
+  respiratoryRate: string;
+  bloodPressure: string;
+  oxygenSaturation: string;
+  sourceReferenceIds: string[];
+}
+
+export interface NursingAssessmentRecord {
+  id: string;
+  caseId: string;
+  recordVersion: number;
+  status: NursingAssessmentStatus;
+  assessedAt: string;
+  nurseId: string;
+  nurseCredentials: string;
+  informationSources: SourceType[];
+  sourceReliability: "Reliable" | "Partially reliable" | "Unable to determine" | "Conflicting";
+  sourceReferenceIds: string[];
+  fieldProvenance: Record<string, string[]>;
+  stage1HandoffStatus: NursingHandoffStatus;
+  reconciliationStatus: NursingReconciliationStatus;
+  arrivalCondition: string;
+  legalStatusVerification: "Verified" | "Reported not verified" | "Conflicting" | "Not applicable";
+  medicalClearanceSourceAndStatus: string;
+  immediateNursingPriorities: string[];
+  vitalSigns: NursingVitalSigns[];
+  painStatus: "Yes" | "No" | "Unknown";
+  painDetails: string;
+  acuteMedicalComplaints: string;
+  physicalFindings: string;
+  neurologicFindings: string;
+  currentMedicalStability: NursingMedicalStability;
+  medicalEscalationActions: string;
+  allergyStatus: "Known allergies" | "No known allergies" | "Unable to verify" | "Conflicting information";
+  allergiesSummary: string;
+  medicationList: string[];
+  medicationReconciliationStatus: NursingMedicationStatus;
+  medicationSources: SourceType[];
+  medicationOpenItems: string;
+  intoxicationFindings: string;
+  withdrawalFindings: string;
+  overdoseHistory: string;
+  withdrawalManagement: "None identified" | "Monitor in current setting" | "Urgent provider evaluation" | "Specialty withdrawal management" | "Emergency medical transfer" | "Unable to determine";
+  pregnancyStatus: "Pregnant" | "Not pregnant" | "Possible" | "Unknown" | "Not applicable" | "Declined";
+  nutritionHydration: string;
+  sleepPattern: string;
+  adlStatus: string;
+  mobilityAndFallRisk: string;
+  nursingMentalStatus: {
+    appearance: string;
+    behavior: string;
+    speech: string;
+    mood: string;
+    affect: string;
+    thoughtProcess: string;
+    thoughtContent: string;
+    perception: string;
+    orientationAttentionMemory: string;
+    insightJudgmentImpulseControl: string;
+  };
+  suicideSelfHarmReassessment: string;
+  violenceAggressionReassessment: string;
+  vulnerabilityElopementReassessment: string;
+  riskSummary: string;
+  observationRecommendation: NursingObservationRecommendation;
+  recommendedPrecautions: string[];
+  authorizedOrderStatus: NursingOrderStatus;
+  educationAndUnderstanding: string;
+  referralsOrConsults: string[];
+  nursingSummary: string;
+  completionAttestation: boolean;
+  conflictNotes: string[];
+  previousVersionId?: string;
+  updatedAt: string;
+}
+
+export type AdmissionEpisodeStatus = "ACTIVE" | "DISCHARGED" | "CLOSED";
+export type AdmissionEpisodeRelationship = "ADMISSION_SOURCE" | "TRANSFER_SOURCE" | "READMISSION_SOURCE";
+export type AdmissionEpisodeReviewStatus = "Not recorded" | "Recorded" | "Needs review";
+
+export interface AdmissionEpisodeRecord {
+  id: string;
+  caseId: string;
+  sourceAcceptanceId: string;
+  relationship: AdmissionEpisodeRelationship;
+  facilityId: string;
+  facilityName: string;
+  programId?: string;
+  unitId?: string;
+  facilityTimezone: string;
+  timezoneSourceReferenceId: string;
+  admittedAt: string;
+  serviceDate: string;
+  status: AdmissionEpisodeStatus;
+  admissionOrdersStatus: AdmissionEpisodeReviewStatus;
+  initialPostAdmissionReviewStatus: AdmissionEpisodeReviewStatus;
+  sourcePacketVersionId?: string;
+  sourceCustodyEventId?: string;
+  sourceReferenceIds: string[];
+  linkedAt: string;
+  linkedBy: string;
+  updatedAt: string;
+}
+
+export interface AdmissionReadiness {
+  caseId: string;
+  checkpoints: AdmissionCheckpoint[];
+  medicalClearance?: MedicalClearanceRecord;
+}
+
+export type DischargePlanningStatus = "Not started" | "In progress" | "Needs review" | "Confirmed" | "Not applicable";
+export type LevelOfCareOption =
+  | "Inpatient"
+  | "IOP / intensive outpatient"
+  | "Residential / 28-day program"
+  | "Outpatient"
+  | "Home with supports"
+  | "Nursing home"
+  | "Assisted living"
+  | "Shelter or housing support"
+  | "Other configured setting"
+  | "Unknown";
+
+export type DischargePlanningDomain =
+  | "patient-goals"
+  | "family-supports"
+  | "housing"
+  | "step-down-level"
+  | "primary-care"
+  | "psychiatric-medication-management"
+  | "medications"
+  | "transportation"
+  | "community-resources"
+  | "notifications";
+
+export interface DischargePlanDomain {
+  id: string;
+  kind: DischargePlanningDomain;
+  label: string;
+  status: DischargePlanningStatus;
+  owner: string;
+  note: string;
+  selectedLevelOfCare?: LevelOfCareOption;
+  sourceReferenceIds: string[];
+  dueAt?: string;
+  updatedAt: string;
+}
+
+export interface DischargePlan {
+  id: string;
+  caseId: string;
+  status: DischargePlanningStatus;
+  domains: DischargePlanDomain[];
+  dispositionReviewStatus: "Not started" | "Needs authorized review" | "Reviewed";
+  updatedAt: string;
+}
+
 export interface Assessment {
   id: string;
   caseId: string;
@@ -317,6 +559,7 @@ export interface PlacementRecommendation {
 export interface AppState {
   cases: Case[];
   encounters: Encounter[];
+  prescreenRecords?: PrescreenRecord[];
   assessments: Assessment[];
   sourceReferences: SourceReference[];
   riskFindings: RiskFinding[];
@@ -330,6 +573,12 @@ export interface AppState {
   units: Unit[];
   beds: Bed[];
   placementRecommendations: PlacementRecommendation[];
+  medicalClearanceRecords?: MedicalClearanceRecord[];
+  admissionCheckpoints?: AdmissionCheckpoint[];
+  nursingAssessments?: NursingAssessmentRecord[];
+  nursingAssessmentHistory?: NursingAssessmentRecord[];
+  admissionEpisodes?: AdmissionEpisodeRecord[];
+  dischargePlans?: DischargePlan[];
   auditLogs: AuditLog[];
   analyticsEvents: AnalyticsEvent[];
 }

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarity.local/contracts/case-dependency-map.schema.json",
+  "title": "CaseDependencyMap",
+  "type": "object",
+  "required": ["caseId", "targetTransition", "evaluatedAt", "rulesOrProjectionVersion", "dataFreshness", "reviewState", "permissionScope", "nodes", "edges", "warnings", "unresolvedContradictions"],
+  "properties": {
+    "caseId": { "type": "string" },
+    "targetTransition": {
+      "enum": ["clinical-legal-review", "packet-transmission", "facility-acceptance-routing", "transport-custody-handoff"]
+    },
+    "evaluatedAt": { "type": "string", "format": "date-time" },
+    "rulesOrProjectionVersion": { "type": "string" },
+    "dataFreshness": { "enum": ["fresh", "stale", "unknown"] },
+    "reviewState": { "type": "string" },
+    "permissionScope": { "type": "string" },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "unresolvedContradictions": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["id", "label", "workstream", "status", "blockingClass", "dependencyIds", "ownerRole", "assignedUser", "dueTime", "source", "reviewState", "resolutionWorkspace", "lastChangedAt", "escalationState", "freshness", "waitType", "restrictedDetail", "explanation"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "workstream": { "type": "string" },
+        "status": { "type": "string" },
+        "blockingClass": { "enum": ["hard-blocker", "review-gate", "external-wait", "warning", "satisfied", "not-applicable"] },
+        "dependencyIds": { "type": "array", "items": { "type": "string" } },
+        "ownerRole": { "type": "string" },
+        "assignedUser": { "type": "string" },
+        "dueTime": { "type": "string" },
+        "source": { "type": "string" },
+        "reviewState": { "type": "string" },
+        "resolutionWorkspace": { "type": "string" },
+        "lastChangedAt": { "type": "string" },
+        "escalationState": { "type": "string" },
+        "freshness": { "enum": ["fresh", "stale", "unknown"] },
+        "waitType": { "enum": ["internal", "external", "none"] },
+        "restrictedDetail": { "type": "boolean" },
+        "explanation": { "type": "string" }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "to", "reason"],
+      "properties": {
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}
+

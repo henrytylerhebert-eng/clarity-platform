@@ -17,6 +17,14 @@ related_adrs: ADR-0001
 
 Organization-specific historical knowledge: payer aliases, portal instructions, contact numbers, carve-outs, common requirements, pend/denial patterns, typical verification and authorization times.
 
+The local synthetic app now exposes four operations configuration families —
+Medicare, Medicaid, VA, and commercial — through
+`app/src/domain/payerProfiles.ts`. They are versioned discovery prompts only;
+they do not replace current-patient verification or encode authoritative payer
+criteria. Backend `PayerProfile`/`PlanProfile` management remains deferred.
+The canonical comparison for this POC slice is recorded in
+`clarity-readiness-ux-return-package/20_CANONICAL_PAYER_REFERENCE_REVIEW.md`.
+
 **Binding rule (tested):** payer memory is always labeled **historical and unconfirmed for the current patient** and can never substitute for current-patient verification (`packages/domain-contracts/src/payerMemory.ts`). Feature flags: `payer_memory`, `contract_rate_intelligence` (default off).
 
 ## Analytics and ROI

@@ -52,6 +52,11 @@ export function AuthorizationReadiness({ caseId, onNavigateWorkspace }: Props) {
             ))}
           </ul>
         )}
+        <p className="benefit-disclaimer">
+          {coverage.payerProfileId
+            ? `${coverage.payerProfileLabel} · ${coverage.payerProfileReviewStatus}. Prompts support human preparation only.`
+            : "No payer operations profile is configured for this coverage."}
+        </p>
       </article>
 
       {coverage.coverageStatus === "UNABLE_TO_VERIFY" ? (

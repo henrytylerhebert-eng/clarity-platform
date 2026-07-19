@@ -3,6 +3,7 @@ import {
   BadgeCheck,
   BedDouble,
   BookOpenCheck,
+  Building2,
   ClipboardCheck,
   ClipboardList,
   Activity,
@@ -16,11 +17,18 @@ import {
   PanelTop,
   PlusCircle,
   RotateCcw,
+  Route,
   Scale,
   ShieldCheck,
 } from "lucide-react";
 import { CaseQueue } from "./workspaces/CaseQueue";
+import { CaseDependencyMap } from "./workspaces/CaseDependencyMap";
+import { JourneyMonitor } from "./workspaces/JourneyMonitor";
+import { Prescreen } from "./workspaces/Prescreen";
+import { AdmissionReadiness } from "./workspaces/AdmissionReadiness";
+import { DischargePlanning } from "./workspaces/DischargePlanning";
 import { CommandCenter } from "./workspaces/CommandCenter";
+import { DirectoryCrm } from "./workspaces/DirectoryCrm";
 import { Bedboard } from "./workspaces/Bedboard";
 import { NewCase } from "./workspaces/NewCase";
 import { CaseOverview } from "./workspaces/CaseOverview";
@@ -41,6 +49,7 @@ import { MockAdmitLab } from "./workspaces/MockAdmitLab";
 import { ProductStudio } from "./workspaces/ProductStudio";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
+import type { TargetTransition } from "./domain/caseDependencyMap";
 import { appendCustodyLedgerEvent } from "./domain/custodyLedger";
 import { readCaseClocks } from "./domain/clocks";
 import { executeCec, executePec, issueOpc, type CecInput, type OpcInput, type PecInput } from "./domain/epec";
@@ -52,22 +61,32 @@ import { getCaseBundle } from "./domain/selectors";
 import { loadAppState, resetAppState, saveAppState } from "./domain/storage";
 import type {
   AppState,
+  AdmissionCheckpoint,
+  AdmissionEpisodeRecord,
   Assessment,
   Case,
   ComplianceClock,
   Encounter,
   FacilityResponse,
+  DischargePlan,
+  MedicalClearanceRecord,
   MedicalNecessitySnapshot,
+  NursingAssessmentRecord,
   PlacementRecommendation,
   ReferralPacket,
   RiskFinding,
+  PrescreenRecord,
   SourceReference,
 } from "./domain/types";
 
 const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof LayoutDashboard }> = [
   { id: "queue", label: "Case Queue", icon: LayoutDashboard },
   { id: "command", label: "Command Center", icon: Gauge },
+  { id: "directory-crm", label: "Directory CRM", icon: Building2 },
+  { id: "dependency-map", label: "Dependency Map", icon: Network },
+  { id: "journey", label: "Journey Monitor", icon: Route },
   { id: "new", label: "New Case", icon: PlusCircle },
+  { id: "prescreen", label: "Prescreen", icon: ClipboardCheck },
   { id: "overview", label: "Case Overview", icon: ClipboardList },
   { id: "intake", label: "Guided Intake", icon: FileText },
   { id: "evidence", label: "Evidence Review", icon: FileSearch },
@@ -75,11 +94,13 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "legal", label: "Legal Status", icon: Scale },
   { id: "benefits", label: "Benefits Verification", icon: BadgeCheck },
   { id: "authorization", label: "Authorization Readiness", icon: ClipboardCheck },
+  { id: "admit", label: "Admission Readiness", icon: ClipboardCheck },
   { id: "episode", label: "Episode & UR", icon: Activity },
   { id: "packet", label: "Packet Preview", icon: ShieldCheck },
   { id: "routing", label: "Routing Response", icon: Network },
   { id: "bedboard", label: "Milieu Bedboard", icon: BedDouble },
   { id: "ledger", label: "Custody Ledger", icon: ShieldCheck },
+  { id: "discharge", label: "Discharge Planning", icon: ClipboardList },
   { id: "training", label: "Training & SOPs", icon: BookOpenCheck },
   { id: "mock-admits", label: "Mock Admit Lab", icon: FlaskConical },
   { id: "studio", label: "Product Studio", icon: PanelTop },
@@ -89,6 +110,7 @@ export function App() {
   const [state, setState] = useState<AppState | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState("case-004");
   const [workspace, setWorkspace] = useState<WorkspaceId>("queue");
+  const [selectedReadinessTarget, setSelectedReadinessTarget] = useState<TargetTransition>("transport-custody-handoff");
   const [roleId, setRoleId] = useState<RoleId>("all");
   const [nowIso, setNowIso] = useState(() => new Date().toISOString());
   // Verified backend session (API vertical slice). Held in React state for
@@ -227,6 +249,80 @@ export function App() {
           metricsSafePayload: { containsPhi: false, reviewStatus: assessment.reviewStatus },
         }),
         ...current.analyticsEvents,
+      ],
+    }));
+  }
+
+  function handlePrescreenChange(record: PrescreenRecord) {
+    updateState((current) => ({
+      ...current,
+      prescreenRecords: [...(current.prescreenRecords ?? []).filter((item) => item.caseId !== record.caseId), record],
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId: record.caseId, action: `Prescreen updated: ${record.triageStatus}`, actor: "Local prototype user", occurredAt: record.updatedAt },
+        ...current.auditLogs,
+      ],
+    }));
+  }
+
+  function handleAdmissionCheckpointChange(checkpoint: AdmissionCheckpoint) {
+    updateState((current) => ({
+      ...current,
+      admissionCheckpoints: [...(current.admissionCheckpoints ?? []).filter((item) => item.id !== checkpoint.id), checkpoint],
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId: checkpoint.caseId, action: `Admission checkpoint updated: ${checkpoint.kind} = ${checkpoint.status}`, actor: "Local prototype user", occurredAt: checkpoint.updatedAt },
+        ...current.auditLogs,
+      ],
+    }));
+  }
+
+  function handleMedicalClearanceChange(record: MedicalClearanceRecord) {
+    updateState((current) => ({
+      ...current,
+      medicalClearanceRecords: [...(current.medicalClearanceRecords ?? []).filter((item) => item.caseId !== record.caseId), record],
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId: record.caseId, action: `Medical clearance updated: ${record.status}`, actor: record.reviewedBy ?? "Local prototype user", occurredAt: record.updatedAt },
+        ...current.auditLogs,
+      ],
+    }));
+  }
+
+  function handleNursingAssessmentChange(record: NursingAssessmentRecord) {
+    updateState((current) => {
+      const previous = current.nursingAssessments?.find((item) => item.caseId === record.caseId);
+      const isAmendment = previous?.status === "Complete" && record.status === "Amendment in progress";
+      const nextRecord = isAmendment
+        ? { ...record, id: `${previous.id}-v${previous.recordVersion + 1}`, recordVersion: previous.recordVersion + 1, previousVersionId: previous.id }
+        : record;
+      return {
+        ...current,
+        nursingAssessments: [...(current.nursingAssessments ?? []).filter((item) => item.caseId !== record.caseId), nextRecord],
+        nursingAssessmentHistory: isAmendment ? [...(current.nursingAssessmentHistory ?? []), previous] : current.nursingAssessmentHistory,
+        auditLogs: [
+          { id: `audit-${Date.now()}`, caseId: record.caseId, action: `Nursing Stage 2 updated: ${nextRecord.status} (v${nextRecord.recordVersion})`, actor: nextRecord.nurseId || "Local prototype user", occurredAt: nextRecord.updatedAt },
+          ...current.auditLogs,
+        ],
+      };
+    });
+  }
+
+  function handleAdmissionEpisodeChange(record: AdmissionEpisodeRecord) {
+    updateState((current) => ({
+      ...current,
+      admissionEpisodes: [...(current.admissionEpisodes ?? []).filter((item) => item.caseId !== record.caseId), record],
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId: record.caseId, action: `Admission episode updated: ${record.id}`, actor: record.linkedBy, occurredAt: record.updatedAt },
+        ...current.auditLogs,
+      ],
+    }));
+  }
+
+  function handleDischargePlanChange(plan: DischargePlan) {
+    updateState((current) => ({
+      ...current,
+      dischargePlans: [...(current.dischargePlans ?? []).filter((item) => item.caseId !== plan.caseId), plan],
+      auditLogs: [
+        { id: `audit-${Date.now()}`, caseId: plan.caseId, action: "Discharge planning updated", actor: "Local prototype user", occurredAt: plan.updatedAt },
+        ...current.auditLogs,
       ],
     }));
   }
@@ -565,6 +661,7 @@ export function App() {
   const activeCase = selectedCase ?? state.cases[0];
   const isMockAdmitLab = workspace === "mock-admits";
   const isProductStudio = workspace === "studio";
+  const isDirectoryCrm = workspace === "directory-crm";
   const focusChips = getRoleFocus(roleId, state, activeCase.id, new Date().toISOString());
 
   return (
@@ -660,8 +757,8 @@ export function App() {
       <main className="main-surface">
         <header className="topbar">
           <div>
-            <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : "Selected case"}</span>
-            <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : activeCase.patientToken.displayName}</h2>
+            <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isDirectoryCrm ? "Network workspace" : "Selected case"}</span>
+            <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : isDirectoryCrm ? "Clarity Directory CRM" : activeCase.patientToken.displayName}</h2>
           </div>
           <div className="topbar-badges">
             {isMockAdmitLab ? (
@@ -674,6 +771,12 @@ export function App() {
                 <StatusBadge tone="info">Synthetic registry</StatusBadge>
                 <StatusBadge tone="warn">Review-gated</StatusBadge>
               </>
+            ) : isDirectoryCrm ? (
+              <>
+                <StatusBadge tone="danger">Synthetic only</StatusBadge>
+                <StatusBadge tone="warn">Needs review</StatusBadge>
+                <StatusBadge tone="danger">No live send</StatusBadge>
+              </>
             ) : (
               <>
                 <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
@@ -684,7 +787,7 @@ export function App() {
           </div>
         </header>
 
-        {!isMockAdmitLab && !isProductStudio && focusChips.length ? (
+        {!isMockAdmitLab && !isProductStudio && !isDirectoryCrm && focusChips.length ? (
           <div className="focus-strip" aria-label="Role focus summary">
             {focusChips.map((chip) => (
               <div className="focus-chip" key={chip.label}>
@@ -698,14 +801,28 @@ export function App() {
         <section className="content-region">
           {workspace === "queue" ? <CaseQueue state={state} selectedCaseId={activeCase.id} onSelect={(id) => { setSelectedCaseId(id); setWorkspace("overview"); }} /> : null}
           {workspace === "command" ? <CommandCenter state={state} onSelect={(id) => { setSelectedCaseId(id); setWorkspace("overview"); }} /> : null}
+          {workspace === "directory-crm" ? <DirectoryCrm /> : null}
+          {workspace === "journey" ? <JourneyMonitor state={state} nowIso={nowIso} selectedCaseId={activeCase.id} onSelect={setSelectedCaseId} onNavigateWorkspace={setWorkspace} /> : null}
+          {workspace === "dependency-map" ? (
+            <CaseDependencyMap
+              state={state}
+              caseId={activeCase.id}
+              selectedTarget={selectedReadinessTarget}
+              onTargetChange={setSelectedReadinessTarget}
+              onCaseSelect={setSelectedCaseId}
+              onNavigateWorkspace={setWorkspace}
+            />
+          ) : null}
           {workspace === "new" ? <NewCase onCreate={handleCreateCase} /> : null}
+          {workspace === "prescreen" ? <Prescreen state={state} caseId={activeCase.id} onChange={handlePrescreenChange} onNavigateWorkspace={setWorkspace} /> : null}
           {workspace === "overview" ? <CaseOverview state={state} caseRecord={activeCase} /> : null}
-          {workspace === "intake" ? <GuidedIntake state={state} caseId={activeCase.id} onAssessmentChange={handleAssessmentChange} onAddSourceAndRisk={handleAddSourceAndRisk} /> : null}
+          {workspace === "intake" ? <GuidedIntake state={state} caseId={activeCase.id} onAssessmentChange={handleAssessmentChange} onAddSourceAndRisk={handleAddSourceAndRisk} onNursingAssessmentChange={handleNursingAssessmentChange} /> : null}
           {workspace === "evidence" ? <EvidenceReview state={state} caseId={activeCase.id} /> : null}
           {workspace === "medical" ? <MedicalNecessity snapshot={bundle?.medicalNecessity} onChange={handleMedicalChange} /> : null}
           {workspace === "benefits" ? <BenefitsVerification caseId={activeCase.id} /> : null}
           {workspace === "authorization" ? <AuthorizationReadiness caseId={activeCase.id} onNavigateWorkspace={setWorkspace} /> : null}
-          {workspace === "episode" ? <EpisodeOperations caseRecord={activeCase} /> : null}
+          {workspace === "admit" ? <AdmissionReadiness state={state} caseId={activeCase.id} onCheckpointChange={handleAdmissionCheckpointChange} onMedicalClearanceChange={handleMedicalClearanceChange} onAdmissionEpisodeChange={handleAdmissionEpisodeChange} onNavigateWorkspace={setWorkspace} /> : null}
+          {workspace === "episode" ? <EpisodeOperations state={state} caseRecord={activeCase} /> : null}
           {workspace === "legal" ? (
             <LegalStatus
               caseId={activeCase.id}
@@ -727,6 +844,7 @@ export function App() {
           {workspace === "ledger" ? (
             bundle?.ledgerEvents.length ? <CustodyLedger events={bundle.ledgerEvents} /> : <EmptyState title="No custody events">Material custody events appear here after legal drafts, packet sealing, transmission, or facility response.</EmptyState>
           ) : null}
+          {workspace === "discharge" ? <DischargePlanning state={state} caseId={activeCase.id} onChange={handleDischargePlanChange} onNavigateWorkspace={setWorkspace} /> : null}
           {workspace === "training" ? <TrainingSops roleId={roleId} /> : null}
           {workspace === "mock-admits" ? <MockAdmitLab /> : null}
           {workspace === "studio" ? <ProductStudio /> : null}
