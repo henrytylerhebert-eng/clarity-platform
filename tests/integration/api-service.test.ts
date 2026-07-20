@@ -1,6 +1,6 @@
 import type { Server } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { PrismaAuthGateway, PrismaCaseCommandGateway } from "@clarity/case-repository";
+import { PrismaAuthGateway, PrismaCaseCommandGateway, PrismaNetworkReviewGateway } from "@clarity/case-repository";
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
 import {
@@ -10,7 +10,6 @@ import {
 } from "@clarity/prescreen-service";
 import { createApiServer } from "@clarity/api-service";
 import { createNetworkEnrichmentReviewCommandCaller } from "../../packages/api-service/src/reviewCommandCaller.js";
-import { PrismaNetworkReviewGateway } from "@clarity/network-enrichment-service";
 import type { UserRole } from "@clarity/domain-contracts";
 import { createHarness, type Harness } from "./helpers/harness.js";
 

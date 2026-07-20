@@ -338,4 +338,6 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
   }
 }
 
-export { PrismaNetworkReviewGateway } from "./prismaReviewGateway.js";
+// The Prisma implementation of this port lives in @clarity/case-repository
+// (networkReviewGateway.ts) — the only package allowed to import
+// @prisma/client. It satisfies NetworkReviewGateway structurally.

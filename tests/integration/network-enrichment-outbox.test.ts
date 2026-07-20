@@ -1,9 +1,7 @@
 import { describe, expect, it, beforeAll } from "vitest";
+import { NetworkEnrichmentReviewCommandService } from "@clarity/network-enrichment-service";
 import {
   PrismaNetworkReviewGateway,
-  NetworkEnrichmentReviewCommandService,
-} from "@clarity/network-enrichment-service";
-import {
   SyntheticOutboxConsumer,
   SyntheticOutboxDispatcher,
 } from "@clarity/case-repository";

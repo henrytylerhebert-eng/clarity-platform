@@ -1469,7 +1469,7 @@ model NetworkReview {
   createdAt              DateTime
   updatedAt              DateTime
 
-  package       NetworkReviewPackage         @relation(fields: [reviewPackageId], references: [reviewPackageId], onDelete: Cascade)
+  package       NetworkReviewPackage         @relation(fields: [reviewPackageId], references: [reviewPackageId], onDelete: Restrict)
   audits        NetworkReviewAudit[]
   fieldEvidence NetworkReviewFieldEvidence[]
 
@@ -1492,7 +1492,7 @@ model NetworkReviewAudit {
   correlationId  String?
   reason         String?
   occurredAt     DateTime
-  review         NetworkReview @relation(fields: [reviewId], references: [reviewId], onDelete: Cascade)
+  review         NetworkReview @relation(fields: [reviewId], references: [reviewId], onDelete: Restrict)
 
   @@index([organizationId, reviewId])
   @@index([organizationId, occurredAt])

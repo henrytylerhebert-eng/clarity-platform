@@ -22,3 +22,4 @@ export * from "./utilizationReviewMappers.js";
 export * from "./utilizationReviewGateway.js";
 export * from "./governedEventGateway.js";
 export * from "./episodePersistenceGateway.js";
+export * from "./networkReviewGateway.js";

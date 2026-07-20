@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { PrismaNetworkReviewGateway } from "../../packages/network-enrichment-service/src/prismaReviewGateway.js";
+import { PrismaNetworkReviewGateway } from "@clarity/case-repository";
 import type { NetworkReviewRecord, NetworkReviewPackageRecord } from "@clarity/domain-contracts";
 import { createHarness, type Harness } from "./helpers/harness.js";
 

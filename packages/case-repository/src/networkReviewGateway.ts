@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { PrismaClient } from "@prisma/client";
 import {
   type NetworkReviewConflictRecord,
@@ -12,8 +13,23 @@ import {
   type UserRole,
   type NetworkReviewAuditEvent,
 } from "@clarity/domain-contracts";
-import type { NetworkReviewGateway, NetworkReviewReplayRecord, NetworkReviewReplaySaveInput } from "./reviewGateway.js";
-import type { NetworkReviewServiceResult } from "./reviewCommands.js";
+
+// Structural mirrors of the @clarity/network-enrichment-service port types.
+// Declared locally so this package keeps its single dependency direction
+// (domain-contracts only); the service consumes this gateway structurally,
+// exactly like every other Prisma gateway in this package.
+export type NetworkReviewReplayRecord = {
+  readonly commandType: string;
+  readonly commandFingerprint: string;
+  readonly result: unknown;
+};
+
+export interface NetworkReviewReplaySaveInput {
+  readonly commandType: string;
+  readonly idempotencyKey: string;
+  readonly commandFingerprint: string;
+  readonly result: unknown;
+}
 
 function mapReviewFromPrisma(row: {
   reviewId: string;
@@ -115,7 +131,7 @@ function mapPackageFromPrisma(row: {
   };
 }
 
-export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
+export class PrismaNetworkReviewGateway {
   constructor(private readonly prisma: PrismaClient) {}
 
   async listPackages(params: {
@@ -611,13 +627,13 @@ export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
     return {
       commandType: row.commandType,
       commandFingerprint: row.commandFingerprint,
-      result: (row.result as unknown) as NetworkReviewServiceResult,
+      result: row.result as unknown,
     };
   }
 
   async saveReplayRecord(
     input: Omit<NetworkReviewReplayInput, "fingerprint"> & { fingerprint?: string },
-    result: NetworkReviewServiceResult,
+    result: unknown,
   ): Promise<void> {
     await this.prisma.networkReviewReplay.upsert({
       where: {
@@ -629,14 +645,14 @@ export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
       },
       update: {
         commandFingerprint: input.fingerprint ?? "",
-        result: result as any,
+        result: result as object,
       },
       create: {
         organizationId: input.organizationId,
         commandType: input.commandType,
         idempotencyKey: input.idempotencyKey,
         commandFingerprint: input.fingerprint ?? "",
-        result: result as any,
+        result: result as object,
       },
     });
   }
@@ -657,6 +673,11 @@ async function writeNetworkEnrichmentOutboxEvent(
 ) {
   const eventId = `evt-net-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const occurredDate = new Date(params.occurredAt);
+  // Deterministic SHA-256 of the serialized payload — the same integrity
+  // meaning payloadHash carries on every other governed event. Never a
+  // placeholder: a fake hash stamped over quality.state "VALID" would make
+  // the integrity field itself dishonest.
+  const payloadHash = createHash("sha256").update(JSON.stringify(params.payload)).digest("hex");
 
   const envelope = {
     eventId,
@@ -719,7 +740,7 @@ async function writeNetworkEnrichmentOutboxEvent(
       reasonCode: null,
     },
     metricEligibility: "ELIGIBLE",
-    payloadHash: "0000000000000000000000000000000000000000000000000000000000000000",
+    payloadHash,
     payload: params.payload,
   };
 
@@ -739,7 +760,7 @@ async function writeNetworkEnrichmentOutboxEvent(
       correctionKind: "ORIGINAL",
       classification: "PUBLIC_SYNTHETIC",
       metricEligibility: "ELIGIBLE",
-      payloadHash: "0000000000000000000000000000000000000000000000000000000000000000",
+      payloadHash,
       envelope: envelope as any,
       effectiveAt: occurredDate,
       recordedAt: occurredDate,

@@ -1,3 +1,12 @@
+> **PLANNING MATERIAL ONLY — NOT WIRED TO RUN.** This prompt has never been
+> connected to any runtime, worker, or tool in this repository.
+> `IMPLEMENTATION_STATUS.md` lists "any live product agent" under **Not
+> started**; live web-research/egress remains gated by OD-13 (network
+> enrichment worker boundary and egress approval) in
+> `docs/decisions/OPEN_DECISIONS.md`. Moved out of the operational tree
+> (`tools/prompts/`) per the 2026-07-19 owner ruling; see
+> `docs/decisions/NETWORK_ENRICHMENT_REAL_DATA_INCIDENT.md`.
+
 # Clarity Network Enrichment Agent Prompt
 
 **ROLE**

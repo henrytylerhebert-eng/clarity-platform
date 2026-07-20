@@ -3,6 +3,7 @@ import {
   createPrismaClient,
   PrismaAuthGateway,
   PrismaCaseCommandGateway,
+  PrismaNetworkReviewGateway,
 } from "@clarity/case-repository";
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
@@ -13,7 +14,6 @@ import {
 } from "@clarity/prescreen-service";
 import { createApiServer } from "./server.js";
 import { createNetworkEnrichmentReviewCommandCaller } from "./reviewCommandCaller.js";
-import { PrismaNetworkReviewGateway } from "@clarity/network-enrichment-service";
 
 /**
  * DEVELOPMENT-ONLY runner (same posture as LocalDevIdentityProvider): seeds a

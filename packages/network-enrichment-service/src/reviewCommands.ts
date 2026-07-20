@@ -14,6 +14,7 @@ import {
   ApproveReviewCommandSchema,
   ReconcilePackageCommandSchema,
   NETWORK_ENRICHMENT_REVIEW_STATES,
+  NETWORK_REVIEW_FIELD_POLICIES,
   isReviewTransitionAllowed,
   NetworkEnrichmentDomainError,
   resolveCanonicalRolesFromSourceRoles,
@@ -174,23 +175,56 @@ export class NetworkEnrichmentReviewCommandService {
         }
 
         const now = this.now();
+        const approvalAudit = asAuditEvent({
+          action: "APPROVE_REVIEW",
+          actorId: cmd.actor.actorId,
+          actorType: cmd.actor.actorType,
+          commandId: `approveReview:${cmd.reviewId}`,
+          correlationId: cmd.correlationId,
+          reason: cmd.actorNotes ?? null,
+          occurredAt: now,
+        });
+
+        // Dual-review enforcement (NETWORK_REVIEW_FIELD_POLICIES): when the
+        // field's sensitivity policy says one review does NOT suffice,
+        // HUMAN_CONFIRMED requires approvals from two DISTINCT reviewers.
+        // The first approval is recorded on the audit trail without a state
+        // change; the same actor approving twice never satisfies it.
+        const policy = NETWORK_REVIEW_FIELD_POLICIES[review.sensitivityCategory];
+        if (!policy.oneReviewSuffices) {
+          if (!isReviewTransitionAllowed(review.status, "HUMAN_CONFIRMED")) {
+            throw new NetworkEnrichmentDomainError(
+              "VALIDATION",
+              `Cannot approve a review in status ${review.status}.`,
+            );
+          }
+          const priorApprovers = new Set(
+            review.audits.filter((a) => a.action === "APPROVE_REVIEW").map((a) => a.actorId),
+          );
+          if (priorApprovers.has(cmd.actor.actorId)) {
+            throw new NetworkEnrichmentDomainError(
+              "VALIDATION",
+              "This field's policy requires a second, distinct reviewer; the same actor cannot approve twice.",
+            );
+          }
+          if (priorApprovers.size === 0) {
+            const firstApproval: NetworkReviewRecord = {
+              ...review,
+              version: review.version + 1,
+              updatedAt: now,
+              audits: [...review.audits, approvalAudit],
+            };
+            await this.gateway.saveReview(firstApproval);
+            return { review: firstApproval };
+          }
+        }
+
         const nextReview: NetworkReviewRecord = {
           ...transitionReview(review, "HUMAN_CONFIRMED", now),
           reviewedByActorId: cmd.actor.actorId,
           reviewReason: cmd.actorNotes ?? null,
           updatedAt: now,
-          audits: [
-            ...review.audits,
-            asAuditEvent({
-              action: "APPROVE_REVIEW",
-              actorId: cmd.actor.actorId,
-              actorType: cmd.actor.actorType,
-              commandId: `approveReview:${cmd.reviewId}`,
-              correlationId: cmd.correlationId,
-              reason: cmd.actorNotes ?? null,
-              occurredAt: now,
-            }),
-          ],
+          audits: [...review.audits, approvalAudit],
         };
         await this.gateway.saveReview(nextReview);
         return { review: nextReview };
@@ -288,12 +322,34 @@ export class NetworkEnrichmentReviewCommandService {
           .filter((r) => r.status === "HUMAN_CONFIRMED")
           .map((r) => r.fieldPath);
 
+        // Reconciliation gate: a package may only become HUMAN_CONFIRMED on
+        // the strength of actual human-confirmed reviews, and never while
+        // any of its reviews is still awaiting review or in conflict.
+        if (promotedFieldPaths.length === 0) {
+          throw new NetworkEnrichmentDomainError(
+            "VALIDATION",
+            "Cannot reconcile a package with no HUMAN_CONFIRMED reviews.",
+          );
+        }
+        const unresolved = reviews.filter(
+          (r) => r.status === "REVIEW_PENDING" || r.status === "CONFLICT",
+        );
+        if (unresolved.length > 0) {
+          throw new NetworkEnrichmentDomainError(
+            "VALIDATION",
+            `Cannot reconcile: ${unresolved.length} review(s) are still pending or in conflict.`,
+          );
+        }
+
         const now = this.now();
         const updatedPkg: NetworkReviewPackageRecord = {
           ...pkg,
           status: "HUMAN_CONFIRMED",
           version: pkg.version + 1,
-          packageStatusReason: cmd.notes ?? "Package reconciled and promoted to canonical CRM",
+          // No canonical/CRM write occurs here — the status reason must not
+          // claim promotion beyond what actually happened.
+          packageStatusReason:
+            cmd.notes ?? "Package reconciled from human-confirmed reviews; no canonical write performed",
           updatedAt: now,
         };
 
