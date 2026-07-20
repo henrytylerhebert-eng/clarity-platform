@@ -1,5 +1,36 @@
 # Implementation Status
 
+**As of 2026-07-19 (prescreen Phase 3 persistence session)** on branch
+`claude/prescreen-phase3-persistence` (from `main` 8399edd, PR pending).
+The owner authorized **local-only Phase 3 prescreen persistence** on the S2
+precedent — explicitly not the provider-backed Cloud SQL/RLS gate, which
+stays open. Delivered (ADR-0016): the prescreen gateway contract is async;
+command contracts moved to `domain-contracts` (re-exported unchanged);
+four tenant-scoped prescreen tables + a nullable idempotency
+`requestFingerprint` column (two migrations, OD-6-shaped RLS on the new
+tables); `PrismaPrescreenGateway` in `case-repository` (one tenant-context
+transaction per command; namespaced keys `prescreen/<command>/<actor>/<key>`
+with the shared ADR-0014 §5 fingerprint; replay reconstructs the original
+result; governed-event/outbox storage reuse — no vocabulary expansion; real
+tenant-checked `caseId` FK with non-revealing misses). The 9 prescreen HTTP
+tests and the dev server now run on the persistent gateway — prescreen
+state survives a restart. Session verification: root **353/353** (38
+files, three consecutive runs — includes 10 new persistence proofs:
+durability across clients, cross-connection replay, nested-body conflict,
+one-winner concurrency, zero-residue failure, fail-closed RLS under a
+NOBYPASSRLS role), app **64/64**, lint, typecheck, `prisma validate`; zero
+residue from this session (pre-existing residue now 26 orgs/13 cases, all
+from other sessions — issue #24 updated). Deviations, both tracked: the
+two migrations were applied via the Prisma hotfix flow because unmerged
+network-branch migrations occupy the shared ledger (issue #31, new), and
+the migration-integrity test now asserts its stated intent (repository ⊆
+ledger, none rolled back) until #31 resolves. ADR numbering: 0016 taken;
+0015 left free for the network branch's collision fix (its PR #29
+currently claims the already-assigned 0014). Not claimed: provider-backed
+Cloud SQL/RLS, runtime-role app connection (dev connection is superuser),
+fresh-ledger replay this session, outbox dispatch for prescreen events,
+cross-org, UI, production readiness.
+
 **As of 2026-07-19 (prescreen API-slice session)** on branch
 `claude/clarity-opening-cfcdc5`, rebased onto `main` after the prescreen
 hardening session (PR #27). The owner resolved the prescreen role-mapping
@@ -44,7 +75,8 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 - **Phase 1 contracts (PR #19 plus post-merge hardening):** repo-native prescreen contracts in `packages/domain-contracts/src/prescreen.ts` — willingness, four-domain orientation + gate, possible-pathway derivation (medical-stabilization precedence; routing hints, never decisions), encounter/assessment lifecycles, target-scoped packet readiness (named gaps, no aggregate score), fail-closed consent-authority and transport-qualification evaluators over configured rules, stable error codes, and an event envelope limited to the six command-coupled event types. Conservative review hardening routes NON_OPPOSED to authorized noncontested review, fails closed on missing privacy regime or overlapping approved consent rules, disqualifies providers with unresolved restrictions, and requires both sending- and receiving-facility approval. 38 unit tests.
 - **Phase 2 command service (PR #23, ADR-0013):** `packages/prescreen-service` — six commands (StartPrescreenEncounter, SaveAssessmentDraft, AttestAssessment, CreateAssessmentSupplement, SubmitPrescreen, UpdatePacketRequirement) plus the read-only EvaluateTargetReadiness view, behind strict envelopes → injected explicit role policy → an atomic in-memory gateway (tenant-scoped reads, fresh-row state machine, versioned update, audit + outbox + idempotency committed together; failed commands leave zero residue — proven by test). Canonical recursively-sorted SHA-256 idempotency fingerprints close the reference package's nested-body replay defect. Submission records intent only: no acknowledgement, review, acceptance, admission, transport authority, or cross-organization access is expressible. 27 tests (includes the ADR-0014 §5 fingerprint-amendment test) covering all fourteen owner completion criteria plus post-merge review hardening (`docs/testing/PRESCREEN_SERVICE_TEST_MANIFEST.md`).
 - **Role mapping resolved + same-org API slice (this branch, ADR-0014):** the owner ruled Option 3 narrowly — exactly two equivalences (`INTAKE_COORDINATOR` ≡ Central Intake coordinator; `PHYSICIAN_REVIEWER` ≡ authorized practitioner, PMHNP signer authority as configured policy, matrix-conditional capabilities excluded fail-closed), external/field roles deferred to the cross-org design, no enum change. `PRESCREEN_PRODUCTION_POLICY` (compile-checked against `UserRole`) + seven HTTP routes on the existing node:http server: strict bodies mirror the envelopes minus every server-derived field (`organizationId`, `actor`, `occurredAt`, and for submit `receivingOrganizationId` — all principal-derived/server-stamped; supplying any is a 400, and cross-org submission is structurally inexpressible). Stable error-code → status mapping (403/404/409/400, content-free). Phase 2 amendment: the idempotency fingerprint excludes `occurredAt` so HTTP retries replay instead of conflicting; nested-body conflicts unchanged. 9 integration tests over real HTTP with DB-backed auth (`docs/testing/PRESCREEN_API_TEST_MANIFEST.md`).
-- **Not claimed for the prescreen slice:** persistence or restart durability of prescreen state (the gateway is still in-memory; a restart loses it), migrations, UI, event delivery, cross-organization collaboration, roles beyond the two ruled equivalences, PMHNP scope configuration, clinical/legal approval of any rule content, production readiness. Prescreen Phase 3 persistence remains gated on the separate provider-backed Cloud SQL/RLS verification plus a Phase 3 design approval.
+- **Phase 3 persistence (this branch, ADR-0016):** owner-authorized local bounded slice. Prescreen state persists in `clarity_dev` behind `PrismaPrescreenGateway` and survives restart; RLS (ENABLE+FORCE, fail-closed) covers the four new tables; all Phase 2 guarantees re-proven against Postgres (10 persistence tests + the 9 HTTP tests on the persistent gateway). See `docs/implementation/PRESCREEN_PHASE3_PERSISTENCE_IMPLEMENTATION.md` and `docs/testing/PRESCREEN_PERSISTENCE_TEST_MANIFEST.md`.
+- **Not claimed for the prescreen slice:** provider-backed Cloud SQL/RLS evidence (separate, non-waived gate), runtime-role deployment for the app connection (local dev connection is superuser and bypasses RLS; the proof used a NOBYPASSRLS role), outbox dispatch/delivery for prescreen events, UI, cross-organization collaboration, roles beyond the two ruled equivalences, PMHNP scope configuration, clinical/legal approval of any rule content, production readiness.
 - **Open decision packets:** the cross-organization submission/receipt model (successor to the resolved role-mapping packet — blocks field-originated prescreens and any external-actor work); consent-rule specificity ordering and fractional-age representation remain domain-review follow-ups in ADR-0013 (until an ordering policy is approved, overlapping consent rules fail closed).
 
 ## Completed (verified working)
@@ -110,4 +142,4 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 
 ~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011).
 
-**Current action:** The owner-approved prescreen chain is executed through the same-org API slice: package onboarded (PR #17), Phase 1 contracts merged (PR #19), Phase 2 command service (ADR-0013), role mapping resolved + same-org HTTP slice implemented and verified (ADR-0014, this branch — PR pending). Next: (1) provider-backed Cloud SQL/RLS verification remains the separate, non-waived infrastructure gate before Phase 3 prescreen persistence — blocked on the owner providing authenticated GCP access (`gcloud auth login` + the intended project; `om-venture-os` is currently configured but unconfirmed); (2) the cross-organization submission/receipt model is the successor decision packet before any field-originated prescreen or external-actor work; (3) a prescreen UI slice is now unblocked in principle but needs an owner scope decision; (4) the previously recorded H1/H2/H3, event-vocabulary, OD-6, migration-recovery, and outbox acceptances stand unchanged. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
+**Current action:** The owner-approved prescreen chain now runs durable end-to-end locally: package onboarded (PR #17), Phase 1 contracts (PR #19/#27), Phase 2 command service (ADR-0013), same-org HTTP slice + role ruling (ADR-0014, PR #28), and **Phase 3 local persistence (ADR-0016, branch `claude/prescreen-phase3-persistence` — PR pending)**. Next: (1) merge order for the parallel network-enrichment branch (PRs #29/#30) — it must renumber its ADR off the already-assigned 0014 (0015 left free) and reconcile the shared-ledger contention (issue #31) before or at merge; (2) provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate — still blocked on owner GCP access (`gcloud auth login` + intended project); (3) the cross-organization submission/receipt model is the successor decision packet before any field-originated prescreen or external-actor work; (4) a prescreen UI slice needs an owner scope decision; (5) prior H1/H2/H3, event-vocabulary, OD-6, migration-recovery, and outbox acceptances stand unchanged. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
