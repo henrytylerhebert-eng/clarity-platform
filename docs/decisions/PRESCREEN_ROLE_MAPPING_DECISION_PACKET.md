@@ -1,8 +1,38 @@
 # Decision packet: prescreen role mapping (blocks API/UI, not Phase 2)
 
-**Status:** OPEN — owner decision required before any API/UI exposure of
-prescreen commands. Recorded 2026-07-19 as a Phase 2 deliverable per the
-approved constraint "do not invent new production roles."
+**Status:** RESOLVED 2026-07-19 — owner ruling recorded below (Option 3,
+narrow scope). Full rationale and consequences: ADR-0014.
+
+## Owner ruling (2026-07-19)
+
+The owner selected **Option 3, applied narrowly**, with a **same-organization
+only** first API slice:
+
+1. **`INTAKE_COORDINATOR` ≡ Central Intake coordinator.** Explicit
+   equivalence ruled for the same-organization slice.
+2. **`PHYSICIAN_REVIEWER` ≡ authorized practitioner (physician/PMHNP).**
+   PMHNP signer authority is configured policy, not a new enum value.
+   In this slice the authorized practitioner holds prescreen attestation
+   authority; Central Intake's matrix-conditional attest capability is
+   excluded fail-closed.
+3. **External/field roles are deferred**, not invented: crisis-response
+   officer, law-enforcement officer, external prescreen assessor, sending
+   nurse. They arrive only with the cross-organization submission/receipt
+   design, which remains a future decision packet.
+4. **First API slice is same-organization only.** `receivingOrganizationId`
+   is not caller-suppliable over HTTP; it is derived from the authenticated
+   principal's organization, so cross-org submission is structurally
+   inexpressible until the cross-org model is designed and approved.
+
+No `UserRole` enum change and no migration result from this ruling.
+
+---
+
+*Original packet as recorded 2026-07-19, before resolution:*
+
+**Status (superseded):** OPEN — owner decision required before any API/UI
+exposure of prescreen commands. Recorded 2026-07-19 as a Phase 2 deliverable
+per the approved constraint "do not invent new production roles."
 
 ## Problem
 
@@ -53,3 +83,6 @@ workflow, packet visibility) is part of the same future decision.
 Resolving this packet (plus OD-5/ADR-0012 API architecture) unblocks the
 prescreen API/UI slice. Until then, prescreen commands are reachable only
 from tests with the synthetic policy.
+
+*(Resolved — see the owner ruling at the top of this file and ADR-0014.
+The cross-organization submission/receipt model remains open.)*

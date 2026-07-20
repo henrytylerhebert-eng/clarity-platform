@@ -111,6 +111,23 @@ describe("prescreen command service (Phase 2, in-memory gateway)", () => {
     expect(gateway.idempotencyRecordCount()).toBe(1);
   });
 
+  it("a retry with the same key and body but a later occurredAt is a replay, not a conflict — arrival time is not intent", () => {
+    const first = start();
+    const retry = service.startEncounter({
+      organizationId: ORG_A,
+      actor: assessor,
+      idempotencyKey: "start-key-0001",
+      occurredAt: "2026-07-19T15:05:00Z",
+      caseId: "case_syn_1",
+      currentLocation: "Synthetic ED",
+      presentingConcern: "Synthetic concern",
+    });
+    expect(retry.replayed).toBe(true);
+    expect(retry.objectId).toBe(first.objectId);
+    // First write wins: the stored encounter keeps the original timestamps.
+    expect(gateway.getEncounter(ORG_A, first.encounterId).createdAt).toBe(T0);
+  });
+
   it("idempotency key reuse with a changed body fails, including nested-only changes", () => {
     const started = start();
     service.saveAssessmentDraft({

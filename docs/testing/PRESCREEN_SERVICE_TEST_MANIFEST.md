@@ -1,8 +1,16 @@
 # Prescreen service test manifest (Phase 2)
 
-**Files:** `tests/unit/prescreen-service.test.ts` (25 tests, in-memory — no
-database), `tests/unit/prescreen-contracts.test.ts` (35 tests, Phase 1
-contracts). Run 2026-07-19 locally: **60/60**; root suite **328/328**.
+**Files:** `tests/unit/prescreen-service.test.ts` (27 tests, in-memory — no
+database), `tests/unit/prescreen-contracts.test.ts` (38 tests, Phase 1
+contracts + hardening). Run 2026-07-19 locally after the rebase onto the
+hardening session: **65/65**; root suite **343/343**.
+
+**Amendment (same day, ADR-0014 §5):** the idempotency fingerprint now
+excludes `occurredAt` — the key identifies command intent, and a retry's
+arrival time is not intent. One test added ("a retry with the same key and
+body but a later occurredAt is a replay…"); the nested-body conflict
+guarantee is unchanged and still tested. API-slice coverage lives in
+`PRESCREEN_API_TEST_MANIFEST.md`.
 
 ## Owner completion criteria → tests
 
@@ -40,8 +48,10 @@ contracts). Run 2026-07-19 locally: **60/60**; root suite **328/328**.
   real database, RLS interaction, and concurrent-writer races beyond
   single-process determinism are NOT tested here — they are Phase 3 scope
   behind the provider-backed verification gate.
-- **No API/UI:** HTTP status mapping of the stable error codes is untested
-  (no routes exist).
-- **Role policy is synthetic:** no production role authorizes anything.
+- **No UI.** *(Superseded in part: the same-organization HTTP API slice now
+  exists and is tested — see `PRESCREEN_API_TEST_MANIFEST.md`.)*
+- **Role policy:** the production policy covers exactly the two roles ruled
+  in ADR-0014; external/field roles remain unmapped and untestable until
+  the cross-organization design exists.
 - Consent/transport evaluators are contract-tested (Phase 1) but not wired
   into any Phase 2 command — no command needs them yet.
