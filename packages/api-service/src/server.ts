@@ -20,6 +20,7 @@ import {
 import {
   NetworkEnrichmentComplianceExporter,
   InMemoryNetworkReviewGateway,
+  type NetworkReviewGateway,
 } from "@clarity/network-enrichment-service";
 import {
   type NetworkEnrichmentReviewCommandInvoker,
@@ -89,6 +90,7 @@ export interface ApiDeps {
   caseCommands: CaseCommandService;
   networkEnrichmentReviewInvoker?: NetworkEnrichmentReviewCommandInvoker;
   complianceExporter?: NetworkEnrichmentComplianceExporter;
+  gateway?: NetworkReviewGateway;
 }
 
 class HttpError extends Error {
@@ -185,10 +187,11 @@ const EXPORT_ALLOWED_ROLES: readonly UserRole[] = [
 ];
 
 export function createApiServer(deps: ApiDeps): Server {
+  const gateway = deps.gateway ?? new InMemoryNetworkReviewGateway();
   const networkEnrichmentReviewInvoker =
-    deps.networkEnrichmentReviewInvoker ?? createNetworkEnrichmentReviewCommandCaller();
+    deps.networkEnrichmentReviewInvoker ?? createNetworkEnrichmentReviewCommandCaller({ gateway });
   const complianceExporter =
-    deps.complianceExporter ?? new NetworkEnrichmentComplianceExporter(new InMemoryNetworkReviewGateway());
+    deps.complianceExporter ?? new NetworkEnrichmentComplianceExporter(gateway);
 
   return createServer(async (req, res) => {
     const url = (req.url ?? "").split("?")[0] ?? "";

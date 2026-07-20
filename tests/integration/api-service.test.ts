@@ -129,10 +129,9 @@ beforeAll(async () => {
 
   const auth = new AuthenticationService(provider, new PrismaAuthGateway(h.prisma));
   const caseCommands = new CaseCommandService(new PrismaCaseCommandGateway(h.prisma));
-  const networkEnrichmentReviewInvoker = createNetworkEnrichmentReviewCommandCaller({
-    gateway: new PrismaNetworkReviewGateway(h.prisma),
-  });
-  server = createApiServer({ auth, caseCommands, networkEnrichmentReviewInvoker });
+  const gateway = new PrismaNetworkReviewGateway(h.prisma);
+  const networkEnrichmentReviewInvoker = createNetworkEnrichmentReviewCommandCaller({ gateway });
+  server = createApiServer({ auth, caseCommands, networkEnrichmentReviewInvoker, gateway });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   if (address === null || typeof address === "string") throw new Error("no ephemeral port assigned");
