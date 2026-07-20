@@ -3,6 +3,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaAuthGateway, PrismaCaseCommandGateway } from "@clarity/case-repository";
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
+import {
+  InMemoryPrescreenGateway,
+  PRESCREEN_PRODUCTION_POLICY,
+  PrescreenCommandService,
+} from "@clarity/prescreen-service";
 import { createApiServer } from "@clarity/api-service";
 import { createNetworkEnrichmentReviewCommandCaller } from "../../packages/api-service/src/reviewCommandCaller.js";
 import { PrismaNetworkReviewGateway } from "@clarity/network-enrichment-service";
@@ -131,7 +136,8 @@ beforeAll(async () => {
   const caseCommands = new CaseCommandService(new PrismaCaseCommandGateway(h.prisma));
   const gateway = new PrismaNetworkReviewGateway(h.prisma);
   const networkEnrichmentReviewInvoker = createNetworkEnrichmentReviewCommandCaller({ gateway });
-  server = createApiServer({ auth, caseCommands, networkEnrichmentReviewInvoker, gateway });
+  const prescreen = new PrescreenCommandService(new InMemoryPrescreenGateway(), PRESCREEN_PRODUCTION_POLICY);
+  server = createApiServer({ auth, caseCommands, networkEnrichmentReviewInvoker, gateway, prescreen });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   if (address === null || typeof address === "string") throw new Error("no ephemeral port assigned");

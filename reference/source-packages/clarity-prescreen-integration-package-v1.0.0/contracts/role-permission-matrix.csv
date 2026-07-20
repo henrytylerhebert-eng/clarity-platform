@@ -1,0 +1,17 @@
+role_code,display_name,scope,create_prescreen,edit_draft,attest,supplement,central_intake_review,request_information,record_clinical_review,record_legal_instrument,record_facility_response,create_transport_plan,record_custody,draft_profile,approve_profile,view_audit,notes
+CRISIS_RESPONSE_OFFICER,Crisis response officer,assigned case/organization,Y,Y,Y,Y,N,Y,N,conditional,N,conditional,Y,N,N,limited,Legal/instrument capability depends on jurisdiction and appointment.
+LAW_ENFORCEMENT_OFFICER,Law-enforcement officer,assigned custody case/agency,Y,Y,Y,Y,N,Y,N,conditional,N,conditional,Y,N,N,limited,May execute/record OPC pickup when authorized; no default clinical authority.
+PRESCREEN_ASSESSOR,Prescreen assessor,assigned case/organization,Y,Y,Y,Y,N,Y,N,N,N,N,N,N,N,limited,Private or public/community assessor.
+CENTRAL_INTAKE_COORDINATOR,Central Intake coordinator,facility/program/case,Y,Y,conditional,Y,Y,Y,N,N,conditional,Y,conditional,N,N,Y,Coordinates but does not replace authorized reviewers.
+CLINICAL_REVIEWER,Clinical reviewer,facility/program/case,N,N,N,N,conditional,Y,Y,N,conditional,N,N,N,N,Y,Authority comes from credential and facility policy.
+ACCEPTING_PRACTITIONER,Accepting practitioner,facility/program/case,N,N,N,N,Y,Y,Y,N,Y,N,N,N,N,Y,Records acceptance/decline only within approved authority.
+MEDICAL_CLEARANCE_PROVIDER,Medical-clearance provider,assigned medical encounter,N,conditional,conditional,Y,N,Y,Y,N,N,N,N,N,N,limited,Records medical review; not automatic behavioral-health acceptance.
+LEGAL_CORONER_AUTHORITY,Legal/coroner authority,jurisdiction/case,N,N,N,Y,N,Y,N,Y,N,conditional,Y,N,conditional,Y,Exact powers are configured.
+SENDING_NURSE,Sending nurse,assigned sending facility/case,N,Y,Y,Y,N,Y,N,N,N,N,N,N,N,limited,"Provides nursing report, MAR/TAR, precautions, last doses."
+RECEIVING_NURSE,Receiving nurse,receiving facility/case,N,N,N,Y,conditional,Y,N,N,N,conditional,Y,N,N,Y,Acknowledges arrival and discrepancies.
+TRANSPORT_COORDINATOR,Transport coordinator,assigned transport/case,N,N,N,N,N,Y,N,N,N,Y,conditional,N,N,limited,May select only server-qualified providers.
+TRANSPORT_PROVIDER,Transport provider,assigned trip/minimum necessary,N,N,N,N,N,N,N,N,N,N,Y,N,N,limited,Minimum-necessary transport projection only.
+FACILITY_ONBOARDING_SPECIALIST,Facility onboarding specialist,assigned facility/profile,N,N,N,N,N,N,N,N,N,N,N,Y,N,limited,Drafts candidate rules; cannot activate them.
+FACILITY_PROFILE_APPROVER,Facility profile approver,approved domain/facility,N,N,N,N,N,N,N,N,N,N,N,conditional,Y,Y,Approval type is domain-specific.
+COMPLIANCE_AUDITOR,Compliance/audit reviewer,authorized organization scope,N,N,N,N,N,N,N,N,N,N,N,N,N,Y,"Read-only, minimum necessary."
+SYSTEM_ADMIN,System administrator,platform operations only,N,N,N,N,N,N,N,N,N,N,N,N,N,conditional,No implicit clinical/case bypass.

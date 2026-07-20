@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarity.example/schemas/consent-authority-rule.schema.json",
+  "title": "Consent Authority Rule",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ruleId",
+    "version",
+    "jurisdiction",
+    "facilityId",
+    "ageBand",
+    "actionCode",
+    "admissionPathways",
+    "authorizedSignerTypes",
+    "effectiveFrom",
+    "approvalStatus",
+    "sourceReferences"
+  ],
+  "properties": {
+    "ruleId": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "jurisdiction": {
+      "type": "string"
+    },
+    "facilityId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "programId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ageBand": {
+      "enum": [
+        "UNDER_12",
+        "AGE_12_TO_15",
+        "AGE_16_TO_17",
+        "ADULT",
+        "ALL"
+      ]
+    },
+    "actionCode": {
+      "type": "string"
+    },
+    "documentType": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "treatmentCategory": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "admissionPathways": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "authorizedSignerTypes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "PATIENT",
+          "MINOR_PATIENT",
+          "PARENT",
+          "TUTOR",
+          "LEGAL_GUARDIAN",
+          "CARETAKER",
+          "PUBLIC_CUSTODIAN",
+          "PHYSICIAN",
+          "PMHNP",
+          "CORONER",
+          "JUDGE",
+          "COURT",
+          "OTHER_AUTHORIZED_ROLE"
+        ]
+      }
+    },
+    "minorSignatureRequired": {
+      "type": "boolean"
+    },
+    "minorAssentRecorded": {
+      "type": "boolean"
+    },
+    "relationshipEvidenceRequired": {
+      "type": "boolean"
+    },
+    "courtApprovalRequired": {
+      "type": "boolean"
+    },
+    "clinicianReviewRequired": {
+      "type": "boolean"
+    },
+    "coSignerTypes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "privacyRegimes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "HIPAA",
+          "PART_2",
+          "STATE_CONFIDENTIALITY",
+          "OTHER"
+        ]
+      }
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prohibitedWhen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "effectiveFrom": {
+      "type": "string",
+      "format": "date"
+    },
+    "effectiveTo": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "approvalStatus": {
+      "enum": [
+        "DRAFT_UNVERIFIED",
+        "PENDING_REVIEW",
+        "APPROVED",
+        "SUSPENDED",
+        "SUPERSEDED"
+      ]
+    },
+    "sourceReferences": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "sourceType",
+          "citation"
+        ],
+        "properties": {
+          "sourceType": {
+            "enum": [
+              "STATUTE",
+              "REGULATION",
+              "FACILITY_POLICY",
+              "COURT_ORDER",
+              "COUNSEL_GUIDANCE",
+              "OTHER"
+            ]
+          },
+          "citation": {
+            "type": "string"
+          },
+          "sourceDocumentVersionId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "approvedBy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

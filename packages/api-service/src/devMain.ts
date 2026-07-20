@@ -6,6 +6,11 @@ import {
 } from "@clarity/case-repository";
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
+import {
+  InMemoryPrescreenGateway,
+  PRESCREEN_PRODUCTION_POLICY,
+  PrescreenCommandService,
+} from "@clarity/prescreen-service";
 import { createApiServer } from "./server.js";
 import { createNetworkEnrichmentReviewCommandCaller } from "./reviewCommandCaller.js";
 import { PrismaNetworkReviewGateway } from "@clarity/network-enrichment-service";
@@ -37,6 +42,13 @@ const DEV_USERS = [
     displayName: "Synthetic System Admin",
     roles: ["SYSTEM_ADMIN"],
     assertion: "syn-assert-api-sysadmin-dev",
+  },
+  {
+    id: "synthetic-user-api-intake",
+    email: "syn-api-intake@example.test",
+    displayName: "Synthetic Intake Coordinator",
+    roles: ["INTAKE_COORDINATOR"],
+    assertion: "syn-assert-api-intake-dev",
   },
 ] as const;
 
@@ -113,7 +125,9 @@ async function main(): Promise<void> {
   const networkEnrichmentReviewInvoker = createNetworkEnrichmentReviewCommandCaller({
     gateway: new PrismaNetworkReviewGateway(prisma),
   });
-  const server = createApiServer({ auth, caseCommands, networkEnrichmentReviewInvoker });
+  // Phase 2 gateway: prescreen state is process-local and non-durable (ADR-0014).
+  const prescreen = new PrescreenCommandService(new InMemoryPrescreenGateway(), PRESCREEN_PRODUCTION_POLICY);
+  const server = createApiServer({ auth, caseCommands, networkEnrichmentReviewInvoker, prescreen });
 
   const port = Number(process.env.API_PORT ?? 4315);
   server.listen(port, "127.0.0.1", () => {

@@ -11,6 +11,7 @@
     "@clarity/case-service": "*",
     "@clarity/domain-contracts": "*",
     "@clarity/network-enrichment-service": "*",
+    "@clarity/prescreen-service": "*",
     "zod": "^3.24.1"
   }
 }

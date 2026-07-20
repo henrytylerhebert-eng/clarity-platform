@@ -1,6 +1,8 @@
 # Private Remote and Branch Protection Guide
 
-**Status:** No Git remote exists for this repository (verified 2026-07-11: `git remote -v` is empty; nothing has ever been pushed). This guide records the exact steps a human with GitHub organization access should follow to create a private remote and push safely. **None of these commands have been run.** Automated tooling must not create the remote or push without explicit authorization.
+**Status update (2026-07-11, later the same day):** the private remote now exists — `github.com/henrytylerhebert-eng/clarity-platform` — with all branches and the `clarity-foundation-v0.1` tag pushed and `main` protected (created under the owner's explicit directive; pre-push history secret-scan came back clean). Sections 1–2 below are retained as the record of the procedure. Section 3a documents the **temporary solo-maintainer review policy** now in force. GitHub secret scanning could not be enabled (unavailable for private free-plan repositories); the manual history scan stands in until the plan changes or the repo joins an organization with Advanced Security.
+
+**Original status (2026-07-11, morning):** No Git remote exists for this repository (verified: `git remote -v` is empty; nothing has ever been pushed). This guide records the exact steps a human with GitHub organization access should follow to create a private remote and push safely. Automated tooling must not create the remote or push without explicit authorization.
 
 ## 1. Create the private repository
 
@@ -45,6 +47,35 @@ GitHub → Settings → Branches → Add branch protection rule for `main`:
 - **Block force pushes** and **block deletions**.
 - **Do not allow bypassing the above settings** (including administrators), or document who may bypass and why.
 - Direct pushes to `main` are prohibited — all changes land via PR.
+
+## 3a. Temporary solo-maintainer review policy (in force as of 2026-07-11)
+
+**Decision (owner, 2026-07-11):** while this repository has a single maintainer, `main` requires PRs but the **required approving-review count is 0**. Rationale: GitHub forbids approving one's own PR, so a 1-review requirement with one authorized account is a deadlock, and a one-review requirement does not create real separation of duties when the only authorized reviewer is also the author. This is a temporary solo-maintainer control, **not** a removal of code review — every PR still receives a documented self-review (a review comment recording what was verified) before merge.
+
+What stays in force: PR-only flow (no direct pushes), force-push and deletion blocks, conversation-resolution requirement, admin enforcement, and required status checks once CI exists.
+
+The exact change (run by the maintainer, not automated tooling):
+
+```bash
+gh api -X PUT repos/henrytylerhebert-eng/clarity-platform/branches/main/protection --input - << 'EOF'
+{
+  "required_status_checks": null,
+  "enforce_admins": true,
+  "required_pull_request_reviews": { "required_approving_review_count": 0, "dismiss_stale_reviews": true },
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_conversation_resolution": true
+}
+EOF
+```
+
+**Restore the required approving-review count to at least 1 when any of the following occurs:**
+
+- A second human maintainer receives merge access.
+- An independent review bot is approved as a formal gate.
+- The repository begins handling production deployments, real patient information, regulated workflows, or other materially higher-risk operations.
+- External contributors begin submitting changes.
 
 ## 4. Migration review requirement
 

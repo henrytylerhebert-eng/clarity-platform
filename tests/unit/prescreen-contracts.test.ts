@@ -1,373 +1,503 @@
 import { describe, expect, it } from "vitest";
-import * as contracts from "@clarity/domain-contracts";
 import {
-  AssessmentAnswerSchema,
-  AssessmentVersionSchema,
-  ConsentAuthorityRuleSchema,
-  FormalVoluntaryPrescreenGateSchema,
-  PacketRequirementSchema,
-  PrescreenContractError,
-  PrescreenEventEnvelopeSchema,
-  SECURED_INSTRUMENT_BLOCKED_CATEGORIES,
-  TransportCategoryRuleSchema,
-  assertAssessmentVersionSuccessor,
   assertPrescreenEncounterTransition,
-  derivePossiblePrescreenPathway,
+  canTransitionPrescreenEncounter,
+  consentAgeBandFor,
+  derivePossiblePathway,
   evaluateConsentAuthority,
   evaluateOrientationGate,
-  evaluatePrescreenPacketReadiness,
-  evaluateTransportCategoryRule,
-  type AssessmentVersion,
-  type ConsentAuthorityContext,
+  evaluatePacketReadiness,
+  qualifyTransportProvider,
+  syntheticSecuredInstrumentTransportRule,
+  ConsentAuthorityRuleSchema,
+  OrientationObservationSchema,
+  PacketRequirementSchema,
+  PrescreenAssessmentVersionSchema,
+  PrescreenEncounterSchema,
+  PrescreenEventEnvelopeSchema,
+  PrescreenTransitionError,
+  TransportProviderSchema,
+  PRESCREEN_ENCOUNTER_STATUSES,
+  type ConsentAuthorityRule,
+  type ConsentContext,
   type OrientationObservation,
+  type OrientationStatus,
   type PacketRequirement,
-  type TransportCategoryRule,
+  type PacketRequirementState,
+  type PrescreenReadinessTarget,
+  type TransportContext,
+  type TransportProvider,
 } from "@clarity/domain-contracts";
 
-const NOW = "2026-07-19T12:00:00Z";
-
-const formalVoluntaryGate = FormalVoluntaryPrescreenGateSchema.parse({
-  ruleId: "synthetic-owner-formal-voluntary-gate",
-  ruleVersion: 1,
-  source: "OWNER_DEFINED_LAUNCH_RULE",
-  requiredDomains: ["person", "place", "time", "situation"],
-});
-
 function orientation(
-  person: OrientationObservation["domains"]["person"]["status"],
-  place = person,
-  time = person,
-  situation = person,
+  person: OrientationStatus,
+  place: OrientationStatus,
+  time: OrientationStatus,
+  situation: OrientationStatus,
 ): OrientationObservation {
   return {
-    observedAt: NOW,
-    sourceId: "synthetic-observation-source",
-    domains: {
-      person: { status: person },
-      place: { status: place },
-      time: { status: time },
-      situation: { status: situation },
-    },
+    observedAt: "2026-07-19T12:00:00Z",
+    person: { status: person },
+    place: { status: place },
+    time: { status: time },
+    situation: { status: situation },
   };
 }
 
-describe("prescreen pathway contracts", () => {
-  it("passes the owner-defined gate only when all four domains are oriented", () => {
-    expect(evaluateOrientationGate(orientation("ORIENTED"))).toBe("PASS");
-    expect(evaluateOrientationGate(orientation("ORIENTED", "NOT_ORIENTED"))).toBe("FAIL");
-    expect(evaluateOrientationGate(orientation("ORIENTED", "UNKNOWN"))).toBe("UNKNOWN");
+const fullyOriented = orientation("ORIENTED", "ORIENTED", "ORIENTED", "ORIENTED");
+
+describe("orientation gate", () => {
+  it("passes only when all four domains are oriented", () => {
+    expect(evaluateOrientationGate(fullyOriented)).toBe("PASS");
+    expect(evaluateOrientationGate(orientation("ORIENTED", "NOT_ORIENTED", "ORIENTED", "ORIENTED"))).toBe("FAIL");
+    expect(evaluateOrientationGate(orientation("ORIENTED", "UNKNOWN", "ORIENTED", "ORIENTED"))).toBe("UNKNOWN");
+  });
+});
+
+describe("possible-pathway derivation", () => {
+  it("routes willing and oriented to possible formal voluntary review", () => {
+    const result = derivePossiblePathway({ willingness: "WILLING", orientation: fullyOriented });
+    expect(result.pathway).toBe("POSSIBLE_FORMAL_VOLUNTARY_REVIEW");
+    expect(result.requiresAuthorizedReview).toBe(true);
   });
 
-  it("derives possible formal-voluntary review without making a final decision", () => {
-    const result = derivePossiblePrescreenPathway({
+  it("routes willing but not fully oriented to possible noncontested pathway", () => {
+    const result = derivePossiblePathway({
       willingness: "WILLING",
-      orientation: orientation("ORIENTED"),
-      formalVoluntaryGate,
+      orientation: orientation("ORIENTED", "ORIENTED", "NOT_ORIENTED", "NOT_ORIENTED"),
     });
-    expect(result).toMatchObject({
-      pathway: "POSSIBLE_FORMAL_VOLUNTARY_REVIEW",
-      requiresAuthorizedReview: true,
-    });
-    expect(result.pathway).toMatch(/^POSSIBLE_/);
+    expect(result.pathway).toBe("POSSIBLE_NONCONTESTED_PATHWAY");
+    expect(result.orientationGate).toBe("FAIL");
   });
 
-  it("routes willing but not oriented to possible noncontested review", () => {
-    expect(
-      derivePossiblePrescreenPathway({
-        willingness: "WILLING",
-        orientation: orientation("ORIENTED", "ORIENTED", "NOT_ORIENTED", "ORIENTED"),
-        formalVoluntaryGate,
-      }),
-    ).toMatchObject({
-      pathway: "POSSIBLE_NONCONTESTED_PATHWAY",
-      orientationGate: "FAIL",
-      requiresAuthorizedReview: true,
+  it("routes non-opposed with unknown orientation to possible noncontested pathway", () => {
+    const result = derivePossiblePathway({
+      willingness: "NON_OPPOSED",
+      orientation: orientation("UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN"),
     });
+    expect(result.pathway).toBe("POSSIBLE_NONCONTESTED_PATHWAY");
   });
 
-  it("routes non-opposed with unknown orientation to possible noncontested review", () => {
-    expect(
-      derivePossiblePrescreenPathway({
-        willingness: "NON_OPPOSED",
-        orientation: orientation("UNKNOWN"),
-        formalVoluntaryGate,
-      }),
-    ).toMatchObject({
-      pathway: "POSSIBLE_NONCONTESTED_PATHWAY",
-      orientationGate: "UNKNOWN",
-      requiresAuthorizedReview: true,
-    });
+  it("routes opposed to emergency or legal review without choosing an instrument", () => {
+    const result = derivePossiblePathway({ willingness: "OPPOSED", orientation: fullyOriented });
+    expect(result.pathway).toBe("EMERGENCY_OR_LEGAL_REVIEW_REQUIRED");
   });
 
-  it("routes opposition or an active process to review without selecting an instrument", () => {
-    const result = derivePossiblePrescreenPathway({
+  it("gives medical stabilization precedence over every other pathway", () => {
+    const result = derivePossiblePathway({
+      willingness: "WILLING",
+      orientation: fullyOriented,
+      immediateMedicalStabilizationRequired: true,
+    });
+    expect(result.pathway).toBe("MEDICAL_STABILIZATION_REQUIRED");
+  });
+
+  it("routes non-opposed and fully oriented to the noncontested pathway with authorized review", () => {
+    const result = derivePossiblePathway({ willingness: "NON_OPPOSED", orientation: fullyOriented });
+    expect(result.pathway).toBe("POSSIBLE_NONCONTESTED_PATHWAY");
+    expect(result.requiresAuthorizedReview).toBe(true);
+  });
+
+  it("reports both reasons when a patient is opposed during an active legal process", () => {
+    const result = derivePossiblePathway({
       willingness: "OPPOSED",
-      orientation: orientation("ORIENTED"),
-      formalVoluntaryGate,
+      orientation: fullyOriented,
+      activeEmergencyOrLegalProcess: true,
     });
     expect(result.pathway).toBe("EMERGENCY_OR_LEGAL_REVIEW_REQUIRED");
-    expect(result).not.toHaveProperty("instrument");
+    expect(result.reasons).toEqual(["ACTIVE_LEGAL_PROCESS", "PATIENT_OPPOSED"]);
   });
 
-  it("gives medical stabilization precedence over other possible pathways", () => {
-    expect(
-      derivePossiblePrescreenPathway({
-        willingness: "OPPOSED",
-        orientation: orientation("NOT_ORIENTED"),
-        formalVoluntaryGate,
-        activeEmergencyOrLegalProcess: true,
-        immediateMedicalStabilizationRequired: true,
-      }).pathway,
-    ).toBe("MEDICAL_STABILIZATION_REQUIRED");
-  });
-
-  it("preserves blank or unanswered values as explicit unknown state", () => {
-    const answer = AssessmentAnswerSchema.parse({
-      answerId: "synthetic-answer",
-      questionCode: "willingness-detail",
-      valueState: "UNKNOWN",
-      sourceIds: [],
-      recordedAt: NOW,
-      recordedBy: "synthetic-assessor",
+  it("derives UNDETERMINED without authorized review when information is insufficient", () => {
+    const result = derivePossiblePathway({
+      willingness: "NOT_ASSESSED",
+      orientation: orientation("UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN"),
     });
-    expect(answer.valueState).toBe("UNKNOWN");
-    expect(answer).not.toHaveProperty("value");
+    expect(result.pathway).toBe("UNDETERMINED");
+    expect(result.requiresAuthorizedReview).toBe(false);
   });
 });
 
-describe("prescreen encounter and assessment version contracts", () => {
-  it("rejects invalid encounter transitions deterministically", () => {
-    expect(() => assertPrescreenEncounterTransition("DRAFT", "HANDED_OFF")).toThrowError(
-      expect.objectContaining<Partial<PrescreenContractError>>({ code: "INVALID_ENCOUNTER_TRANSITION" }),
-    );
+describe("prescreen encounter state machine", () => {
+  it("allows the documented forward transitions", () => {
+    expect(() => assertPrescreenEncounterTransition("DRAFT", "ATTESTED")).not.toThrow();
+    expect(() => assertPrescreenEncounterTransition("ATTESTED", "SUBMITTED")).not.toThrow();
+    expect(() => assertPrescreenEncounterTransition("SUBMITTED", "CENTRAL_INTAKE_REVIEW")).not.toThrow();
   });
 
-  it("requires post-attestation changes to use a linked successor version", () => {
-    const base = {
-      schemaVersion: "1.0.0" as const,
-      encounterId: "synthetic-encounter",
-      organizationId: "synthetic-org",
-      createdAt: NOW,
-      createdBy: "synthetic-assessor",
-      willingness: "WILLING" as const,
-      orientation: orientation("ORIENTED"),
-      answers: [],
-      sources: [],
-    };
-    const previous = AssessmentVersionSchema.parse({
-      ...base,
-      assessmentVersionId: "synthetic-assessment-v1",
-      versionNumber: 1,
-      status: "ATTESTED",
-      attestedAt: NOW,
-      attestedBy: "synthetic-assessor",
-      contentHash: "synthetic-hash-v1",
-    });
-    const successor = AssessmentVersionSchema.parse({
-      ...base,
-      assessmentVersionId: "synthetic-assessment-v2",
-      versionNumber: 2,
-      status: "CORRECTED",
-      parentVersionId: previous.assessmentVersionId,
-      changeReason: "Synthetic collateral clarification",
-    });
-    expect(() => assertAssessmentVersionSuccessor(previous, successor)).not.toThrow();
-    expect(() =>
-      assertAssessmentVersionSuccessor(previous, {
-        ...successor,
-        assessmentVersionId: previous.assessmentVersionId,
-      } as AssessmentVersion),
-    ).toThrowError(expect.objectContaining({ code: "ASSESSMENT_VERSION_CONFLICT" }));
-  });
-
-  it("accepts the canonical JSON/OpenAPI assessment nesting and field names", () => {
-    const assessment = AssessmentVersionSchema.parse({
-      schemaVersion: "1.0.0",
-      assessmentVersionId: "synthetic-canonical-assessment",
-      encounterId: "synthetic-encounter",
-      organizationId: "synthetic-org",
-      versionNumber: 1,
-      status: "DRAFT",
-      createdAt: NOW,
-      createdBy: "synthetic-assessor",
-      attestedAt: null,
-      attestedBy: null,
-      parentVersionId: null,
-      changeReason: null,
-      willingness: "WILLING",
-      orientation: orientation("ORIENTED"),
-      possiblePathway: "POSSIBLE_FORMAL_VOLUNTARY_REVIEW",
-      answers: [],
-      sources: [
-        {
-          sourceId: "synthetic-observation-source",
-          sourceType: "DIRECT_OBSERVATION",
-          displayLabel: "Synthetic direct observation",
-          documentVersionId: null,
-          recordedAt: NOW,
-        },
-      ],
-      contradictions: [],
-      unknowns: [],
-      emergencyInterrupt: null,
-    });
-    expect(assessment.orientation.domains.situation.status).toBe("ORIENTED");
-    expect(assessment.sources[0]?.displayLabel).toBe("Synthetic direct observation");
-  });
-});
-
-describe("target-specific referral packet readiness", () => {
-  const requirement = (
-    code: string,
-    state: PacketRequirement["state"],
-    blockingTargets: PacketRequirement["blockingTargets"],
-  ) =>
-    PacketRequirementSchema.parse({
-      requirementCode: code,
-      label: code,
-      state,
-      blockingTargets,
-      responsibleRoleCode: "SYNTHETIC_PACKET_OWNER",
-      resolutionWorkspace: "packet-review",
-      sourceRuleId: "synthetic-facility-rule",
-      sourceRuleVersion: 1,
-    });
-
-  it("returns target-specific blockers with owner, provenance, and resolution workspace", () => {
-    const requirements = [
-      requirement("demographics", "ACCEPTED_FOR_PACKET", ["CENTRAL_INTAKE_REVIEW"]),
-      requirement("mar", "MISSING", ["FACILITY_ROUTING"]),
-    ];
-    expect(evaluatePrescreenPacketReadiness("CENTRAL_INTAKE_REVIEW", requirements).ready).toBe(true);
-    const routing = evaluatePrescreenPacketReadiness("FACILITY_ROUTING", requirements);
-    expect(routing.ready).toBe(false);
-    expect(routing.blockers[0]).toMatchObject({
-      state: "MISSING",
-      responsibleRoleCode: "SYNTHETIC_PACKET_OWNER",
-      resolutionWorkspace: "packet-review",
-      sourceRuleId: "synthetic-facility-rule",
-      sourceRuleVersion: 1,
-    });
-  });
-
-  it("treats unavailable as visible warning and authorized not-applicable as satisfied", () => {
-    const result = evaluatePrescreenPacketReadiness("FACILITY_ROUTING", [
-      requirement("labs", "UNAVAILABLE_WITH_REASON", ["FACILITY_ROUTING"]),
-      requirement("oxygen", "NOT_APPLICABLE_WITH_AUTHORITY", ["FACILITY_ROUTING"]),
-    ]);
-    expect(result).toMatchObject({ ready: true, blockers: [] });
-    expect(result.warnings).toHaveLength(1);
-  });
-});
-
-describe("transport category rule contracts", () => {
-  const securedRule: TransportCategoryRule = TransportCategoryRuleSchema.parse({
-    ruleId: "synthetic-secured-transport-rule",
-    version: 1,
-    approvalStatus: "APPROVED",
-    applicableAuthorities: ["OPC", "PEC", "CEC"],
-    allowedCategories: [
-      "LAW_ENFORCEMENT_CUSTODY",
-      "LICENSED_AMBULANCE_EMS",
-      "CONTRACTED_SECURE_BEHAVIORAL_TRANSPORT",
-    ],
-    blockedCategories: SECURED_INSTRUMENT_BLOCKED_CATEGORIES,
-    requiresInstrument: true,
-    requiresConfirmedDestination: true,
-    sourceRuleId: "synthetic-owner-transport-source",
-    sourceRuleVersion: 1,
-  });
-
-  it("blocks family, self, taxi/rideshare, and unsecured paths for configured OPC/PEC/CEC rules", () => {
-    for (const authority of ["OPC", "PEC", "CEC"] as const) {
-      for (const category of SECURED_INSTRUMENT_BLOCKED_CATEGORIES) {
-        expect(evaluateTransportCategoryRule(securedRule, authority, category).decision).toBe("BLOCKED");
-      }
+  it("rejects invalid transitions deterministically with the stable code", () => {
+    expect(() => assertPrescreenEncounterTransition("DRAFT", "HANDED_OFF")).toThrow(PrescreenTransitionError);
+    try {
+      assertPrescreenEncounterTransition("DRAFT", "HANDED_OFF");
+    } catch (error) {
+      expect((error as PrescreenTransitionError).code).toBe("INVALID_ENCOUNTER_TRANSITION");
     }
   });
 
-  it("does not implement transport-provider qualification in the contracts slice", () => {
-    expect(contracts).not.toHaveProperty("qualifyTransportProvider");
+  it("treats terminal statuses as dead ends", () => {
+    for (const terminal of ["HANDED_OFF", "REDIRECTED", "DECLINED", "CANCELLED"] as const) {
+      for (const to of PRESCREEN_ENCOUNTER_STATUSES) {
+        expect(canTransitionPrescreenEncounter(terminal, to)).toBe(false);
+      }
+    }
   });
 });
 
-describe("consent authority contracts", () => {
-  const context: ConsentAuthorityContext = {
-    jurisdiction: "SYNTHETIC_LA",
-    facilityId: "synthetic-facility",
-    age: 14,
-    actionCode: "PARENTAL_ADMISSION_APPLICATION",
-    admissionPathway: "PARENTAL_ADMISSION",
-    signerType: "PARENT",
-    relationshipEvidencePresent: true,
-    minorSignaturePresent: false,
-    courtApprovalPresent: false,
-    clinicianReviewPresent: true,
-    evaluatedOn: "2026-07-19",
+function requirement(
+  code: string,
+  state: PacketRequirementState,
+  targets: readonly PrescreenReadinessTarget[],
+  role = "PRESCREEN_ASSESSOR",
+): PacketRequirement {
+  return {
+    requirementCode: code,
+    label: code,
+    state,
+    blockingTargets: [...targets],
+    responsibleRoleCode: role,
+    resolutionWorkspace: "Packet",
+    sourceRuleId: "facility-rule",
+    sourceRuleVersion: 1,
   };
+}
 
-  const minorRule = ConsentAuthorityRuleSchema.parse({
-    ruleId: "synthetic-minor-guardian-rule",
-    version: 1,
-    jurisdiction: "SYNTHETIC_LA",
-    facilityId: "synthetic-facility",
-    ageBand: "AGE_12_TO_15",
-    actionCode: "PARENTAL_ADMISSION_APPLICATION",
-    admissionPathways: ["PARENTAL_ADMISSION"],
-    authorizedSignerTypes: ["PARENT", "LEGAL_GUARDIAN"],
-    relationshipEvidenceRequired: true,
-    clinicianReviewRequired: true,
-    effectiveFrom: "2026-01-01",
-    approvalStatus: "APPROVED",
-    sourceReferences: [{ sourceType: "OTHER", citation: "Synthetic rule source" }],
+describe("target-specific packet readiness", () => {
+  it("is ready when no requirement blocks the named target", () => {
+    const result = evaluatePacketReadiness("CENTRAL_INTAKE_REVIEW", [
+      requirement("DEMOGRAPHICS", "ACCEPTED_FOR_PACKET", ["CENTRAL_INTAKE_REVIEW"]),
+      requirement("LABS", "MISSING", ["FACILITY_ROUTING"]),
+    ]);
+    expect(result.ready).toBe(true);
+    expect(result.blockers).toHaveLength(0);
   });
 
-  it("validates document-specific minor and guardian authority shape", () => {
-    expect(minorRule).toMatchObject({
-      ageBand: "AGE_12_TO_15",
-      authorizedSignerTypes: ["PARENT", "LEGAL_GUARDIAN"],
-      relationshipEvidenceRequired: true,
-    });
+  it("reports a missing target requirement as a blocker with resolution metadata", () => {
+    const result = evaluatePacketReadiness("FACILITY_ROUTING", [
+      requirement("MAR", "MISSING", ["FACILITY_ROUTING"], "SENDING_NURSE"),
+    ]);
+    expect(result.ready).toBe(false);
+    expect(result.blockers[0]?.responsibleRoleCode).toBe("SENDING_NURSE");
+    expect(result.blockers[0]?.sourceRuleId).toBe("facility-rule");
   });
 
-  it("fails closed without an approved matching rule", () => {
-    expect(evaluateConsentAuthority([], context)).toEqual({
-      allowed: false,
-      unmetRequirements: ["NO_APPROVED_RULE"],
-      reasons: [],
-    });
-    expect(
-      evaluateConsentAuthority([{ ...minorRule, approvalStatus: "PENDING_REVIEW" }], context).allowed,
-    ).toBe(false);
+  it("treats received-but-under-review as a warning, not a blocker", () => {
+    const result = evaluatePacketReadiness("CENTRAL_INTAKE_REVIEW", [
+      requirement("NOTES", "RECEIVED", ["CENTRAL_INTAKE_REVIEW"]),
+    ]);
+    expect(result.ready).toBe(true);
+    expect(result.warnings).toHaveLength(1);
+  });
+
+  it("accepts not-applicable-with-authority as satisfying the requirement", () => {
+    const result = evaluatePacketReadiness("FACILITY_ROUTING", [
+      requirement("OXYGEN", "NOT_APPLICABLE_WITH_AUTHORITY", ["FACILITY_ROUTING"]),
+    ]);
+    expect(result.ready).toBe(true);
+  });
+
+  it("never produces an aggregate score, only named blockers and warnings", () => {
+    const result = evaluatePacketReadiness("CENTRAL_INTAKE_REVIEW", [
+      requirement("A", "MISSING", ["CENTRAL_INTAKE_REVIEW"]),
+      requirement("B", "RECEIVED", ["CENTRAL_INTAKE_REVIEW"]),
+    ]);
+    expect(Object.keys(result).sort()).toEqual(["blockers", "ready", "target", "warnings"]);
   });
 });
 
-describe("prescreen event envelope and catalog", () => {
-  const event = {
-    eventId: "synthetic-event",
-    schemaName: "clarity.prescreen.event",
-    schemaVersion: "1.0.0",
-    eventType: "ORIENTATION_OBSERVED",
-    organizationId: "synthetic-org",
-    caseId: "synthetic-case",
-    encounterId: "synthetic-encounter",
-    aggregateType: "AssessmentVersion",
-    aggregateId: "synthetic-assessment-v1",
-    aggregateVersion: 1,
-    eventTime: NOW,
-    recordedTime: NOW,
-    actor: { actorType: "USER", actorId: "synthetic-assessor", roleCodes: ["PRESCREEN_ASSESSOR"] },
-    source: { sourceSystem: "clarity-synthetic-test" },
-    correlationId: "synthetic-correlation",
-    phiClassification: "SENSITIVE_OPERATIONAL",
-    dataQualityState: "VALIDATED",
-    reviewState: "PENDING",
-    payload: { person: "ORIENTED", place: "ORIENTED", time: "ORIENTED", situation: "ORIENTED" },
-  } as const;
+const syntheticConsentRule: ConsentAuthorityRule = {
+  ruleId: "synthetic-parental-admission",
+  version: 1,
+  status: "APPROVED",
+  jurisdictionCode: "LA",
+  facilityId: "facility-1",
+  ageBand: "AGE_12_TO_15",
+  actionCode: "PARENTAL_ADMISSION_APPLICATION",
+  admissionPathways: ["PARENTAL_ADMISSION"],
+  authorizedSignerTypes: ["PARENT", "LEGAL_GUARDIAN"],
+  minorSignatureRequired: false,
+  relationshipEvidenceRequired: true,
+  courtApprovalRequired: false,
+  clinicianReviewRequired: true,
+  privacyRegimes: [],
+};
 
-  it("accepts the supported envelope version and fails closed on unknown versions", () => {
-    expect(PrescreenEventEnvelopeSchema.parse(event).schemaVersion).toBe("1.0.0");
-    expect(PrescreenEventEnvelopeSchema.safeParse({ ...event, schemaVersion: "2.0.0" }).success).toBe(false);
-    expect(PrescreenEventEnvelopeSchema.safeParse({ ...event, eventType: "UNKNOWN_EVENT" }).success).toBe(false);
+const syntheticConsentContext: ConsentContext = {
+  jurisdictionCode: "LA",
+  facilityId: "facility-1",
+  age: 14,
+  actionCode: "PARENTAL_ADMISSION_APPLICATION",
+  admissionPathway: "PARENTAL_ADMISSION",
+  signerType: "PARENT",
+  relationshipEvidencePresent: true,
+  minorSignaturePresent: false,
+  courtApprovalPresent: false,
+  clinicianReviewPresent: true,
+};
+
+describe("consent authority evaluation (configured synthetic rules)", () => {
+  it("derives deterministic age bands and rejects out-of-range ages", () => {
+    expect(consentAgeBandFor(11)).toBe("UNDER_12");
+    expect(consentAgeBandFor(14)).toBe("AGE_12_TO_15");
+    expect(consentAgeBandFor(16)).toBe("AGE_16_TO_17");
+    expect(consentAgeBandFor(18)).toBe("ADULT");
+    expect(() => consentAgeBandFor(-1)).toThrow(RangeError);
+    expect(() => consentAgeBandFor(126)).toThrow(RangeError);
+  });
+
+  it("allows a matching approved rule when all requirements are met", () => {
+    const result = evaluateConsentAuthority([syntheticConsentRule], syntheticConsentContext);
+    expect(result.allowed).toBe(true);
+    expect(result.ruleId).toBe("synthetic-parental-admission");
+  });
+
+  it("enforces relationship evidence", () => {
+    const result = evaluateConsentAuthority([syntheticConsentRule], {
+      ...syntheticConsentContext,
+      relationshipEvidencePresent: false,
+    });
+    expect(result.allowed).toBe(false);
+    expect(result.unmetRequirements).toContain("RELATIONSHIP_EVIDENCE_REQUIRED");
+  });
+
+  it("does not treat the wrong signer type as authority", () => {
+    const result = evaluateConsentAuthority([syntheticConsentRule], {
+      ...syntheticConsentContext,
+      signerType: "MINOR_PATIENT",
+    });
+    expect(result.unmetRequirements).toContain("SIGNER_TYPE_NOT_AUTHORIZED");
+  });
+
+  it("never authorizes from a draft rule (fails closed)", () => {
+    const result = evaluateConsentAuthority(
+      [{ ...syntheticConsentRule, status: "DRAFT_UNVERIFIED" }],
+      syntheticConsentContext,
+    );
+    expect(result.unmetRequirements).toEqual(["NO_APPROVED_RULE"]);
+  });
+
+  it("fails closed when a regime-scoped rule receives no privacy regime", () => {
+    const scopedRule = { ...syntheticConsentRule, privacyRegimes: ["SYNTHETIC_REGIME_42CFR"] };
+    const withoutRegime = evaluateConsentAuthority([scopedRule], syntheticConsentContext);
+    expect(withoutRegime.allowed).toBe(false);
+    expect(withoutRegime.unmetRequirements).toContain("PRIVACY_REGIME_NOT_COVERED");
+    const withRegime = evaluateConsentAuthority([scopedRule], {
+      ...syntheticConsentContext,
+      privacyRegime: "SYNTHETIC_REGIME_42CFR",
+    });
+    expect(withRegime.allowed).toBe(true);
+  });
+
+  it("fails closed when no facility rule matches", () => {
+    const result = evaluateConsentAuthority([syntheticConsentRule], {
+      ...syntheticConsentContext,
+      facilityId: "facility-2",
+    });
+    expect(result.allowed).toBe(false);
+  });
+
+  it("fails closed when multiple approved rules match regardless of input order", () => {
+    const broadRule: ConsentAuthorityRule = {
+      ...syntheticConsentRule,
+      ruleId: "synthetic-jurisdiction-wide-admission",
+      facilityId: undefined,
+      relationshipEvidenceRequired: false,
+      clinicianReviewRequired: false,
+    };
+    const broadFirst = evaluateConsentAuthority([broadRule, syntheticConsentRule], syntheticConsentContext);
+    const specificFirst = evaluateConsentAuthority([syntheticConsentRule, broadRule], syntheticConsentContext);
+    expect(broadFirst).toEqual(specificFirst);
+    for (const result of [broadFirst, specificFirst]) {
+      expect(result.allowed).toBe(false);
+      expect(result.ruleId).toBeUndefined();
+      expect(result.unmetRequirements).toEqual(["AMBIGUOUS_APPROVED_RULES"]);
+      expect(result.reasons).toHaveLength(2);
+    }
+  });
+});
+
+const transportContext: TransportContext = {
+  legalStatus: "OPC",
+  instrumentId: "opc_synthetic_1",
+  sendingFacilityId: "facility-sending-1",
+  destinationFacilityId: "facility-1",
+  jurisdictionCode: "LA",
+  serviceArea: "Lafayette Parish",
+  requiredCapabilities: ["CONTINUOUS_SUPERVISION"],
+};
+
+function syntheticProvider(overrides: Partial<TransportProvider> = {}): TransportProvider {
+  return {
+    providerId: "p1",
+    legalName: "Synthetic Secure Transport",
+    category: "CONTRACTED_SECURE_BEHAVIORAL_TRANSPORT",
+    status: "ACTIVE",
+    verificationStatus: "VERIFIED",
+    supportedLegalStatuses: ["OPC", "PEC", "CEC"],
+    serviceAreas: ["Lafayette Parish"],
+    capabilities: ["CONTINUOUS_SUPERVISION"],
+    restrictions: [],
+    facilityApprovals: ["facility-sending-1", "facility-1"],
+    jurisdictionApprovals: ["LA"],
+    ...overrides,
+  };
+}
+
+describe("transport provider qualification (configured synthetic rule)", () => {
+  const rule = syntheticSecuredInstrumentTransportRule();
+
+  it("qualifies a verified contracted secure provider under the configured OPC rule", () => {
+    expect(qualifyTransportProvider(syntheticProvider(), transportContext, rule).status).toBe("QUALIFIED");
+  });
+
+  it("blocks family transport for the configured OPC path", () => {
+    const result = qualifyTransportProvider(
+      syntheticProvider({ category: "FAMILY_OR_SUPPORT_TRANSPORT" }),
+      transportContext,
+      rule,
+    );
+    expect(result.status).toBe("NOT_QUALIFIED");
+    expect(result.disqualifiers).toContain("TRANSPORT_CATEGORY_BLOCKED");
+  });
+
+  it("blocks secured instrument transport without an instrument", () => {
+    const { instrumentId: _omitted, ...withoutInstrument } = transportContext;
+    const result = qualifyTransportProvider(syntheticProvider(), withoutInstrument, rule);
+    expect(result.disqualifiers).toContain("TRANSPORT_AUTHORITY_MISSING");
+  });
+
+  it("blocks qualification without a confirmed destination", () => {
+    const { destinationFacilityId: _omitted, ...withoutDestination } = transportContext;
+    const result = qualifyTransportProvider(syntheticProvider(), withoutDestination, rule);
+    expect(result.disqualifiers).toContain("TRANSPORT_DESTINATION_NOT_CONFIRMED");
+  });
+
+  it("blocks stale provider credentials", () => {
+    const result = qualifyTransportProvider(syntheticProvider({ verificationStatus: "STALE" }), transportContext, rule);
+    expect(result.disqualifiers).toContain("PROVIDER_VERIFICATION_NOT_CURRENT");
+  });
+
+  it("blocks service-area mismatches", () => {
+    const result = qualifyTransportProvider(syntheticProvider({ serviceAreas: ["Orleans Parish"] }), transportContext, rule);
+    expect(result.disqualifiers).toContain("SERVICE_AREA_NOT_SUPPORTED");
+  });
+
+  it("blocks missing patient capabilities", () => {
+    const result = qualifyTransportProvider(syntheticProvider({ capabilities: [] }), transportContext, rule);
+    expect(result.disqualifiers).toContain("MISSING_CAPABILITY:CONTINUOUS_SUPERVISION");
+  });
+
+  it("blocks providers with unresolved restrictions", () => {
+    const result = qualifyTransportProvider(
+      syntheticProvider({ restrictions: ["Synthetic credential review remains open"] }),
+      transportContext,
+      rule,
+    );
+    expect(result.status).toBe("NOT_QUALIFIED");
+    expect(result.disqualifiers).toContain("UNRESOLVED_PROVIDER_RESTRICTION");
+  });
+
+  it("requires both sending- and receiving-facility approvals", () => {
+    const missingSending = qualifyTransportProvider(
+      syntheticProvider({ facilityApprovals: ["facility-1"] }),
+      transportContext,
+      rule,
+    );
+    expect(missingSending.disqualifiers).toContain("SENDING_FACILITY_APPROVAL_MISSING");
+
+    const missingReceiving = qualifyTransportProvider(
+      syntheticProvider({ facilityApprovals: ["facility-sending-1"] }),
+      transportContext,
+      rule,
+    );
+    expect(missingReceiving.disqualifiers).toContain("RECEIVING_FACILITY_APPROVAL_MISSING");
+  });
+});
+
+describe("prescreen schemas", () => {
+  it("accepts a synthetic encounter and rejects unknown fields", () => {
+    const encounter = {
+      encounterId: "pre_syn_1",
+      caseId: "case_syn_1",
+      organizationId: "org_syn_1",
+      status: "DRAFT",
+      version: 1,
+      currentLocation: "Synthetic ED",
+      presentingConcern: "Synthetic concern",
+      possiblePathway: "UNDETERMINED",
+      createdBy: "actor_syn_1",
+      createdAt: "2026-07-19T12:00:00Z",
+      updatedAt: "2026-07-19T12:00:00Z",
+    };
+    expect(PrescreenEncounterSchema.parse(encounter).encounterId).toBe("pre_syn_1");
+    expect(() => PrescreenEncounterSchema.parse({ ...encounter, unexpected: true })).toThrow();
+  });
+
+  it("accepts a synthetic draft assessment version", () => {
+    const version = {
+      assessmentVersionId: "asv_syn_1",
+      encounterId: "pre_syn_1",
+      organizationId: "org_syn_1",
+      versionNumber: 1,
+      status: "DRAFT",
+      createdAt: "2026-07-19T12:05:00Z",
+      createdBy: "actor_syn_1",
+      willingness: "WILLING",
+      orientation: fullyOriented,
+      possiblePathway: "UNDETERMINED",
+      answers: [
+        {
+          answerId: "ans_syn_1",
+          questionCode: "PRESENTING_CONCERN",
+          valueState: "ANSWERED",
+          narrative: "Synthetic narrative",
+          sourceIds: ["src_syn_1"],
+          recordedAt: "2026-07-19T12:04:00Z",
+          recordedBy: "actor_syn_1",
+        },
+      ],
+      sources: [
+        {
+          sourceId: "src_syn_1",
+          sourceType: "DIRECT_OBSERVATION",
+          recordedAt: "2026-07-19T12:03:00Z",
+        },
+      ],
+    };
+    expect(PrescreenAssessmentVersionSchema.parse(version).status).toBe("DRAFT");
+  });
+
+  it("validates packet requirements, consent rules, transport providers, and orientation observations", () => {
+    expect(PacketRequirementSchema.parse(requirement("DEMOGRAPHICS", "MISSING", ["CENTRAL_INTAKE_REVIEW"]))).toBeTruthy();
+    expect(ConsentAuthorityRuleSchema.parse(syntheticConsentRule)).toBeTruthy();
+    expect(TransportProviderSchema.parse(syntheticProvider())).toBeTruthy();
+    expect(OrientationObservationSchema.parse(fullyOriented)).toBeTruthy();
+  });
+
+  it("accepts a synthetic event envelope for an adopted type only", () => {
+    const envelope = {
+      eventId: "evt_syn_1",
+      schemaName: "clarity.prescreen.event",
+      schemaVersion: "1.0.0",
+      eventType: "PRESCREEN_ENCOUNTER_STARTED",
+      organizationId: "org_syn_1",
+      caseId: "case_syn_1",
+      encounterId: "pre_syn_1",
+      aggregateType: "PrescreenEncounter",
+      aggregateId: "pre_syn_1",
+      aggregateVersion: 1,
+      eventTime: "2026-07-19T12:00:00Z",
+      recordedTime: "2026-07-19T12:00:01Z",
+      actor: { actorType: "USER", actorId: "actor_syn_1", roleCodes: ["SYNTHETIC_TEST_ROLE"] },
+      source: { sourceSystem: "clarity.prescreen" },
+      correlationId: "corr_syn_1",
+      phiClassification: "RESTRICTED_PHI",
+      dataQualityState: "VALIDATED",
+      reviewState: "NOT_REQUIRED",
+      payload: { encounterId: "pre_syn_1", caseId: "case_syn_1" },
+    };
+    expect(PrescreenEventEnvelopeSchema.parse(envelope).eventType).toBe("PRESCREEN_ENCOUNTER_STARTED");
+    expect(() =>
+      PrescreenEventEnvelopeSchema.parse({ ...envelope, eventType: "TRANSPORT_DEPARTED" }),
+    ).toThrow();
   });
 });

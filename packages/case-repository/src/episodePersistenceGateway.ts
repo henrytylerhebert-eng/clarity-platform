@@ -440,6 +440,7 @@ export class PrismaEpisodePersistenceGateway {
     private readonly prisma: PrismaClient,
     private readonly auditWriter: CaseAuditWriter = new PrismaCaseAuditWriter(),
     private readonly now: () => Date = () => new Date(),
+    private readonly afterAdmissionAcceptanceLookup?: () => Promise<void>,
   ) {}
 
   private async assertEpisodeOwnership(tx: TxClient, organizationId: string, episodeId: string) {
@@ -569,6 +570,8 @@ export class PrismaEpisodePersistenceGateway {
         return replayAdmissionResult(existingLink, existingEpisode);
       }
 
+      if (this.afterAdmissionAcceptanceLookup) await this.afterAdmissionAcceptanceLookup();
+
       const activeAdmission = await tx.caseEpisodeLink.findFirst({
         where: {
           organizationId: params.organizationId,
@@ -681,8 +684,7 @@ export class PrismaEpisodePersistenceGateway {
     } catch (error) {
       const activeAdmissionConflict =
         error instanceof ActiveAdmissionExistsError || isActiveAdmissionUniqueViolation(error);
-      const acceptanceUniqueViolation = isAdmissionAcceptanceUniqueViolation(error);
-      if (!activeAdmissionConflict && !acceptanceUniqueViolation) throw error;
+      if (!activeAdmissionConflict && !isAdmissionAcceptanceUniqueViolation(error)) throw error;
 
       // A concurrent writer may commit after the first acceptance lookup but
       // before the active-admission lookup, or either database uniqueness check
@@ -697,8 +699,7 @@ export class PrismaEpisodePersistenceGateway {
         },
       }));
       if (!existingLink) {
-        if (activeAdmissionConflict) {
-          if (error instanceof ActiveAdmissionExistsError) throw error;
+        if (isActiveAdmissionUniqueViolation(error)) {
           throw new ActiveAdmissionExistsError(command.sourceCaseId);
         }
         throw error;
@@ -706,7 +707,12 @@ export class PrismaEpisodePersistenceGateway {
       const existingEpisode = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.episode.findFirst({
         where: { id: existingLink.episodeId, organizationId: params.organizationId },
       }));
-      if (!existingEpisode) throw error;
+      if (!existingEpisode) {
+        if (isActiveAdmissionUniqueViolation(error)) {
+          throw new ActiveAdmissionExistsError(command.sourceCaseId);
+        }
+        throw error;
+      }
       if (!admissionIdentityMatches(existingLink, existingEpisode, command)) {
         throw new IdempotencyConflictError(command.acceptedFacilityResponseId);
       }

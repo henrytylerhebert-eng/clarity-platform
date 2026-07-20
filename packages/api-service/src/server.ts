@@ -11,6 +11,8 @@ import {
   assertUserRoleOverlap,
   ExportAuditLogCommandSchema,
   NetworkEnrichmentDomainError,
+  PACKET_REQUIREMENT_STATES,
+  PRESCREEN_READINESS_TARGETS,
   ReconcilePackageCommandSchema,
   RejectReviewCommandSchema,
   SubmitForReviewCommandSchema,
@@ -22,6 +24,11 @@ import {
   InMemoryNetworkReviewGateway,
   type NetworkReviewGateway,
 } from "@clarity/network-enrichment-service";
+import {
+  AssessmentDraftInputSchema,
+  PrescreenCommandError,
+  type PrescreenCommandService,
+} from "@clarity/prescreen-service";
 import {
   type NetworkEnrichmentReviewCommandInvoker,
   createNetworkEnrichmentReviewCommandCaller,
@@ -41,10 +48,24 @@ import {
  *   POST /api/network-enrichment/synthetic/packages/reconcile bearer + body → package reconcile
  *   POST /api/network-enrichment/synthetic/packages/export    bearer + body → compliance export package
  *
+ * Prescreen same-organization slice (ADR-0014; Phase 2 in-memory gateway —
+ * prescreen state is process-local and non-durable until Phase 3):
+ *
+ *   POST /api/prescreen/encounters                    StartPrescreenEncounter
+ *   POST /api/prescreen/encounters/{id}/draft         SaveAssessmentDraft
+ *   POST /api/prescreen/encounters/{id}/attest        AttestAssessment
+ *   POST /api/prescreen/encounters/{id}/supplements   CreateAssessmentSupplement
+ *   POST /api/prescreen/encounters/{id}/submit        SubmitPrescreen
+ *   POST /api/prescreen/encounters/{id}/requirements  UpdatePacketRequirement
+ *   GET  /api/prescreen/encounters/{id}/readiness     EvaluateTargetReadiness (?target=…)
+ *
  * Invariants:
  * - organizationId and actor roles are taken ONLY from the verified principal
  *   (AuthenticationService.authenticate → actorFor). There is no request field
  *   through which a caller could supply either; unknown body fields are a 400.
+ * - Prescreen additionally: receivingOrganizationId is derived from the
+ *   principal (cross-org submission is structurally inexpressible over HTTP)
+ *   and occurredAt is server-stamped (callers cannot backdate envelopes).
  * - Failures are uniform and content-free: 401 for anything wrong with the
  *   token, 403 for a role the policy does not permit, 404 for a case the
  *   tenant cannot see. Internals are never echoed.
@@ -85,12 +106,89 @@ const ExportAuditLogBodySchema = ExportAuditLogCommandSchema.omit({
   actor: true,
 }).strict();
 
+// Prescreen bodies mirror the command envelopes MINUS every server-derived
+// field (organizationId, actor, occurredAt, receivingOrganizationId). They
+// are strict, so supplying any of those — or anything unknown — is a 400,
+// never a silent overwrite.
+const PRESCREEN_ID = z.string().min(1).max(200);
+const PRESCREEN_IDEMPOTENCY_KEY = z.string().min(8).max(200);
+
+const PrescreenStartBodySchema = z
+  .object({
+    caseId: PRESCREEN_ID,
+    currentLocation: z.string().min(1).max(500),
+    presentingConcern: z.string().min(1).max(5000),
+    idempotencyKey: PRESCREEN_IDEMPOTENCY_KEY,
+    correlationId: PRESCREEN_ID.optional(),
+  })
+  .strict();
+
+const PrescreenDraftBodySchema = z
+  .object({
+    draft: AssessmentDraftInputSchema,
+    expectedVersion: z.number().int().positive().optional(),
+    idempotencyKey: PRESCREEN_IDEMPOTENCY_KEY,
+    correlationId: PRESCREEN_ID.optional(),
+  })
+  .strict();
+
+const PrescreenAttestBodySchema = z
+  .object({
+    assessmentVersionId: PRESCREEN_ID,
+    expectedVersion: z.number().int().positive().optional(),
+    idempotencyKey: PRESCREEN_IDEMPOTENCY_KEY,
+    correlationId: PRESCREEN_ID.optional(),
+  })
+  .strict();
+
+const PrescreenSupplementBodySchema = z
+  .object({
+    parentAssessmentVersionId: PRESCREEN_ID,
+    reason: z.string().min(1).max(2000),
+    draft: AssessmentDraftInputSchema,
+    expectedVersion: z.number().int().positive().optional(),
+    idempotencyKey: PRESCREEN_IDEMPOTENCY_KEY,
+    correlationId: PRESCREEN_ID.optional(),
+  })
+  .strict();
+
+const PrescreenSubmitBodySchema = z
+  .object({
+    assessmentVersionId: PRESCREEN_ID,
+    target: z.enum(PRESCREEN_READINESS_TARGETS),
+    expectedVersion: z.number().int().positive().optional(),
+    idempotencyKey: PRESCREEN_IDEMPOTENCY_KEY,
+    correlationId: PRESCREEN_ID.optional(),
+  })
+  .strict();
+
+const PrescreenRequirementBodySchema = z
+  .object({
+    requirementCode: z.string().min(1).max(200),
+    label: z.string().min(1).max(300),
+    state: z.enum(PACKET_REQUIREMENT_STATES),
+    blockingTargets: z.array(z.enum(PRESCREEN_READINESS_TARGETS)).min(1),
+    responsibleRoleCode: z.string().min(1).max(200).optional(),
+    resolutionWorkspace: z.string().min(1).max(200),
+    sourceRuleId: PRESCREEN_ID,
+    sourceRuleVersion: z.number().int().positive(),
+    expectedVersion: z.number().int().positive().optional(),
+    idempotencyKey: PRESCREEN_IDEMPOTENCY_KEY,
+    correlationId: PRESCREEN_ID.optional(),
+  })
+  .strict();
+
+const PrescreenReadinessQuerySchema = z
+  .object({ target: z.enum(PRESCREEN_READINESS_TARGETS) })
+  .strict();
+
 export interface ApiDeps {
   auth: AuthenticationService;
   caseCommands: CaseCommandService;
   networkEnrichmentReviewInvoker?: NetworkEnrichmentReviewCommandInvoker;
   complianceExporter?: NetworkEnrichmentComplianceExporter;
   gateway?: NetworkReviewGateway;
+  prescreen: PrescreenCommandService;
 }
 
 class HttpError extends Error {
@@ -145,6 +243,17 @@ async function readJsonBody(req: IncomingMessage): Promise<unknown> {
   }
 }
 
+/** Stable prescreen error-code → HTTP status. Codes are content-free by design (errors.ts). */
+const PRESCREEN_ERROR_STATUS: Record<string, number> = {
+  PERMISSION_DENIED: 403,
+  RESOURCE_NOT_FOUND: 404,
+  PRESCREEN_VERSION_CONFLICT: 409,
+  IDEMPOTENCY_KEY_REUSED: 409,
+  ASSESSMENT_NOT_DRAFT: 409,
+  ASSESSMENT_VERSION_REQUIRED: 409,
+  DOMAIN_VALIDATION_FAILED: 400,
+};
+
 function toHttpError(error: unknown): HttpError {
   if (error instanceof HttpError) return error;
   if (error instanceof LoginRejectedError || error instanceof AuthenticationFailedError) {
@@ -166,6 +275,11 @@ function toHttpError(error: unknown): HttpError {
         return new HttpError(400, "invalid_request");
     }
   }
+  if (error instanceof PrescreenCommandError) {
+    const status = PRESCREEN_ERROR_STATUS[error.code];
+    if (status !== undefined) return new HttpError(status, error.code.toLowerCase());
+    return new HttpError(500, "internal_error");
+  }
   if (error instanceof ZodError) return new HttpError(400, "invalid_request");
   return new HttpError(500, "internal_error");
 }
@@ -186,6 +300,22 @@ const EXPORT_ALLOWED_ROLES: readonly UserRole[] = [
   "PHYSICIAN_REVIEWER",
   "CLINICAL_REVIEWER",
 ];
+
+const PRESCREEN_ACTION_PATH =
+  /^\/api\/prescreen\/encounters\/([^/]+)\/(draft|attest|supplements|submit|requirements|readiness)$/;
+
+/**
+ * The only way a prescreen actor is built above the service layer: identity
+ * and role codes come from the verified principal, whose roles came from
+ * the database (ADR-0011). Mirrors actorFor() for the prescreen actor shape.
+ */
+function prescreenActorFor(principal: AuthenticatedPrincipal) {
+  return {
+    actorId: principal.userId,
+    actorType: "USER" as const,
+    roleCodes: [...principal.roles],
+  };
+}
 
 export function createApiServer(deps: ApiDeps): Server {
   const gateway = deps.gateway ?? new InMemoryNetworkReviewGateway();
@@ -301,6 +431,83 @@ export function createApiServer(deps: ApiDeps): Server {
           actor: deps.auth.actorFor(principal),
         });
         return sendJson(res, 200, exportPackage);
+      }
+
+      if (method === "POST" && url === "/api/prescreen/encounters") {
+        const principal = await deps.auth.authenticate(bearerToken(req));
+        const body = PrescreenStartBodySchema.parse(await readJsonBody(req));
+        const result = deps.prescreen.startEncounter({
+          organizationId: principal.organizationId,
+          actor: prescreenActorFor(principal),
+          occurredAt: new Date().toISOString(),
+          ...body,
+        });
+        return sendJson(res, 200, result);
+      }
+
+      const prescreenMatch = PRESCREEN_ACTION_PATH.exec(url);
+      if (prescreenMatch) {
+        const encounterId = decodeURIComponent(prescreenMatch[1]!);
+        const action = prescreenMatch[2]!;
+
+        if (method === "GET" && action === "readiness") {
+          const principal = await deps.auth.authenticate(bearerToken(req));
+          const search = new URL(req.url ?? "", "http://localhost").searchParams;
+          const { target } = PrescreenReadinessQuerySchema.parse(Object.fromEntries(search));
+          const readiness = deps.prescreen.evaluateTargetReadiness({
+            organizationId: principal.organizationId,
+            actor: prescreenActorFor(principal),
+            encounterId,
+            target,
+          });
+          return sendJson(res, 200, readiness);
+        }
+
+        if (method === "POST" && action !== "readiness") {
+          const principal = await deps.auth.authenticate(bearerToken(req));
+          const rawBody = await readJsonBody(req);
+          // Server-derived envelope fields. Bodies are strict, so a caller
+          // supplying organizationId, actor, occurredAt, or (for submit)
+          // receivingOrganizationId gets a 400 — never a silent overwrite.
+          const envelope = {
+            organizationId: principal.organizationId,
+            actor: prescreenActorFor(principal),
+            occurredAt: new Date().toISOString(),
+            encounterId,
+          };
+          switch (action) {
+            case "draft": {
+              const body = PrescreenDraftBodySchema.parse(rawBody);
+              return sendJson(res, 200, deps.prescreen.saveAssessmentDraft({ ...envelope, ...body }));
+            }
+            case "attest": {
+              const body = PrescreenAttestBodySchema.parse(rawBody);
+              return sendJson(res, 200, deps.prescreen.attestAssessment({ ...envelope, ...body }));
+            }
+            case "supplements": {
+              const body = PrescreenSupplementBodySchema.parse(rawBody);
+              return sendJson(res, 200, deps.prescreen.createAssessmentSupplement({ ...envelope, ...body }));
+            }
+            case "submit": {
+              const body = PrescreenSubmitBodySchema.parse(rawBody);
+              // Same-organization slice (ADR-0014): the receiving organization
+              // IS the principal's organization, by construction.
+              return sendJson(
+                res,
+                200,
+                deps.prescreen.submitPrescreen({
+                  ...envelope,
+                  ...body,
+                  receivingOrganizationId: principal.organizationId,
+                }),
+              );
+            }
+            case "requirements": {
+              const body = PrescreenRequirementBodySchema.parse(rawBody);
+              return sendJson(res, 200, deps.prescreen.updatePacketRequirement({ ...envelope, ...body }));
+            }
+          }
+        }
       }
 
       return sendJson(res, 404, { error: "not_found" });

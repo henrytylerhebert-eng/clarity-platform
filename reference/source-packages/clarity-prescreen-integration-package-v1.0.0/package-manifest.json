@@ -1,0 +1,87 @@
+{
+  "packageName": "clarity-prescreen-integration-package",
+  "version": "1.0.0",
+  "preparedAt": "2026-07-19",
+  "status": "BUILD_READY_REFERENCE_PACKAGE_NOT_MERGED_OR_DEPLOYED",
+  "description": "Architecture, product, contracts, proposed schema, reference code, synthetic fixtures, UX specifications, and implementation handoff for Clarity Prescreen & Referral Orchestration.",
+  "verification": {
+    "referenceCodeBuild": {
+      "status": "PASS",
+      "tool": "TypeScript 5.8.x"
+    },
+    "referenceTests": {
+      "status": "PASS",
+      "passed": 31,
+      "failed": 0
+    },
+    "jsonSchemaExamples": {
+      "status": "PASS",
+      "count": 5
+    },
+    "syntheticAssessmentFixtures": {
+      "status": "PASS",
+      "count": 10
+    },
+    "openApiParse": {
+      "status": "PASS",
+      "pathCount": 14
+    },
+    "binaryMediaScan": {
+      "status": "PASS",
+      "imagesOrPdfsIncluded": false
+    }
+  },
+  "safety": {
+    "syntheticDataOnly": true,
+    "rawSourceImagesIncluded": false,
+    "patientLevelSourceImageExcluded": true,
+    "autonomousClinicalLegalAdmissionTransportDecisions": false,
+    "productionPhiReady": false
+  },
+  "sourceHierarchy": [
+    "live repository code and tests",
+    "IMPLEMENTATION_STATUS and accepted ADRs",
+    "canonical Clarity docs",
+    "owner decisions",
+    "official legal/regulatory sources",
+    "proposed package artifacts"
+  ],
+  "directoryFileCountsBeforeGeneratedInventory": {
+    "CHANGELOG.md": 1,
+    "CONTRIBUTING.md": 1,
+    "DECISION_LOG.md": 1,
+    "LEGAL_AND_POLICY_RESEARCH_REGISTER.md": 1,
+    "NOTICE.md": 1,
+    "OPEN_DECISIONS.md": 1,
+    "PACKAGE_STATUS.md": 1,
+    "README.md": 1,
+    "SOURCE_AND_ASSUMPTION_REGISTER.md": 1,
+    "architecture": 12,
+    "code": 33,
+    "contracts": 11,
+    "examples": 7,
+    "frontend": 8,
+    "implementation": 13,
+    "product": 14,
+    "reference": 4,
+    "schema": 3,
+    "source-material": 14,
+    "synthetic": 11,
+    "verification": 3
+  },
+  "excludedArtifacts": [
+    "AB993A40-2619-45D2-8BCD-6D7FFB3664B6.jpeg",
+    "01E81921-8072-43E2-A4C1-2C66925C2DAF.jpeg"
+  ],
+  "productionReleaseBlockers": [
+    "clinical approval",
+    "legal/counsel approval",
+    "security/privacy gate",
+    "accepted API/hosting/tenancy architecture",
+    "facility profile approval",
+    "live transport-provider verification",
+    "production deployment evidence"
+  ],
+  "fileCountExcludingChecksums": 144,
+  "totalBytesExcludingChecksums": 439518
+}
