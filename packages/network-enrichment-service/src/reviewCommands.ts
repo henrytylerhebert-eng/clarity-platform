@@ -100,11 +100,14 @@ export class NetworkEnrichmentReviewCommandService {
 
         const createdAt = this.now();
         const review: NetworkReviewRecord = {
+          reviewPackageId: cmd.reviewPackageId ?? cmd.reviewId,
           reviewId: cmd.reviewId,
           organizationId: cmd.organizationId,
           caseId: cmd.caseId,
           sourceCandidateId: cmd.sourceCandidateId,
           fieldPath: cmd.fieldPath,
+          sensitivityCategory: cmd.sensitivityCategory ?? "NORMAL_OPERATIONAL",
+          sourceReviewerRoles: cmd.sourceReviewerRoles,
           currentValue: cmd.currentValue,
           proposedValue: cmd.proposedValue,
           requiredCanonicalRoles,
@@ -246,7 +249,7 @@ export class NetworkEnrichmentReviewCommandService {
     action: () => Promise<T>,
   ): Promise<NetworkCommandResult<T>> {
     const fingerprint = commandFingerprint(command);
-    const existing = await this.gateway.getReplayRecord({ ...input, fingerprint });
+    const existing = await this.gateway.getReplayRecord(input);
     if (existing) {
       if (existing.commandFingerprint !== fingerprint) {
         throw new NetworkEnrichmentDomainError(
@@ -258,9 +261,9 @@ export class NetworkEnrichmentReviewCommandService {
     }
 
     const value = await action();
-    await this.gateway.saveReplayRecord({ ...input, fingerprint }, value as NetworkReviewResult);
+    await this.gateway.saveReplayRecord?.({ ...input, fingerprint }, value as NetworkReviewServiceResult);
     return { value, replayed: false };
   }
 }
 
-type NetworkReviewResult = NetworkReviewSubmitResult | NetworkReviewTransitionResult;
+export type NetworkReviewServiceResult = NetworkReviewSubmitResult | NetworkReviewTransitionResult;

@@ -9,12 +9,142 @@ const baseEnvelope = {
   correlationId: z.string().min(1).optional(),
   idempotencyKey: z.string().min(8),
   reason: z.string().min(1).optional(),
+  reviewPackageId: z.string().min(1).optional(),
 };
 
-export const NETWORK_ENRICHMENT_REVIEW_STATES = [
-  "REVIEW_PENDING",
+export const NETWORK_REVIEW_FIELD_SENSITIVITY = [
+  "NORMAL_OPERATIONAL",
+  "PAYER_RELATED",
+  "ADMISSION_OPERATIONS",
+  "CLINICAL_CRITERIA",
+  "LEGAL_STATUS_REQUIREMENTS",
+  "CUSTODY_TRANSPORT",
+  "CAPACITY_BED_COUNT_CLAIMS",
+  "ARRIVAL_HANDOFF_PROCEDURES",
+  "PAYMENT_OR_SOURCE_CONFIDENCE",
+] as const;
+export type NetworkReviewFieldSensitivity = (typeof NETWORK_REVIEW_FIELD_SENSITIVITY)[number];
+
+export const NETWORK_REVIEW_FIELD_POLICY_STATES = [
+  "UNRESEARCHED",
+  "CANDIDATE",
+  "SOURCE_CONFIRMED",
   "HUMAN_CONFIRMED",
+  "CONFLICT",
+  "STALE",
   "REJECTED",
+  "SUPERSEDED",
+  "DEPRECATED",
+] as const;
+export type NetworkReviewPolicyState = (typeof NETWORK_REVIEW_FIELD_POLICY_STATES)[number];
+
+export interface NetworkReviewPackageRecord {
+  readonly reviewPackageId: string;
+  readonly organizationId: string;
+  readonly caseId: string;
+  readonly sourceCandidateId: string;
+  readonly status: NetworkReviewPolicyState;
+  readonly version: number;
+  readonly submittedByActorId: string;
+  readonly assignedReviewerCategory?: readonly string[];
+  readonly sourceRunId?: string;
+  readonly packageStatusReason?: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface NetworkReviewPolicy {
+  readonly requiredCanonicalRoles: readonly UserRole[];
+  readonly oneReviewSuffices: boolean;
+  readonly specializedReviewRequired: boolean;
+  readonly eligibleForPromotion: boolean;
+  readonly unresolvedConflictBlocksPromotion: boolean;
+}
+
+export const NETWORK_REVIEW_FIELD_POLICIES: Record<
+  NetworkReviewFieldSensitivity,
+  NetworkReviewPolicy
+> = {
+  NORMAL_OPERATIONAL: {
+    requiredCanonicalRoles: ["FACILITY_REVIEWER", "COMPLIANCE_REVIEWER"],
+    oneReviewSuffices: true,
+    specializedReviewRequired: false,
+    eligibleForPromotion: true,
+    unresolvedConflictBlocksPromotion: false,
+  },
+  PAYER_RELATED: {
+    requiredCanonicalRoles: ["COMPLIANCE_REVIEWER", "BENEFITS_VERIFICATION_SPECIALIST"],
+    oneReviewSuffices: true,
+    specializedReviewRequired: true,
+    eligibleForPromotion: true,
+    unresolvedConflictBlocksPromotion: true,
+  },
+  ADMISSION_OPERATIONS: {
+    requiredCanonicalRoles: ["TRANSPORT_COORDINATOR", "FACILITY_REVIEWER", "COMPLIANCE_REVIEWER"],
+    oneReviewSuffices: true,
+    specializedReviewRequired: true,
+    eligibleForPromotion: true,
+    unresolvedConflictBlocksPromotion: true,
+  },
+  CLINICAL_CRITERIA: {
+    requiredCanonicalRoles: ["CLINICAL_REVIEWER", "PHYSICIAN_REVIEWER"],
+    oneReviewSuffices: false,
+    specializedReviewRequired: true,
+    eligibleForPromotion: true,
+    unresolvedConflictBlocksPromotion: true,
+  },
+  LEGAL_STATUS_REQUIREMENTS: {
+    requiredCanonicalRoles: ["LEGAL_REVIEWER", "COMPLIANCE_REVIEWER"],
+    oneReviewSuffices: false,
+    specializedReviewRequired: true,
+    eligibleForPromotion: true,
+    unresolvedConflictBlocksPromotion: true,
+  },
+  CUSTODY_TRANSPORT: {
+    requiredCanonicalRoles: ["TRANSPORT_COORDINATOR", "LEGAL_REVIEWER"],
+    oneReviewSuffices: true,
+    specializedReviewRequired: true,
+    eligibleForPromotion: true,
+    unresolvedConflictBlocksPromotion: true,
+  },
+  CAPACITY_BED_COUNT_CLAIMS: {
+    requiredCanonicalRoles: ["FACILITY_REVIEWER", "COMPLIANCE_REVIEWER"],
+    oneReviewSuffices: true,
+    specializedReviewRequired: true,
+    eligibleForPromotion: true,
+    unresolvedConflictBlocksPromotion: true,
+  },
+  ARRIVAL_HANDOFF_PROCEDURES: {
+    requiredCanonicalRoles: ["FACILITY_REVIEWER", "TRANSPORT_COORDINATOR", "COMPLIANCE_REVIEWER"],
+    oneReviewSuffices: true,
+    specializedReviewRequired: true,
+    eligibleForPromotion: true,
+    unresolvedConflictBlocksPromotion: true,
+  },
+  PAYMENT_OR_SOURCE_CONFIDENCE: {
+    requiredCanonicalRoles: ["COMPLIANCE_REVIEWER", "ORGANIZATION_ADMIN"],
+    oneReviewSuffices: true,
+    specializedReviewRequired: false,
+    eligibleForPromotion: true,
+    unresolvedConflictBlocksPromotion: false,
+  },
+};
+
+export function policyForFieldSensitivity(
+  category: NetworkReviewFieldSensitivity,
+): NetworkReviewPolicy {
+  return NETWORK_REVIEW_FIELD_POLICIES[category];
+}
+
+export const NETWORK_ENRICHMENT_REVIEW_STATES = [
+  "UNRESEARCHED",
+  "REVIEW_PENDING",
+  "SOURCE_CONFIRMED",
+  "HUMAN_CONFIRMED",
+  "CONFLICT",
+  "STALE",
+  "REJECTED",
+  "SUPERSEDED",
   "DEPRECATED",
 ] as const;
 export type NetworkEnrichmentReviewState = (typeof NETWORK_ENRICHMENT_REVIEW_STATES)[number];
@@ -40,9 +170,14 @@ export const REVIEW_TRANSITIONS: Record<
   NetworkEnrichmentReviewState,
   readonly NetworkEnrichmentReviewState[]
 > = {
+  UNRESEARCHED: ["REVIEW_PENDING", "SOURCE_CONFIRMED"],
   REVIEW_PENDING: ["HUMAN_CONFIRMED", "REJECTED"],
-  HUMAN_CONFIRMED: [],
+  SOURCE_CONFIRMED: ["HUMAN_CONFIRMED", "REJECTED"],
+  HUMAN_CONFIRMED: ["SUPERSEDED", "DEPRECATED"],
+  CONFLICT: ["REVIEW_PENDING", "REJECTED"],
+  STALE: ["REVIEW_PENDING", "REJECTED"],
   REJECTED: [],
+  SUPERSEDED: [],
   DEPRECATED: [],
 };
 
@@ -77,31 +212,57 @@ export interface NetworkReviewAuditEvent {
 }
 
 export interface NetworkReviewRecord {
+  readonly reviewPackageId: string;
   readonly reviewId: string;
   readonly organizationId: string;
   readonly caseId: string;
   readonly sourceCandidateId: string;
   readonly fieldPath: string;
+  readonly sensitivityCategory: NetworkReviewFieldSensitivity;
+  readonly requiredCanonicalRoles: readonly UserRole[];
+  readonly createdByActorId: string;
   readonly currentValue: unknown;
   readonly proposedValue: unknown;
-  readonly requiredCanonicalRoles: readonly UserRole[];
+  readonly sourceReviewerRoles: readonly NetworkSourceReviewRole[];
   readonly status: NetworkEnrichmentReviewState;
+  readonly reviewPackageStatus?: NetworkReviewPolicyState;
   readonly version: number;
-  readonly createdByActorId: string;
+  readonly reviewRunId?: string | null;
   readonly reviewedByActorId?: string;
   readonly reviewReason?: string | null;
+  readonly supersededByReviewId?: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly audits: readonly NetworkReviewAuditEvent[];
+}
+
+export interface NetworkReviewFieldEvidenceRecord {
+  readonly reviewId: string;
+  readonly evidenceType: string;
+  readonly payload: unknown;
+  readonly evidenceSource: string;
+}
+
+export interface NetworkReviewConflictRecord {
+  readonly conflictId: string;
+  readonly organizationId: string;
+  readonly reviewPackageId: string;
+  readonly status: "OPEN" | "RESOLVED";
+  readonly reason: string | null;
+  readonly relatedReviewIds: readonly string[];
 }
 
 export const SubmitForReviewCommandSchema = z
   .object({
     ...baseEnvelope,
     reviewId: DOMAIN_ID_SCHEMA,
+    reviewPackageId: z.string().min(1).optional(),
     caseId: DOMAIN_ID_SCHEMA,
     sourceCandidateId: DOMAIN_ID_SCHEMA,
     fieldPath: z.string().min(1),
+    sensitivityCategory: z
+      .enum(NETWORK_REVIEW_FIELD_SENSITIVITY)
+      .default("NORMAL_OPERATIONAL"),
     currentValue: z.unknown(),
     proposedValue: z.unknown(),
     sourceReviewerRoles: z.array(z.enum(NETWORK_SOURCE_REVIEW_ROLES)).min(1),
@@ -136,10 +297,14 @@ export interface NetworkCommandResult<T> {
 
 export interface NetworkReviewSubmitResult {
   review: NetworkReviewRecord;
+  reviewPackageStatus?: NetworkReviewPolicyState;
+  replayed?: boolean;
 }
 
 export interface NetworkReviewTransitionResult {
   review: NetworkReviewRecord;
+  reviewPackageStatus?: NetworkReviewPolicyState;
+  replayed?: boolean;
 }
 
 export interface NetworkReviewReplayInput {
