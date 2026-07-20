@@ -8,6 +8,8 @@ import type { AdmissionHandoffCommand } from "@clarity/domain-contracts";
 import { createHarness, type Harness } from "./helpers/harness.js";
 
 const RLS_ROLE = "synthetic_od6_runtime";
+/** Shared with prescreen-persistence.test.ts: one advisory lock for all RLS-role DDL. */
+const RLS_DDL_LOCK = 48151623;
 const PROTECTED_TABLES = [
   "FacilityTimezoneConfiguration",
   "Episode",
@@ -102,31 +104,39 @@ beforeAll(async () => {
   );
   expect(migration[0]?.count).toBe(1n);
 
-  await h.prisma.$executeRawUnsafe(`
-    DO $$
-    BEGIN
-      CREATE ROLE "${RLS_ROLE}" NOLOGIN NOSUPERUSER NOBYPASSRLS;
-    EXCEPTION WHEN duplicate_object THEN
-      NULL;
-    END
-    $$;
-  `);
-  await h.prisma.$executeRawUnsafe(`ALTER ROLE "${RLS_ROLE}" NOLOGIN NOSUPERUSER NOBYPASSRLS`);
-  await h.prisma.$executeRawUnsafe(`GRANT USAGE ON SCHEMA public TO "${RLS_ROLE}"`);
-  for (const table of PROTECTED_TABLES) {
-    await h.prisma.$executeRawUnsafe(`GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "${table}" TO "${RLS_ROLE}"`);
-  }
+  // Serialized with prescreen-persistence.test.ts: parallel role/grant DDL
+  // touches shared catalog rows and races as "tuple concurrently updated".
+  await h.prisma.$transaction(async (tx) => {
+    await tx.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(${RLS_DDL_LOCK})`);
+    await tx.$executeRawUnsafe(`
+      DO $$
+      BEGIN
+        CREATE ROLE "${RLS_ROLE}" NOLOGIN NOSUPERUSER NOBYPASSRLS;
+      EXCEPTION WHEN duplicate_object THEN
+        NULL;
+      END
+      $$;
+    `);
+    await tx.$executeRawUnsafe(`ALTER ROLE "${RLS_ROLE}" NOLOGIN NOSUPERUSER NOBYPASSRLS`);
+    await tx.$executeRawUnsafe(`GRANT USAGE ON SCHEMA public TO "${RLS_ROLE}"`);
+    for (const table of PROTECTED_TABLES) {
+      await tx.$executeRawUnsafe(`GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "${table}" TO "${RLS_ROLE}"`);
+    }
+  });
 
   episodeA = await createEpisode(h.tenantA, `synthetic-rls-facility-a-${h.runId}`, "synthetic-rls-source-a", "a");
   episodeB = await createEpisode(h.tenantB, `synthetic-rls-facility-b-${h.runId}`, "synthetic-rls-source-b", "b");
 });
 
 afterAll(async () => {
-  for (const table of PROTECTED_TABLES) {
-    await h?.prisma.$executeRawUnsafe(`REVOKE ALL PRIVILEGES ON TABLE "${table}" FROM "${RLS_ROLE}"`);
-  }
-  await h?.prisma.$executeRawUnsafe(`REVOKE ALL PRIVILEGES ON SCHEMA public FROM "${RLS_ROLE}"`);
-  await h?.prisma.$executeRawUnsafe(`DROP ROLE IF EXISTS "${RLS_ROLE}"`);
+  await h?.prisma.$transaction(async (tx) => {
+    await tx.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(${RLS_DDL_LOCK})`);
+    for (const table of PROTECTED_TABLES) {
+      await tx.$executeRawUnsafe(`REVOKE ALL PRIVILEGES ON TABLE "${table}" FROM "${RLS_ROLE}"`);
+    }
+    await tx.$executeRawUnsafe(`REVOKE ALL PRIVILEGES ON SCHEMA public FROM "${RLS_ROLE}"`);
+    await tx.$executeRawUnsafe(`DROP ROLE IF EXISTS "${RLS_ROLE}"`);
+  });
   await h?.dispose();
 });
 
