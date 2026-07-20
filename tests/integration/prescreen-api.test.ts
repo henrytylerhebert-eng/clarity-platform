@@ -170,12 +170,12 @@ describe("same-organization prescreen flow over HTTP (production policy)", () =>
 
     // The recorded intent names the principal's own organization — the caller
     // never supplied it and could not have supplied any other.
-    const submission = gateway.getSubmission(h.tenantA.organizationId, encounterId);
+    const submission = await gateway.getSubmission(h.tenantA.organizationId, encounterId);
     expect(submission?.receivingOrganizationId).toBe(h.tenantA.organizationId);
     expect(submission?.assessmentVersionId).toBe(assessmentVersionId);
 
     // Attestation was recorded against the database-backed physician user.
-    const attested = gateway.getAssessmentVersion(h.tenantA.organizationId, assessmentVersionId);
+    const attested = await gateway.getAssessmentVersion(h.tenantA.organizationId, assessmentVersionId);
     expect(attested.attestedBy).toBe(`synthetic-user-ps-api-doc-${h.runId}`);
   });
 

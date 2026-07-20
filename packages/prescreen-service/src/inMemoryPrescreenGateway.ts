@@ -74,7 +74,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
   private encounterSequence = 0;
   private eventSequence = 0;
 
-  startEncounter(cmd: ParsedStartPrescreenEncounter): PrescreenCommandResult {
+  async startEncounter(cmd: ParsedStartPrescreenEncounter): Promise<PrescreenCommandResult> {
     return this.idempotent(cmd, "StartPrescreenEncounter", () => {
       this.encounterSequence += 1;
       const encounterId = `pre_syn_${this.encounterSequence}`;
@@ -112,7 +112,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     });
   }
 
-  saveAssessmentDraft(cmd: ParsedSaveAssessmentDraft): PrescreenCommandResult {
+  async saveAssessmentDraft(cmd: ParsedSaveAssessmentDraft): Promise<PrescreenCommandResult> {
     return this.idempotent(cmd, "SaveAssessmentDraft", () => {
       const encounter = this.requireEncounter(cmd.organizationId, cmd.encounterId);
       this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
@@ -182,7 +182,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     });
   }
 
-  attestAssessment(cmd: ParsedAttestAssessment): PrescreenCommandResult {
+  async attestAssessment(cmd: ParsedAttestAssessment): Promise<PrescreenCommandResult> {
     return this.idempotent(cmd, "AttestAssessment", () => {
       const encounter = this.requireEncounter(cmd.organizationId, cmd.encounterId);
       this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
@@ -225,7 +225,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     });
   }
 
-  createAssessmentSupplement(cmd: ParsedCreateAssessmentSupplement): PrescreenCommandResult {
+  async createAssessmentSupplement(cmd: ParsedCreateAssessmentSupplement): Promise<PrescreenCommandResult> {
     return this.idempotent(cmd, "CreateAssessmentSupplement", () => {
       const encounter = this.requireEncounter(cmd.organizationId, cmd.encounterId);
       this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
@@ -309,7 +309,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     });
   }
 
-  submitPrescreen(cmd: ParsedSubmitPrescreen): PrescreenCommandResult {
+  async submitPrescreen(cmd: ParsedSubmitPrescreen): Promise<PrescreenCommandResult> {
     return this.idempotent(cmd, "SubmitPrescreen", () => {
       const encounter = this.requireEncounter(cmd.organizationId, cmd.encounterId);
       this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
@@ -361,7 +361,7 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     });
   }
 
-  updatePacketRequirement(cmd: ParsedUpdatePacketRequirement): PrescreenCommandResult {
+  async updatePacketRequirement(cmd: ParsedUpdatePacketRequirement): Promise<PrescreenCommandResult> {
     return this.idempotent(cmd, "UpdatePacketRequirement", () => {
       const encounter = this.requireEncounter(cmd.organizationId, cmd.encounterId);
       this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
@@ -408,40 +408,40 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     });
   }
 
-  evaluateTargetReadiness(cmd: ParsedEvaluateTargetReadiness): PacketReadinessResult {
+  async evaluateTargetReadiness(cmd: ParsedEvaluateTargetReadiness): Promise<PacketReadinessResult> {
     const encounter = this.requireEncounter(cmd.organizationId, cmd.encounterId);
     const requirements = [...(this.requirements.get(encounter.encounterId)?.values() ?? [])];
     return evaluatePacketReadiness(cmd.target, requirements);
   }
 
-  getEncounter(organizationId: string, encounterId: string): PrescreenEncounter {
+  async getEncounter(organizationId: string, encounterId: string): Promise<PrescreenEncounter> {
     return structuredClone(this.requireEncounter(organizationId, encounterId));
   }
 
-  getAssessmentVersion(organizationId: string, assessmentVersionId: string): PrescreenAssessmentVersion {
+  async getAssessmentVersion(organizationId: string, assessmentVersionId: string): Promise<PrescreenAssessmentVersion> {
     return structuredClone(this.requireAssessment(organizationId, assessmentVersionId));
   }
 
-  getSubmission(organizationId: string, encounterId: string): PrescreenSubmissionRecord | undefined {
+  async getSubmission(organizationId: string, encounterId: string): Promise<PrescreenSubmissionRecord | undefined> {
     const submission = this.submissions.get(encounterId);
     if (!submission || submission.organizationId !== organizationId) return undefined;
     return structuredClone(submission);
   }
 
-  listPacketRequirements(organizationId: string, encounterId: string): readonly PacketRequirement[] {
+  async listPacketRequirements(organizationId: string, encounterId: string): Promise<readonly PacketRequirement[]> {
     this.requireEncounter(organizationId, encounterId);
     return structuredClone([...(this.requirements.get(encounterId)?.values() ?? [])]);
   }
 
-  auditEvents(): readonly AuditEvent[] {
+  async auditEvents(): Promise<readonly AuditEvent[]> {
     return this.audit.list();
   }
 
-  outboxEnvelopes(): readonly PrescreenEventEnvelope[] {
+  async outboxEnvelopes(): Promise<readonly PrescreenEventEnvelope[]> {
     return [...this.outbox];
   }
 
-  idempotencyRecordCount(): number {
+  async idempotencyRecordCount(): Promise<number> {
     return this.idempotency.size;
   }
 
@@ -555,11 +555,11 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     return { objectId, objectType, encounterId, encounterVersion, status, replayed: false };
   }
 
-  private idempotent(
+  private async idempotent(
     cmd: CommandEnvelope & Record<string, unknown>,
     commandName: string,
     execute: () => PrescreenCommandResult,
-  ): PrescreenCommandResult {
+  ): Promise<PrescreenCommandResult> {
     const key = `${cmd.organizationId}:${cmd.actor.actorId}:${commandName}:${cmd.idempotencyKey}`;
     // occurredAt is excluded from the fingerprint: the key identifies the
     // command's intent, and the arrival time of a retry is not intent. The
