@@ -4,6 +4,8 @@ import { PrismaAuthGateway, PrismaCaseCommandGateway } from "@clarity/case-repos
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
 import { createApiServer } from "@clarity/api-service";
+import { createNetworkEnrichmentReviewCommandCaller } from "../../packages/api-service/src/reviewCommandCaller.js";
+import { PrismaNetworkReviewGateway } from "@clarity/network-enrichment-service";
 import type { UserRole } from "@clarity/domain-contracts";
 import { createHarness, type Harness } from "./helpers/harness.js";
 
@@ -119,7 +121,10 @@ beforeAll(async () => {
 
   const auth = new AuthenticationService(provider, new PrismaAuthGateway(h.prisma));
   const caseCommands = new CaseCommandService(new PrismaCaseCommandGateway(h.prisma));
-  server = createApiServer({ auth, caseCommands });
+  const networkEnrichmentReviewInvoker = createNetworkEnrichmentReviewCommandCaller({
+    gateway: new PrismaNetworkReviewGateway(h.prisma),
+  });
+  server = createApiServer({ auth, caseCommands, networkEnrichmentReviewInvoker });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
   if (address === null || typeof address === "string") throw new Error("no ephemeral port assigned");

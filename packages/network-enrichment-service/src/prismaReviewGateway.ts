@@ -471,11 +471,22 @@ export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
       }
 
       if (params?.replay) {
-        await tx.networkReviewReplay.create({
-          data: {
+        await tx.networkReviewReplay.upsert({
+          where: {
+            organizationId_commandType_idempotencyKey: {
+              organizationId: record.organizationId,
+              commandType: params.replay.commandType,
+              idempotencyKey: params.replay.idempotencyKey,
+            },
+          },
+          create: {
             organizationId: record.organizationId,
             commandType: params.replay.commandType,
             idempotencyKey: params.replay.idempotencyKey,
+            commandFingerprint: params.replay.commandFingerprint,
+            result: params.replay.result as object,
+          },
+          update: {
             commandFingerprint: params.replay.commandFingerprint,
             result: params.replay.result as object,
           },
@@ -494,11 +505,22 @@ export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
       await this.ensurePrismaPackage(tx, record, new Date(record.updatedAt));
 
       if (params?.replay) {
-        await tx.networkReviewReplay.create({
-          data: {
+        await tx.networkReviewReplay.upsert({
+          where: {
+            organizationId_commandType_idempotencyKey: {
+              organizationId: record.organizationId,
+              commandType: params.replay.commandType,
+              idempotencyKey: params.replay.idempotencyKey,
+            },
+          },
+          create: {
             organizationId: record.organizationId,
             commandType: params.replay.commandType,
             idempotencyKey: params.replay.idempotencyKey,
+            commandFingerprint: params.replay.commandFingerprint,
+            result: params.replay.result as object,
+          },
+          update: {
             commandFingerprint: params.replay.commandFingerprint,
             result: params.replay.result as object,
           },
@@ -531,14 +553,23 @@ export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
     input: Omit<NetworkReviewReplayInput, "fingerprint"> & { fingerprint?: string },
     result: NetworkReviewServiceResult,
   ): Promise<void> {
-    await this.prisma.networkReviewReplay.create({
-      data: {
+    await this.prisma.networkReviewReplay.upsert({
+      where: {
+        organizationId_commandType_idempotencyKey: {
+          organizationId: input.organizationId,
+          commandType: input.commandType,
+          idempotencyKey: input.idempotencyKey,
+        },
+      },
+      update: {
+        commandFingerprint: input.fingerprint ?? "",
+        result: result as any,
+      },
+      create: {
         organizationId: input.organizationId,
         commandType: input.commandType,
         idempotencyKey: input.idempotencyKey,
         commandFingerprint: input.fingerprint ?? "",
-        result: result as object,
-      },
     });
   }
 }

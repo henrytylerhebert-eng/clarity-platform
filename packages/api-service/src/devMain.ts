@@ -8,6 +8,7 @@ import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-s
 import { CaseCommandService } from "@clarity/case-service";
 import { createApiServer } from "./server.js";
 import { createNetworkEnrichmentReviewCommandCaller } from "./reviewCommandCaller.js";
+import { PrismaNetworkReviewGateway } from "@clarity/network-enrichment-service";
 
 /**
  * DEVELOPMENT-ONLY runner (same posture as LocalDevIdentityProvider): seeds a
@@ -109,7 +110,9 @@ async function main(): Promise<void> {
 
   const auth = new AuthenticationService(provider, new PrismaAuthGateway(prisma));
   const caseCommands = new CaseCommandService(new PrismaCaseCommandGateway(prisma));
-  const networkEnrichmentReviewInvoker = createNetworkEnrichmentReviewCommandCaller();
+  const networkEnrichmentReviewInvoker = createNetworkEnrichmentReviewCommandCaller({
+    gateway: new PrismaNetworkReviewGateway(prisma),
+  });
   const server = createApiServer({ auth, caseCommands, networkEnrichmentReviewInvoker });
 
   const port = Number(process.env.API_PORT ?? 4315);
