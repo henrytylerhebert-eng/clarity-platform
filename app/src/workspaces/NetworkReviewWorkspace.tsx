@@ -1,22 +1,14 @@
 import React, { useState } from "react";
-import {
-  CheckCircle2,
-  Download,
-  ExternalLink,
-  FileSearch,
-  Filter,
-  History,
-  Info,
-  Lock,
-  Search,
-  ShieldAlert,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, Download, FileSearch, History, ShieldAlert } from "lucide-react";
 import type { UserRole } from "@clarity/domain-contracts";
 import {
   getSyntheticEnrichmentPackages,
   type SyntheticEnrichmentPackage,
 } from "../domain/enrichmentFixtures";
+
+import { ReviewQueue } from "./components/ReviewQueue";
+import { PackageComparison } from "./components/PackageComparison";
+import { EvidenceDrawer } from "./components/EvidenceDrawer";
 
 interface NetworkReviewWorkspaceProps {
   userRoles?: readonly UserRole[];
@@ -44,20 +36,6 @@ export const NetworkReviewWorkspace: React.FC<NetworkReviewWorkspaceProps> = ({
 
   const activePackage = packages.find((p) => p.packageRecord.reviewPackageId === selectedPackageId);
 
-  // Filter packages for queue
-  const filteredPackages = packages.filter((pkg) => {
-    const matchesSearch = pkg.canonicalData.entityName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "ALL" || pkg.packageRecord.status === statusFilter;
-    const matchesAuthority =
-      authorityFilter === "ALL" ||
-      pkg.packageRecord.assignedReviewerCategory?.includes(authorityFilter);
-    return matchesSearch && matchesStatus && matchesAuthority;
-  });
-
-  const hasRoleAuthority = (requiredRoles: readonly UserRole[]) => {
-    return requiredRoles.some((r) => userRoles.includes(r));
-  };
-
   const handleStageDecision = (
     reviewId: string,
     status: "HUMAN_CONFIRMED" | "REJECTED" | "STALE" | "DEPRECATED",
@@ -84,14 +62,14 @@ export const NetworkReviewWorkspace: React.FC<NetworkReviewWorkspaceProps> = ({
           const action = decision.status === "HUMAN_CONFIRMED" ? "APPROVE_REVIEW" : "REJECT_REVIEW";
           return {
             ...rev,
-            status: decision.status,
+            status: decision.status as any,
             reviewedByActorId: actorId,
             reviewReason: decision.reason,
             updatedAt: now,
             audits: [
               ...rev.audits,
               {
-                action,
+                action: action as any,
                 actorId,
                 actorType: "USER" as const,
                 commandId: `cmd-${rev.reviewId}-${Date.now()}`,
@@ -144,140 +122,19 @@ export const NetworkReviewWorkspace: React.FC<NetworkReviewWorkspaceProps> = ({
 
       {/* Mode A: Tabular Review Queue */}
       {!selectedPackageId && (
-        <div className="space-y-4">
-          {/* Queue Filter Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center gap-3 flex-1 min-w-[280px]">
-              <Search className="h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by candidate facility or program name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-sm border-0 focus:outline-none focus:ring-0"
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-gray-500" />
-                <label className="text-xs font-semibold text-gray-600">Status:</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 bg-gray-50 focus:bg-white"
-                >
-                  <option value="ALL">All Statuses</option>
-                  <option value="UNRESEARCHED">Unresearched</option>
-                  <option value="CONFLICT">Conflict</option>
-                  <option value="STALE">Stale (&gt;90d)</option>
-                  <option value="HUMAN_CONFIRMED">Human Confirmed</option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-semibold text-gray-600">Authority:</label>
-                <select
-                  value={authorityFilter}
-                  onChange={(e) => setAuthorityFilter(e.target.value)}
-                  className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 bg-gray-50 focus:bg-white"
-                >
-                  <option value="ALL">All Categories</option>
-                  <option value="CLINICAL_REVIEWER">Clinical</option>
-                  <option value="LEGAL_REVIEWER">Legal</option>
-                  <option value="FACILITY_REVIEWER">Operations</option>
-                  <option value="BENEFITS_VERIFICATION_SPECIALIST">Compliance / Payer</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Queue Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 text-xs font-semibold text-gray-600 uppercase border-b border-gray-200">
-                  <th className="py-3 px-4">Candidate Entity</th>
-                  <th className="py-3 px-4">Package ID</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Pending Fields</th>
-                  <th className="py-3 px-4">Required Authority</th>
-                  <th className="py-3 px-4">Submission Date</th>
-                  <th className="py-3 px-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-sm">
-                {filteredPackages.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-gray-500 text-sm">
-                      No pending review packages found matching filters.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredPackages.map((pkg) => {
-                    const pendingCount = pkg.reviews.filter(
-                      (r) => r.status === "REVIEW_PENDING" || r.status === "CONFLICT" || r.status === "STALE",
-                    ).length;
-
-                    return (
-                      <tr key={pkg.packageRecord.reviewPackageId} className="hover:bg-gray-50/80 transition-colors">
-                        <td className="py-3.5 px-4 font-semibold text-gray-900">
-                          {pkg.canonicalData.entityName}
-                        </td>
-                        <td className="py-3.5 px-4 text-xs font-mono text-gray-600">
-                          {pkg.packageRecord.reviewPackageId}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                              pkg.packageRecord.status === "CONFLICT"
-                                ? "bg-rose-100 text-rose-800 border border-rose-200"
-                                : pkg.packageRecord.status === "STALE"
-                                ? "bg-amber-100 text-amber-800 border border-amber-200"
-                                : pkg.packageRecord.status === "HUMAN_CONFIRMED"
-                                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                : "bg-blue-100 text-blue-800 border border-blue-200"
-                            }`}
-                          >
-                            {pkg.packageRecord.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 font-semibold text-gray-700">
-                          {pendingCount} field{pendingCount !== 1 ? "s" : ""}
-                        </td>
-                        <td className="py-3.5 px-4 text-xs">
-                          <div className="flex flex-wrap gap-1">
-                            {pkg.packageRecord.assignedReviewerCategory?.map((cat) => (
-                              <span
-                                key={cat}
-                                className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded border border-gray-200"
-                              >
-                                {cat.replace("_REVIEWER", "")}
-                              </span>
-                            )) ?? <span className="text-gray-400">Ops</span>}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 text-xs text-gray-500">
-                          {new Date(pkg.packageRecord.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <button
-                            onClick={() => {
-                              setSelectedPackageId(pkg.packageRecord.reviewPackageId);
-                              setActiveTab("comparison");
-                            }}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors"
-                          >
-                            Review Package
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <ReviewQueue
+          packages={packages}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          authorityFilter={authorityFilter}
+          setAuthorityFilter={setAuthorityFilter}
+          onSelectPackage={(id) => {
+            setSelectedPackageId(id);
+            setActiveTab("comparison");
+          }}
+        />
       )}
 
       {/* Mode B: Detailed Package Workspace */}
@@ -341,157 +198,13 @@ export const NetworkReviewWorkspace: React.FC<NetworkReviewWorkspaceProps> = ({
 
           {/* TAB 1: Canonical vs Candidate Field Comparison View */}
           {activeTab === "comparison" && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="grid grid-cols-12 bg-gray-100 border-b border-gray-200 text-xs font-bold text-gray-700 py-3 px-4">
-                <div className="col-span-3">Field Path & Sensitivity</div>
-                <div className="col-span-3">Canonical CRM Value</div>
-                <div className="col-span-4">Enriched Candidate Value & Decisions</div>
-                <div className="col-span-2 text-right">Evidence & Authority</div>
-              </div>
-
-              <div className="divide-y divide-gray-100">
-                {activePackage.reviews.map((rev) => {
-                  const canonicalVal = activePackage.canonicalData.fields[rev.fieldPath];
-                  const hasDiff = canonicalVal !== rev.proposedValue;
-                  const isNetNew = canonicalVal === undefined || canonicalVal === null;
-                  const canApprove = hasRoleAuthority(rev.requiredCanonicalRoles);
-                  const currentStaged = stagedDecisions[rev.reviewId];
-
-                  return (
-                    <div
-                      key={rev.reviewId}
-                      className={`grid grid-cols-12 items-center py-4 px-4 text-xs transition-colors ${
-                        isNetNew
-                          ? "bg-emerald-50/40"
-                          : hasDiff
-                          ? "bg-amber-50/40"
-                          : "bg-white"
-                      }`}
-                    >
-                      {/* Field Path & Sensitivity */}
-                      <div className="col-span-3 space-y-1">
-                        <span className="font-mono font-bold text-gray-900 block">
-                          {rev.fieldPath}
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          <span
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-                              rev.sensitivityCategory === "CLINICAL_CRITERIA"
-                                ? "bg-purple-100 text-purple-800"
-                                : rev.sensitivityCategory === "LEGAL_STATUS_REQUIREMENTS"
-                                ? "bg-rose-100 text-rose-800"
-                                : rev.sensitivityCategory === "PAYER_RELATED"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {rev.sensitivityCategory}
-                          </span>
-                          <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-                            {rev.status}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Canonical CRM Value */}
-                      <div className="col-span-3 pr-2">
-                        {isNetNew ? (
-                          <span className="text-gray-400 italic">Net New Field (No CRM value)</span>
-                        ) : (
-                          <span className="font-mono text-gray-800 bg-gray-100 px-2 py-1 rounded block truncate">
-                            {JSON.stringify(canonicalVal)}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Proposed Candidate Value & Decision Controls */}
-                      <div className="col-span-4 space-y-2 pr-2">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`font-mono font-semibold px-2 py-1 rounded block truncate flex-1 border ${
-                              isNetNew
-                                ? "bg-emerald-100 border-emerald-300 text-emerald-900"
-                                : hasDiff
-                                ? "bg-amber-100 border-amber-300 text-amber-900"
-                                : "bg-gray-50 border-gray-200 text-gray-800"
-                            }`}
-                          >
-                            {JSON.stringify(rev.proposedValue)}
-                          </span>
-
-                          {isNetNew && (
-                            <span className="bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                              NEW
-                            </span>
-                          )}
-                          {!isNetNew && hasDiff && (
-                            <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                              MODIFIED
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Action Buttons & Role Guarding */}
-                        <div className="flex items-center gap-1.5">
-                          {!canApprove ? (
-                            <div className="flex items-center gap-1 bg-rose-50 text-rose-700 text-[11px] font-semibold px-2 py-1 rounded border border-rose-200">
-                              <Lock className="h-3 w-3" />
-                              Requires {rev.requiredCanonicalRoles.join(" / ")} Authority
-                            </div>
-                          ) : (
-                            <>
-                              <button
-                                aria-label={`Approve ${rev.fieldPath}`}
-                                onClick={() => handleStageDecision(rev.reviewId, "HUMAN_CONFIRMED")}
-                                className={`text-[11px] font-bold px-2.5 py-1 rounded border transition-colors flex items-center gap-1 ${
-                                  currentStaged?.status === "HUMAN_CONFIRMED"
-                                    ? "bg-emerald-600 text-white border-emerald-700"
-                                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300"
-                                }`}
-                              >
-                                <CheckCircle2 className="h-3 w-3" /> Approve
-                              </button>
-                              <button
-                                aria-label={`Reject ${rev.fieldPath}`}
-                                onClick={() => handleStageDecision(rev.reviewId, "REJECTED")}
-                                className={`text-[11px] font-bold px-2.5 py-1 rounded border transition-colors flex items-center gap-1 ${
-                                  currentStaged?.status === "REJECTED"
-                                    ? "bg-rose-600 text-white border-rose-700"
-                                    : "bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-300"
-                                }`}
-                              >
-                                <XCircle className="h-3 w-3" /> Reject
-                              </button>
-                              <button
-                                aria-label={`Mark Stale ${rev.fieldPath}`}
-                                onClick={() => handleStageDecision(rev.reviewId, "STALE")}
-                                className={`text-[11px] font-semibold px-2 py-1 rounded border ${
-                                  currentStaged?.status === "STALE"
-                                    ? "bg-amber-500 text-white"
-                                    : "bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300"
-                                }`}
-                              >
-                                Stale
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Evidence & Authority Link */}
-                      <div className="col-span-2 text-right">
-                        <button
-                          onClick={() => setActiveEvidenceReviewId(rev.reviewId)}
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200 hover:bg-indigo-100"
-                        >
-                          <Info className="h-3.5 w-3.5" /> Evidence
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <PackageComparison
+              activePackage={activePackage}
+              userRoles={userRoles}
+              stagedDecisions={stagedDecisions}
+              onStageDecision={handleStageDecision}
+              onViewEvidence={(id) => setActiveEvidenceReviewId(id)}
+            />
           )}
 
           {/* TAB 2: Conflicts & Evidence View */}
@@ -599,6 +312,7 @@ export const NetworkReviewWorkspace: React.FC<NetworkReviewWorkspaceProps> = ({
               </div>
 
               <button
+                data-testid="submit-decisions-btn"
                 onClick={handleSubmitDecisions}
                 className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors flex items-center gap-2 shadow-lg"
               >
@@ -611,64 +325,12 @@ export const NetworkReviewWorkspace: React.FC<NetworkReviewWorkspaceProps> = ({
       )}
 
       {/* Side-Over Drawer for Evidence Details */}
-      {activeEvidenceReviewId && activePackage && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex justify-end z-50">
-          <div className="w-full max-w-lg bg-white h-full p-6 shadow-2xl overflow-y-auto space-y-6">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <Info className="h-5 w-5 text-indigo-600" />
-                Field Evidence & Authority Trace
-              </h3>
-              <button
-                onClick={() => setActiveEvidenceReviewId(null)}
-                className="text-gray-400 hover:text-gray-700 text-sm font-bold px-2"
-              >
-                ✕
-              </button>
-            </div>
-
-            {(() => {
-              const evidenceList = activePackage.evidence[activeEvidenceReviewId] ?? [];
-              const rev = activePackage.reviews.find((r) => r.reviewId === activeEvidenceReviewId);
-
-              return (
-                <div className="space-y-4 text-xs">
-                  <div>
-                    <span className="text-gray-500 block">Target Field Path:</span>
-                    <span className="font-mono font-bold text-gray-900 text-sm">{rev?.fieldPath}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-gray-500 block mb-1">Source Evidence Snippets:</span>
-                    {evidenceList.length === 0 ? (
-                      <p className="text-gray-400 italic">No source evidence records attached.</p>
-                    ) : (
-                      evidenceList.map((ev, i) => (
-                        <div key={i} className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2">
-                          <div className="flex items-center justify-between text-[11px] font-bold text-indigo-700">
-                            <span>{ev.evidenceType}</span>
-                            <a
-                              href={ev.evidenceSource}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-indigo-600 hover:underline flex items-center gap-1"
-                            >
-                              Source URL <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </div>
-                          <p className="bg-white p-3 rounded-lg border border-gray-200 font-mono text-gray-800">
-                            {JSON.stringify(ev.payload, null, 2)}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+      <EvidenceDrawer
+        activePackage={activePackage}
+        activeEvidenceReviewId={activeEvidenceReviewId}
+        onClose={() => setActiveEvidenceReviewId(null)}
+      />
     </div>
   );
 };
+
