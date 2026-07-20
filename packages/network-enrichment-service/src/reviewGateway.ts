@@ -21,6 +21,10 @@ export interface NetworkReviewReplaySaveInput {
 }
 
 export interface NetworkReviewGateway {
+  listPackages(params: {
+    organizationId: string;
+  }): Promise<readonly NetworkReviewPackageRecord[]>;
+
   getPackageByCandidateId(params: {
     organizationId: string;
     sourceCandidateId: string;
@@ -102,6 +106,15 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
   private readonly evidence = new Map<string, NetworkReviewFieldEvidenceRecord>();
   private readonly reviewEvidence = new Map<string, string[]>();
   private readonly replayIndex = new Map<string, NetworkReviewReplayRecord>();
+
+  async listPackages(params: {
+    organizationId: string;
+  }): Promise<readonly NetworkReviewPackageRecord[]> {
+    const targetOrgPrefix = `${params.organizationId}:`;
+    return Array.from(this.packages.values())
+      .filter((pkg) => `${pkg.organizationId}:`.startsWith(targetOrgPrefix))
+      .map((pkg) => structuredClone(pkg));
+  }
 
   async getPackageById(params: {
     organizationId: string;

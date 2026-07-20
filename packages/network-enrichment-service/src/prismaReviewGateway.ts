@@ -118,6 +118,20 @@ function mapPackageFromPrisma(row: {
 export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
   constructor(private readonly prisma: PrismaClient) {}
 
+  async listPackages(params: {
+    organizationId: string;
+  }): Promise<readonly NetworkReviewPackageRecord[]> {
+    const rows = await this.prisma.networkReviewPackage.findMany({
+      where: {
+        organizationId: params.organizationId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    return rows.map(mapPackageFromPrisma);
+  }
+
   async getPackageByCandidateId(params: {
     organizationId: string;
     sourceCandidateId: string;

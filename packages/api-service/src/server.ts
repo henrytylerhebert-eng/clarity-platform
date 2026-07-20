@@ -171,6 +171,7 @@ function toHttpError(error: unknown): HttpError {
 }
 
 const DECISION_RATIONALE_PATH = /^\/api\/cases\/([^/]+)\/decision-rationale$/;
+const NETWORK_ENRICHMENT_LIST_PACKAGES_PATH = "/api/network-enrichment/synthetic/packages";
 const NETWORK_ENRICHMENT_SUBMIT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/submit";
 const NETWORK_ENRICHMENT_APPROVE_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/approve";
 const NETWORK_ENRICHMENT_REJECT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/reject";
