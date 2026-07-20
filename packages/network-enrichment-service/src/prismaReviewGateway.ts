@@ -492,6 +492,38 @@ export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
           },
         });
       }
+
+      // Transactional Outbox Event Publishing
+      const eventName =
+        record.version === 1
+          ? "NETWORK_REVIEW_SUBMITTED"
+          : record.status === "HUMAN_CONFIRMED"
+          ? "NETWORK_REVIEW_APPROVED"
+          : record.status === "REJECTED"
+          ? "NETWORK_REVIEW_REJECTED"
+          : null;
+
+      if (eventName) {
+        await writeNetworkEnrichmentOutboxEvent(tx, {
+          organizationId: record.organizationId,
+          eventName,
+          aggregateType: "CASE",
+          aggregateId: record.caseId,
+          caseId: record.caseId,
+          actorId: record.reviewedByActorId ?? record.createdByActorId,
+          occurredAt: record.updatedAt,
+          payload: {
+            eventName,
+            reviewId: record.reviewId,
+            reviewPackageId: record.reviewPackageId,
+            organizationId: record.organizationId,
+            caseId: record.caseId,
+            fieldPath: record.fieldPath,
+            status: record.status,
+            occurredAt: record.updatedAt,
+          },
+        });
+      }
     });
   }
 
@@ -523,6 +555,26 @@ export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
           update: {
             commandFingerprint: params.replay.commandFingerprint,
             result: params.replay.result as object,
+          },
+        });
+      }
+
+      if (record.status === "HUMAN_CONFIRMED") {
+        await writeNetworkEnrichmentOutboxEvent(tx, {
+          organizationId: record.organizationId,
+          eventName: "NETWORK_PACKAGE_RECONCILED",
+          aggregateType: "CASE",
+          aggregateId: record.caseId,
+          caseId: record.caseId,
+          actorId: record.submittedByActorId,
+          occurredAt: record.updatedAt,
+          payload: {
+            eventName: "NETWORK_PACKAGE_RECONCILED",
+            reviewPackageId: record.reviewPackageId,
+            organizationId: record.organizationId,
+            caseId: record.caseId,
+            version: record.version,
+            occurredAt: record.updatedAt,
           },
         });
       }
@@ -574,4 +626,119 @@ export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
       },
     });
   }
+}
+
+async function writeNetworkEnrichmentOutboxEvent(
+  tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0],
+  params: {
+    organizationId: string;
+    eventName: string;
+    aggregateType: string;
+    aggregateId: string;
+    caseId: string;
+    payload: object;
+    actorId: string;
+    occurredAt: string;
+  },
+) {
+  const eventId = `evt-net-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const occurredDate = new Date(params.occurredAt);
+
+  const envelope = {
+    eventId,
+    schema: { name: `clarity.networkEnrichment.${params.eventName}`, version: "1.0.0" },
+    eventType: { name: params.eventName, version: 1 },
+    aggregate: { type: "CASE", id: params.caseId, version: 1 },
+    tenant: {
+      organizationId: params.organizationId,
+      facilityId: null,
+      programId: null,
+      unitId: null,
+    },
+    subject: {
+      caseId: params.caseId,
+      episodeId: null,
+      episodeDayId: null,
+      personToken: null,
+    },
+    times: {
+      effectiveAt: params.occurredAt,
+      recordedAt: params.occurredAt,
+      receivedAt: null,
+    },
+    actor: {
+      type: "USER",
+      id: params.actorId,
+      displayRole: null,
+      sessionId: null,
+    },
+    source: {
+      kind: "NATIVE_CLARITY",
+      system: "clarity-network-enrichment-service",
+      sourceTenantKey: null,
+      sourceEventId: null,
+      sourceEventVersion: null,
+      adapterName: "network-enrichment-adapter",
+      adapterVersion: "1.0.0",
+      method: "DIRECT_COMMAND",
+      provenanceRefs: [],
+    },
+    correlation: {
+      correlationId: `corr-${eventId}`,
+      causationId: null,
+      commandId: null,
+    },
+    classification: "PUBLIC_SYNTHETIC",
+    quality: {
+      state: "VALID",
+      issues: [],
+    },
+    review: {
+      state: "NOT_REQUIRED",
+      reviewedByActorId: null,
+      reviewedAt: null,
+      attestationCode: null,
+    },
+    correction: {
+      kind: "ORIGINAL",
+      supersedesEventId: null,
+      reasonCode: null,
+    },
+    metricEligibility: "ELIGIBLE",
+    payloadHash: "0000000000000000000000000000000000000000000000000000000000000000",
+    payload: params.payload,
+  };
+
+  await tx.governedEvent.create({
+    data: {
+      id: eventId,
+      organizationId: params.organizationId,
+      eventTypeName: params.eventName,
+      eventTypeVersion: 1,
+      schemaName: `clarity.networkEnrichment.${params.eventName}`,
+      schemaVersion: "1.0.0",
+      aggregateType: "CASE",
+      aggregateId: params.caseId,
+      aggregateVersion: 1,
+      caseId: params.caseId,
+      correlationId: `corr-${eventId}`,
+      correctionKind: "ORIGINAL",
+      classification: "PUBLIC_SYNTHETIC",
+      metricEligibility: "ELIGIBLE",
+      payloadHash: "0000000000000000000000000000000000000000000000000000000000000000",
+      envelope: envelope as any,
+      effectiveAt: occurredDate,
+      recordedAt: occurredDate,
+    },
+  });
+
+  await tx.outboxRecord.create({
+    data: {
+      organizationId: params.organizationId,
+      governedEventId: eventId,
+      eventTypeName: params.eventName,
+      aggregateType: "CASE",
+      aggregateId: params.caseId,
+    },
+  });
 }

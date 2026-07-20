@@ -437,3 +437,55 @@ export interface ComplianceExportPackage {
   conflicts: readonly NetworkReviewConflictRecord[];
   auditTimeline: readonly NetworkReviewAuditEvent[];
 }
+
+export const NETWORK_ENRICHMENT_EVENT_NAMES = [
+  "NETWORK_REVIEW_SUBMITTED",
+  "NETWORK_REVIEW_APPROVED",
+  "NETWORK_REVIEW_REJECTED",
+  "NETWORK_PACKAGE_RECONCILED",
+] as const;
+export type NetworkEnrichmentEventName = (typeof NETWORK_ENRICHMENT_EVENT_NAMES)[number];
+
+export interface NetworkReviewSubmittedEvent {
+  readonly eventName: "NETWORK_REVIEW_SUBMITTED";
+  readonly reviewId: string;
+  readonly reviewPackageId: string;
+  readonly organizationId: string;
+  readonly caseId: string;
+  readonly fieldPath: string;
+  readonly submittedByActorId: string;
+  readonly occurredAt: string;
+}
+
+export interface NetworkReviewApprovedEvent {
+  readonly eventName: "NETWORK_REVIEW_APPROVED";
+  readonly reviewId: string;
+  readonly reviewPackageId: string;
+  readonly organizationId: string;
+  readonly caseId: string;
+  readonly fieldPath: string;
+  readonly approvedByActorId: string;
+  readonly occurredAt: string;
+}
+
+export interface NetworkReviewRejectedEvent {
+  readonly eventName: "NETWORK_REVIEW_REJECTED";
+  readonly reviewId: string;
+  readonly reviewPackageId: string;
+  readonly organizationId: string;
+  readonly caseId: string;
+  readonly fieldPath: string;
+  readonly rejectedByActorId: string;
+  readonly rejectionReason: string;
+  readonly occurredAt: string;
+}
+
+export interface NetworkPackageReconciledEvent {
+  readonly eventName: "NETWORK_PACKAGE_RECONCILED";
+  readonly reviewPackageId: string;
+  readonly organizationId: string;
+  readonly caseId: string;
+  readonly promotedFieldPaths: readonly string[];
+  readonly version: number;
+  readonly occurredAt: string;
+}
