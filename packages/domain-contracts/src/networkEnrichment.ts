@@ -317,6 +317,16 @@ export const RejectReviewCommandSchema = z
   .strict();
 export type RejectReviewCommand = z.input<typeof RejectReviewCommandSchema>;
 
+export const ReconcilePackageCommandSchema = z
+  .object({
+    ...baseEnvelope,
+    reviewPackageId: DOMAIN_ID_SCHEMA,
+    expectedVersion: z.number().int().positive(),
+    notes: z.string().min(1).optional(),
+  })
+  .strict();
+export type ReconcilePackageCommand = z.input<typeof ReconcilePackageCommandSchema>;
+
 export interface NetworkCommandResult<T> {
   value: T;
   replayed: boolean;
@@ -331,6 +341,12 @@ export interface NetworkReviewSubmitResult {
 export interface NetworkReviewTransitionResult {
   review: NetworkReviewRecord;
   reviewPackageStatus?: NetworkReviewPolicyState;
+  replayed?: boolean;
+}
+
+export interface ReconcilePackageResult {
+  packageRecord: NetworkReviewPackageRecord;
+  promotedFieldPaths: readonly string[];
   replayed?: boolean;
 }
 

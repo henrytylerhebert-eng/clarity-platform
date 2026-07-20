@@ -1,5 +1,8 @@
 import {
   type ApproveReviewCommand,
+  type ReconcilePackageCommand,
+  type ReconcilePackageResult,
+  type NetworkReviewPackageRecord,
   type NetworkReviewRecord,
   type NetworkCommandResult,
   type NetworkReviewReplayInput,
@@ -9,6 +12,7 @@ import {
   type RejectReviewCommand,
   assertUserRoleOverlap,
   ApproveReviewCommandSchema,
+  ReconcilePackageCommandSchema,
   NETWORK_ENRICHMENT_REVIEW_STATES,
   isReviewTransitionAllowed,
   NetworkEnrichmentDomainError,
@@ -129,7 +133,18 @@ export class NetworkEnrichmentReviewCommandService {
           ],
         };
 
-        await this.gateway.saveReview(review);
+        const packageRecord: NetworkReviewPackageRecord = {
+          reviewPackageId: review.reviewPackageId,
+          organizationId: cmd.organizationId,
+          caseId: cmd.caseId,
+          sourceCandidateId: cmd.sourceCandidateId,
+          status: "UNRESEARCHED",
+          version: 1,
+          submittedByActorId: cmd.actor.actorId,
+          createdAt,
+          updatedAt: createdAt,
+        };
+        await this.gateway.saveReview(review, { packageRecord });
         return { review };
       },
     );
@@ -243,13 +258,70 @@ export class NetworkEnrichmentReviewCommandService {
     return review;
   }
 
+  async reconcilePackage(input: ReconcilePackageCommand): Promise<NetworkCommandResult<ReconcilePackageResult>> {
+    const cmd = ReconcilePackageCommandSchema.parse(input);
+    const result = await this.handleReplay(
+      {
+        organizationId: cmd.organizationId,
+        commandType: "reconcilePackage",
+        idempotencyKey: cmd.idempotencyKey,
+      },
+      cmd,
+      async () => {
+        const pkg = await this.gateway.getPackageById({
+          organizationId: cmd.organizationId,
+          reviewPackageId: cmd.reviewPackageId,
+        });
+        if (!pkg) {
+          throw new NetworkEnrichmentDomainError("NOT_FOUND", `Review package ${cmd.reviewPackageId} not found.`);
+        }
+        if (pkg.version !== cmd.expectedVersion) {
+          throw new NetworkEnrichmentDomainError("CONCURRENCY_CONFLICT", "Package version mismatch.");
+        }
+
+        const reviews = await this.gateway.getReviewsByPackageId({
+          organizationId: cmd.organizationId,
+          reviewPackageId: cmd.reviewPackageId,
+        });
+
+        const promotedFieldPaths = reviews
+          .filter((r) => r.status === "HUMAN_CONFIRMED")
+          .map((r) => r.fieldPath);
+
+        const now = this.now();
+        const updatedPkg: NetworkReviewPackageRecord = {
+          ...pkg,
+          status: "HUMAN_CONFIRMED",
+          version: pkg.version + 1,
+          packageStatusReason: cmd.notes ?? "Package reconciled and promoted to canonical CRM",
+          updatedAt: now,
+        };
+
+        await this.gateway.savePackage(updatedPkg, {
+          replay: {
+            commandType: "reconcilePackage",
+            idempotencyKey: cmd.idempotencyKey,
+            commandFingerprint: commandFingerprint(cmd),
+            result: { packageRecord: updatedPkg, promotedFieldPaths },
+          },
+        });
+
+        return {
+          packageRecord: updatedPkg,
+          promotedFieldPaths,
+        };
+      },
+    );
+    return result;
+  }
+
   private async handleReplay<T>(
     input: Omit<NetworkReviewReplayInput, "fingerprint">,
     command: unknown,
     action: () => Promise<T>,
   ): Promise<NetworkCommandResult<T>> {
     const fingerprint = commandFingerprint(command);
-    const existing = await this.gateway.getReplayRecord(input);
+    const existing = await this.gateway.getReplayRecord?.(input);
     if (existing) {
       if (existing.commandFingerprint !== fingerprint) {
         throw new NetworkEnrichmentDomainError(
@@ -266,4 +338,4 @@ export class NetworkEnrichmentReviewCommandService {
   }
 }
 
-export type NetworkReviewServiceResult = NetworkReviewSubmitResult | NetworkReviewTransitionResult;
+export type NetworkReviewServiceResult = NetworkReviewSubmitResult | NetworkReviewTransitionResult | ReconcilePackageResult;

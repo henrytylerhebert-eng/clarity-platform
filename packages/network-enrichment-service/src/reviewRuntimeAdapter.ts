@@ -1,5 +1,7 @@
 import {
   type ApproveReviewCommand,
+  type ReconcilePackageCommand,
+  type ReconcilePackageResult,
   type NetworkCommandResult,
   type NetworkReviewSubmitResult,
   type NetworkReviewTransitionResult,
@@ -23,6 +25,9 @@ export interface NetworkEnrichmentReviewRuntimeAdapter {
   rejectReview(
     input: RejectReviewCommand,
   ): Promise<NetworkCommandResult<NetworkReviewTransitionResult>>;
+  reconcilePackage(
+    input: ReconcilePackageCommand,
+  ): Promise<NetworkCommandResult<ReconcilePackageResult>>;
 }
 
 export function createNetworkEnrichmentReviewRuntimeAdapter(
@@ -34,5 +39,6 @@ export function createNetworkEnrichmentReviewRuntimeAdapter(
     submitForReview: (input) => runtime.commands.submitForReview(input),
     approveReview: (input) => runtime.commands.approveReview(input),
     rejectReview: (input) => runtime.commands.rejectReview(input),
+    reconcilePackage: (input) => runtime.commands.reconcilePackage(input),
   };
 }

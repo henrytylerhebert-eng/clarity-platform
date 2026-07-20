@@ -9,6 +9,7 @@ import { CaseNotFoundError, PermissionDeniedError, type CaseCommandService } fro
 import {
   ApproveReviewCommandSchema,
   NetworkEnrichmentDomainError,
+  ReconcilePackageCommandSchema,
   RejectReviewCommandSchema,
   SubmitForReviewCommandSchema,
   type AuthenticatedPrincipal,
@@ -29,6 +30,8 @@ import {
  *   POST /api/network-enrichment/synthetic/reviews/submit   bearer + body → review submit
  *   POST /api/network-enrichment/synthetic/reviews/approve  bearer + body → review approve
  *   POST /api/network-enrichment/synthetic/reviews/reject   bearer + body → review reject
+ *   POST /api/network-enrichment/synthetic/packages/reconcile bearer + body → package reconcile
+ *   GET  /api/network-enrichment/synthetic/packages           bearer → package query
  *
  * Invariants:
  * - organizationId and actor roles are taken ONLY from the verified principal
@@ -62,6 +65,10 @@ const ApproveReviewBodySchema = ApproveReviewCommandSchema.omit({
   actor: true,
 }).strict();
 const RejectReviewBodySchema = RejectReviewCommandSchema.omit({
+  organizationId: true,
+  actor: true,
+}).strict();
+const ReconcilePackageBodySchema = ReconcilePackageCommandSchema.omit({
   organizationId: true,
   actor: true,
 }).strict();
@@ -153,6 +160,7 @@ const DECISION_RATIONALE_PATH = /^\/api\/cases\/([^/]+)\/decision-rationale$/;
 const NETWORK_ENRICHMENT_SUBMIT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/submit";
 const NETWORK_ENRICHMENT_APPROVE_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/approve";
 const NETWORK_ENRICHMENT_REJECT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/reject";
+const NETWORK_ENRICHMENT_RECONCILE_PACKAGE_PATH = "/api/network-enrichment/synthetic/packages/reconcile";
 
 export function createApiServer(deps: ApiDeps): Server {
   const networkEnrichmentReviewInvoker =
@@ -183,8 +191,6 @@ export function createApiServer(deps: ApiDeps): Server {
       if (rationaleMatch) {
         const principal = await deps.auth.authenticate(bearerToken(req));
         const body = DecisionRationaleBodySchema.parse(await readJsonBody(req));
-        // The load-bearing lines of the slice: tenant and actor come from the
-        // verified principal, not from anything the caller sent.
         const result = await deps.caseCommands.recordDecisionRationale({
           organizationId: principal.organizationId,
           actor: deps.auth.actorFor(principal),
@@ -243,11 +249,24 @@ export function createApiServer(deps: ApiDeps): Server {
         return sendJson(res, 200, command);
       }
 
+      if (method === "POST" && url === NETWORK_ENRICHMENT_RECONCILE_PACKAGE_PATH) {
+        const principal = await deps.auth.authenticate(bearerToken(req));
+        const body = ReconcilePackageBodySchema.parse(await readJsonBody(req));
+        const command = await networkEnrichmentReviewInvoker({
+          commandType: "reconcilePackage",
+          command: {
+            ...body,
+            organizationId: principal.organizationId,
+            actor: deps.auth.actorFor(principal),
+          },
+        });
+        return sendJson(res, 200, command);
+      }
+
       return sendJson(res, 404, { error: "not_found" });
     } catch (error) {
       const httpError = toHttpError(error);
       if (httpError.status === 500) {
-        // Server-side visibility only; the response body stays content-free.
         console.error("[api-service] internal error:", error);
       }
       return sendJson(res, httpError.status, { error: httpError.code });

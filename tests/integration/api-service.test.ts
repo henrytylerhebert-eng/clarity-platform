@@ -86,6 +86,14 @@ function postNetworkEnrichmentReject(token: string, body: Record<string, unknown
   });
 }
 
+function postNetworkEnrichmentReconcile(token: string, body: Record<string, unknown>) {
+  return fetch(`${baseUrl}/api/network-enrichment/synthetic/packages/reconcile`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+}
+
 beforeAll(async () => {
   h = await createHarness();
   const provider = new LocalDevIdentityProvider();
@@ -657,5 +665,52 @@ describe("Network enrichment synthetic command runtime", () => {
     });
     expect(approvedAgain.status).toBe(400);
     expect(await approvedAgain.json()).toEqual({ error: "invalid_request" });
+  });
+
+  it("reconciles human-confirmed package records over HTTP REST surface", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+
+    const reviewId = `network-review-${h.runId}-reconcile`;
+    const submitRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId,
+      caseId: `case-${h.runId}-reconcile`,
+      sourceCandidateId: "candidate-reconcile",
+      fieldPath: "facilityAdmissionProfiles.capacity",
+      currentValue: 10,
+      proposedValue: 12,
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-reconcile`,
+      reason: "Reconcile test submit",
+      correlationId: "corr-network-reconcile-sub",
+    });
+    expect(submitRes.status).toBe(200);
+
+    const submitPayload = (await submitRes.json()) as {
+      value: { review: { reviewPackageId: string; version: number } };
+    };
+
+    const approveRes = await postNetworkEnrichmentApprove(token, {
+      reviewId,
+      expectedVersion: submitPayload.value.review.version,
+      actorNotes: "Approve for reconcile",
+      idempotencyKey: `synthetic-enrich-approve-${h.runId}-reconcile`,
+      correlationId: "corr-network-reconcile-app",
+    });
+    expect(approveRes.status).toBe(200);
+
+    const reconcileRes = await postNetworkEnrichmentReconcile(token, {
+      reviewPackageId: submitPayload.value.review.reviewPackageId,
+      expectedVersion: 1,
+      notes: "Package reconciled and promoted to CRM",
+      idempotencyKey: `synthetic-enrich-reconcile-${h.runId}`,
+      correlationId: "corr-network-reconcile-rec",
+    });
+    expect(reconcileRes.status).toBe(200);
+    const reconcilePayload = (await reconcileRes.json()) as {
+      value: { packageRecord: { status: string }; promotedFieldPaths: string[] };
+      replayed: boolean;
+    };
+    expect(reconcilePayload.value.packageRecord.status).toBe("HUMAN_CONFIRMED");
+    expect(reconcilePayload.value.promotedFieldPaths).toContain("facilityAdmissionProfiles.capacity");
   });
 });
