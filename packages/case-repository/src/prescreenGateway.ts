@@ -111,6 +111,14 @@ function isAssessmentIdUniqueViolation(e: unknown): boolean {
   );
 }
 
+function isSubmissionUniqueViolation(e: unknown): boolean {
+  return (
+    e instanceof Prisma.PrismaClientKnownRequestError &&
+    e.code === "P2002" &&
+    String(e.meta?.modelName ?? "").includes("PrescreenSubmission")
+  );
+}
+
 function iso(value: Date): string {
   return value.toISOString();
 }
@@ -254,111 +262,118 @@ export class PrismaPrescreenGateway {
   }
 
   async saveAssessmentDraft(cmd: ParsedSaveAssessmentDraft): Promise<PrescreenCommandResult> {
-    return this.idempotent(cmd, "SaveAssessmentDraft", async (tx) => {
-      const encounter = await this.requireEncounterTx(tx, cmd.organizationId, cmd.encounterId);
-      this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
-      const existing = await tx.prescreenAssessmentVersion.findUnique({
-        where: {
-          organizationId_assessmentVersionId: {
-            organizationId: cmd.organizationId,
-            assessmentVersionId: cmd.draft.assessmentVersionId,
-          },
-        },
-      });
-      if (existing && existing.encounterId !== encounter.id) throw new PrescreenNotFoundError("assessment");
-      if (existing && existing.status !== "DRAFT") throw new AssessmentNotDraftError();
-      if (encounter.status !== "DRAFT") {
-        throw new PrescreenDomainValidationError("The prescreen encounter is not editable as a draft.");
-      }
-
-      const pathway = derivePossiblePathway({
-        willingness: cmd.draft.willingness,
-        orientation: cmd.draft.orientation,
-        immediateMedicalStabilizationRequired: cmd.draft.immediateMedicalStabilizationRequired,
-        activeEmergencyOrLegalProcess: cmd.draft.activeEmergencyOrLegalProcess,
-      });
-      const versionNumber = existing
-        ? existing.versionNumber
-        : (await tx.prescreenAssessmentVersion.count({
-            where: { organizationId: cmd.organizationId, encounterId: encounter.id },
-          })) + 1;
-      const answers = cmd.draft.answers.map((answer) => ({
-        ...answer,
-        recordedAt: cmd.occurredAt,
-        recordedBy: cmd.actor.actorId,
-      }));
-      const sources = cmd.draft.sources.map((source) => ({ ...source, recordedAt: cmd.occurredAt }));
-      const domainShape: PrescreenAssessmentVersion = {
-        assessmentVersionId: cmd.draft.assessmentVersionId,
-        encounterId: encounter.id,
-        organizationId: encounter.organizationId,
-        versionNumber,
-        status: "DRAFT",
-        createdAt: existing ? iso(existing.createdAt) : cmd.occurredAt,
-        createdBy: existing ? existing.createdBy : cmd.actor.actorId,
-        willingness: cmd.draft.willingness,
-        orientation: cmd.draft.orientation,
-        immediateMedicalStabilizationRequired: cmd.draft.immediateMedicalStabilizationRequired,
-        activeEmergencyOrLegalProcess: cmd.draft.activeEmergencyOrLegalProcess,
-        possiblePathway: pathway.pathway,
-        answers,
-        sources,
-      };
-      const data = {
-        versionNumber,
-        status: "DRAFT" as const,
-        willingness: cmd.draft.willingness,
-        orientation: cmd.draft.orientation as unknown as Prisma.InputJsonValue,
-        immediateMedicalStabilizationRequired: cmd.draft.immediateMedicalStabilizationRequired,
-        activeEmergencyOrLegalProcess: cmd.draft.activeEmergencyOrLegalProcess,
-        possiblePathway: pathway.pathway,
-        answers: answers as unknown as Prisma.InputJsonValue,
-        sources: sources as unknown as Prisma.InputJsonValue,
-      };
-      if (existing) {
-        await tx.prescreenAssessmentVersion.update({ where: { id: existing.id }, data });
-      } else {
-        await tx.prescreenAssessmentVersion.create({
-          data: {
-            ...data,
-            organizationId: cmd.organizationId,
-            assessmentVersionId: cmd.draft.assessmentVersionId,
-            encounterId: encounter.id,
-            createdAt: new Date(cmd.occurredAt),
-            createdBy: cmd.actor.actorId,
+    try {
+      return await this.idempotent(cmd, "SaveAssessmentDraft", async (tx) => {
+        const encounter = await this.requireEncounterTx(tx, cmd.organizationId, cmd.encounterId);
+        this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
+        const existing = await tx.prescreenAssessmentVersion.findUnique({
+          where: {
+            organizationId_assessmentVersionId: {
+              organizationId: cmd.organizationId,
+              assessmentVersionId: cmd.draft.assessmentVersionId,
+            },
           },
         });
-      }
-      const newVersion = await this.versionedEncounterUpdate(tx, encounter, {
-        currentAssessmentVersionId: cmd.draft.assessmentVersionId,
-        possiblePathway: pathway.pathway,
-        updatedAt: new Date(cmd.occurredAt),
-      });
-      await this.recordEventAndAudit(tx, cmd, {
-        eventType: "ASSESSMENT_DRAFT_SAVED",
-        aggregateType: "PrescreenAssessmentVersion",
-        aggregateId: cmd.draft.assessmentVersionId,
-        aggregateVersion: newVersion,
-        caseId: encounter.caseId,
-        encounterId: encounter.id,
-        payload: {
+        if (existing && existing.encounterId !== encounter.id) throw new PrescreenNotFoundError("assessment");
+        if (existing && existing.status !== "DRAFT") throw new AssessmentNotDraftError();
+        if (encounter.status !== "DRAFT") {
+          throw new PrescreenDomainValidationError("The prescreen encounter is not editable as a draft.");
+        }
+
+        const pathway = derivePossiblePathway({
+          willingness: cmd.draft.willingness,
+          orientation: cmd.draft.orientation,
+          immediateMedicalStabilizationRequired: cmd.draft.immediateMedicalStabilizationRequired,
+          activeEmergencyOrLegalProcess: cmd.draft.activeEmergencyOrLegalProcess,
+        });
+        const versionNumber = existing
+          ? existing.versionNumber
+          : (await tx.prescreenAssessmentVersion.count({
+              where: { organizationId: cmd.organizationId, encounterId: encounter.id },
+            })) + 1;
+        const answers = cmd.draft.answers.map((answer) => ({
+          ...answer,
+          recordedAt: cmd.occurredAt,
+          recordedBy: cmd.actor.actorId,
+        }));
+        const sources = cmd.draft.sources.map((source) => ({ ...source, recordedAt: cmd.occurredAt }));
+        const domainShape: PrescreenAssessmentVersion = {
           assessmentVersionId: cmd.draft.assessmentVersionId,
+          encounterId: encounter.id,
+          organizationId: encounter.organizationId,
           versionNumber,
-          derivedPossiblePathway: pathway.pathway,
-          contentHash: assessmentContentHash(domainShape),
-        },
+          status: "DRAFT",
+          createdAt: existing ? iso(existing.createdAt) : cmd.occurredAt,
+          createdBy: existing ? existing.createdBy : cmd.actor.actorId,
+          willingness: cmd.draft.willingness,
+          orientation: cmd.draft.orientation,
+          immediateMedicalStabilizationRequired: cmd.draft.immediateMedicalStabilizationRequired,
+          activeEmergencyOrLegalProcess: cmd.draft.activeEmergencyOrLegalProcess,
+          possiblePathway: pathway.pathway,
+          answers,
+          sources,
+        };
+        const data = {
+          versionNumber,
+          status: "DRAFT" as const,
+          willingness: cmd.draft.willingness,
+          orientation: cmd.draft.orientation as unknown as Prisma.InputJsonValue,
+          immediateMedicalStabilizationRequired: cmd.draft.immediateMedicalStabilizationRequired,
+          activeEmergencyOrLegalProcess: cmd.draft.activeEmergencyOrLegalProcess,
+          possiblePathway: pathway.pathway,
+          answers: answers as unknown as Prisma.InputJsonValue,
+          sources: sources as unknown as Prisma.InputJsonValue,
+        };
+        if (existing) {
+          await tx.prescreenAssessmentVersion.update({ where: { id: existing.id }, data });
+        } else {
+          await tx.prescreenAssessmentVersion.create({
+            data: {
+              ...data,
+              organizationId: cmd.organizationId,
+              assessmentVersionId: cmd.draft.assessmentVersionId,
+              encounterId: encounter.id,
+              createdAt: new Date(cmd.occurredAt),
+              createdBy: cmd.actor.actorId,
+            },
+          });
+        }
+        const newVersion = await this.versionedEncounterUpdate(tx, encounter, {
+          currentAssessmentVersionId: cmd.draft.assessmentVersionId,
+          possiblePathway: pathway.pathway,
+          updatedAt: new Date(cmd.occurredAt),
+        });
+        await this.recordEventAndAudit(tx, cmd, {
+          eventType: "ASSESSMENT_DRAFT_SAVED",
+          aggregateType: "PrescreenAssessmentVersion",
+          aggregateId: cmd.draft.assessmentVersionId,
+          aggregateVersion: newVersion,
+          caseId: encounter.caseId,
+          encounterId: encounter.id,
+          payload: {
+            assessmentVersionId: cmd.draft.assessmentVersionId,
+            versionNumber,
+            derivedPossiblePathway: pathway.pathway,
+            contentHash: assessmentContentHash(domainShape),
+          },
+        });
+        return {
+          result: this.result(
+            cmd.draft.assessmentVersionId,
+            "PrescreenAssessmentVersion",
+            encounter.id,
+            newVersion,
+            "DRAFT",
+          ),
+          caseId: encounter.caseId,
+        };
       });
-      return {
-        result: this.result(
-          cmd.draft.assessmentVersionId,
-          "PrescreenAssessmentVersion",
-          encounter.id,
-          newVersion,
-          "DRAFT",
-        ),
-        caseId: encounter.caseId,
-      };
-    });
+    } catch (error) {
+      if (isAssessmentIdUniqueViolation(error)) {
+        throw new PrescreenDomainValidationError("The assessment version id is already in use.");
+      }
+      throw error;
+    }
   }
 
   async attestAssessment(cmd: ParsedAttestAssessment): Promise<PrescreenCommandResult> {
@@ -539,55 +554,62 @@ export class PrismaPrescreenGateway {
   }
 
   async submitPrescreen(cmd: ParsedSubmitPrescreen): Promise<PrescreenCommandResult> {
-    return this.idempotent(cmd, "SubmitPrescreen", async (tx) => {
-      const encounter = await this.requireEncounterTx(tx, cmd.organizationId, cmd.encounterId);
-      this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
-      const assessment = await this.requireAssessmentTx(tx, cmd.organizationId, cmd.assessmentVersionId);
-      if (assessment.encounterId !== encounter.id) throw new PrescreenNotFoundError("assessment");
-      if (assessment.status === "DRAFT") {
-        throw new AssessmentVersionRequiredError("Submission requires an immutable (attested) assessment version.");
-      }
-      if (assessment.assessmentVersionId !== encounter.currentAssessmentVersionId) {
-        throw new AssessmentVersionRequiredError(
-          "Submission must reference the encounter's current assessment version.",
-        );
-      }
-      assertPrescreenEncounterTransition(encounter.status, "SUBMITTED");
+    try {
+      return await this.idempotent(cmd, "SubmitPrescreen", async (tx) => {
+        const encounter = await this.requireEncounterTx(tx, cmd.organizationId, cmd.encounterId);
+        this.assertExpectedVersion(encounter.version, cmd.expectedVersion);
+        const assessment = await this.requireAssessmentTx(tx, cmd.organizationId, cmd.assessmentVersionId);
+        if (assessment.encounterId !== encounter.id) throw new PrescreenNotFoundError("assessment");
+        if (assessment.status === "DRAFT") {
+          throw new AssessmentVersionRequiredError("Submission requires an immutable (attested) assessment version.");
+        }
+        if (assessment.assessmentVersionId !== encounter.currentAssessmentVersionId) {
+          throw new AssessmentVersionRequiredError(
+            "Submission must reference the encounter's current assessment version.",
+          );
+        }
+        assertPrescreenEncounterTransition(encounter.status, "SUBMITTED");
 
-      await tx.prescreenSubmission.create({
-        data: {
-          organizationId: encounter.organizationId,
+        await tx.prescreenSubmission.create({
+          data: {
+            organizationId: encounter.organizationId,
+            encounterId: encounter.id,
+            assessmentVersionId: assessment.assessmentVersionId,
+            target: cmd.target,
+            receivingOrganizationId: cmd.receivingOrganizationId,
+            submittedAt: new Date(cmd.occurredAt),
+            submittedBy: cmd.actor.actorId,
+          },
+        });
+        const newVersion = await this.versionedEncounterUpdate(tx, encounter, {
+          status: "SUBMITTED",
+          updatedAt: new Date(cmd.occurredAt),
+        });
+        await this.recordEventAndAudit(tx, cmd, {
+          eventType: "PRESCREEN_SUBMITTED",
+          aggregateType: "PrescreenEncounter",
+          aggregateId: encounter.id,
+          aggregateVersion: newVersion,
+          caseId: encounter.caseId,
           encounterId: encounter.id,
-          assessmentVersionId: assessment.assessmentVersionId,
-          target: cmd.target,
-          receivingOrganizationId: cmd.receivingOrganizationId,
-          submittedAt: new Date(cmd.occurredAt),
-          submittedBy: cmd.actor.actorId,
-        },
+          payload: {
+            assessmentVersionId: assessment.assessmentVersionId,
+            target: cmd.target,
+            receivingOrganizationId: cmd.receivingOrganizationId,
+            contentHash: assessment.contentHash ?? assessmentContentHash(assessmentRowToDomain(assessment)),
+          },
+        });
+        return {
+          result: this.result(encounter.id, "PrescreenEncounter", encounter.id, newVersion, "SUBMITTED"),
+          caseId: encounter.caseId,
+        };
       });
-      const newVersion = await this.versionedEncounterUpdate(tx, encounter, {
-        status: "SUBMITTED",
-        updatedAt: new Date(cmd.occurredAt),
-      });
-      await this.recordEventAndAudit(tx, cmd, {
-        eventType: "PRESCREEN_SUBMITTED",
-        aggregateType: "PrescreenEncounter",
-        aggregateId: encounter.id,
-        aggregateVersion: newVersion,
-        caseId: encounter.caseId,
-        encounterId: encounter.id,
-        payload: {
-          assessmentVersionId: assessment.assessmentVersionId,
-          target: cmd.target,
-          receivingOrganizationId: cmd.receivingOrganizationId,
-          contentHash: assessment.contentHash ?? assessmentContentHash(assessmentRowToDomain(assessment)),
-        },
-      });
-      return {
-        result: this.result(encounter.id, "PrescreenEncounter", encounter.id, newVersion, "SUBMITTED"),
-        caseId: encounter.caseId,
-      };
-    });
+    } catch (error) {
+      if (isSubmissionUniqueViolation(error)) {
+        throw new PrescreenDomainValidationError("The encounter has already been submitted.");
+      }
+      throw error;
+    }
   }
 
   async updatePacketRequirement(cmd: ParsedUpdatePacketRequirement): Promise<PrescreenCommandResult> {

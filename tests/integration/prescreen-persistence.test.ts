@@ -7,6 +7,7 @@ import {
 } from "@clarity/case-repository";
 import {
   PrescreenCommandService,
+  PrescreenDomainValidationError,
   PrescreenIdempotencyKeyReusedError,
   PrescreenNotFoundError,
   PrescreenVersionConflictError,
@@ -329,6 +330,91 @@ describe("concurrency", () => {
 
     const encounter = await gateway.getEncounter(h.tenantA.organizationId, started.encounterId);
     expect(encounter.version).toBe(started.encounterVersion + 1);
+  });
+
+  it("saveAssessmentDraft contention does not leak raw Prisma unique-index violations", async () => {
+    const started = await startEncounter(h.tenantA, caseIdFor("a"));
+    const duplicateAssessmentId = `syn-psp-asv-race2-${h.runId}`;
+    const base = {
+      organizationId: h.tenantA.organizationId,
+      actor: actorFor(h.tenantA),
+      occurredAt: T(1),
+      encounterId: started.encounterId,
+      expectedVersion: started.encounterVersion,
+    };
+    const settled = await Promise.allSettled([
+      service.saveAssessmentDraft({
+        ...base,
+        idempotencyKey: idem("draft-race-1"),
+        draft: draft(duplicateAssessmentId),
+      }),
+      service.saveAssessmentDraft({
+        ...base,
+        idempotencyKey: idem("draft-race-2"),
+        draft: draft(duplicateAssessmentId),
+      }),
+    ]);
+
+    const fulfilled = settled.filter((r) => r.status === "fulfilled");
+    const rejected = settled.filter((r) => r.status === "rejected");
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+    const reason = rejected[0] as PromiseRejectedResult;
+    expect(
+      reason.reason instanceof PrescreenDomainValidationError ||
+        reason.reason instanceof PrescreenVersionConflictError,
+    ).toBe(true);
+  });
+
+  it("submitPrescreen contention does not leak raw Prisma unique-index violations", async () => {
+    const started = await startEncounter(h.tenantA, caseIdFor("a"));
+    const assessmentId = `syn-psp-asv-submit-race-${h.runId}`;
+    await service.saveAssessmentDraft({
+      organizationId: h.tenantA.organizationId,
+      actor: actorFor(h.tenantA),
+      idempotencyKey: idem("submit-draft"),
+      occurredAt: T(1),
+      encounterId: started.encounterId,
+      draft: draft(assessmentId),
+    });
+    const attested = await service.attestAssessment({
+      organizationId: h.tenantA.organizationId,
+      actor: actorFor(h.tenantA),
+      idempotencyKey: idem("submit-attest"),
+      occurredAt: T(2),
+      encounterId: started.encounterId,
+      assessmentVersionId: assessmentId,
+    });
+    const base = {
+      organizationId: h.tenantA.organizationId,
+      actor: actorFor(h.tenantA),
+      occurredAt: T(3),
+      encounterId: started.encounterId,
+      assessmentVersionId: assessmentId,
+      target: "CENTRAL_INTAKE_REVIEW" as const,
+      receivingOrganizationId: "facility://synthetic-facility-001",
+      expectedVersion: attested.encounterVersion,
+    };
+    const settled = await Promise.allSettled([
+      service.submitPrescreen({
+        ...base,
+        idempotencyKey: idem("submit-race-1"),
+      }),
+      service.submitPrescreen({
+        ...base,
+        idempotencyKey: idem("submit-race-2"),
+      }),
+    ]);
+
+    const fulfilled = settled.filter((r) => r.status === "fulfilled");
+    const rejected = settled.filter((r) => r.status === "rejected");
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+    const reason = rejected[0] as PromiseRejectedResult;
+    expect(
+      reason.reason instanceof PrescreenDomainValidationError ||
+        reason.reason instanceof PrescreenVersionConflictError,
+    ).toBe(true);
   });
 });
 
