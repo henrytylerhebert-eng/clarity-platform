@@ -3,6 +3,7 @@ import {
   type NetworkReviewReplayInput,
   type NetworkReviewRecord,
 } from "@clarity/domain-contracts";
+import type { NetworkReviewServiceResult } from "./reviewCommands.js";
 
 export type NetworkReviewReplayRecord = {
   readonly commandType: string;
@@ -52,15 +53,15 @@ export interface NetworkReviewGateway {
   getReplayRecord(
     input: Omit<NetworkReviewReplayInput, "fingerprint">,
   ): Promise<NetworkReviewReplayRecord | undefined>;
+
+  saveReplayRecord?(
+    input: Omit<NetworkReviewReplayInput, "fingerprint"> & { fingerprint?: string },
+    result: NetworkReviewServiceResult,
+  ): Promise<void>;
 }
 
-type ReviewStore = {
-  review: NetworkReviewRecord;
-  package?: NetworkReviewPackageRecord;
-};
-
-type ReviewKey = (organizationId: string, reviewId: string) => string;
-const reviewStorageKey: ReviewKey = (organizationId, reviewId) => `${organizationId}:${reviewId}`;
+const reviewStorageKey = (organizationId: string, reviewId: string): string =>
+  `${organizationId}:${reviewId}`;
 
 const packageStorageKey = (organizationId: string, reviewPackageId: string): string =>
   `${organizationId}:${reviewPackageId}`;
@@ -189,6 +190,20 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
     input: Omit<NetworkReviewReplayInput, "fingerprint">,
   ): Promise<NetworkReviewReplayRecord | undefined> {
     return this.replayIndex.get(replayStorageKey(input.organizationId, input.commandType, input.idempotencyKey));
+  }
+
+  async saveReplayRecord(
+    input: Omit<NetworkReviewReplayInput, "fingerprint"> & { fingerprint?: string },
+    result: NetworkReviewServiceResult,
+  ): Promise<void> {
+    this.replayIndex.set(
+      replayStorageKey(input.organizationId, input.commandType, input.idempotencyKey),
+      {
+        commandType: input.commandType,
+        commandFingerprint: input.fingerprint ?? "",
+        result: structuredClone(result),
+      },
+    );
   }
 }
 
