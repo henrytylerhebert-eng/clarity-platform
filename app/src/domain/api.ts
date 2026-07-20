@@ -76,6 +76,10 @@ export async function apiLogout(): Promise<void> {
   }
 }
 
+export function getBearerToken(): string | null {
+  return bearerToken;
+}
+
 export interface DecisionRationaleResult {
   caseKey: string;
   version: number | null;

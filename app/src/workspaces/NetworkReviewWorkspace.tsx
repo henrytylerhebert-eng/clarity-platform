@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CheckCircle2, Download, FileSearch, History, ShieldAlert } from "lucide-react";
 import type { UserRole } from "@clarity/domain-contracts";
 import {
   getSyntheticEnrichmentPackages,
   type SyntheticEnrichmentPackage,
 } from "../domain/enrichmentFixtures";
+import { type NetworkReviewApiClient } from "../domain/networkReviewApi";
 
 import { ReviewQueue } from "./components/ReviewQueue";
 import { PackageComparison } from "./components/PackageComparison";
@@ -13,15 +14,46 @@ import { EvidenceDrawer } from "./components/EvidenceDrawer";
 interface NetworkReviewWorkspaceProps {
   userRoles?: readonly UserRole[];
   actorId?: string;
+  apiClient?: NetworkReviewApiClient;
+  initialPackages?: SyntheticEnrichmentPackage[];
 }
 
 export const NetworkReviewWorkspace: React.FC<NetworkReviewWorkspaceProps> = ({
   userRoles = ["FACILITY_REVIEWER", "COMPLIANCE_REVIEWER"],
   actorId = "usr-reviewer-current",
+  apiClient,
+  initialPackages,
 }) => {
   const [packages, setPackages] = useState<SyntheticEnrichmentPackage[]>(() =>
-    getSyntheticEnrichmentPackages(),
+    initialPackages ? [...initialPackages] : getSyntheticEnrichmentPackages(),
   );
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!apiClient) return;
+    let isActive = true;
+    setIsLoading(true);
+    void apiClient
+      .fetchPackages()
+      .then((nextPackages) => {
+        if (!isActive) return;
+        setPackages(nextPackages);
+        setLoadError(null);
+      })
+      .catch(() => {
+        if (!isActive) return;
+        setLoadError("Network enrichment API is unavailable. Showing synthetic fallback packages.");
+        setPackages((prev) => (prev.length ? prev : getSyntheticEnrichmentPackages()));
+      })
+      .finally(() => {
+        if (!isActive) return;
+        setIsLoading(false);
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [apiClient]);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"comparison" | "conflicts" | "audit">("comparison");
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,6 +151,14 @@ export const NetworkReviewWorkspace: React.FC<NetworkReviewWorkspaceProps> = ({
           </span>
         </div>
       </div>
+
+      {loadError ? (
+        <p role="note" className="text-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2">
+          {loadError}
+        </p>
+      ) : null}
+
+      {isLoading ? <p className="text-sm text-gray-500">Loading network enrichment packages…</p> : null}
 
       {/* Mode A: Tabular Review Queue */}
       {!selectedPackageId && (
@@ -333,4 +373,3 @@ export const NetworkReviewWorkspace: React.FC<NetworkReviewWorkspaceProps> = ({
     </div>
   );
 };
-

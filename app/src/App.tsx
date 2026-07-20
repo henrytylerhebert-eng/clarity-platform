@@ -36,7 +36,7 @@ import { GuidedIntake } from "./workspaces/GuidedIntake";
 import { MedicalNecessity } from "./workspaces/MedicalNecessity";
 import { LegalStatus } from "./workspaces/LegalStatus";
 import { DEFAULT_SESSION_TTL_MS, describeDemoSession } from "./domain/services";
-import { apiLogin, apiLogout, describeApiError, type VerifiedPrincipal } from "./domain/api";
+import { apiLogin, apiLogout, describeApiError, getBearerToken, type VerifiedPrincipal } from "./domain/api";
 import { EvidenceReview } from "./workspaces/EvidenceReview";
 import { BenefitsVerification } from "./workspaces/BenefitsVerification";
 import { AuthorizationReadiness } from "./workspaces/AuthorizationReadiness";
@@ -49,6 +49,7 @@ import { MockAdmitLab } from "./workspaces/MockAdmitLab";
 import { ProductStudio } from "./workspaces/ProductStudio";
 import { NetworkReviewWorkspace } from "./workspaces/NetworkReviewWorkspace";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
+import { DefaultNetworkReviewApiClient } from "./domain/networkReviewApi";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
 import type { TargetTransition } from "./domain/caseDependencyMap";
 import { appendCustodyLedgerEvent } from "./domain/custodyLedger";
@@ -120,6 +121,10 @@ export function App() {
   const [apiPrincipal, setApiPrincipal] = useState<VerifiedPrincipal | null>(null);
   const [apiAssertion, setApiAssertion] = useState("");
   const [apiLoginError, setApiLoginError] = useState<string | null>(null);
+  const networkReviewApiClient = useMemo(
+    () => new DefaultNetworkReviewApiClient("/api/network-enrichment/synthetic", getBearerToken),
+    [],
+  );
 
   useEffect(() => {
     const timer = setInterval(() => setNowIso(new Date().toISOString()), 30000);
@@ -850,7 +855,9 @@ export function App() {
           {workspace === "training" ? <TrainingSops roleId={roleId} /> : null}
           {workspace === "mock-admits" ? <MockAdmitLab /> : null}
           {workspace === "studio" ? <ProductStudio /> : null}
-          {workspace === "enrichment-review" ? <NetworkReviewWorkspace /> : null}
+          {workspace === "enrichment-review" ? (
+            <NetworkReviewWorkspace apiClient={networkReviewApiClient} />
+          ) : null}
         </section>
       </main>
     </div>

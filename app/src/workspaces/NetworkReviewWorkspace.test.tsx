@@ -1,6 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { DefaultNetworkReviewApiClient } from "../domain/networkReviewApi";
+import { getSyntheticEnrichmentPackages } from "../domain/enrichmentFixtures";
 import { NetworkReviewWorkspace } from "./NetworkReviewWorkspace";
 
 describe("NetworkReviewWorkspace", () => {
@@ -75,5 +77,47 @@ describe("NetworkReviewWorkspace", () => {
     await user.click(submitButton);
 
     expect(screen.queryByText(/decisions staged/i)).not.toBeInTheDocument();
+  });
+
+  it("loads packages from the API client path when initial packages are provided as empty", async () => {
+    const synthetic = getSyntheticEnrichmentPackages();
+    const apiPackages = [
+      {
+        ...synthetic[0],
+        packageRecord: {
+          ...synthetic[0].packageRecord,
+          reviewPackageId: "pkg-api-smoke-01",
+          sourceCandidateId: "candidate-api-smoke",
+        },
+        canonicalData: {
+          ...synthetic[0].canonicalData,
+          entityName: "API Smoke Candidate",
+        },
+      },
+    ];
+
+    const fetchSpy = vi.spyOn(window, "fetch").mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue(apiPackages),
+    } as unknown as Response);
+    try {
+      render(
+        <NetworkReviewWorkspace
+          apiClient={new DefaultNetworkReviewApiClient("/api/network-enrichment/synthetic")}
+          initialPackages={[]}
+        />,
+      );
+
+      expect(screen.queryByText("API Smoke Candidate")).not.toBeInTheDocument();
+      expect(await screen.findByText("API Smoke Candidate")).toBeInTheDocument();
+
+      expect(fetchSpy).toHaveBeenCalledWith("/api/network-enrichment/synthetic/packages", {
+        headers: { "content-type": "application/json" },
+      });
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      fetchSpy.mockRestore();
+    }
   });
 });
