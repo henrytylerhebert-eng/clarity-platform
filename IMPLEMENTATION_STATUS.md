@@ -1,5 +1,54 @@
 # Implementation Status
 
+**As of 2026-07-19 (branch reconciliation session)** on `codex/om/sync-main`.
+This session executed the branch-reconciliation scope of work
+(`docs/developer-handoff/BRANCH_RECONCILIATION_AND_NEXT_PHASE_SCOPE_OF_WORK.md`):
+
+- **PR #28 merged to `main`** (merge commit `8399edd`) after independent
+  review, owner confirmation of the ADR-0014 Option-3 role-mapping ruling,
+  a corrected test count in the PR body (343/343, not 339/339), and
+  evidence-based resolution of both bot review threads. CI `verify`
+  (branch-scoped ephemeral Postgres) is the authoritative
+  migration-integrity gate for that lineage per owner direction.
+- **`main` merged into `codex/om/sync-main`** (merge commit `b03f2e7`):
+  network-enrichment and prescreen routes/wiring coexist on the one
+  node:http server; this branch's superseded pre-PR#19 prescreen contracts
+  fork (`packages/domain-contracts/src/prescreen/`, 17-test suite) was
+  dropped in favor of main's canonical review-hardened `prescreen.ts` and
+  its 38-test suite.
+- **networkEnrichment contracts split committed** (`0dab35b`): the former
+  same-path collision with PR #29 is resolved — `networkEnrichment.ts` is a
+  compatibility barrel over `networkEnrichmentShared.ts`,
+  `networkEnrichmentResolution.ts` (PR #29 content), and
+  `networkEnrichmentReview.ts` (this branch's content). PR #29 itself is
+  NOT merged; its ADR/tests/reference-package remain on its own branch and
+  its ADR must renumber to ADR-0016 if adopted (0014 = prescreen ruling,
+  0015 = this remediation).
+- **ADR-0015 network-enrichment invariant remediation:** Prisma gateway
+  moved to case-repository, dual review enforced fail-closed, append-only
+  audit restored at the FK boundary (migration
+  `20260720014914_network_review_append_only_audit`), real payload hashes
+  on network governed events, reconcilePackage gated on actual confirmed
+  reviews.
+- **Real-data governance incident contained**
+  (`docs/decisions/NETWORK_ENRICHMENT_REAL_DATA_INCIDENT.md`): audit found
+  zero real-world facility rows in `clarity_dev` (evidence snapshot
+  recorded); the unguarded loader was replaced by an opt-in dry-run-default
+  tool under `scripts/maintenance/legacy/`; the live-agent prompt moved to
+  `reference/planning/` as planning-only material.
+- **Verification this session** against local `clarity_dev`: root
+  **377/377**, app **103/103**, typecheck clean, lint 0 errors,
+  `prisma validate` pass. Local ledger: 14 migrations.
+- **Residue observation:** `clarity_dev` holds accumulated synthetic
+  residue (18 organizations, 18 users, 9 cases, 168 NetworkReviewPackage,
+  25 NetworkEntityCandidate rows at audit time) — the DB-backed suites do
+  not fully clean up after themselves. Recorded in the incident doc's
+  related-finding section; test-harness hygiene fix still owed.
+- Two files remain deliberately uncommitted work-in-progress on this
+  branch: the `GET /api/network-enrichment/synthetic/packages` route in
+  `packages/api-service/src/server.ts` and the frontend fallback removal in
+  `app/src/domain/networkReviewApi.ts`.
+
 **As of 2026-07-19 (prescreen API-slice session)** on branch
 `claude/clarity-opening-cfcdc5`, rebased onto `main` after the prescreen
 hardening session (PR #27). The owner resolved the prescreen role-mapping
