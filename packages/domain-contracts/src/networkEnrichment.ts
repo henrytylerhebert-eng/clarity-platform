@@ -42,13 +42,19 @@ export interface NetworkReviewPackageRecord {
   readonly reviewPackageId: string;
   readonly organizationId: string;
   readonly caseId: string;
+  readonly enrichmentRunId?: string;
   readonly sourceCandidateId: string;
+  readonly networkEntityCandidateId?: string;
   readonly status: NetworkReviewPolicyState;
   readonly version: number;
   readonly submittedByActorId: string;
   readonly assignedReviewerCategory?: readonly string[];
   readonly sourceRunId?: string;
   readonly packageStatusReason?: string | null;
+  readonly isTerminal?: boolean;
+  readonly terminalReason?: string | null;
+  readonly supersedesPackageId?: string;
+  readonly supersededByPackageId?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -228,6 +234,14 @@ export interface NetworkReviewRecord {
   readonly reviewPackageStatus?: NetworkReviewPolicyState;
   readonly version: number;
   readonly reviewRunId?: string | null;
+  readonly valueType?: string | null;
+  readonly valueSource?: string | null;
+  readonly canonicalSnapshot?: unknown;
+  readonly freshnessState?: string | null;
+  readonly sourceEffectiveDate?: string | null;
+  readonly retrievedAt?: string;
+  readonly reviewedAt?: string | null;
+  readonly supersedesReviewId?: string | null;
   readonly reviewedByActorId?: string;
   readonly reviewReason?: string | null;
   readonly supersededByReviewId?: string | null;
@@ -237,18 +251,31 @@ export interface NetworkReviewRecord {
 }
 
 export interface NetworkReviewFieldEvidenceRecord {
+  readonly evidenceId?: string;
   readonly reviewId: string;
   readonly evidenceType: string;
   readonly payload: unknown;
   readonly evidenceSource: string;
+  readonly evidenceTypeAlias?: string;
 }
 
 export interface NetworkReviewConflictRecord {
   readonly conflictId: string;
   readonly organizationId: string;
   readonly reviewPackageId: string;
+  readonly fieldPath?: string;
+  readonly conflictType?: string;
+  readonly authorityDifference?: string | null;
+  readonly dateDifference?: string | null;
+  readonly scopeDifference?: string | null;
   readonly status: "OPEN" | "RESOLVED";
   readonly reason: string | null;
+  readonly requiredReviewerCategory?: readonly string[];
+  readonly resolutionDecision?: string | null;
+  readonly resolvedBy?: string | null;
+  readonly resolvedAt?: string | null;
+  readonly packageAssignedCategory?: readonly string[];
+  readonly version?: number;
   readonly relatedReviewIds: readonly string[];
 }
 

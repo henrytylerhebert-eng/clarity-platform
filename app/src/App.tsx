@@ -47,6 +47,7 @@ import { CustodyLedger } from "./workspaces/CustodyLedger";
 import { TrainingSops } from "./workspaces/TrainingSops";
 import { MockAdmitLab } from "./workspaces/MockAdmitLab";
 import { ProductStudio } from "./workspaces/ProductStudio";
+import { NetworkReviewWorkspace } from "./workspaces/NetworkReviewWorkspace";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
 import type { TargetTransition } from "./domain/caseDependencyMap";
@@ -104,6 +105,7 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "training", label: "Training & SOPs", icon: BookOpenCheck },
   { id: "mock-admits", label: "Mock Admit Lab", icon: FlaskConical },
   { id: "studio", label: "Product Studio", icon: PanelTop },
+  { id: "enrichment-review", label: "Network Review", icon: Network },
 ];
 
 export function App() {
@@ -848,6 +850,7 @@ export function App() {
           {workspace === "training" ? <TrainingSops roleId={roleId} /> : null}
           {workspace === "mock-admits" ? <MockAdmitLab /> : null}
           {workspace === "studio" ? <ProductStudio /> : null}
+          {workspace === "enrichment-review" ? <NetworkReviewWorkspace /> : null}
         </section>
       </main>
     </div>

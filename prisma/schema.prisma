@@ -889,9 +889,9 @@ model FinancialEducationRecord {
 }
 
 model FacilityProfile {
-  id                      String            @id @default(cuid())
+  id                      String                          @id @default(cuid())
   organizationId          String
-  organization            Organization      @relation(fields: [organizationId], references: [id])
+  organization            Organization                    @relation(fields: [organizationId], references: [id])
   name                    String
   programs                LevelOfCare[]
   acceptedAges            Json?
@@ -905,8 +905,8 @@ model FacilityProfile {
   referrals               Referral[]
   episodes                Episode[]
   timezoneConfigurations  FacilityTimezoneConfiguration[]
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @updatedAt
+  createdAt               DateTime                        @default(now())
+  updatedAt               DateTime                        @updatedAt
 
   @@index([organizationId, name])
 }
@@ -1080,10 +1080,10 @@ enum DocumentationGapStatus {
 /// browser, server, or organization name. Rows are append-only: a new version
 /// supersedes the prior one via `supersededById`; the old row is never edited.
 model FacilityTimezoneConfiguration {
-  id                String          @id @default(cuid())
+  id                String                         @id @default(cuid())
   organizationId    String
   facilityProfileId String
-  facilityProfile   FacilityProfile @relation(fields: [facilityProfileId], references: [id])
+  facilityProfile   FacilityProfile                @relation(fields: [facilityProfileId], references: [id])
   /// IANA timezone name (validated against Intl before persistence).
   facilityTimezone  String
   /// Controlled source vocabulary; today only FACILITY_CONFIGURATION.
@@ -1111,39 +1111,39 @@ model FacilityTimezoneConfiguration {
 /// Reuses Organization/FacilityProfile; program/unit remain nullable,
 /// source-owned identifiers until a canonical hierarchy exists (decision 2).
 model Episode {
-  id                        String                         @id @default(cuid())
-  organizationId            String
-  sourceCaseId              String
-  sourceCase                BehavioralHealthCase           @relation(fields: [sourceCaseId], references: [id])
-  facilityId                String
-  facility                  FacilityProfile                @relation(fields: [facilityId], references: [id])
+  id                         String                         @id @default(cuid())
+  organizationId             String
+  sourceCaseId               String
+  sourceCase                 BehavioralHealthCase           @relation(fields: [sourceCaseId], references: [id])
+  facilityId                 String
+  facility                   FacilityProfile                @relation(fields: [facilityId], references: [id])
   /// Nullable/source-owned until a canonical program hierarchy exists.
-  programId                 String?
+  programId                  String?
   /// Nullable/source-owned; the source may not provide a unit.
-  unitId                    String?
+  unitId                     String?
   /// Timezone snapshot captured at admission, plus the lineage it came from.
-  facilityTimezone          String
-  timezoneSource            String
-  timezoneSourceReferenceId String
-  timezoneConfigurationId   String?
-  timezoneConfiguration     FacilityTimezoneConfiguration? @relation(fields: [timezoneConfigurationId], references: [id])
-  admittedAt                DateTime
+  facilityTimezone           String
+  timezoneSource             String
+  timezoneSourceReferenceId  String
+  timezoneConfigurationId    String?
+  timezoneConfiguration      FacilityTimezoneConfiguration? @relation(fields: [timezoneConfigurationId], references: [id])
+  admittedAt                 DateTime
   /// Facility-timezone-derived calendar date (YYYY-MM-DD), stored verbatim so
   /// it is never re-derived under a different zone.
-  serviceDate               String
-  status                    EpisodeStatus                  @default(ACTIVE)
+  serviceDate                String
+  status                     EpisodeStatus                  @default(ACTIVE)
   acceptedFacilityResponseId String
-  sourcePacketVersionId     String?
-  sourceCustodyEventId      String?
+  sourcePacketVersionId      String?
+  sourceCustodyEventId       String?
   /// Optimistic-concurrency token, same discipline as every other aggregate.
-  version                   Int                            @default(1)
-  createdAt                 DateTime                       @default(now())
-  updatedAt                 DateTime                       @updatedAt
-  caseLinks                 CaseEpisodeLink[]
-  authorizations            EpisodeAuthorization[]
-  reviews                   AuthorizationReview[]
-  dayDecisions              AuthorizationDayDecision[]
-  documentationGaps         DocumentationGap[]
+  version                    Int                            @default(1)
+  createdAt                  DateTime                       @default(now())
+  updatedAt                  DateTime                       @updatedAt
+  caseLinks                  CaseEpisodeLink[]
+  authorizations             EpisodeAuthorization[]
+  reviews                    AuthorizationReview[]
+  dayDecisions               AuthorizationDayDecision[]
+  documentationGaps          DocumentationGap[]
 
   @@index([organizationId, status])
   @@index([sourceCaseId])
@@ -1177,22 +1177,22 @@ model CaseEpisodeLink {
 
 /// Episode-owned authorization requirement fact.
 model EpisodeAuthorization {
-  id                             String                     @id @default(cuid())
-  organizationId                 String
-  episodeId                      String
-  episode                        Episode                    @relation(fields: [episodeId], references: [id])
+  id                                String                          @id @default(cuid())
+  organizationId                    String
+  episodeId                         String
+  episode                           Episode                         @relation(fields: [episodeId], references: [id])
   /// Source references remain nullable/source-owned; no duplicate coverage.
-  sourceCoverageId               String?
+  sourceCoverageId                  String?
   sourcePreAdmissionAuthorizationId String?
-  levelOfCare                    String
-  requirement                    EpisodeAuthorizationRequirement
-  effectiveStartDate             String
-  status                         EpisodeAuthorizationStatus @default(OPEN)
-  version                        Int                        @default(0)
-  createdAt                      DateTime                   @default(now())
-  updatedAt                      DateTime                   @updatedAt
-  reviews                        AuthorizationReview[]
-  dayDecisions                   AuthorizationDayDecision[]
+  levelOfCare                       String
+  requirement                       EpisodeAuthorizationRequirement
+  effectiveStartDate                String
+  status                            EpisodeAuthorizationStatus      @default(OPEN)
+  version                           Int                             @default(0)
+  createdAt                         DateTime                        @default(now())
+  updatedAt                         DateTime                        @updatedAt
+  reviews                           AuthorizationReview[]
+  dayDecisions                      AuthorizationDayDecision[]
 
   @@index([organizationId, episodeId])
   @@index([episodeId, status])
@@ -1202,28 +1202,28 @@ model EpisodeAuthorization {
 /// append-only: a correction inserts a NEW review row that supersedes the
 /// original via `supersededByReviewId`; the original is frozen (decision 5).
 model AuthorizationReview {
-  id                     String                    @id @default(cuid())
+  id                     String                     @id @default(cuid())
   organizationId         String
   episodeAuthorizationId String
-  episodeAuthorization   EpisodeAuthorization      @relation(fields: [episodeAuthorizationId], references: [id])
+  episodeAuthorization   EpisodeAuthorization       @relation(fields: [episodeAuthorizationId], references: [id])
   episodeId              String
-  episode                Episode                   @relation(fields: [episodeId], references: [id])
+  episode                Episode                    @relation(fields: [episodeId], references: [id])
   reviewType             AuthorizationReviewType
   requestedStartDate     String
   requestedEndDate       String
   dueAt                  DateTime?
-  decisionStatus         AuthorizationReviewStatus @default(PENDING)
+  decisionStatus         AuthorizationReviewStatus  @default(PENDING)
   payerReferenceToken    String?
   recordedByActorId      String
   recordedAt             DateTime
   /// Correction chain: set when a later review supersedes this one.
-  supersededByReviewId   String?                   @unique
-  supersededByReview     AuthorizationReview?      @relation("AuthorizationReviewSupersession", fields: [supersededByReviewId], references: [id])
-  supersedes             AuthorizationReview?      @relation("AuthorizationReviewSupersession")
+  supersededByReviewId   String?                    @unique
+  supersededByReview     AuthorizationReview?       @relation("AuthorizationReviewSupersession", fields: [supersededByReviewId], references: [id])
+  supersedes             AuthorizationReview?       @relation("AuthorizationReviewSupersession")
   correctionReasonCode   String?
-  version                Int                       @default(1)
-  createdAt              DateTime                  @default(now())
-  updatedAt              DateTime                  @updatedAt
+  version                Int                        @default(1)
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
   dayDecisions           AuthorizationDayDecision[]
 
   @@index([organizationId, episodeId])
@@ -1257,23 +1257,23 @@ model AuthorizationDayDecision {
 /// An episode-owned documentation gap with a controlled status and an
 /// append-only status history (decision 5).
 model DocumentationGap {
-  id                         String                        @id @default(cuid())
-  organizationId             String
-  episodeId                  String
-  episode                    Episode                       @relation(fields: [episodeId], references: [id])
+  id                          String                          @id @default(cuid())
+  organizationId              String
+  episodeId                   String
+  episode                     Episode                         @relation(fields: [episodeId], references: [id])
   sourceAuthorizationReviewId String?
-  categoryCode               DocumentationGapCategory
-  operationalSummary         String?
-  status                     DocumentationGapStatus        @default(OPEN)
-  dueAt                      DateTime?
-  assignedRole               String?
-  assignedUserId             String?
-  recordedByActorId          String
-  resolvedByActorId          String?
-  version                    Int                           @default(1)
-  createdAt                  DateTime                      @default(now())
-  updatedAt                  DateTime                      @updatedAt
-  statusHistory              DocumentationGapStatusHistory[]
+  categoryCode                DocumentationGapCategory
+  operationalSummary          String?
+  status                      DocumentationGapStatus          @default(OPEN)
+  dueAt                       DateTime?
+  assignedRole                String?
+  assignedUserId              String?
+  recordedByActorId           String
+  resolvedByActorId           String?
+  version                     Int                             @default(1)
+  createdAt                   DateTime                        @default(now())
+  updatedAt                   DateTime                        @updatedAt
+  statusHistory               DocumentationGapStatusHistory[]
 
   @@index([organizationId, episodeId])
   @@index([episodeId, status])
@@ -1282,16 +1282,16 @@ model DocumentationGap {
 /// Append-only transition log for a documentation gap. One row per status
 /// change; never updated or deleted.
 model DocumentationGapStatusHistory {
-  id                 String                 @id @default(cuid())
+  id                 String                  @id @default(cuid())
   organizationId     String
   documentationGapId String
-  documentationGap   DocumentationGap       @relation(fields: [documentationGapId], references: [id])
+  documentationGap   DocumentationGap        @relation(fields: [documentationGapId], references: [id])
   fromStatus         DocumentationGapStatus?
   toStatus           DocumentationGapStatus
   reasonCode         String?
   changedByActorId   String
   changedAt          DateTime
-  createdAt          DateTime               @default(now())
+  createdAt          DateTime                @default(now())
 
   @@index([documentationGapId, changedAt])
 }
@@ -1347,4 +1347,233 @@ model OutboxRecord {
   createdAt       DateTime      @default(now())
 
   @@index([organizationId, status, createdAt])
+}
+
+/// Packet 11: Network Enrichment Review Package
+model NetworkReviewRun {
+  runId             String   @id
+  organizationId    String
+  schemaVersion     String
+  inputIdentity     String
+  status            String
+  sourceType        String
+  createdByActorId  String
+  correlationId     String?
+  version           Int      @default(1)
+  submittedAt       DateTime
+  createdAt         DateTime
+  updatedAt         DateTime
+  supersededByRunId String?
+  supersedesRunId   String?
+
+  candidates            NetworkEntityCandidate[]
+  networkReviewPackages NetworkReviewPackage[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+}
+
+/// Packet 11: Network Enrichment Candidate
+model NetworkEntityCandidate {
+  candidateId                     String   @id
+  organizationId                  String
+  enrichmentRunId                 String
+  candidateEntityType             String
+  requestedName                   String
+  requestedLocation               String
+  normalizedSignals               Json
+  candidateCanonicalReferenceId   String?
+  candidateCanonicalReferenceType String?
+  resolutionStatus                String
+  resolutionConfidence            Float    @default(0)
+  resolutionSummary               String?
+  ambiguityReason                 String?
+  candidateState                  String
+  isActive                        Boolean  @default(true)
+  version                         Int      @default(1)
+  createdAt                       DateTime
+  updatedAt                       DateTime
+
+  enrichmentRun  NetworkReviewRun       @relation(fields: [enrichmentRunId], references: [runId], onDelete: Restrict)
+  reviewPackages NetworkReviewPackage[]
+
+  @@index([organizationId, enrichmentRunId])
+  @@index([organizationId, candidateEntityType])
+}
+
+model NetworkReviewPackage {
+  reviewPackageId          String   @id
+  organizationId           String
+  enrichmentRunId          String
+  networkEntityCandidateId String
+  caseId                   String
+  sourceCandidateId        String
+  status                   String
+  version                  Int      @default(1)
+  submittedByActorId       String
+  assignedReviewerCategory Json?
+  sourceRunId              String?
+  packageStatusReason      String?
+  isTerminal               Boolean  @default(false)
+  terminalReason           String?
+  supersedesPackageId      String?
+  supersededByPackageId    String?
+  createdAt                DateTime
+  updatedAt                DateTime
+
+  run       NetworkReviewRun        @relation(fields: [enrichmentRunId], references: [runId], onDelete: Restrict)
+  candidate NetworkEntityCandidate  @relation(fields: [networkEntityCandidateId], references: [candidateId], onDelete: Restrict)
+  reviews   NetworkReview[]
+  conflicts NetworkReviewConflict[]
+
+  @@index([organizationId, caseId])
+  @@index([organizationId, status])
+  @@index([organizationId, sourceCandidateId])
+  @@index([organizationId, enrichmentRunId])
+  @@index([organizationId, networkEntityCandidateId])
+}
+
+/// Packet 11: Field-level Network Review record
+model NetworkReview {
+  reviewId               String    @id
+  reviewPackageId        String
+  organizationId         String
+  caseId                 String
+  sourceCandidateId      String
+  fieldPath              String
+  sensitivityCategory    String    @default("NORMAL_OPERATIONAL")
+  requiredCanonicalRoles Json
+  createdByActorId       String
+  currentValue           Json?
+  proposedValue          Json?
+  sourceReviewerRoles    Json
+  status                 String
+  reviewPackageStatus    String?
+  reviewPackageRole      String?
+  version                Int       @default(1)
+  reviewRunId            String?
+  valueType              String?
+  valueSource            String?
+  canonicalSnapshot      Json?
+  candidateValueType     String?
+  freshnessState         String?
+  sourceEffectiveDate    DateTime?
+  retrievedAt            DateTime
+  reviewedAt             DateTime?
+  reviewedByActorId      String?
+  reviewReason           String?
+  supersedesReviewId     String?
+  supersededByReviewId   String?
+  terminalReason         String?
+  isCurrentVersion       Boolean   @default(true)
+  createdAt              DateTime
+  updatedAt              DateTime
+
+  package       NetworkReviewPackage         @relation(fields: [reviewPackageId], references: [reviewPackageId], onDelete: Cascade)
+  audits        NetworkReviewAudit[]
+  fieldEvidence NetworkReviewFieldEvidence[]
+
+  @@index([organizationId, reviewPackageId])
+  @@index([organizationId, caseId])
+  @@index([organizationId, status])
+  @@index([organizationId, fieldPath])
+  @@index([organizationId, reviewRunId])
+}
+
+/// Packet 11: Network Review Audit Log Event
+model NetworkReviewAudit {
+  id             String        @id @default(cuid())
+  reviewId       String
+  organizationId String
+  action         String
+  actorId        String
+  actorType      String
+  commandId      String
+  correlationId  String?
+  reason         String?
+  occurredAt     DateTime
+  review         NetworkReview @relation(fields: [reviewId], references: [reviewId], onDelete: Cascade)
+
+  @@index([organizationId, reviewId])
+  @@index([organizationId, occurredAt])
+}
+
+/// Packet 11: Network Review Field Evidence Record
+model NetworkReviewEvidence {
+  evidenceId          String    @id @default(cuid())
+  organizationId      String
+  evidenceType        String
+  sourceType          String
+  sourceAuthorityTier String?
+  sourceTitle         String?
+  sourceUrl           String?
+  sourceScope         String?
+  sourceStatus        String
+  sourceEffectiveDate DateTime?
+  retrievedAt         DateTime
+  confidence          Float?
+  excerpt             String?
+  sourceHash          String?
+  originatingRunId    String?
+  createdByActorId    String?
+  createdAt           DateTime  @default(now())
+
+  reviews NetworkReviewFieldEvidence[]
+
+  @@index([organizationId, evidenceType])
+  @@index([organizationId, sourceType])
+}
+
+/// Packet 11: Network Review Field Evidence Relation (many-to-many)
+model NetworkReviewFieldEvidence {
+  reviewId       String
+  evidenceId     String
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  review   NetworkReview         @relation(fields: [reviewId], references: [reviewId], onDelete: Restrict)
+  evidence NetworkReviewEvidence @relation(fields: [evidenceId], references: [evidenceId], onDelete: Restrict)
+
+  @@id([reviewId, evidenceId])
+  @@index([organizationId, reviewId])
+  @@index([organizationId, evidenceId])
+}
+
+/// Packet 11: Network Review Open/Resolved Contradiction Record
+model NetworkReviewConflict {
+  conflictId               String               @id
+  organizationId           String
+  reviewPackageId          String
+  fieldPath                String
+  conflictType             String
+  requiredReviewerCategory Json?
+  reason                   String?
+  relatedReviewIds         Json
+  status                   String               @default("OPEN")
+  resolutionDecision       String?
+  resolvedBy               String?
+  resolvedAt               DateTime?
+  version                  Int                  @default(1)
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime
+  package                  NetworkReviewPackage @relation(fields: [reviewPackageId], references: [reviewPackageId], onDelete: Restrict)
+
+  @@index([organizationId, reviewPackageId])
+  @@index([organizationId, status])
+  @@index([organizationId, fieldPath])
+  @@index([organizationId, conflictType])
+}
+
+/// Packet 11: Network Review Idempotency Replay Index
+model NetworkReviewReplay {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  commandType        String
+  idempotencyKey     String
+  commandFingerprint String
+  result             Json
+  createdAt          DateTime @default(now())
+
+  @@unique([organizationId, commandType, idempotencyKey])
+  @@index([organizationId, commandType, idempotencyKey])
 }

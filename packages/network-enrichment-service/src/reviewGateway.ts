@@ -1,4 +1,6 @@
 import {
+  type NetworkReviewConflictRecord,
+  type NetworkReviewFieldEvidenceRecord,
   type NetworkReviewPackageRecord,
   type NetworkReviewReplayInput,
   type NetworkReviewRecord,
@@ -19,6 +21,11 @@ export interface NetworkReviewReplaySaveInput {
 }
 
 export interface NetworkReviewGateway {
+  getPackageByCandidateId(params: {
+    organizationId: string;
+    sourceCandidateId: string;
+  }): Promise<readonly NetworkReviewPackageRecord[]>;
+
   getReviewById(params: {
     organizationId: string;
     reviewId: string;
@@ -34,12 +41,24 @@ export interface NetworkReviewGateway {
     reviewPackageId: string;
   }): Promise<NetworkReviewPackageRecord | undefined>;
 
+  getConflictsByPackageId(params: {
+    organizationId: string;
+    reviewPackageId: string;
+  }): Promise<readonly NetworkReviewConflictRecord[]>;
+
+  getEvidenceByReviewId(params: {
+    organizationId: string;
+    reviewId: string;
+  }): Promise<readonly NetworkReviewFieldEvidenceRecord[]>;
+
   saveReview(
     record: NetworkReviewRecord,
     params?: {
       packageRecord?: NetworkReviewPackageRecord;
       replay?: NetworkReviewReplaySaveInput;
       supersedeReviewIds?: readonly string[];
+      conflicts?: readonly NetworkReviewConflictRecord[];
+      fieldEvidenceRecords?: readonly NetworkReviewFieldEvidenceRecord[];
     },
   ): Promise<void>;
 
@@ -65,13 +84,23 @@ const reviewStorageKey = (organizationId: string, reviewId: string): string =>
 
 const packageStorageKey = (organizationId: string, reviewPackageId: string): string =>
   `${organizationId}:${reviewPackageId}`;
+
+const conflictStorageKey = (organizationId: string, conflictId: string): string =>
+  `${organizationId}:${conflictId}`;
+
 const replayStorageKey = (organizationId: string, commandType: string, idempotencyKey: string): string =>
   `${organizationId}:${commandType}:${idempotencyKey}`;
+
+const _evidenceStorageKey = (organizationId: string, reviewId: string, evidenceId: string): string =>
+  `${organizationId}:${reviewId}:${evidenceId}`;
 
 /** In-memory baseline for Packet 11 tests and fast command-level work. */
 export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
   private readonly reviews = new Map<string, NetworkReviewRecord>();
   private readonly packages = new Map<string, NetworkReviewPackageRecord>();
+  private readonly conflicts = new Map<string, NetworkReviewConflictRecord>();
+  private readonly evidence = new Map<string, NetworkReviewFieldEvidenceRecord>();
+  private readonly reviewEvidence = new Map<string, string[]>();
   private readonly replayIndex = new Map<string, NetworkReviewReplayRecord>();
 
   async getPackageById(params: {
@@ -79,6 +108,16 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
     reviewPackageId: string;
   }): Promise<NetworkReviewPackageRecord | undefined> {
     return this.packages.get(packageStorageKey(params.organizationId, params.reviewPackageId));
+  }
+
+  async getPackageByCandidateId(params: {
+    organizationId: string;
+    sourceCandidateId: string;
+  }): Promise<readonly NetworkReviewPackageRecord[]> {
+    const targetOrgPrefix = `${params.organizationId}:`;
+    return Array.from(this.packages.values())
+      .filter((pkg) => `${pkg.organizationId}:`.startsWith(targetOrgPrefix) && pkg.sourceCandidateId === params.sourceCandidateId)
+      .map((pkg) => structuredClone(pkg));
   }
 
   async getReviewById(params: {
@@ -93,13 +132,35 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
     organizationId: string;
     reviewPackageId: string;
   }): Promise<readonly NetworkReviewRecord[]> {
-    const targetOrgPrefix = `${params.organizationId}:`;
     return Array.from(this.reviews.values())
-      .filter((review) =>
-        `${review.organizationId}:${review.reviewId}`.startsWith(targetOrgPrefix) &&
-        review.reviewPackageId === params.reviewPackageId,
+      .filter(
+        (review) =>
+          review.organizationId === params.organizationId && review.reviewPackageId === params.reviewPackageId,
       )
       .map((review) => structuredClone(review));
+  }
+
+  async getConflictsByPackageId(params: {
+    organizationId: string;
+    reviewPackageId: string;
+  }): Promise<readonly NetworkReviewConflictRecord[]> {
+    return Array.from(this.conflicts.values())
+      .filter(
+        (conflict) =>
+          conflict.organizationId === params.organizationId && conflict.reviewPackageId === params.reviewPackageId,
+      )
+      .map((conflict) => structuredClone(conflict));
+  }
+
+  async getEvidenceByReviewId(params: {
+    organizationId: string;
+    reviewId: string;
+  }): Promise<readonly NetworkReviewFieldEvidenceRecord[]> {
+    const keys = this.reviewEvidence.get(reviewStorageKey(params.organizationId, params.reviewId)) ?? [];
+    const rows = keys
+      .map((evidenceId) => this.evidence.get(evidenceId))
+      .filter((item): item is NetworkReviewFieldEvidenceRecord => Boolean(item));
+    return rows.map((row) => structuredClone(row));
   }
 
   async saveReview(
@@ -108,6 +169,8 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
       packageRecord?: NetworkReviewPackageRecord;
       replay?: NetworkReviewReplaySaveInput;
       supersedeReviewIds?: readonly string[];
+      conflicts?: readonly NetworkReviewConflictRecord[];
+      fieldEvidenceRecords?: readonly NetworkReviewFieldEvidenceRecord[];
     },
   ): Promise<void> {
     if (params?.supersedeReviewIds?.length) {
@@ -127,6 +190,8 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
             status: "SUPERSEDED",
             supersededByReviewId: record.reviewId,
             version: existing.version + 1,
+            reviewedAt: record.reviewedAt ?? existing.reviewedAt,
+            reviewedByActorId: record.reviewedByActorId ?? existing.reviewedByActorId,
             updatedAt,
             audits: structuredClone(existing.audits),
           },
@@ -149,10 +214,49 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
     this.reviews.set(reviewStorageKey(record.organizationId, record.reviewId), structuredClone(record));
 
     if (params?.packageRecord) {
-      this.packages.set(packageStorageKey(record.organizationId, params.packageRecord.reviewPackageId), {
+      const packageKey = packageStorageKey(record.organizationId, params.packageRecord.reviewPackageId);
+      const existingPackage = this.packages.get(packageKey);
+      if (params.packageRecord.version > 1) {
+        if (!existingPackage) {
+          throw new Error("package not found");
+        }
+        if (existingPackage.version !== params.packageRecord.version - 1) {
+          throw new Error("package concurrency conflict");
+        }
+      } else if (existingPackage && existingPackage.version !== params.packageRecord.version) {
+        throw new Error("package conflict");
+      }
+      this.packages.set(packageKey, {
+        ...existingPackage,
         ...params.packageRecord,
         updatedAt: record.updatedAt,
       });
+    }
+
+    if (params?.conflicts?.length) {
+      for (const conflict of params.conflicts) {
+        this.conflicts.set(conflictStorageKey(conflict.organizationId, conflict.conflictId), structuredClone(conflict));
+      }
+    }
+
+    if (params?.fieldEvidenceRecords?.length) {
+      const evidenceRefs = [...(this.reviewEvidence.get(reviewStorageKey(record.organizationId, record.reviewId)) ?? [])];
+      for (const [index, incoming] of params.fieldEvidenceRecords.entries()) {
+        const evidenceId =
+          incoming.evidenceId ?? `evidence-${record.reviewId}-${index}-${record.updatedAt}`;
+        const evidenceRecord: NetworkReviewFieldEvidenceRecord = {
+          reviewId: incoming.reviewId,
+          evidenceId,
+          evidenceType: incoming.evidenceType,
+          payload: incoming.payload,
+          evidenceSource: incoming.evidenceSource,
+        };
+        this.evidence.set(evidenceId, evidenceRecord);
+        if (!evidenceRefs.includes(evidenceId)) {
+          evidenceRefs.push(evidenceId);
+        }
+      }
+      this.reviewEvidence.set(reviewStorageKey(record.organizationId, record.reviewId), evidenceRefs);
     }
 
     if (params?.replay) {
@@ -173,7 +277,21 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
       replay?: NetworkReviewReplaySaveInput;
     },
   ): Promise<void> {
-    this.packages.set(packageStorageKey(record.organizationId, record.reviewPackageId), structuredClone(record));
+    const packageKey = packageStorageKey(record.organizationId, record.reviewPackageId);
+    const existingPackage = this.packages.get(packageKey);
+    if (record.version > 1) {
+      if (!existingPackage) {
+        throw new Error("package not found");
+      }
+      if (existingPackage.version !== record.version - 1) {
+        throw new Error("package concurrency conflict");
+      }
+    } else if (existingPackage && existingPackage.version >= record.version) {
+      throw new Error("package already exists");
+    }
+
+    this.packages.set(packageKey, structuredClone(record));
+
     if (params?.replay) {
       this.replayIndex.set(
         replayStorageKey(record.organizationId, params.replay.commandType, params.replay.idempotencyKey),
@@ -207,30 +325,4 @@ export class InMemoryNetworkReviewGateway implements NetworkReviewGateway {
   }
 }
 
-/** Packet 11 adapter for focused tests and runtime composition in a persistent runtime. */
-export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
-  // Implemented in a separate file to keep reviewGateway defaults lightweight.
-  async getPackageById(): Promise<NetworkReviewPackageRecord | undefined> {
-    throw new Error("Prisma-backed NetworkReviewGateway is implemented in prismaReviewGateway.ts");
-  }
-
-  async getReviewById(): Promise<NetworkReviewRecord | undefined> {
-    throw new Error("Prisma-backed NetworkReviewGateway is implemented in prismaReviewGateway.ts");
-  }
-
-  async getReviewsByPackageId(): Promise<readonly NetworkReviewRecord[]> {
-    throw new Error("Prisma-backed NetworkReviewGateway is implemented in prismaReviewGateway.ts");
-  }
-
-  async saveReview(): Promise<void> {
-    throw new Error("Prisma-backed NetworkReviewGateway is implemented in prismaReviewGateway.ts");
-  }
-
-  async savePackage(): Promise<void> {
-    throw new Error("Prisma-backed NetworkReviewGateway is implemented in prismaReviewGateway.ts");
-  }
-
-  async getReplayRecord(): Promise<NetworkReviewReplayRecord | undefined> {
-    throw new Error("Prisma-backed NetworkReviewGateway is implemented in prismaReviewGateway.ts");
-  }
-}
+export { PrismaNetworkReviewGateway } from "./prismaReviewGateway.js";

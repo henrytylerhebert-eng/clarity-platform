@@ -22,7 +22,8 @@ export type WorkspaceId =
   | "discharge"
   | "training"
   | "mock-admits"
-  | "studio";
+  | "studio"
+  | "enrichment-review";
 
 export const allWorkspaceIds: WorkspaceId[] = [
   "queue",
@@ -49,6 +50,7 @@ export const allWorkspaceIds: WorkspaceId[] = [
   "training",
   "mock-admits",
   "studio",
+  "enrichment-review",
 ];
 
 export type RoleId =
