@@ -570,6 +570,8 @@ export class PrismaNetworkReviewGateway implements NetworkReviewGateway {
         commandType: input.commandType,
         idempotencyKey: input.idempotencyKey,
         commandFingerprint: input.fingerprint ?? "",
+        result: result as any,
+      },
     });
   }
 }

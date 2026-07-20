@@ -1,5 +1,7 @@
 import type {
   ApproveReviewCommand,
+  ComplianceExportPackage,
+  ExportAuditLogCommand,
   ReconcilePackageCommand,
   RejectReviewCommand,
   SubmitForReviewCommand,
@@ -15,6 +17,7 @@ export interface NetworkReviewApiClient {
   approveReview(command: Omit<ApproveReviewCommand, "organizationId" | "actor">): Promise<unknown>;
   rejectReview(command: Omit<RejectReviewCommand, "organizationId" | "actor">): Promise<unknown>;
   reconcilePackage(command: Omit<ReconcilePackageCommand, "organizationId" | "actor">): Promise<unknown>;
+  exportAuditPackage(command: Omit<ExportAuditLogCommand, "organizationId" | "actor">): Promise<ComplianceExportPackage>;
 }
 
 export class DefaultNetworkReviewApiClient implements NetworkReviewApiClient {
@@ -92,6 +95,18 @@ export class DefaultNetworkReviewApiClient implements NetworkReviewApiClient {
     });
     if (!res.ok) {
       throw new Error(`Failed to reconcile package: ${res.statusText}`);
+    }
+    return await res.json();
+  }
+
+  async exportAuditPackage(command: Omit<ExportAuditLogCommand, "organizationId" | "actor">): Promise<ComplianceExportPackage> {
+    const res = await fetch(`${this.baseUrl}/packages/export`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(command),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to export compliance package: ${res.statusText}`);
     }
     return await res.json();
   }

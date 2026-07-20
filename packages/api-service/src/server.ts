@@ -8,12 +8,19 @@ import {
 import { CaseNotFoundError, PermissionDeniedError, type CaseCommandService } from "@clarity/case-service";
 import {
   ApproveReviewCommandSchema,
+  assertUserRoleOverlap,
+  ExportAuditLogCommandSchema,
   NetworkEnrichmentDomainError,
   ReconcilePackageCommandSchema,
   RejectReviewCommandSchema,
   SubmitForReviewCommandSchema,
   type AuthenticatedPrincipal,
+  type UserRole,
 } from "@clarity/domain-contracts";
+import {
+  NetworkEnrichmentComplianceExporter,
+  InMemoryNetworkReviewGateway,
+} from "@clarity/network-enrichment-service";
 import {
   type NetworkEnrichmentReviewCommandInvoker,
   createNetworkEnrichmentReviewCommandCaller,
@@ -31,7 +38,7 @@ import {
  *   POST /api/network-enrichment/synthetic/reviews/approve  bearer + body → review approve
  *   POST /api/network-enrichment/synthetic/reviews/reject   bearer + body → review reject
  *   POST /api/network-enrichment/synthetic/packages/reconcile bearer + body → package reconcile
- *   GET  /api/network-enrichment/synthetic/packages           bearer → package query
+ *   POST /api/network-enrichment/synthetic/packages/export    bearer + body → compliance export package
  *
  * Invariants:
  * - organizationId and actor roles are taken ONLY from the verified principal
@@ -72,11 +79,16 @@ const ReconcilePackageBodySchema = ReconcilePackageCommandSchema.omit({
   organizationId: true,
   actor: true,
 }).strict();
+const ExportAuditLogBodySchema = ExportAuditLogCommandSchema.omit({
+  organizationId: true,
+  actor: true,
+}).strict();
 
 export interface ApiDeps {
   auth: AuthenticationService;
   caseCommands: CaseCommandService;
   networkEnrichmentReviewInvoker?: NetworkEnrichmentReviewCommandInvoker;
+  complianceExporter?: NetworkEnrichmentComplianceExporter;
 }
 
 class HttpError extends Error {
@@ -161,10 +173,22 @@ const NETWORK_ENRICHMENT_SUBMIT_REVIEW_PATH = "/api/network-enrichment/synthetic
 const NETWORK_ENRICHMENT_APPROVE_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/approve";
 const NETWORK_ENRICHMENT_REJECT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/reject";
 const NETWORK_ENRICHMENT_RECONCILE_PACKAGE_PATH = "/api/network-enrichment/synthetic/packages/reconcile";
+const NETWORK_ENRICHMENT_EXPORT_PACKAGE_PATH = "/api/network-enrichment/synthetic/packages/export";
+
+const EXPORT_ALLOWED_ROLES: readonly UserRole[] = [
+  "LEGAL_REVIEWER",
+  "READ_ONLY_AUDITOR",
+  "SYSTEM_ADMIN",
+  "ORGANIZATION_ADMIN",
+  "PHYSICIAN_REVIEWER",
+  "CLINICAL_REVIEWER",
+];
 
 export function createApiServer(deps: ApiDeps): Server {
   const networkEnrichmentReviewInvoker =
     deps.networkEnrichmentReviewInvoker ?? createNetworkEnrichmentReviewCommandCaller();
+  const complianceExporter =
+    deps.complianceExporter ?? new NetworkEnrichmentComplianceExporter(new InMemoryNetworkReviewGateway());
 
   return createServer(async (req, res) => {
     const url = (req.url ?? "").split("?")[0] ?? "";
@@ -261,6 +285,18 @@ export function createApiServer(deps: ApiDeps): Server {
           },
         });
         return sendJson(res, 200, command);
+      }
+
+      if (method === "POST" && url === NETWORK_ENRICHMENT_EXPORT_PACKAGE_PATH) {
+        const principal = await deps.auth.authenticate(bearerToken(req));
+        assertUserRoleOverlap(EXPORT_ALLOWED_ROLES, principal.roles, "exportAuditPackage");
+        const body = ExportAuditLogBodySchema.parse(await readJsonBody(req));
+        const exportPackage = await complianceExporter.generateExportPackage({
+          ...body,
+          organizationId: principal.organizationId,
+          actor: deps.auth.actorFor(principal),
+        });
+        return sendJson(res, 200, exportPackage);
       }
 
       return sendJson(res, 404, { error: "not_found" });

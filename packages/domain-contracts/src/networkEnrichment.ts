@@ -406,3 +406,34 @@ export function assertUserRoleOverlap(
     throw new NetworkEnrichmentDomainError("PERMISSION_DENIED", `${command} denied by role policy.`);
   }
 }
+
+export const ExportAuditLogCommandSchema = z
+  .object({
+    organizationId: z.string().min(1),
+    reviewPackageId: z.string().min(1),
+    actor: CommandActorSchema,
+    includeEvidenceExcerpts: z.boolean().default(true),
+    includeConflictsMatrix: z.boolean().default(true),
+    correlationId: z.string().min(1),
+  })
+  .strict();
+export type ExportAuditLogCommand = z.input<typeof ExportAuditLogCommandSchema>;
+
+export interface ComplianceExportManifest {
+  exportId: string;
+  organizationId: string;
+  reviewPackageId: string;
+  generatedAt: string;
+  generatedByActorId: string;
+  recordCount: number;
+  integrityHashAlg: "SHA-256";
+  integrityHash: string;
+}
+
+export interface ComplianceExportPackage {
+  manifest: ComplianceExportManifest;
+  packageRecord: NetworkReviewPackageRecord;
+  reviews: readonly NetworkReviewRecord[];
+  conflicts: readonly NetworkReviewConflictRecord[];
+  auditTimeline: readonly NetworkReviewAuditEvent[];
+}

@@ -96,6 +96,14 @@ function postNetworkEnrichmentReconcile(token: string, body: Record<string, unkn
   });
 }
 
+function postNetworkEnrichmentExport(token: string, body: Record<string, unknown>) {
+  return fetch(`${baseUrl}/api/network-enrichment/synthetic/packages/export`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+}
+
 beforeAll(async () => {
   h = await createHarness();
   const provider = new LocalDevIdentityProvider();
@@ -717,5 +725,52 @@ describe("Network enrichment synthetic command runtime", () => {
     };
     expect(reconcilePayload.value.packageRecord.status).toBe("HUMAN_CONFIRMED");
     expect(reconcilePayload.value.promotedFieldPaths).toContain("facilityAdmissionProfiles.capacity");
+  });
+
+  it("exports signed compliance package with SHA-256 integrity hash over HTTP REST surface", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+
+    const reviewId = `network-review-${h.runId}-export`;
+    const submitRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId,
+      caseId: `case-${h.runId}-export`,
+      sourceCandidateId: "candidate-export",
+      fieldPath: "facilityAdmissionProfiles.complianceCert",
+      currentValue: "pending",
+      proposedValue: "certified",
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-export`,
+      reason: "Compliance export submit",
+      correlationId: "corr-network-export-sub",
+    });
+    expect(submitRes.status).toBe(200);
+
+    const submitPayload = (await submitRes.json()) as {
+      value: { review: { reviewPackageId: string; version: number } };
+    };
+
+    const exportRes = await postNetworkEnrichmentExport(token, {
+      reviewPackageId: submitPayload.value.review.reviewPackageId,
+      includeEvidenceExcerpts: true,
+      includeConflictsMatrix: true,
+      correlationId: "corr-network-export-req",
+    });
+    expect(exportRes.status).toBe(200);
+
+    const exportPayload = (await exportRes.json()) as {
+      manifest: {
+        exportId: string;
+        integrityHashAlg: string;
+        integrityHash: string;
+        recordCount: number;
+      };
+      packageRecord: { reviewPackageId: string };
+      auditTimeline: Array<{ action: string }>;
+    };
+
+    expect(exportPayload.manifest.integrityHashAlg).toBe("SHA-256");
+    expect(exportPayload.manifest.integrityHash).toHaveLength(64);
+    expect(exportPayload.manifest.recordCount).toBeGreaterThanOrEqual(1);
+    expect(exportPayload.packageRecord.reviewPackageId).toBe(submitPayload.value.review.reviewPackageId);
   });
 });
