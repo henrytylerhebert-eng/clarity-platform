@@ -1,25 +1,24 @@
 import { createHash } from "node:crypto";
+import { canonicalStringify, prescreenFingerprintBody } from "@clarity/domain-contracts";
 
 /**
- * Canonical JSON: object keys sorted recursively at every depth, arrays in
- * order. This closes the reference-package defect where a top-level
- * key-whitelist replacer serialized nested command bodies as {} and let a
- * changed body replay under the same idempotency key.
+ * Canonical serialization lives in @clarity/domain-contracts
+ * (prescreenCommands.ts) so both prescreen gateways share it; this package
+ * keeps only the SHA-256 wrapper because domain-contracts stays
+ * runtime-pure (no node:crypto).
  */
-export function canonicalStringify(value: unknown): string {
-  if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
-  const toJSON = (value as { toJSON?: unknown }).toJSON;
-  if (typeof toJSON === "function") {
-    return canonicalStringify((value as { toJSON: () => unknown }).toJSON());
-  }
-  if (Array.isArray(value)) return `[${value.map((item) => canonicalStringify(item)).join(",")}]`;
-  const entries = Object.entries(value as Record<string, unknown>)
-    .filter(([, v]) => v !== undefined)
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .map(([k, v]) => `${JSON.stringify(k)}:${canonicalStringify(v)}`);
-  return `{${entries.join(",")}}`;
-}
+export { canonicalStringify } from "@clarity/domain-contracts";
 
 export function sha256Hex(value: unknown): string {
   return createHash("sha256").update(canonicalStringify(value)).digest("hex");
+}
+
+/**
+ * SHA-256 over the shared canonical fingerprint body (command minus
+ * correlationId/idempotencyKey/occurredAt — ADR-0014 §5). Byte-identical
+ * to the PrismaPrescreenGateway's computation because both hash exactly
+ * prescreenFingerprintBody(cmd).
+ */
+export function prescreenRequestFingerprint(cmd: Record<string, unknown>): string {
+  return createHash("sha256").update(prescreenFingerprintBody(cmd)).digest("hex");
 }

@@ -13,7 +13,7 @@ import {
   type PrescreenEventEnvelope,
   type PrescreenEventType,
 } from "@clarity/domain-contracts";
-import { sha256Hex } from "./canonical.js";
+import { prescreenRequestFingerprint, sha256Hex } from "./canonical.js";
 import {
   AssessmentNotDraftError,
   AssessmentVersionRequiredError,
@@ -561,18 +561,11 @@ export class InMemoryPrescreenGateway implements PrescreenGateway {
     execute: () => PrescreenCommandResult,
   ): Promise<PrescreenCommandResult> {
     const key = `${cmd.organizationId}:${cmd.actor.actorId}:${commandName}:${cmd.idempotencyKey}`;
-    // occurredAt is excluded from the fingerprint: the key identifies the
-    // command's intent, and the arrival time of a retry is not intent. The
-    // API layer server-stamps occurredAt per request (ADR-0014), so keeping
-    // it in the fingerprint would turn every legitimate HTTP retry into an
-    // IDEMPOTENCY_KEY_REUSED conflict. First write wins for stored times.
-    const {
-      correlationId: _correlationId,
-      idempotencyKey: _idempotencyKey,
-      occurredAt: _occurredAt,
-      ...body
-    } = cmd;
-    const fingerprint = sha256Hex(body);
+    // occurredAt is excluded from the fingerprint (ADR-0014 §5): the key
+    // identifies the command's intent, and the arrival time of a retry is
+    // not intent. The exclusion and canonicalization are shared with the
+    // Prisma gateway via prescreenFingerprintBody in domain-contracts.
+    const fingerprint = prescreenRequestFingerprint(cmd);
     const prior = this.idempotency.get(key);
     if (prior) {
       if (prior.requestFingerprint !== fingerprint) throw new PrescreenIdempotencyKeyReusedError();
