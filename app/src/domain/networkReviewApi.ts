@@ -6,10 +6,7 @@ import type {
   RejectReviewCommand,
   SubmitForReviewCommand,
 } from "@clarity/domain-contracts";
-import {
-  getSyntheticEnrichmentPackages,
-  type SyntheticEnrichmentPackage,
-} from "./enrichmentFixtures";
+import { type SyntheticEnrichmentPackage } from "./enrichmentFixtures";
 
 export interface NetworkReviewApiClient {
   fetchPackages(): Promise<SyntheticEnrichmentPackage[]>;
@@ -38,17 +35,13 @@ export class DefaultNetworkReviewApiClient implements NetworkReviewApiClient {
   }
 
   async fetchPackages(): Promise<SyntheticEnrichmentPackage[]> {
-    try {
-      const res = await fetch(`${this.baseUrl}/packages`, {
-        headers: this.headers(),
-      });
-      if (!res.ok) {
-        return getSyntheticEnrichmentPackages();
-      }
-      return await res.json();
-    } catch {
-      return getSyntheticEnrichmentPackages();
+    const res = await fetch(`${this.baseUrl}/packages`, {
+      headers: this.headers(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch packages: ${res.statusText}`);
     }
+    return await res.json();
   }
 
   async submitReview(command: Omit<SubmitForReviewCommand, "organizationId" | "actor">): Promise<unknown> {

@@ -100,6 +100,12 @@ function postNetworkEnrichmentReconcile(token: string, body: Record<string, unkn
   });
 }
 
+function getNetworkEnrichmentPackages(token: string) {
+  return fetch(`${baseUrl}/api/network-enrichment/synthetic/packages`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+}
+
 function postNetworkEnrichmentExport(token: string, body: Record<string, unknown>) {
   return fetch(`${baseUrl}/api/network-enrichment/synthetic/packages/export`, {
     method: "POST",
@@ -729,6 +735,50 @@ describe("Network enrichment synthetic command runtime", () => {
     };
     expect(reconcilePayload.value.packageRecord.status).toBe("HUMAN_CONFIRMED");
     expect(reconcilePayload.value.promotedFieldPaths).toContain("facilityAdmissionProfiles.capacity");
+  });
+
+  it("returns the tenant's network-enrichment packages with nested reviews/evidence/conflicts", async () => {
+    const token = await login(ASSERTIONS.networkClinical);
+
+    const reviewId = `network-review-${h.runId}-list`;
+    const submitRes = await postNetworkEnrichmentSubmit(token, {
+      reviewId,
+      caseId: `case-${h.runId}-list`,
+      sourceCandidateId: "candidate-list",
+      fieldPath: "facilityAdmissionProfiles.capacity",
+      currentValue: 5,
+      proposedValue: 7,
+      sourceReviewerRoles: ["FACILITY_CLINICAL_GOVERNANCE"],
+      idempotencyKey: `synthetic-enrich-submit-${h.runId}-list`,
+      reason: "List endpoint smoke test",
+      correlationId: "corr-network-list",
+    });
+    expect(submitRes.status).toBe(200);
+
+    const submitPayload = (await submitRes.json()) as {
+      value: { review: { reviewPackageId: string } };
+      replayed: boolean;
+    };
+    expect(submitPayload.replayed).toBe(false);
+
+    const listRes = await getNetworkEnrichmentPackages(token);
+    expect(listRes.status).toBe(200);
+    const listPayload = (await listRes.json()) as Array<{
+      packageRecord: { reviewPackageId: string; sourceCandidateId: string; organizationId: string };
+      reviews: Array<{ reviewId: string }>;
+      evidence: Record<string, Array<{ reviewId: string }>>;
+      conflicts: Array<{ conflictId: string }>;
+      canonicalData: { entityName: string; fields: Record<string, unknown> };
+    }>;
+
+    expect(listPayload.length).toBeGreaterThanOrEqual(1);
+    const entry = listPayload.find((item) => item.packageRecord.reviewPackageId === submitPayload.value.review.reviewPackageId);
+    expect(entry).toBeDefined();
+    expect(entry!.packageRecord.sourceCandidateId).toBe("candidate-list");
+    expect(entry!.reviews.some((r) => r.reviewId === reviewId)).toBe(true);
+    expect(entry!.conflicts).toBeInstanceOf(Array);
+    expect(entry!.evidence[reviewId]).toBeInstanceOf(Array);
+    expect(entry!.canonicalData.entityName).toContain("candidate-list");
   });
 
   it("exports signed compliance package with SHA-256 integrity hash over HTTP REST surface", async () => {

@@ -17,6 +17,10 @@ import {
   RejectReviewCommandSchema,
   SubmitForReviewCommandSchema,
   type AuthenticatedPrincipal,
+  type NetworkReviewConflictRecord,
+  type NetworkReviewFieldEvidenceRecord,
+  type NetworkReviewPackageRecord,
+  type NetworkReviewRecord,
   type UserRole,
 } from "@clarity/domain-contracts";
 import {
@@ -285,10 +289,7 @@ function toHttpError(error: unknown): HttpError {
 }
 
 const DECISION_RATIONALE_PATH = /^\/api\/cases\/([^/]+)\/decision-rationale$/;
-// Route not wired yet — GET /api/network-enrichment/synthetic/packages is WIP
-// on this branch (list-packages endpoint). Underscore-prefixed per this
-// repo's lint convention until the handler lands.
-const _NETWORK_ENRICHMENT_LIST_PACKAGES_PATH = "/api/network-enrichment/synthetic/packages";
+const NETWORK_ENRICHMENT_LIST_PACKAGES_PATH = "/api/network-enrichment/synthetic/packages";
 const NETWORK_ENRICHMENT_SUBMIT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/submit";
 const NETWORK_ENRICHMENT_APPROVE_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/approve";
 const NETWORK_ENRICHMENT_REJECT_REVIEW_PATH = "/api/network-enrichment/synthetic/reviews/reject";
@@ -366,6 +367,69 @@ export function createApiServer(deps: ApiDeps): Server {
           version: result.case.version ?? null,
           replayed: result.replayed,
         });
+      }
+
+      if (method === "GET" && url === NETWORK_ENRICHMENT_LIST_PACKAGES_PATH) {
+        const principal = await deps.auth.authenticate(bearerToken(req));
+        
+        // Fetch all packages for the org
+        const packages = await gateway.listPackages({ organizationId: principal.organizationId });
+
+        /**
+         * Frontend package payload includes nested reviews/evidence/conflicts plus
+         * a synthetic-only canonical projection while CRM integration is in
+         * progress.
+         */
+        type NetworkReviewPackagePayload = {
+          packageRecord: NetworkReviewPackageRecord;
+          reviews: readonly NetworkReviewRecord[];
+          evidence: Record<string, readonly NetworkReviewFieldEvidenceRecord[]>;
+          conflicts: readonly NetworkReviewConflictRecord[];
+          canonicalData: {
+            entityName: string;
+            fields: Record<string, unknown>;
+          };
+        };
+        
+        const payload = await Promise.all(
+          packages.map(async (pkg): Promise<NetworkReviewPackagePayload> => {
+            const reviews = await gateway.getReviewsByPackageId({ 
+              organizationId: principal.organizationId, 
+              reviewPackageId: pkg.reviewPackageId 
+            });
+            const conflicts = await gateway.getConflictsByPackageId({ 
+              organizationId: principal.organizationId, 
+              reviewPackageId: pkg.reviewPackageId 
+            });
+            
+            const evidence: Record<string, readonly NetworkReviewFieldEvidenceRecord[]> = {};
+            for (const review of reviews) {
+              const ev = await gateway.getEvidenceByReviewId({
+                organizationId: principal.organizationId,
+                reviewId: review.reviewId
+              });
+              evidence[review.reviewId] = ev;
+            }
+
+            // Provide synthetic canonicalData since CRM integration isn't built yet
+            const canonicalData = {
+              entityName: `Candidate ${pkg.sourceCandidateId}`,
+              fields: reviews.reduce<Record<string, unknown>>((acc, r) => {
+                acc[r.fieldPath] = r.currentValue;
+                return acc;
+              }, {}),
+            };
+
+            return {
+              packageRecord: pkg,
+              reviews,
+              evidence,
+              conflicts,
+              canonicalData,
+            };
+          })
+        );
+        return sendJson(res, 200, payload);
       }
 
       if (method === "POST" && url === NETWORK_ENRICHMENT_SUBMIT_REVIEW_PATH) {
