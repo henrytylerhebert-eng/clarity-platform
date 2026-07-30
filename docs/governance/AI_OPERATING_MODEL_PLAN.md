@@ -1,10 +1,11 @@
 ---
-status: Proposed (requires owner approval)
+status: Approved (owner approval 2026-07-29)
 owner: Tyler Hebert
-version: 1.0.0
+version: 1.1.0
 created: 2026-07-29
+last_amended: 2026-07-29
 scope: development tooling only — NOT product AI agents
-related_adrs: ADR-0015 (proposed, bridge retirement)
+related_adrs: ADR-0017 (accepted, agent operating model and bridge retirement)
 related_docs:
   - docs/governance/AI_GOVERNANCE.md
   - docs/governance/HUMAN_APPROVAL_GATES.md
@@ -74,6 +75,42 @@ identity.** This repository already reconstructs context reliably from `CLAUDE.m
 to make that substrate cheaper to load and harder to go stale, and to strengthen the
 one loop already finding security-relevant defects.
 
+## Amendment 1 — 2026-07-29
+
+Discovered while executing Stage 0, on the same day the plan was approved. Recorded
+here because it corrects the plan's own evidence base.
+
+**The plan's premise that work here is sequential and single-lane was wrong.** It was
+inferred from `main`'s linear history and the dormant bridge. In fact five PRs were open
+concurrently — #18, #29, #30 (42 commits ahead), #32, #33 — with substantial unmerged
+work.
+
+**The shared-kernel conclusion is strengthened, not weakened.** The collisions the
+assessment predicted are already occurring. But the observed parallelism is one owner
+across several tool sessions, not independent maintainers, and active collisions argue
+for *governing shared surfaces and reducing concurrent lanes* — not for adding
+autonomous agents. The [stopping rule](#the-stopping-rule) still requires a genuine
+second maintainer or a truly decoupled surface; concurrent branches driven by one person
+do not satisfy it.
+
+**Two shared surfaces were missed by the original five-choke-point analysis, and both
+are actively drifting:**
+
+| Surface | Evidence (2026-07-29) | Consequence |
+|---|---|---|
+| **Sequential ADR numbering** | Three collisions in flight: ADR-0014 claimed by `claude/clarity-network-enrichment-f10807` though already merged as prescreen role mapping; ADR-0015 on `codex/om/sync-main`; ADR-0016 on `claude/prescreen-phase3-persistence` | `CLAUDE.md`'s "check `docs/architecture/` for the next free number" is only correct against **merged** history. Allocation must check all refs: `git log --all --name-only -- "docs/architecture/ADR-*"` |
+| **One local `clarity_dev`, shared by 16 git worktrees** | The database held **16** applied migrations while this branch carried 12; the extra four (`prescreen_phase3_persistence`, `prescreen_persistence_rls`, `packet11_persistence`, `network_review_append_only_audit`) came from unmerged branches | `tests/integration/migration-integrity.test.ts` fails on an otherwise clean branch. **A local suite result is not by itself evidence about the branch under test.** CI's ephemeral Postgres is unaffected and is the authority |
+
+**Consequences for the roles defined below.** R1 must treat ADR-number allocation and
+migration-ledger drift as shared-surface checks, not local ones. R2 must never record a
+local suite count without noting shared-database state. Both are folded into the
+contracts as written.
+
+**Also corrected:** the plan's Verification note that `npm install` alone repairs a
+worktree's stale `node_modules`. It does, but the root `allowScripts` config blocks
+Prisma's postinstall, so `npx prisma generate` is required afterward or DB-backed suites
+fail on a stale client.
+
 ## Topology
 
 Three roles. No persistent domain agents, no orchestrator, no inter-agent channel.
@@ -124,6 +161,9 @@ no cross-referencing.
 
 **ADR:** not needed — presentation of existing facts, no decision.
 
+**Status: HELD.** PR #30 adds ~50 lines to this file. Restructuring it now guarantees a
+conflict. Start after #30 merges or closes.
+
 ### 0.2 Quarantine `agents/bridge/`
 
 **Problem (verified):** the directory documents a live-looking operating model that has
@@ -149,8 +189,13 @@ update the **Bridge** bullet in `IMPLEMENTATION_STATUS.md` to record retirement.
 **Acceptance:** no live path (`package.json`, `AGENTS.md`, `CLAUDE.md`) references a
 running bridge.
 
-**ADR: yes — ADR-0015.** This retires a previously adopted operating model, and the
-evidence for why belongs in the decision record.
+**ADR: yes — [ADR-0017](../architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md)**
+(written 2026-07-29). Not 0015: ADR-0015 and ADR-0016 were already allocated on unmerged
+branches. See [Amendment 1](#amendment-1--2026-07-29).
+
+**Status: HELD.** PR #30 (`codex/om/sync-main`, 42 commits) modifies
+`agents/bridge/LEDGER.md`, so moving the directory now is a move/edit conflict against
+that work. Start after #30 merges or closes.
 
 ### 0.3 Add a work-package template
 
@@ -177,6 +222,10 @@ Open questions / blocked on: <list>
 **Acceptance:** template exists and is referenced from `CLAUDE.md`'s Workflow section.
 
 **ADR:** not needed.
+
+**Status: partially HELD.** The new file is conflict-free, but the `CLAUDE.md` reference
+is not — PR #30 edits that file. Land the template with #30's `CLAUDE.md` change, or
+after it.
 
 ### 0.4 Add the enum-sync test (recommended)
 
@@ -260,6 +309,19 @@ is the owner's. Report findings; do not fix them.
 - PROHIBITED PATHS without a cited ADR: prisma/schema.prisma, domain-contracts enum
   arrays, new case-repository gateways, new api-service routes.
 
+## Shared-surface checks (must be run against ALL refs, not just merged history)
+- ADR NUMBER COLLISION: a new ADR number must be free across every ref, not only
+  docs/architecture/ on this branch. Run:
+    git log --all --name-only --pretty=format: -- "docs/architecture/ADR-*" \
+      | grep -oE "ADR-[0-9]{4}" | sort -u | tail -5
+  Three collisions existed on 2026-07-29; treat a duplicate as a VIOLATION.
+- MIGRATION LEDGER DRIFT: the shared local clarity_dev is used by many worktrees and
+  may hold migrations from other branches. If migration-integrity fails, report it as
+  ENVIRONMENTAL drift with the extra migration names — do NOT report it as a defect in
+  the diff, and do NOT suggest resetting the database (owner decision, destructive).
+- A local suite result is not by itself evidence about the branch under test. Say which
+  database it ran against and whether its ledger matched the branch.
+
 ## Output
 For each finding: severity (Critical / High / Medium / Low), file:line, the concrete
 failure scenario (inputs -> wrong outcome), and the invariant breached.
@@ -331,7 +393,10 @@ run, say it did not run. If you cannot confirm a count, write [Unverified].
 Violating this rule ends your role.
 
 Steps:
-1. Collect what ran: exact commands and exact outputs from this session.
+1. Collect what ran: exact commands and exact outputs from this session. Record WHICH
+   database DB-backed suites ran against, and whether its migration ledger matched this
+   branch — the local clarity_dev is shared across worktrees and drifts. A count from a
+   drifted database is [Unverified] for this branch.
 2. Update IMPLEMENTATION_STATUS.md's single Current State block: branch, HEAD, counts,
    what ran, what did not, residue check. Move any superseded record to the history
    appendix — never delete it.
@@ -418,6 +483,21 @@ rather than silently adopting either side.
 ```bash
 git log --oneline -20 -- prisma/schema.prisma packages/domain-contracts \
   packages/case-repository packages/api-service/src/server.ts
+```
+
+**Before allocating an ADR number**, check every ref — not just this branch. Merged
+history alone is insufficient; three collisions existed on 2026-07-29:
+
+```bash
+git log --all --name-only --pretty=format: -- "docs/architecture/ADR-*" \
+  | grep -oE "ADR-[0-9]{4}" | sort -u | tail -5
+```
+
+**Before trusting a DB-backed suite result**, confirm the shared local `clarity_dev`
+ledger matches this branch — 16 worktrees share it:
+
+```bash
+ls prisma/migrations | grep -c '^2'   # compare against _prisma_migrations rows
 ```
 
 **Do not implement when:** the slice's ADR is missing or contradicts the code; the work
