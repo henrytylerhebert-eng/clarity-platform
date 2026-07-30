@@ -105,7 +105,18 @@ const KNOWN_DESYNC: Readonly<
   },
 };
 
-function parseSchemaEnums(source: string): Map<string, string[]> {
+/**
+ * A member line is its name, optionally followed by Prisma field attributes
+ * (`ACTIVE @map("active")`). Capturing the name separately matters: matching
+ * the whole line against a bare-identifier pattern would silently DROP any
+ * member carrying an attribute, and a dropped member that is also absent from
+ * the contract would make the mirror assertion pass — a false negative in the
+ * exact check this suite exists to provide. Block attributes (`@@map(...)`)
+ * start with `@` and are correctly rejected.
+ */
+const MEMBER_PATTERN = /^([A-Za-z_][A-Za-z0-9_]*)(?:\s+@[^\s@].*)?$/;
+
+export function parseSchemaEnums(source: string): Map<string, string[]> {
   const withoutComments = source
     .split("\n")
     .map((line) => line.replace(/\/\/.*$/, ""))
@@ -122,7 +133,8 @@ function parseSchemaEnums(source: string): Map<string, string[]> {
     const values = body
       .split("\n")
       .map((line) => line.trim())
-      .filter((line) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(line));
+      .map((line) => MEMBER_PATTERN.exec(line)?.[1])
+      .filter((value): value is string => value !== undefined);
     enums.set(name, values);
   }
 
@@ -136,6 +148,25 @@ describe("domain-contracts enum arrays mirror prisma/schema.prisma", () => {
   it("parses the schema (guards against a silently-empty test)", () => {
     expect(schemaEnums.size).toBeGreaterThan(30);
     expect(schemaEnums.get("UserRole")).toContain("SYSTEM_ADMIN");
+  });
+
+  it("parses members that carry Prisma attributes, and rejects non-members", () => {
+    // A member dropped by the parser is invisible to the mirror assertion
+    // below, so this guards the guard: if ATTRIBUTED were dropped here and
+    // also absent from a contract array, the desync would pass unnoticed.
+    const parsed = parseSchemaEnums(
+      [
+        "enum Sample {",
+        "  PLAIN",
+        '  ATTRIBUTED @map("attributed")',
+        "  SPACED   @map(\"spaced\")",
+        '  @@map("sample")',
+        "",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(parsed.get("Sample")).toEqual(["PLAIN", "ATTRIBUTED", "SPACED"]);
   });
 
   it("classifies every schema enum as mirrored or explicitly not mirrored", () => {
