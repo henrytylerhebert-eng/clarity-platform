@@ -95,12 +95,14 @@ const KNOWN_DESYNC: Readonly<
 > = {
   CaseStatus: {
     arrayName: "CASE_STATUSES",
-    // Present in prisma/schema.prisma:73-74, inherited from the source-package
-    // schema, but absent from CASE_STATUSES, ACTIVE_ORDER, every transition rule
-    // and every service. The database can therefore store a case status the
-    // domain layer cannot represent or transition. Adding them requires an owner
-    // ruling on their transition semantics, so it is not done here.
-    extraInSchema: ["MEDICAL_TRANSFER_REQUIRED", "RETURNED_FOR_MORE_INFORMATION"],
+    // MEDICAL_TRANSFER_REQUIRED was ruled and mirrored in ADR-0018, so it is no
+    // longer tolerated here. RETURNED_FOR_MORE_INFORMATION remains deferred by
+    // that same ruling: it presumes an external actor returning a submitted
+    // packet, which is part of the still-open cross-organization
+    // submission/receipt decision. Until that packet is decided there is no
+    // defined sender, no defined return authority, and therefore no transition
+    // semantics to mirror.
+    extraInSchema: ["RETURNED_FOR_MORE_INFORMATION"],
     issue: "#35",
   },
 };
