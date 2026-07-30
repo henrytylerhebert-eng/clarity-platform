@@ -438,13 +438,20 @@ finding as **real / style / false**, and logs minutes spent.
 
 ### Stage 1 gate
 
-- **Go** — ≥4 of 6 recovered **including finding #1**; PR #26 aliasing flagged; live-PR
-  precision ≥0.5 with triage ≤20 minutes.
-- **No-go, stop** — <3 of 6 recovered; precision <0.3; triage costs more than the fix
-  PRs did; or **any confident-but-wrong tenancy claim** (an unreliable safety reviewer
-  is worse than none).
-- **Ambiguous** (2–3 of 6, or #1 missed but others found) — one prompt revision, one
-  re-run, then decide. Not an open-ended tuning loop.
+The recovery-count bands are mutually exclusive and cover every outcome, so the same
+result can never satisfy two branches:
+
+- **Go** — **≥4 of 6** recovered **including finding #1**; PR #26 aliasing flagged;
+  live-PR precision ≥0.5 with triage ≤20 minutes.
+- **Ambiguous** — **2 or 3 of 6**, or ≥4 recovered but #1 missed. One prompt revision,
+  one re-run, then decide. Not an open-ended tuning loop.
+- **No-go, stop** — **≤1 of 6** recovered; or precision <0.3; or triage costs more than
+  the fix PRs did; or **any confident-but-wrong tenancy claim** (an unreliable safety
+  reviewer is worse than none).
+
+The non-count no-go conditions (precision, triage cost, a false tenancy claim) override
+a Go or Ambiguous count. A verifier that finds defects but also invents them is not
+usable.
 
 ---
 

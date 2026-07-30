@@ -74,9 +74,30 @@ Stage 0.2's move is bigger than "move the directory" — the plan doc has a veri
 
 ## If you're starting Stage 1 (the R1 trial)
 
-Don't, until Stage 0 (all four sub-items) is merged to `main`. The plan's R1 contract in `AI_OPERATING_MODEL_PLAN.md` was hardened against two false-positive traps discovered during review — it now knows `scripts/seed.ts:1` is an approved `@prisma/client` exception, and it now loads `AGENTS.md` before `CLAUDE.md`. Use the contract as written; don't reconstruct it from memory, it's had two rounds of correction already.
+Not until **Stage 0.1–0.3** are merged to `main`. Those three are the required
+gate; **0.4 (the enum-sync test) is strongly recommended, not required** — the
+plan is explicit about that, so do not treat a pending 0.4 as a blocker. (0.4 in
+fact landed in PR #36, so this is moot in practice, but the criteria matter if
+anyone re-runs the sequence.)
 
-The trial protocol replays PR #23's `346ee85` fix commit blind (six known findings, scored) and PR #26's `1470e00`. Both commits are named in the plan with exact scorecards — use those, don't invent new test cases.
+The plan's R1 contract in `AI_OPERATING_MODEL_PLAN.md` was hardened against two
+false-positive traps found in review — it now knows `scripts/seed.ts:1` is an
+approved `@prisma/client` exception, and it loads `AGENTS.md` before `CLAUDE.md`.
+Use the contract as written; don't reconstruct it from memory, it's had several
+rounds of correction.
+
+**Replay the VULNERABLE parent revisions, never the fixes.** This is easy to get
+backwards and it silently destroys the experiment: `346ee85` and `1470e00` are
+the commits that *removed* the defects, so pointing R1 at either leaves nothing
+to find and records a false no-go.
+
+- **PR #23:** create the worktree at **`ad1b7e9`** (the parent) and keep
+  `346ee85` out of R1's context entirely. Six known findings, graded blind
+  against the plan's scorecard.
+- **PR #26:** create the worktree at **the parent of `1470e00`**, and check
+  whether R1 flags the aliasing defect.
+
+Both scorecards live in the plan — use those, don't invent new test cases.
 
 ## Source of truth
 
