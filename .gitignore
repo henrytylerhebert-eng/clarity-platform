@@ -30,3 +30,6 @@ agents/bridge/.bridge.lock
 agents/bridge/.bridge-*
 __pycache__/
 *.py[cod]
+
+# Regulatory corpus raw payload cache (public regulatory text; regenerate with npm run regulatory:sync)
+.regulatory-cache/
