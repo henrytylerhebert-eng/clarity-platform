@@ -123,7 +123,12 @@ export function parseSchemaEnums(source: string): Map<string, string[]> {
     .join("\n");
 
   const enums = new Map<string, string[]>();
-  const blockPattern = /^enum\s+(\w+)\s*\{([^}]*)\}/gm;
+  // Leading horizontal whitespace is permitted before `enum`. Anchoring hard to
+  // the line start would skip an indented declaration outright, and a skipped
+  // enum is never classified by the MIRRORED/NOT_MIRRORED check below — so the
+  // suite would pass while enforcing nothing for that enum. The coarse
+  // `size > 30` guard is too blunt to notice a single missing block.
+  const blockPattern = /^[ \t]*enum\s+(\w+)\s*\{([^}]*)\}/gm;
 
   for (const match of withoutComments.matchAll(blockPattern)) {
     const name = match[1];
@@ -167,6 +172,14 @@ describe("domain-contracts enum arrays mirror prisma/schema.prisma", () => {
     );
 
     expect(parsed.get("Sample")).toEqual(["PLAIN", "ATTRIBUTED", "SPACED"]);
+  });
+
+  it("recognizes an indented enum declaration", () => {
+    // A skipped block is never classified as MIRRORED or NOT_MIRRORED, so the
+    // invariant would go unenforced for it while the suite still passed.
+    const parsed = parseSchemaEnums(["  enum Indented {", "    ONE", "    TWO", "  }"].join("\n"));
+
+    expect(parsed.get("Indented")).toEqual(["ONE", "TWO"]);
   });
 
   it("classifies every schema enum as mirrored or explicitly not mirrored", () => {
