@@ -103,14 +103,29 @@ to load and harder to go stale — not into standing agent identities.
 
 | ID | Role | Model | Writes? |
 |---|---|---|---|
-| R1 | Invariant Verifier | Reusable | **No** — read-only by tool allowlist |
-| R2 | Session Continuity Steward | Reusable | Three status artifacts only |
+| R1 | Invariant Verifier | Reusable | **Forbidden by contract, NOT tool-enforced** — see below |
+| R2 | Session Continuity Steward | Reusable | Four declared write-target groups only |
 | T1 | Bounded Slice Implementer | Temporary, per work package | In-scope files only |
+
+R1's read-only property is **not** enforced by the tool allowlist. `Edit` and
+`Write` are withheld, but `Bash` is retained — R1's truth-discipline job
+requires actually running `lint`, `typecheck`, the suite, and `git log`, since a
+verifier that cannot reproduce a claimed test count cannot check the claim — and
+`Bash` can write or delete through redirection and shell commands. Withholding
+`Edit`/`Write` narrows the surface; it does not close it.
+
+The residual risk is real and is mitigated structurally rather than by
+assertion: R1 runs in a **throwaway git worktree** at the commit under review so
+any accidental mutation is discarded, its contract forbids writes explicitly,
+the owner triages every finding, and R1 holds no credential to push, merge, or
+publish. See `AI_OPERATING_MODEL_PLAN.md`, Stage 1, for the full residual-risk
+statement, which this ADR must not restate more confidently than it is written
+there.
 
 No persistent domain, feature, or workflow agent. No orchestrator. No
 coordination owner. No integration-owner agent. Independent verification stays
-structurally separate from implementation: R1 cannot write, and CI `verify`
-plus external PR reviewers remain the authority.
+structurally separate from implementation: R1 never fixes, commits, or merges,
+and CI `verify` plus external PR reviewers remain the authority.
 
 ### 4. Human decision rights are unchanged and not delegable
 

@@ -34,9 +34,16 @@ contract.** Nothing in this plan is a step toward product agents, and no role de
 here may read, write, or reason about case data, evidence content, clinical or legal
 rule semantics, or any live system.
 
-The agent specifications below do satisfy AI_GOVERNANCE.md's contract requirement in
-form — explicit tool allowlist, prohibited actions, required output, human-review rule
-— because that is the right bar for any agent in this repository, product or not.
+The **R1 and R2** specifications below satisfy AI_GOVERNANCE.md's contract requirement
+in form — explicit tool allowlist, prohibited actions, required output, human-review
+rule — because that is the right bar for any agent in this repository, product or not.
+
+**T1 does not yet have a contract, and this plan does not pretend otherwise.** Stage 3
+defines T1 only by a charter and a work-package template; it has no tool allowlist and
+no output schema. AI_GOVERNANCE.md §21-23 requires both and states that no agent may run
+without a contract. Authoring T1's full contract and obtaining owner approval is
+therefore an explicit **Stage 3 entry gate** (see Stage 3), not a formality to be
+back-filled once an unblocked work package makes Stage 3 look eligible.
 
 ## Why this plan is small
 
@@ -363,10 +370,24 @@ is the owner's. Report findings; do not fix them.
 
 ## Shared-surface checks (must be run against ALL refs, not just merged history)
 - ADR NUMBER COLLISION: a new ADR number must be free across every ref, not only
-  docs/architecture/ on this branch. Run:
+  docs/architecture/ on this branch.
+  Do NOT reduce to bare numbers and `sort -u` — that collapses each number to one
+  line and so hides precisely the duplicate being looked for. (An earlier version of
+  this plan did exactly that and could not have detected any collision.) Compare
+  distinct FILENAMES per number instead:
     git log --all --name-only --pretty=format: -- "docs/architecture/ADR-*" \
-      | grep -oE "ADR-[0-9]{4}" | sort -u | tail -5
-  Three collisions existed on 2026-07-29; treat a duplicate as a VIOLATION.
+      | grep -oE "ADR-[0-9]{4}[^[:space:]]*" | sort -u \
+      | awk 'match($0, /ADR-[0-9]{4}/) {
+               n = substr($0, RSTART, RLENGTH)
+               seen[n] = seen[n] "\n    " $0; count[n]++
+             }
+             END { for (n in count) if (count[n] > 1) print "COLLISION " n ":" seen[n] }'
+  Verified 2026-07-29: this reports `COLLISION ADR-0014` with both
+  `ADR-0014-network-enrichment-contracts.md` and
+  `ADR-0014-prescreen-role-mapping-and-api-slice.md`, which the bare-number pipeline
+  did not surface. To pick the next free number, take the highest number seen across
+  all refs and add one — `main` alone is not sufficient, since 0015-0017 existed only
+  on unmerged branches while `main`'s latest was 0014. Treat a duplicate as a VIOLATION.
 - MIGRATION LEDGER DRIFT: the shared local clarity_dev is used by many worktrees and
   may hold migrations from other branches. If migration-integrity fails, report it as
   ENVIRONMENTAL drift with the extra migration names — do NOT report it as a defect in
@@ -432,7 +453,11 @@ finding as **real / style / false**, and logs minutes spent.
 **Entry:** R1 stable across ≥3 PRs.
 **Location:** `.claude/agents/session-steward.md`.
 **Tools:** `Read`, `Grep`, `Glob`, `Bash`, `Edit` — write access restricted by contract
-to exactly three targets; every run is reviewed before commit.
+to exactly four declared target groups (`IMPLEMENTATION_STATUS.md`, the `CLAUDE.md`
+project-state block, `docs/testing/*_TEST_MANIFEST.md`, and the generated
+`graphify-out/` tree); every run is reviewed before commit. Whoever authors
+`.claude/agents/session-steward.md` must carry all four — a three-target summary would
+silently drop the graph writes that step 5 of the contract requires.
 
 ```markdown
 You reconcile Clarity's durable status artifacts with what ACTUALLY ran this session.
@@ -476,8 +501,12 @@ outranks the convenience.
 
 ## Stage 3 — T1: Bounded Slice Implementer
 
-**Entry — all three required:** R1 and R2 stable; a completed work-package template
-approved by the owner; and **an actually unblocked package.**
+**Entry — all four required:** R1 and R2 stable; a completed work-package template
+approved by the owner; **an actually unblocked package**; and **T1's full agent contract
+authored and owner-approved** — an explicit tool allowlist, prohibited actions, required
+output schema, and human-review rule, per AI_GOVERNANCE.md §21-23. The charter below is
+not a contract. Until that contract exists and is approved, T1 may not run, regardless
+of how eligible the other three conditions look.
 
 As of 2026-07-29 nothing qualifies: prescreen Phase 3 persistence is gated on the
 provider-backed Cloud SQL/RLS verification, the cross-organization submission/receipt
