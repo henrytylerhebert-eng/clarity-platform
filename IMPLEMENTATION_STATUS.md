@@ -1,5 +1,69 @@
 # Implementation Status
 
+**As of 2026-07-29 (regulatory-reference session, second half)** on `main`.
+Two further merges after the block below: PR #41 (CMS research prompt + Phase 2
+policy-index packet) and PR #42 (regulatory corpus tool). PR #33 (operating
+model plan + ADR-0017) had all seven review findings fixed and awaits merge.
+
+- **CMS regulatory reference, Phase 1 (PR #41).** A deep research prompt at
+  `docs/legal/GEMINI_DEEP_RESEARCH_PROMPT_CMS_MEDICARE_MEDICAID.md`, following
+  the house pattern of the LA OPC/PEC/CEC prompt. Its organising idea is that
+  most CMS guidance is interpretive and each organization writes its own
+  policies, so every returned requirement must be classified
+  BINDING-SPECIFIC / BINDING-INTERPRETIVE / ORG-DISCRETION / NOT-APPLICABLE,
+  and the interpretive and discretionary ones must state concretely what an
+  organization has to decide and show a surveyor. The consolidated form of
+  that — "the interpretation map" — is the specification input for Phase 2.
+  **The research has NOT been executed** (OD-13). The surface enumeration is
+  authored from model knowledge and marked `Assumed`, not a verified inventory.
+- **Phase 2 captured, not designed (PR #41).** `ORG_POLICY_INDEX_DECISION_PACKET.md`
+  records the per-organization AI-native policy index at decision-packet
+  altitude, notes it sits on the controlled-extraction and AI-agent steps at
+  the END of the build sequence, and names five risks needing owner rulings:
+  cross-tenant leakage through shared vector retrieval (nearest-neighbour
+  search does not naturally respect a tenant predicate), policy-as-reference
+  vs policy-as-authority, possible FDA clinical-decision-support scope, who
+  authors default interpretations, and version staleness. Registered as OD-14.
+- **Regulatory corpus tool (PR #42).** `scripts/regulatory-corpus/` collects
+  federal regulatory text, stores it, and detects change. API-first: eCFR and
+  the Federal Register both publish documented APIs, so nothing is scraped.
+  Update detection does not diff text — the eCFR versioner exposes a
+  per-section `amendment_date`, so `check` reads one request per title plus one
+  per part and exits 2 on drift. `amended` and `content-changed` are reported
+  separately so an editorial hash change cannot masquerade as an amendment.
+  Tracked manifest/index/change-log; raw payloads in gitignored
+  `.regulatory-cache/`. robots.txt is enforced locally (cms.gov publishes
+  `Disallow: /*?`). Federal Register lookups return candidates for human
+  confirmation, except RIN `0938-AU87` which was verified live and resolves the
+  CMS-0057-F family exactly. **Live run: 17/17 sources retrieved.** 28 unit
+  tests, none performing network I/O.
+  **Scope boundary:** development tooling — no `@prisma/client`, no database,
+  no patient or tenant data, and NOT a deployed worker. Scheduling remains an
+  owner decision per the standing worker/deployment constraint.
+- **PR #33 review findings (seven, all valid).** Two were documents making
+  false claims about themselves: ADR-0017 advertised R1 as "read-only by tool
+  allowlist" while the plan disclaims exactly that, and the ADR-collision check
+  piped filenames to bare numbers through `sort -u`, which collapses the
+  duplicate it is hunting — the plan asserted three collisions while shipping a
+  command incapable of finding one. A **P1** had the handoff telling an operator
+  to replay the FIX commits (`346ee85`, `1470e00`) rather than the vulnerable
+  parents (`ad1b7e9`, and `1470e00`'s parent), which would have handed R1
+  already-fixed code and recorded a false no-go. Also fixed: T1 has no contract
+  (now a Stage 3 entry gate), R2's write targets were summarised as three when
+  the contract lists four, Stage 1's outcome bands overlapped at exactly two
+  findings, and the handoff blocked Stage 1 on all four Stage 0 sub-items when
+  the plan requires only 0.1–0.3.
+- **Verification on `main` at session close:** root **416/417**, app **64/64**,
+  lint, typecheck, `prisma validate`, `npm audit` clean. The single root failure
+  is the shared-`clarity_dev` migration-ledger contention (issue #31); CI's
+  ephemeral Postgres passes that step. Synthetic residue zero delta across runs
+  (28 orgs / 15 cases / 28 users).
+- **New issue:** #40 — `graphify-out/` is tracked but keyed by absolute worktree
+  paths, so the CLAUDE.md-mandated `graphify update .` rewrites thousands of
+  path entries from any worktree other than the one that last generated it.
+  Needs a decision between untracking it, making it path-independent, or naming
+  one canonical worktree.
+
 **As of 2026-07-29 (merge-gate and CaseStatus-ruling session)** on `main`
 after three merges: PR #37 (dependency audit), PR #36 (Stage 0.4 enum-sync
 test), PR #38 (ADR-0018 `MEDICAL_TRANSFER_REQUIRED`).
