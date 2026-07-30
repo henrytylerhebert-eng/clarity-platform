@@ -11,7 +11,10 @@ related_docs:
   - docs/governance/HUMAN_APPROVAL_GATES.md
   - docs/governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md
   - docs/developer-handoff/CLAUDE_OPERATING_MANUAL.md
-supersedes: agents/bridge/PROTOCOL.md (three-agent bridge, retired)
+supersedes: agents/bridge/PROTOCOL.md — decision accepted (ADR-0017); the physical
+  quarantine is Stage 0.2 and is HELD pending PR #30, so bridge files and their
+  README/package-script entry points are still present on disk. Treat the bridge as
+  retired guidance, but do not assume its paths are gone yet.
 ---
 
 # AI Operating Model Plan
@@ -183,11 +186,33 @@ there headed:
 > stale-branch misroute (MSG-0038), infrastructure failures (MSG-0032, MSG-0036), and
 > two owner interventions. Do not treat any file here as current guidance.
 
-Also remove `bridge:doctor` / `bridge:status` / `bridge:test` from `package.json`, and
-update the **Bridge** bullet in `IMPLEMENTATION_STATUS.md` to record retirement.
+**Every live entry point must go, not just the directory.** Verified inventory as of
+2026-07-29 — a partial quarantine leaves broken paths that still advertise the retired
+model:
 
-**Acceptance:** no live path (`package.json`, `AGENTS.md`, `CLAUDE.md`) references a
-running bridge.
+| Location | Reference |
+|---|---|
+| `package.json` | `bridge:doctor`, `bridge:status`, `bridge:test` scripts |
+| `README.md:99` | directs developers to `agents/bridge/PROJECT_CONFIGURATION.md` and `PROTOCOL.md` |
+| `README.md:114-115` | documents `npm run bridge:status` / `bridge:test` |
+| `agent_bridge/` (root, separate wake-layer dir) | `BRIDGE_SAFETY.md`, `antigravity_outbox.md`, `claude_outbox.md`, `bridge_rules.md` all cite `agents/bridge/` as the system of record |
+| `IMPLEMENTATION_STATUS.md` | **Bridge** bullet describes the watcher as `listener=running` |
+| `AGENTS.md`, `CLAUDE.md` | check for residual references |
+
+Decide `agent_bridge/`'s fate explicitly: it is the notification mirror for the retired
+canonical mailbox, so it should be quarantined alongside rather than left pointing at a
+moved directory.
+
+**Acceptance:** a repo-wide search returns no live reference to a running bridge and no
+broken path to the moved directory:
+
+```bash
+grep -rn "agents/bridge\|bridge:doctor\|bridge:status\|bridge:test" \
+  --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=docs/experiments .
+```
+
+Every remaining hit must be inside `docs/experiments/2026-07-agent-bridge/` or an
+explicitly historical record.
 
 **ADR: yes — [ADR-0017](../architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md)**
 (written 2026-07-29). Not 0015: ADR-0015 and ADR-0016 were already allocated on unmerged
@@ -235,10 +260,17 @@ enforces it.** A desync is silent and system-wide. This is the highest-likelihoo
 unguarded breakage path in the repository.
 
 **Change:** `tests/unit/contract-schema-enum-sync.test.ts` — parse the schema's enum
-blocks, compare against the exported arrays in `domain-contracts` (`roles.ts`,
-`caseStateMachine.ts`, `evidence.ts`, `benefits.ts`, `authorization.ts`,
-`documents.ts`, `legalStatus.ts`, `workstreams.ts`), assert set equality per enum with
-a maintained allowlist for arrays that intentionally do not mirror a schema enum.
+blocks and compare membership against the exported arrays, asserting set equality.
+
+**Coverage must be driven from the schema, not from a hand-picked file list.** An
+earlier draft of this section named eight contract files, which would have left
+`episode.ts` and `utilizationReview.ts` unchecked — `EPISODE_STATUSES`,
+`CASE_EPISODE_RELATIONSHIPS`, the authorization-review enums, `DENIAL_REASON_CODES`,
+and the documentation-gap enums could all have desynced while the suite passed and
+Stage 0 reported the invariant as machine-enforced. The implemented test instead
+enumerates **every** enum in `schema.prisma` and requires each to be classified as
+either mirrored (32 pairs, spanning all contract files) or explicitly not mirrored
+(13, each with a stated reason), so a newly added enum fails until classified.
 
 **Why in Stage 0:** it converts a review-enforced invariant into a machine-enforced
 one, which reduces what R1 must reason about. Preparation that shrinks the agent's job
@@ -254,8 +286,24 @@ is the right kind of preparation.
 
 **Location:** `.claude/agents/invariant-verifier.md` (project subagent, committed via
 PR).
-**Tools:** `Read`, `Grep`, `Glob`, `Bash`. **No `Edit`, no `Write`** — the read-only
-property is enforced by the tool allowlist, not by instruction.
+**Tools:** `Read`, `Grep`, `Glob`, `Bash`. **No `Edit`, no `Write`.**
+
+**Read-only is NOT tool-enforced, and this plan previously claimed otherwise.** `Bash`
+can write, delete, and run `git` mutations through redirection and shell commands, so
+withholding `Edit`/`Write` narrows the surface but does not close it. `Bash` is retained
+because R1's truth-discipline job requires actually running `lint`, `typecheck`, the test
+suite, and `git log` — a verifier that cannot reproduce a claimed test count cannot check
+the claim. The residual risk is therefore real and is mitigated structurally rather than
+by assertion:
+
+- **R1 runs in a throwaway git worktree at the commit under review**, never in a working
+  worktree. Any accidental mutation is discarded with the worktree.
+- The contract forbids writes explicitly, and the owner reviews every run's output.
+- R1 never has credentials to push, merge, or publish.
+
+If a genuinely read-only shell becomes available, drop `Bash` for a constrained runner
+and this caveat can be removed.
+
 **Human review rule:** every finding is triaged by the owner; R1 never fixes, commits,
 or merges.
 
@@ -267,7 +315,8 @@ read-only: you never edit, commit, or merge. You do not judge product scope — 
 is the owner's. Report findings; do not fix them.
 
 ## Load first
-1. CLAUDE.md — invariants and truth-discipline rules
+0. AGENTS.md — repository policy, evidence labels, security boundaries
+1. CLAUDE.md — invariants and truth-discipline rules (wins on conflict with AGENTS.md)
 2. The ADRs governing the touched area (docs/architecture/ADR-00NN-*.md)
 3. The diff under review
 4. The touched package's commands.ts / permissions.ts / <x>CommandService.ts
@@ -275,8 +324,11 @@ is the owner's. Report findings; do not fix them.
 
 ## Verify each invariant. Report VERIFIED / VIOLATED / NOT CHECKED with file:line.
 
-1. ONE PRISMA PACKAGE — only packages/case-repository/src/* and
-   tests/integration/helpers/harness.ts may import @prisma/client.
+1. ONE PRISMA PACKAGE — only packages/case-repository/src/*,
+   tests/integration/helpers/harness.ts, and scripts/seed.ts may import
+   @prisma/client. scripts/seed.ts:1 has imported it directly since the repository
+   foundation; it is a known, approved, pre-existing exception, NOT a violation to
+   report. Flag any *new* importer outside these three.
 2. COMMAND PATTERN — every new command: strict Zod envelope (unknown fields
    rejected) -> explicit injected role policy over exact UserRole enum values (never
    "admin" shorthand) -> ONE transaction containing: tenant-scoped read, state machine
@@ -384,8 +436,12 @@ to exactly three targets; every run is reviewed before commit.
 
 ```markdown
 You reconcile Clarity's durable status artifacts with what ACTUALLY ran this session.
-You may edit ONLY: IMPLEMENTATION_STATUS.md, the CLAUDE.md project-state block, and
-docs/testing/*_TEST_MANIFEST.md. Never product code, schema, contracts, or ADR content.
+You may edit ONLY: IMPLEMENTATION_STATUS.md, the CLAUDE.md project-state block,
+docs/testing/*_TEST_MANIFEST.md, and the generated graphify-out/ tree (graph.json,
+manifest.json, GRAPH_REPORT.md, cache) produced by step 5's `graphify update .` —
+that command rewrites committed files, so it is inside the boundary by necessity.
+Never product code, schema, contracts, or ADR content. If graphify produces a large
+unrelated diff, report it and stop rather than committing it.
 
 THE ONE RULE THAT OVERRIDES EVERYTHING: never record a test count, "passing", or
 "verified" that was not produced by a command run in this session. If a suite did not
@@ -470,6 +526,11 @@ legal rule semantics.
 Fixed load order. Code wins over documentation on any conflict; record the conflict
 rather than silently adopting either side.
 
+0. `AGENTS.md` — repository policy. It states it "should be treated as policy; do not
+   ignore these guardrails," and carries the workspace-verification steps, the evidence
+   protocol (`[Unknown]` / `[Unverified]` labels), the scoped surfaces, and the
+   security boundaries. Load it first. Where it conflicts with `CLAUDE.md`, `CLAUDE.md`
+   wins by its own Section-15 tailoring rule — but it must still be read.
 1. `CLAUDE.md` — operating rules, project-state block, house terminology
 2. `git status` (must be clean) + `git log -15` + current branch
 3. `IMPLEMENTATION_STATUS.md` — **the topmost dated block only**

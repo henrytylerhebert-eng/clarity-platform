@@ -27,10 +27,11 @@ Two lines of repository evidence answered no.
 set of bounded contexts.** Five surfaces are touched by essentially every
 feature: `prisma/schema.prisma` (one file, 38 models, 45 enums);
 `packages/domain-contracts` (55 inbound import references);
-`packages/case-repository` (5,117 LOC, sole permitted Prisma boundary, holding
-a gateway for every domain); `packages/api-service/src/server.ts` (375 LOC,
-all domains' routes); and `tests/` (36 files in one flat tree behind a single
-runner). A per-domain agent cannot complete an ordinary feature without
+`packages/case-repository` (5,117 LOC, the only *package* permitted to import
+`@prisma/client`, holding a gateway for every domain — `scripts/seed.ts:1` is a
+known pre-existing exception outside the package boundary);
+`packages/api-service/src/server.ts` (375 LOC, all domains' routes); and
+`tests/` (36 files in one flat tree behind a single runner). A per-domain agent cannot complete an ordinary feature without
 writing to at least three of them, so domain agents would serialize on the
 kernel rather than work in parallel beside it.
 
@@ -63,6 +64,19 @@ organization had used an id. PR #26 caught a related tenant-key aliasing
 defect where a `:`-delimited composite key could collide across tenants. PRs
 #20, #21, #25, #26, and #27 are all post-merge corrections to work previously
 reported as verified.
+
+**One of the two external reviewers has since been withdrawn.** On PR #33
+`gemini-code-assist` posted that the consumer version on GitHub "has been
+sunset" and that all code review activity has ceased. `chatgpt-codex-connector`
+remains and reviewed PR #33 substantively — seven findings, all valid,
+including that a claimed read-only tool boundary was unenforceable because the
+role retained shell access, and that `scripts/seed.ts` already breaks the
+one-Prisma-package rule the verifier was told to enforce.
+
+This halves the repository's independent-review capacity and strengthens rather
+than weakens the case for R1: the loop that has been catching cross-tenant and
+fail-open defects now rests on a single external service that could be
+withdrawn on the same notice.
 
 ## Decision
 
