@@ -1,5 +1,108 @@
 # Implementation Status
 
+**As of 2026-08-10 (PR #32 review-response and main-reconciliation session)**
+on branch `codex/om/prescreen-phase3-fix` (pushed to PR #32's head,
+`claude/prescreen-phase3-persistence`). Two things landed:
+
+1. **Closed both Gemini Code Assist review findings on PR #32.**
+   `saveAssessmentDraft` and `submitPrescreen` now catch raw Prisma `P2002`
+   unique-index contention (racing duplicate `assessmentVersionId`; racing
+   duplicate submission on the same encounter) and map it to
+   `PrescreenDomainValidationError` instead of letting a raw Prisma error
+   escape the gateway — mirroring the pre-existing
+   `isAssessmentIdUniqueViolation` pattern. Two new concurrency tests fire
+   racing requests with distinct idempotency keys (a real DB-level race, not
+   an idempotency replay) and assert exactly one winner, one domain-typed
+   loser. Both review threads replied to and resolved.
+2. **Brought PR #32 current with `main`** (was 6 commits / ~3 weeks behind;
+   GitHub reported `mergeable: CONFLICTING`). Merge conflicts were confined
+   to `CLAUDE.md` and `IMPLEMENTATION_STATUS.md` narrative — both resolved by
+   interleaving history rather than picking a side. The merge also surfaced
+   a real collision needing a code fix, not just a doc reconciliation: PR
+   #36's new `contract-schema-enum-sync.test.ts` (Stage 0.4, landed on `main`
+   after PR #32 branched) didn't know about the six prescreen schema enums
+   PR #32 added (`PrescreenEncounterStatus`, `PrescreenAssessmentStatus`,
+   `PatientWillingness`, `PossiblePathway`, `PrescreenReadinessTarget`,
+   `PacketRequirementState`). Verified each against its domain-contracts
+   array member-for-member before classifying all six as `MIRRORED` — no
+   desync, just an invariant test that predated the enums it now covers.
+
+**Verification this session:** root **435/435** (40 files, up from 353 on
+PR #32's prior head and 388/389 on `main`'s prior head — the merged sum),
+app **64/64**, lint, typecheck, `prisma validate` pass, zero residue delta
+(28 orgs/15 cases, stable across every run this session — matches the
+2026-07-29 session's recorded count exactly).
+
+**Known gaps, both flagged, neither fixed here:**
+- The required "verify" CI check did not trigger for the Gemini-fix push
+  (confirmed via two direct GitHub API queries on the commit SHA, ~1 min
+  apart: `total_count: 0` workflow runs). Cause undetermined — the merge
+  commit's push may resolve it, or it may need repo Actions-settings review.
+- `npm audit --audit-level=high` now reports 2 new high-severity findings
+  repo-wide, disclosed after PR #37's audit-gate fix landed on 7/29:
+  `brace-expansion` (a follow-up CVE past PR #37's 5.0.8, already has an
+  open Dependabot fix, PR #44) and `nanoid` (<3.3.17, no open fix yet). This
+  blocks every PR's CI right now, not specifically #32; left for the owner
+  rather than bundled into this PR's diff.
+- `graphify-out/` on this branch was found built from the wrong worktree
+  (2,454 files pinned instead of the repo's 6,537 — same failure mode
+  tracked by issue #40) and was NOT refreshed/committed here to avoid an
+  unrelated 1.7M-line diff riding along with this fix.
+
+**As of 2026-07-29 (merge-gate and CaseStatus-ruling session)** on `main`
+after three merges: PR #37 (dependency audit), PR #36 (Stage 0.4 enum-sync
+test), PR #38 (ADR-0018 `MEDICAL_TRANSFER_REQUIRED`).
+
+- **Merge gate restored (PR #37, closes issue #34).** `npm audit
+  --audit-level=high` had been failing on every PR — including docs-only
+  ones — against two transitive dev advisories (`brace-expansion` <=5.0.7,
+  `postcss` <=8.5.17), blocking all merges. Both fixed versions were already
+  inside the ranges their parents declare, so the fix is lockfile-only: no
+  `overrides` pin and no `package.json` change. Three packages moved
+  (`brace-expansion` 5.0.8, `postcss` 8.5.25, `nanoid` 3.3.16).
+- **Contracts↔schema enum mirror is now a machine check (PR #36, Stage 0.4).**
+  `tests/unit/contract-schema-enum-sync.test.ts` classifies every schema enum
+  as MIRRORED or NOT_MIRRORED and asserts membership as a set. Two parser
+  defects found in review were fixed with regression tests: members carrying
+  Prisma field attributes (`ACTIVE @map("active")`) were silently dropped, and
+  indented `enum` declarations were skipped whole — each would have let the
+  suite pass while enforcing nothing for the affected enum.
+- **`CaseStatus` desync reduced from two values to one (PR #38, ADR-0018).**
+  Owner ruled the two orphaned values separately because they are not
+  symmetric. `MEDICAL_TRANSFER_REQUIRED` is mirrored as a non-terminal
+  diversion: enterable from the review/routing span, exiting to any
+  `ACTIVE_ORDER` state (including `CLOSED`), deliberately NOT a member of
+  `ACTIVE_ORDER`, rationale mandatory. `RETURNED_FOR_MORE_INFORMATION` stays
+  deferred and unrepresentable — it presumes an external returning actor,
+  which belongs to the open cross-organization submission/receipt packet — and
+  remains pinned in `KNOWN_DESYNC` against issue #35. No migration: the schema
+  already declared both values.
+- **Known limitation recorded, not resolved:** `TransitionCase` is permitted to
+  `INTAKE_COORDINATOR` and `ORGANIZATION_ADMIN`, neither of which is a
+  clinical role, so a non-clinician can set `MEDICAL_TRANSFER_REQUIRED`.
+  Narrowing this needs a per-target-status role mechanism that does not exist.
+  See ADR-0018 Consequences.
+- **Verification this session:** root **388/389**, app **64/64**, lint,
+  typecheck, `prisma validate`, `npm audit` clean. The single root failure is
+  `tests/integration/migration-integrity.test.ts`, which fails locally only
+  because the shared local `clarity_dev` carries 4 migrations belonging to the
+  #30 and #32 branches (issue #31); a read-only ledger query confirmed that
+  excluding those 4 rows leaves this branch's 12 exactly, in order, all
+  finished and not rolled back. CI's ephemeral Postgres passed the root-test
+  step on #36, #37, and #38. Synthetic residue showed zero delta across suite
+  runs (28 orgs / 15 cases / 28 users before and after); the standing count
+  exceeds issue #24's recorded 7/4 because of accumulation by other worktrees
+  and nothing was deleted.
+- **Owner rulings this session:** PR #30 (network-enrichment, 2,483 files /
+  +1.4M lines, stale CI, expands the `agent_bridge/` tree that ADR-0017 would
+  retire) is **held for owner review** — not merged, not edited. Consequently
+  AI-operating-model Stage 0.1–0.3 remain HELD, since they rewrite the four
+  files #30 touches.
+- **Still open:** PR #33 (operating-model plan + ADR-0017) carries four
+  unresolved P2 review findings, including an ADR claim that R1 is read-only
+  which the plan's own residual-risk text contradicts. PR #29, #32 remain
+  open; #18 is draft.
+
 **As of 2026-07-19 (prescreen Phase 3 persistence session)** on branch
 `claude/prescreen-phase3-persistence` (from `main` 8399edd, PR pending).
 The owner authorized **local-only Phase 3 prescreen persistence** on the S2

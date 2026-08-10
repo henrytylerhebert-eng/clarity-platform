@@ -19,7 +19,11 @@
     "api:dev": "tsx packages/api-service/src/devMain.ts",
     "bridge:doctor": "agents/bridge/agent-bridge doctor",
     "bridge:status": "agents/bridge/agent-bridge status",
-    "bridge:test": "python3 -m unittest discover -s agents/bridge/tests"
+    "bridge:test": "python3 -m unittest discover -s agents/bridge/tests",
+    "regulatory:check": "tsx scripts/regulatory-corpus/cli.ts check",
+    "regulatory:sync": "tsx scripts/regulatory-corpus/cli.ts sync",
+    "regulatory:index": "tsx scripts/regulatory-corpus/cli.ts index",
+    "regulatory:fr": "tsx scripts/regulatory-corpus/cli.ts federal-register"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -101,4 +101,7 @@ export const RATIONALE_REQUIRED_TRANSITIONS = [
   "WITHDRAWN",
   "NO_PLACEMENT_FOUND",
   "REFERRED_TO_ALTERNATIVE_LEVEL",
+  // Diverting a case out of the placement pipeline for a medical need is
+  // high-impact and must be documented (ADR-0018, owner ruling 2026-07-29).
+  "MEDICAL_TRANSFER_REQUIRED",
 ] as const;
