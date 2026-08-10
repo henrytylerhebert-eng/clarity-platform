@@ -1,11 +1,19 @@
 # Prescreen Persistence Test Manifest (Phase 3, ADR-0016)
 
-**File:** `tests/integration/prescreen-persistence.test.ts` — 10 tests, run
+**File:** `tests/integration/prescreen-persistence.test.ts` — 12 tests, run
 against local `clarity_dev` (guarded by `assertLocalClarityDevDatabase`).
 All assertions are scoped to the run's synthetic tenants; cleanup is
 deterministic via the shared harness (extended to the four prescreen
 tables). Session verification 2026-07-19: 10/10, and the full root suite
 353/353 across three consecutive runs.
+
+**Post-review addition (session verification 2026-08-10):** tests 11-12
+close the Gemini Code Assist finding on PR #32 — `saveAssessmentDraft` and
+`submitPrescreen` now map raw Prisma `P2002` unique-index contention to
+`PrescreenDomainValidationError` instead of leaking a raw Prisma error past
+the domain boundary, mirroring the existing `isAssessmentIdUniqueViolation`
+pattern. File: 12/12; full root suite **355/355** (38 files); lint,
+typecheck, `prisma validate` pass; zero prescreen-table residue.
 
 ## What each test proves
 
@@ -21,6 +29,8 @@ tables). Session verification 2026-07-19: 10/10, and the full root suite
 | 8 | lockstep side effects | each successful command adds exactly one audit event, one governed-event row, one outbox row, and one idempotency record; readiness derives named blockers from the persisted requirement |
 | 9 | no source text persisted | serialized audit metadata and stored envelopes never contain the narrative, presenting concern, or location strings — hashes and field names only |
 | 10 | fail-closed RLS | with the RLS migration applied: a NOLOGIN NOSUPERUSER NOBYPASSRLS role sees zero rows without `app.current_organization_id`, cannot update across tenants with it, and reads its own tenant normally |
+| 11 | saveAssessmentDraft contention does not leak raw Prisma unique-index violations | two concurrent drafts racing on the same `assessmentVersionId` (distinct idempotency keys, so this is a real DB-level race, not an idempotency replay): exactly one fulfills, the other rejects with `PrescreenDomainValidationError` or `PrescreenVersionConflictError` — never a raw `PrismaClientKnownRequestError` |
+| 12 | submitPrescreen contention does not leak raw Prisma unique-index violations | same shape for two concurrent submissions of the same encounter: exactly one fulfills, the other rejects with a domain-typed error, never a raw Prisma error |
 
 ## Companion coverage run in the same session
 
