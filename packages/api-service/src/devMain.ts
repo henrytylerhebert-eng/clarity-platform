@@ -3,14 +3,11 @@ import {
   createPrismaClient,
   PrismaAuthGateway,
   PrismaCaseCommandGateway,
+  PrismaPrescreenGateway,
 } from "@clarity/case-repository";
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
-import {
-  InMemoryPrescreenGateway,
-  PRESCREEN_PRODUCTION_POLICY,
-  PrescreenCommandService,
-} from "@clarity/prescreen-service";
+import { PRESCREEN_PRODUCTION_POLICY, PrescreenCommandService } from "@clarity/prescreen-service";
 import { createApiServer } from "./server.js";
 
 /**
@@ -120,8 +117,9 @@ async function main(): Promise<void> {
 
   const auth = new AuthenticationService(provider, new PrismaAuthGateway(prisma));
   const caseCommands = new CaseCommandService(new PrismaCaseCommandGateway(prisma));
-  // Phase 2 gateway: prescreen state is process-local and non-durable (ADR-0014).
-  const prescreen = new PrescreenCommandService(new InMemoryPrescreenGateway(), PRESCREEN_PRODUCTION_POLICY);
+  // Phase 3 gateway: prescreen state persists in local clarity_dev and
+  // survives a server restart (provider-backed verification stays gated).
+  const prescreen = new PrescreenCommandService(new PrismaPrescreenGateway(prisma), PRESCREEN_PRODUCTION_POLICY);
   const server = createApiServer({ auth, caseCommands, prescreen });
 
   const port = Number(process.env.API_PORT ?? 4315);

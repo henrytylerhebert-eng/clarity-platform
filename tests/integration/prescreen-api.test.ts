@@ -1,10 +1,9 @@
 import type { Server } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { PrismaAuthGateway, PrismaCaseCommandGateway } from "@clarity/case-repository";
+import { PrismaAuthGateway, PrismaCaseCommandGateway, PrismaPrescreenGateway } from "@clarity/case-repository";
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
 import {
-  InMemoryPrescreenGateway,
   PRESCREEN_PRODUCTION_POLICY,
   PrescreenCommandService,
   type AssessmentDraftInput,
@@ -29,7 +28,7 @@ import { createHarness, type Harness } from "./helpers/harness.js";
 let h: Harness;
 let server: Server;
 let baseUrl: string;
-let gateway: InMemoryPrescreenGateway;
+let gateway: PrismaPrescreenGateway;
 
 const ASSERTIONS = {
   intake: "syn-assert-ps-api-intake-01",
@@ -137,9 +136,21 @@ beforeAll(async () => {
   provider.register(ASSERTIONS.sysadmin, await createRoleUser("admin", h.tenantA, ["SYSTEM_ADMIN"]));
   provider.register(ASSERTIONS.intakeB, await createRoleUser("intake-b", h.tenantB, ["INTAKE_COORDINATOR"]));
 
+  // Phase 3: the encounter's caseId is a real tenant-checked linkage, so the
+  // synthetic case rows the flows cite must actually exist in tenant A.
+  for (const caseId of [`syn-ps-api-case-${h.runId}`, `syn-ps-api-case-replay-${h.runId}`]) {
+    await h.prisma.behavioralHealthCase.create({
+      data: {
+        id: caseId,
+        organizationId: h.tenantA.organizationId,
+        patientTokenId: h.tenantA.patientTokenId,
+      },
+    });
+  }
+
   const auth = new AuthenticationService(provider, new PrismaAuthGateway(h.prisma));
   const caseCommands = new CaseCommandService(new PrismaCaseCommandGateway(h.prisma));
-  gateway = new InMemoryPrescreenGateway();
+  gateway = new PrismaPrescreenGateway(h.prisma);
   const prescreen = new PrescreenCommandService(gateway, PRESCREEN_PRODUCTION_POLICY);
   server = createApiServer({ auth, caseCommands, prescreen });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -170,12 +181,12 @@ describe("same-organization prescreen flow over HTTP (production policy)", () =>
 
     // The recorded intent names the principal's own organization — the caller
     // never supplied it and could not have supplied any other.
-    const submission = gateway.getSubmission(h.tenantA.organizationId, encounterId);
+    const submission = await gateway.getSubmission(h.tenantA.organizationId, encounterId);
     expect(submission?.receivingOrganizationId).toBe(h.tenantA.organizationId);
     expect(submission?.assessmentVersionId).toBe(assessmentVersionId);
 
     // Attestation was recorded against the database-backed physician user.
-    const attested = gateway.getAssessmentVersion(h.tenantA.organizationId, assessmentVersionId);
+    const attested = await gateway.getAssessmentVersion(h.tenantA.organizationId, assessmentVersionId);
     expect(attested.attestedBy).toBe(`synthetic-user-ps-api-doc-${h.runId}`);
   });
 

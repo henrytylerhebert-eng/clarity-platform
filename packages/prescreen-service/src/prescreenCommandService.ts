@@ -37,44 +37,44 @@ export class PrescreenCommandService {
     private readonly policy: PrescreenRolePolicy,
   ) {}
 
-  startEncounter(input: StartPrescreenEncounterCommand): PrescreenCommandResult {
+  async startEncounter(input: StartPrescreenEncounterCommand): Promise<PrescreenCommandResult> {
     const cmd = StartPrescreenEncounterCommandSchema.parse(input);
     assertPrescreenPermitted(this.policy, "StartPrescreenEncounter", cmd.actor.roleCodes);
     return this.gateway.startEncounter(cmd);
   }
 
-  saveAssessmentDraft(input: SaveAssessmentDraftCommand): PrescreenCommandResult {
+  async saveAssessmentDraft(input: SaveAssessmentDraftCommand): Promise<PrescreenCommandResult> {
     const cmd = SaveAssessmentDraftCommandSchema.parse(input);
     assertPrescreenPermitted(this.policy, "SaveAssessmentDraft", cmd.actor.roleCodes);
     return this.gateway.saveAssessmentDraft(cmd);
   }
 
-  attestAssessment(input: AttestAssessmentCommand): PrescreenCommandResult {
+  async attestAssessment(input: AttestAssessmentCommand): Promise<PrescreenCommandResult> {
     const cmd = AttestAssessmentCommandSchema.parse(input);
     assertPrescreenPermitted(this.policy, "AttestAssessment", cmd.actor.roleCodes);
     return this.gateway.attestAssessment(cmd);
   }
 
-  createAssessmentSupplement(input: CreateAssessmentSupplementCommand): PrescreenCommandResult {
+  async createAssessmentSupplement(input: CreateAssessmentSupplementCommand): Promise<PrescreenCommandResult> {
     const cmd = CreateAssessmentSupplementCommandSchema.parse(input);
     assertPrescreenPermitted(this.policy, "CreateAssessmentSupplement", cmd.actor.roleCodes);
     return this.gateway.createAssessmentSupplement(cmd);
   }
 
-  submitPrescreen(input: SubmitPrescreenCommand): PrescreenCommandResult {
+  async submitPrescreen(input: SubmitPrescreenCommand): Promise<PrescreenCommandResult> {
     const cmd = SubmitPrescreenCommandSchema.parse(input);
     assertPrescreenPermitted(this.policy, "SubmitPrescreen", cmd.actor.roleCodes);
     return this.gateway.submitPrescreen(cmd);
   }
 
-  updatePacketRequirement(input: UpdatePacketRequirementCommand): PrescreenCommandResult {
+  async updatePacketRequirement(input: UpdatePacketRequirementCommand): Promise<PrescreenCommandResult> {
     const cmd = UpdatePacketRequirementCommandSchema.parse(input);
     assertPrescreenPermitted(this.policy, "UpdatePacketRequirement", cmd.actor.roleCodes);
     return this.gateway.updatePacketRequirement(cmd);
   }
 
   /** Read-only derived view; deliberately no aggregate score (readiness doctrine). */
-  evaluateTargetReadiness(input: EvaluateTargetReadinessCommand): PacketReadinessResult {
+  async evaluateTargetReadiness(input: EvaluateTargetReadinessCommand): Promise<PacketReadinessResult> {
     const cmd = EvaluateTargetReadinessCommandSchema.parse(input);
     assertPrescreenPermitted(this.policy, "EvaluateTargetReadiness", cmd.actor.roleCodes);
     return this.gateway.evaluateTargetReadiness(cmd);

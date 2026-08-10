@@ -288,7 +288,7 @@ export function createApiServer(deps: ApiDeps): Server {
       if (method === "POST" && url === "/api/prescreen/encounters") {
         const principal = await deps.auth.authenticate(bearerToken(req));
         const body = PrescreenStartBodySchema.parse(await readJsonBody(req));
-        const result = deps.prescreen.startEncounter({
+        const result = await deps.prescreen.startEncounter({
           organizationId: principal.organizationId,
           actor: prescreenActorFor(principal),
           occurredAt: new Date().toISOString(),
@@ -306,7 +306,7 @@ export function createApiServer(deps: ApiDeps): Server {
           const principal = await deps.auth.authenticate(bearerToken(req));
           const search = new URL(req.url ?? "", "http://localhost").searchParams;
           const { target } = PrescreenReadinessQuerySchema.parse(Object.fromEntries(search));
-          const readiness = deps.prescreen.evaluateTargetReadiness({
+          const readiness = await deps.prescreen.evaluateTargetReadiness({
             organizationId: principal.organizationId,
             actor: prescreenActorFor(principal),
             encounterId,
@@ -330,15 +330,15 @@ export function createApiServer(deps: ApiDeps): Server {
           switch (action) {
             case "draft": {
               const body = PrescreenDraftBodySchema.parse(rawBody);
-              return sendJson(res, 200, deps.prescreen.saveAssessmentDraft({ ...envelope, ...body }));
+              return sendJson(res, 200, await deps.prescreen.saveAssessmentDraft({ ...envelope, ...body }));
             }
             case "attest": {
               const body = PrescreenAttestBodySchema.parse(rawBody);
-              return sendJson(res, 200, deps.prescreen.attestAssessment({ ...envelope, ...body }));
+              return sendJson(res, 200, await deps.prescreen.attestAssessment({ ...envelope, ...body }));
             }
             case "supplements": {
               const body = PrescreenSupplementBodySchema.parse(rawBody);
-              return sendJson(res, 200, deps.prescreen.createAssessmentSupplement({ ...envelope, ...body }));
+              return sendJson(res, 200, await deps.prescreen.createAssessmentSupplement({ ...envelope, ...body }));
             }
             case "submit": {
               const body = PrescreenSubmitBodySchema.parse(rawBody);
@@ -347,7 +347,7 @@ export function createApiServer(deps: ApiDeps): Server {
               return sendJson(
                 res,
                 200,
-                deps.prescreen.submitPrescreen({
+                await deps.prescreen.submitPrescreen({
                   ...envelope,
                   ...body,
                   receivingOrganizationId: principal.organizationId,
@@ -356,7 +356,7 @@ export function createApiServer(deps: ApiDeps): Server {
             }
             case "requirements": {
               const body = PrescreenRequirementBodySchema.parse(rawBody);
-              return sendJson(res, 200, deps.prescreen.updatePacketRequirement({ ...envelope, ...body }));
+              return sendJson(res, 200, await deps.prescreen.updatePacketRequirement({ ...envelope, ...body }));
             }
           }
         }

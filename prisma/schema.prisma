@@ -464,6 +464,7 @@ model BehavioralHealthCase {
   contradictionGroups       ContradictionGroup[]
   episodes                  Episode[]
   episodeLinks              CaseEpisodeLink[]
+  prescreenEncounters       PrescreenEncounter[]
 
   @@index([organizationId, status])
   @@index([assignedUserId])
@@ -889,9 +890,9 @@ model FinancialEducationRecord {
 }
 
 model FacilityProfile {
-  id                      String            @id @default(cuid())
+  id                      String                          @id @default(cuid())
   organizationId          String
-  organization            Organization      @relation(fields: [organizationId], references: [id])
+  organization            Organization                    @relation(fields: [organizationId], references: [id])
   name                    String
   programs                LevelOfCare[]
   acceptedAges            Json?
@@ -905,8 +906,8 @@ model FacilityProfile {
   referrals               Referral[]
   episodes                Episode[]
   timezoneConfigurations  FacilityTimezoneConfiguration[]
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @updatedAt
+  createdAt               DateTime                        @default(now())
+  updatedAt               DateTime                        @updatedAt
 
   @@index([organizationId, name])
 }
@@ -973,15 +974,20 @@ model AuditEvent {
 /// (organization, idempotencyKey); replays return the recorded outcome
 /// instead of re-executing the command. Rows are append-only.
 model CommandIdempotencyRecord {
-  id             String   @id @default(cuid())
-  organizationId String
-  idempotencyKey String
-  commandType    String
-  caseId         String?
+  id                 String   @id @default(cuid())
+  organizationId     String
+  idempotencyKey     String
+  commandType        String
+  caseId             String?
   /// Non-case object a replay must rehydrate (e.g. an evidence item id).
-  objectId       String?
-  resultVersion  Int?
-  createdAt      DateTime @default(now())
+  objectId           String?
+  /// Canonical recursively-sorted SHA-256 of the command body (nullable:
+  /// only fingerprint-checked commands — prescreen, ADR-0014 §5 — set it).
+  /// Same key + same fingerprint replays; same key + different fingerprint
+  /// is an idempotency conflict.
+  requestFingerprint String?
+  resultVersion      Int?
+  createdAt          DateTime @default(now())
 
   @@unique([organizationId, idempotencyKey])
   @@index([organizationId, createdAt])
@@ -1080,10 +1086,10 @@ enum DocumentationGapStatus {
 /// browser, server, or organization name. Rows are append-only: a new version
 /// supersedes the prior one via `supersededById`; the old row is never edited.
 model FacilityTimezoneConfiguration {
-  id                String          @id @default(cuid())
+  id                String                         @id @default(cuid())
   organizationId    String
   facilityProfileId String
-  facilityProfile   FacilityProfile @relation(fields: [facilityProfileId], references: [id])
+  facilityProfile   FacilityProfile                @relation(fields: [facilityProfileId], references: [id])
   /// IANA timezone name (validated against Intl before persistence).
   facilityTimezone  String
   /// Controlled source vocabulary; today only FACILITY_CONFIGURATION.
@@ -1111,39 +1117,39 @@ model FacilityTimezoneConfiguration {
 /// Reuses Organization/FacilityProfile; program/unit remain nullable,
 /// source-owned identifiers until a canonical hierarchy exists (decision 2).
 model Episode {
-  id                        String                         @id @default(cuid())
-  organizationId            String
-  sourceCaseId              String
-  sourceCase                BehavioralHealthCase           @relation(fields: [sourceCaseId], references: [id])
-  facilityId                String
-  facility                  FacilityProfile                @relation(fields: [facilityId], references: [id])
+  id                         String                         @id @default(cuid())
+  organizationId             String
+  sourceCaseId               String
+  sourceCase                 BehavioralHealthCase           @relation(fields: [sourceCaseId], references: [id])
+  facilityId                 String
+  facility                   FacilityProfile                @relation(fields: [facilityId], references: [id])
   /// Nullable/source-owned until a canonical program hierarchy exists.
-  programId                 String?
+  programId                  String?
   /// Nullable/source-owned; the source may not provide a unit.
-  unitId                    String?
+  unitId                     String?
   /// Timezone snapshot captured at admission, plus the lineage it came from.
-  facilityTimezone          String
-  timezoneSource            String
-  timezoneSourceReferenceId String
-  timezoneConfigurationId   String?
-  timezoneConfiguration     FacilityTimezoneConfiguration? @relation(fields: [timezoneConfigurationId], references: [id])
-  admittedAt                DateTime
+  facilityTimezone           String
+  timezoneSource             String
+  timezoneSourceReferenceId  String
+  timezoneConfigurationId    String?
+  timezoneConfiguration      FacilityTimezoneConfiguration? @relation(fields: [timezoneConfigurationId], references: [id])
+  admittedAt                 DateTime
   /// Facility-timezone-derived calendar date (YYYY-MM-DD), stored verbatim so
   /// it is never re-derived under a different zone.
-  serviceDate               String
-  status                    EpisodeStatus                  @default(ACTIVE)
+  serviceDate                String
+  status                     EpisodeStatus                  @default(ACTIVE)
   acceptedFacilityResponseId String
-  sourcePacketVersionId     String?
-  sourceCustodyEventId      String?
+  sourcePacketVersionId      String?
+  sourceCustodyEventId       String?
   /// Optimistic-concurrency token, same discipline as every other aggregate.
-  version                   Int                            @default(1)
-  createdAt                 DateTime                       @default(now())
-  updatedAt                 DateTime                       @updatedAt
-  caseLinks                 CaseEpisodeLink[]
-  authorizations            EpisodeAuthorization[]
-  reviews                   AuthorizationReview[]
-  dayDecisions              AuthorizationDayDecision[]
-  documentationGaps         DocumentationGap[]
+  version                    Int                            @default(1)
+  createdAt                  DateTime                       @default(now())
+  updatedAt                  DateTime                       @updatedAt
+  caseLinks                  CaseEpisodeLink[]
+  authorizations             EpisodeAuthorization[]
+  reviews                    AuthorizationReview[]
+  dayDecisions               AuthorizationDayDecision[]
+  documentationGaps          DocumentationGap[]
 
   @@index([organizationId, status])
   @@index([sourceCaseId])
@@ -1177,22 +1183,22 @@ model CaseEpisodeLink {
 
 /// Episode-owned authorization requirement fact.
 model EpisodeAuthorization {
-  id                             String                     @id @default(cuid())
-  organizationId                 String
-  episodeId                      String
-  episode                        Episode                    @relation(fields: [episodeId], references: [id])
+  id                                String                          @id @default(cuid())
+  organizationId                    String
+  episodeId                         String
+  episode                           Episode                         @relation(fields: [episodeId], references: [id])
   /// Source references remain nullable/source-owned; no duplicate coverage.
-  sourceCoverageId               String?
+  sourceCoverageId                  String?
   sourcePreAdmissionAuthorizationId String?
-  levelOfCare                    String
-  requirement                    EpisodeAuthorizationRequirement
-  effectiveStartDate             String
-  status                         EpisodeAuthorizationStatus @default(OPEN)
-  version                        Int                        @default(0)
-  createdAt                      DateTime                   @default(now())
-  updatedAt                      DateTime                   @updatedAt
-  reviews                        AuthorizationReview[]
-  dayDecisions                   AuthorizationDayDecision[]
+  levelOfCare                       String
+  requirement                       EpisodeAuthorizationRequirement
+  effectiveStartDate                String
+  status                            EpisodeAuthorizationStatus      @default(OPEN)
+  version                           Int                             @default(0)
+  createdAt                         DateTime                        @default(now())
+  updatedAt                         DateTime                        @updatedAt
+  reviews                           AuthorizationReview[]
+  dayDecisions                      AuthorizationDayDecision[]
 
   @@index([organizationId, episodeId])
   @@index([episodeId, status])
@@ -1202,28 +1208,28 @@ model EpisodeAuthorization {
 /// append-only: a correction inserts a NEW review row that supersedes the
 /// original via `supersededByReviewId`; the original is frozen (decision 5).
 model AuthorizationReview {
-  id                     String                    @id @default(cuid())
+  id                     String                     @id @default(cuid())
   organizationId         String
   episodeAuthorizationId String
-  episodeAuthorization   EpisodeAuthorization      @relation(fields: [episodeAuthorizationId], references: [id])
+  episodeAuthorization   EpisodeAuthorization       @relation(fields: [episodeAuthorizationId], references: [id])
   episodeId              String
-  episode                Episode                   @relation(fields: [episodeId], references: [id])
+  episode                Episode                    @relation(fields: [episodeId], references: [id])
   reviewType             AuthorizationReviewType
   requestedStartDate     String
   requestedEndDate       String
   dueAt                  DateTime?
-  decisionStatus         AuthorizationReviewStatus @default(PENDING)
+  decisionStatus         AuthorizationReviewStatus  @default(PENDING)
   payerReferenceToken    String?
   recordedByActorId      String
   recordedAt             DateTime
   /// Correction chain: set when a later review supersedes this one.
-  supersededByReviewId   String?                   @unique
-  supersededByReview     AuthorizationReview?      @relation("AuthorizationReviewSupersession", fields: [supersededByReviewId], references: [id])
-  supersedes             AuthorizationReview?      @relation("AuthorizationReviewSupersession")
+  supersededByReviewId   String?                    @unique
+  supersededByReview     AuthorizationReview?       @relation("AuthorizationReviewSupersession", fields: [supersededByReviewId], references: [id])
+  supersedes             AuthorizationReview?       @relation("AuthorizationReviewSupersession")
   correctionReasonCode   String?
-  version                Int                       @default(1)
-  createdAt              DateTime                  @default(now())
-  updatedAt              DateTime                  @updatedAt
+  version                Int                        @default(1)
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
   dayDecisions           AuthorizationDayDecision[]
 
   @@index([organizationId, episodeId])
@@ -1257,23 +1263,23 @@ model AuthorizationDayDecision {
 /// An episode-owned documentation gap with a controlled status and an
 /// append-only status history (decision 5).
 model DocumentationGap {
-  id                         String                        @id @default(cuid())
-  organizationId             String
-  episodeId                  String
-  episode                    Episode                       @relation(fields: [episodeId], references: [id])
+  id                          String                          @id @default(cuid())
+  organizationId              String
+  episodeId                   String
+  episode                     Episode                         @relation(fields: [episodeId], references: [id])
   sourceAuthorizationReviewId String?
-  categoryCode               DocumentationGapCategory
-  operationalSummary         String?
-  status                     DocumentationGapStatus        @default(OPEN)
-  dueAt                      DateTime?
-  assignedRole               String?
-  assignedUserId             String?
-  recordedByActorId          String
-  resolvedByActorId          String?
-  version                    Int                           @default(1)
-  createdAt                  DateTime                      @default(now())
-  updatedAt                  DateTime                      @updatedAt
-  statusHistory              DocumentationGapStatusHistory[]
+  categoryCode                DocumentationGapCategory
+  operationalSummary          String?
+  status                      DocumentationGapStatus          @default(OPEN)
+  dueAt                       DateTime?
+  assignedRole                String?
+  assignedUserId              String?
+  recordedByActorId           String
+  resolvedByActorId           String?
+  version                     Int                             @default(1)
+  createdAt                   DateTime                        @default(now())
+  updatedAt                   DateTime                        @updatedAt
+  statusHistory               DocumentationGapStatusHistory[]
 
   @@index([organizationId, episodeId])
   @@index([episodeId, status])
@@ -1282,16 +1288,16 @@ model DocumentationGap {
 /// Append-only transition log for a documentation gap. One row per status
 /// change; never updated or deleted.
 model DocumentationGapStatusHistory {
-  id                 String                 @id @default(cuid())
+  id                 String                  @id @default(cuid())
   organizationId     String
   documentationGapId String
-  documentationGap   DocumentationGap       @relation(fields: [documentationGapId], references: [id])
+  documentationGap   DocumentationGap        @relation(fields: [documentationGapId], references: [id])
   fromStatus         DocumentationGapStatus?
   toStatus           DocumentationGapStatus
   reasonCode         String?
   changedByActorId   String
   changedAt          DateTime
-  createdAt          DateTime               @default(now())
+  createdAt          DateTime                @default(now())
 
   @@index([documentationGapId, changedAt])
 }
@@ -1347,4 +1353,170 @@ model OutboxRecord {
   createdAt       DateTime      @default(now())
 
   @@index([organizationId, status, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Prescreen Phase 3 persistence (local clarity_dev slice; ADR-0013/0014
+// command semantics made durable). Enum values mirror the Phase 1 contract
+// arrays in packages/domain-contracts/src/prescreen.ts — keep in sync.
+// ---------------------------------------------------------------------------
+
+enum PrescreenEncounterStatus {
+  DRAFT
+  ATTESTED
+  SUBMITTED
+  CENTRAL_INTAKE_REVIEW
+  NEEDS_INFORMATION
+  AUTHORIZED_REVIEW
+  FACILITY_ROUTING
+  TRANSPORT_PLANNING
+  HANDED_OFF
+  REDIRECTED
+  DECLINED
+  CANCELLED
+}
+
+enum PrescreenAssessmentStatus {
+  DRAFT
+  ATTESTED
+  CORRECTED
+  SUPERSEDED
+}
+
+enum PatientWillingness {
+  WILLING
+  NON_OPPOSED
+  OPPOSED
+  UNABLE_TO_EXPRESS
+  FLUCTUATING
+  UNKNOWN
+  NOT_ASSESSED
+}
+
+enum PossiblePathway {
+  POSSIBLE_FORMAL_VOLUNTARY_REVIEW
+  POSSIBLE_NONCONTESTED_PATHWAY
+  EMERGENCY_OR_LEGAL_REVIEW_REQUIRED
+  MEDICAL_STABILIZATION_REQUIRED
+  COMMUNITY_OR_OTHER_DISPOSITION
+  UNDETERMINED
+}
+
+enum PrescreenReadinessTarget {
+  CENTRAL_INTAKE_REVIEW
+  AUTHORIZED_PRACTITIONER_REVIEW
+  FACILITY_ROUTING
+  TRANSPORT_PLANNING
+  RECEIVING_HANDOFF
+}
+
+enum PacketRequirementState {
+  NOT_STARTED
+  REQUESTED
+  RECEIVED
+  UNDER_REVIEW
+  ACCEPTED_FOR_PACKET
+  MISSING
+  UNAVAILABLE_WITH_REASON
+  NOT_APPLICABLE_WITH_AUTHORITY
+  NEEDS_CLARIFICATION
+  STALE
+  SUPERSEDED
+}
+
+model PrescreenEncounter {
+  id                         String                       @id @default(cuid())
+  organizationId             String
+  /// Real tenant-checked linkage (Phase 3 ruling): starting an encounter
+  /// requires an existing same-organization case; a miss is non-revealing.
+  caseId                     String
+  case                       BehavioralHealthCase         @relation(fields: [caseId], references: [id])
+  status                     PrescreenEncounterStatus     @default(DRAFT)
+  /// Optimistic-concurrency token, same discipline as every other aggregate.
+  version                    Int                          @default(1)
+  currentLocation            String
+  presentingConcern          String
+  currentAssessmentVersionId String?
+  possiblePathway            PossiblePathway              @default(UNDETERMINED)
+  createdBy                  String
+  /// Command-supplied occurredAt times (server stamps them at the API
+  /// boundary); NOT @updatedAt, so replays never rewrite recorded time.
+  createdAt                  DateTime
+  updatedAt                  DateTime
+  insertedAt                 DateTime                     @default(now())
+  assessmentVersions         PrescreenAssessmentVersion[]
+  packetRequirements         PrescreenPacketRequirement[]
+  submission                 PrescreenSubmission?
+
+  @@index([organizationId, status])
+  @@index([organizationId, caseId])
+}
+
+model PrescreenAssessmentVersion {
+  id                                    String                    @id @default(cuid())
+  organizationId                        String
+  /// Caller-supplied domain id, unique per tenant only — another
+  /// organization reusing the same id neither collides nor is disclosed.
+  assessmentVersionId                   String
+  encounterId                           String
+  encounter                             PrescreenEncounter        @relation(fields: [encounterId], references: [id])
+  versionNumber                         Int
+  status                                PrescreenAssessmentStatus @default(DRAFT)
+  createdAt                             DateTime
+  createdBy                             String
+  attestedAt                            DateTime?
+  attestedBy                            String?
+  parentVersionId                       String?
+  changeReason                          String?
+  willingness                           PatientWillingness
+  /// Immutable value objects stored whole (hashed into contentHash), never
+  /// queried relationally in this slice.
+  orientation                           Json
+  immediateMedicalStabilizationRequired Boolean                   @default(false)
+  activeEmergencyOrLegalProcess         Boolean                   @default(false)
+  possiblePathway                       PossiblePathway
+  answers                               Json
+  sources                               Json
+  contentHash                           String?
+  insertedAt                            DateTime                  @default(now())
+
+  @@unique([organizationId, assessmentVersionId])
+  @@index([organizationId, encounterId])
+}
+
+model PrescreenPacketRequirement {
+  id                  String                     @id @default(cuid())
+  organizationId      String
+  encounterId         String
+  encounter           PrescreenEncounter         @relation(fields: [encounterId], references: [id])
+  requirementCode     String
+  label               String
+  state               PacketRequirementState
+  blockingTargets     PrescreenReadinessTarget[]
+  responsibleRoleCode String?
+  resolutionWorkspace String
+  sourceRuleId        String
+  sourceRuleVersion   Int
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+
+  @@unique([organizationId, encounterId, requirementCode])
+  @@index([organizationId, encounterId])
+}
+
+/// Recorded submission intent. Grants nothing; implies no acknowledgement,
+/// review, or acceptance (ADR-0013 submission-as-intent).
+model PrescreenSubmission {
+  id                      String                   @id @default(cuid())
+  organizationId          String
+  encounterId             String                   @unique
+  encounter               PrescreenEncounter       @relation(fields: [encounterId], references: [id])
+  assessmentVersionId     String
+  target                  PrescreenReadinessTarget
+  receivingOrganizationId String
+  submittedAt             DateTime
+  submittedBy             String
+  createdAt               DateTime                 @default(now())
+
+  @@index([organizationId])
 }

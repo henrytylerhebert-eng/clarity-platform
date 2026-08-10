@@ -74,6 +74,10 @@ async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string
   await prisma.facilityTimezoneConfiguration.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.facilityProfile.deleteMany({ where: { organizationId: { in: organizationIds } } });
 
+  await prisma.prescreenSubmission.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.prescreenPacketRequirement.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.prescreenAssessmentVersion.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.prescreenEncounter.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.commandIdempotencyRecord.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.auditEvent.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.evidenceItem.deleteMany({ where: { organizationId: { in: organizationIds } } });
