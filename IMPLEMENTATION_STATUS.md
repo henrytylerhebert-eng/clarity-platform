@@ -1,9 +1,82 @@
 # Implementation Status
 
+**As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
+on branch `docs/session-close-2026-07-29` after merging current `origin/main`.
+
+- **AI operating model plan merged (PR #33).** Five active review-thread
+  blockers were fixed and resolved on 2026-08-23: AGENTS.md remains
+  authoritative over repository policy, ADR collision checks fetch/query open
+  PR refs before `git log --all`, graph maintenance is skipped unless
+  generated from the canonical checkout or normalized/excluding tooling, Stage
+  1 precision bands now cover the 0.3–0.499 and zero-denominator cases, and the
+  dated handoff no longer points operators at closed issue #34 as the live
+  merge blocker. GitHub CI `verify` passed on PR #33 before merge.
+- **PR #43 reconciliation.** The July regulatory-reference session notes below
+  are preserved as historical status instead of replacing the newer 2026-08-10
+  prescreen reconciliation block. The project-state block in `CLAUDE.md` now
+  carries forward OD-13, OD-14, the dev-tool-only boundary for the regulatory
+  corpus tool, and the graph-determinism issue without reviving stale PR #33,
+  PR #32, issue #34, or audit-gate blockers.
+
+**Verification this session:** docs-only conflict reconciliation; no product
+code, schema, migration, runtime, generated graph output, PHI/PII, or secrets
+changed. `git diff --check` must pass before push; CI is the authority after
+this branch updates.
+
+**As of 2026-08-10 (PR #32 review-response and main-reconciliation session)**
+on branch `codex/om/prescreen-phase3-fix` (pushed to PR #32's head,
+`claude/prescreen-phase3-persistence`). Two things landed:
+
+1. **Closed both Gemini Code Assist review findings on PR #32.**
+   `saveAssessmentDraft` and `submitPrescreen` now catch raw Prisma `P2002`
+   unique-index contention (racing duplicate `assessmentVersionId`; racing
+   duplicate submission on the same encounter) and map it to
+   `PrescreenDomainValidationError` instead of letting a raw Prisma error
+   escape the gateway — mirroring the pre-existing
+   `isAssessmentIdUniqueViolation` pattern. Two new concurrency tests fire
+   racing requests with distinct idempotency keys (a real DB-level race, not
+   an idempotency replay) and assert exactly one winner, one domain-typed
+   loser. Both review threads replied to and resolved.
+2. **Brought PR #32 current with `main`** (was 6 commits / ~3 weeks behind;
+   GitHub reported `mergeable: CONFLICTING`). Merge conflicts were confined
+   to `CLAUDE.md` and `IMPLEMENTATION_STATUS.md` narrative — both resolved by
+   interleaving history rather than picking a side. The merge also surfaced
+   a real collision needing a code fix, not just a doc reconciliation: PR
+   #36's new `contract-schema-enum-sync.test.ts` (Stage 0.4, landed on `main`
+   after PR #32 branched) didn't know about the six prescreen schema enums
+   PR #32 added (`PrescreenEncounterStatus`, `PrescreenAssessmentStatus`,
+   `PatientWillingness`, `PossiblePathway`, `PrescreenReadinessTarget`,
+   `PacketRequirementState`). Verified each against its domain-contracts
+   array member-for-member before classifying all six as `MIRRORED` — no
+   desync, just an invariant test that predated the enums it now covers.
+
+**Verification this session:** root **435/435** (40 files, up from 353 on
+PR #32's prior head and 388/389 on `main`'s prior head — the merged sum),
+app **64/64**, lint, typecheck, `prisma validate` pass, zero residue delta
+(28 orgs/15 cases, stable across every run this session — matches the
+2026-07-29 session's recorded count exactly).
+
+**Known gaps, both flagged, neither fixed here:**
+- The required "verify" CI check did not trigger for the Gemini-fix push
+  (confirmed via two direct GitHub API queries on the commit SHA, ~1 min
+  apart: `total_count: 0` workflow runs). Cause undetermined — the merge
+  commit's push may resolve it, or it may need repo Actions-settings review.
+- `npm audit --audit-level=high` now reports 2 new high-severity findings
+  repo-wide, disclosed after PR #37's audit-gate fix landed on 7/29:
+  `brace-expansion` (a follow-up CVE past PR #37's 5.0.8, already has an
+  open Dependabot fix, PR #44) and `nanoid` (<3.3.17, no open fix yet). This
+  blocks every PR's CI right now, not specifically #32; left for the owner
+  rather than bundled into this PR's diff.
+- `graphify-out/` on this branch was found built from the wrong worktree
+  (2,454 files pinned instead of the repo's 6,537 — same failure mode
+  tracked by issue #40) and was NOT refreshed/committed here to avoid an
+  unrelated 1.7M-line diff riding along with this fix.
+
 **As of 2026-07-29 (regulatory-reference session, second half)** on `main`.
 Two further merges after the block below: PR #41 (CMS research prompt + Phase 2
 policy-index packet) and PR #42 (regulatory corpus tool). PR #33 (operating
-model plan + ADR-0017) had all seven review findings fixed and awaits merge.
+model plan + ADR-0017) had seven review findings fixed in this session; five
+later review blockers were resolved and PR #33 merged on 2026-08-23.
 
 - **CMS regulatory reference, Phase 1 (PR #41).** A deep research prompt at
   `docs/legal/GEMINI_DEEP_RESEARCH_PROMPT_CMS_MEDICARE_MEDICAID.md`, following
@@ -16,14 +89,15 @@ model plan + ADR-0017) had all seven review findings fixed and awaits merge.
   that — "the interpretation map" — is the specification input for Phase 2.
   **The research has NOT been executed** (OD-13). The surface enumeration is
   authored from model knowledge and marked `Assumed`, not a verified inventory.
-- **Phase 2 captured, not designed (PR #41).** `ORG_POLICY_INDEX_DECISION_PACKET.md`
-  records the per-organization AI-native policy index at decision-packet
-  altitude, notes it sits on the controlled-extraction and AI-agent steps at
-  the END of the build sequence, and names five risks needing owner rulings:
-  cross-tenant leakage through shared vector retrieval (nearest-neighbour
-  search does not naturally respect a tenant predicate), policy-as-reference
-  vs policy-as-authority, possible FDA clinical-decision-support scope, who
-  authors default interpretations, and version staleness. Registered as OD-14.
+- **Phase 2 captured, not designed (PR #41).**
+  `docs/decisions/ORG_POLICY_INDEX_DECISION_PACKET.md` records the
+  per-organization AI-native policy index at decision-packet altitude, notes it
+  sits on the controlled-extraction and AI-agent steps at the END of the build
+  sequence, and names five risks needing owner rulings: cross-tenant leakage
+  through shared vector retrieval (nearest-neighbour search does not naturally
+  respect a tenant predicate), policy-as-reference vs policy-as-authority,
+  possible FDA clinical-decision-support scope, who authors default
+  interpretations, and version staleness. Registered as OD-14.
 - **Regulatory corpus tool (PR #42).** `scripts/regulatory-corpus/` collects
   federal regulatory text, stores it, and detects change. API-first: eCFR and
   the Federal Register both publish documented APIs, so nothing is scraped.
@@ -40,29 +114,29 @@ model plan + ADR-0017) had all seven review findings fixed and awaits merge.
   **Scope boundary:** development tooling — no `@prisma/client`, no database,
   no patient or tenant data, and NOT a deployed worker. Scheduling remains an
   owner decision per the standing worker/deployment constraint.
-- **PR #33 review findings (seven, all valid).** Two were documents making
-  false claims about themselves: ADR-0017 advertised R1 as "read-only by tool
-  allowlist" while the plan disclaims exactly that, and the ADR-collision check
-  piped filenames to bare numbers through `sort -u`, which collapses the
-  duplicate it is hunting — the plan asserted three collisions while shipping a
-  command incapable of finding one. A **P1** had the handoff telling an operator
-  to replay the FIX commits (`346ee85`, `1470e00`) rather than the vulnerable
-  parents (`ad1b7e9`, and `1470e00`'s parent), which would have handed R1
-  already-fixed code and recorded a false no-go. Also fixed: T1 has no contract
-  (now a Stage 3 entry gate), R2's write targets were summarised as three when
-  the contract lists four, Stage 1's outcome bands overlapped at exactly two
-  findings, and the handoff blocked Stage 1 on all four Stage 0 sub-items when
-  the plan requires only 0.1–0.3.
-- **Verification on `main` at session close:** root **416/417**, app **64/64**,
-  lint, typecheck, `prisma validate`, `npm audit` clean. The single root failure
-  is the shared-`clarity_dev` migration-ledger contention (issue #31); CI's
-  ephemeral Postgres passes that step. Synthetic residue zero delta across runs
-  (28 orgs / 15 cases / 28 users).
-- **New issue:** #40 — `graphify-out/` is tracked but keyed by absolute worktree
-  paths, so the CLAUDE.md-mandated `graphify update .` rewrites thousands of
-  path entries from any worktree other than the one that last generated it.
-  Needs a decision between untracking it, making it path-independent, or naming
-  one canonical worktree.
+- **PR #33 review findings from this session (seven, all valid).** Two were
+  documents making false claims about themselves: ADR-0017 advertised R1 as
+  "read-only by tool allowlist" while the plan disclaimed exactly that, and the
+  ADR-collision check piped filenames to bare numbers through `sort -u`, which
+  collapses the duplicate it is hunting — the plan asserted three collisions
+  while shipping a command incapable of finding one. A **P1** had the handoff
+  telling an operator to replay the FIX commits (`346ee85`, `1470e00`) rather
+  than the vulnerable parents (`ad1b7e9`, and `1470e00`'s parent), which would
+  have handed R1 already-fixed code and recorded a false no-go. Also fixed: T1
+  has no contract (now a Stage 3 entry gate), R2's write targets were
+  summarised as three when the contract lists four, Stage 1's outcome bands
+  overlapped at exactly two findings, and the handoff blocked Stage 1 on all
+  four Stage 0 sub-items when the plan requires only 0.1–0.3.
+- **Verification on `main` at that session close:** root **416/417**, app
+  **64/64**, lint, typecheck, `prisma validate`, `npm audit` clean. The single
+  root failure was the shared-`clarity_dev` migration-ledger contention (issue
+  #31); CI's ephemeral Postgres passed that step. Synthetic residue zero delta
+  across runs (28 orgs / 15 cases / 28 users).
+- **New issue:** #40 — `graphify-out/` is tracked but keyed by absolute
+  worktree paths, so the CLAUDE.md-mandated `graphify update .` rewrites
+  thousands of path entries from any worktree other than the one that last
+  generated it. Needs a decision between untracking it, making it
+  path-independent, or naming one canonical worktree.
 
 **As of 2026-07-29 (merge-gate and CaseStatus-ruling session)** on `main`
 after three merges: PR #37 (dependency audit), PR #36 (Stage 0.4 enum-sync
@@ -118,6 +192,37 @@ test), PR #38 (ADR-0018 `MEDICAL_TRANSFER_REQUIRED`).
   which the plan's own residual-risk text contradicts. PR #29, #32 remain
   open; #18 is draft.
 
+**As of 2026-07-19 (prescreen Phase 3 persistence session)** on branch
+`claude/prescreen-phase3-persistence` (from `main` 8399edd, PR pending).
+The owner authorized **local-only Phase 3 prescreen persistence** on the S2
+precedent — explicitly not the provider-backed Cloud SQL/RLS gate, which
+stays open. Delivered (ADR-0016): the prescreen gateway contract is async;
+command contracts moved to `domain-contracts` (re-exported unchanged);
+four tenant-scoped prescreen tables + a nullable idempotency
+`requestFingerprint` column (two migrations, OD-6-shaped RLS on the new
+tables); `PrismaPrescreenGateway` in `case-repository` (one tenant-context
+transaction per command; namespaced keys `prescreen/<command>/<actor>/<key>`
+with the shared ADR-0014 §5 fingerprint; replay reconstructs the original
+result; governed-event/outbox storage reuse — no vocabulary expansion; real
+tenant-checked `caseId` FK with non-revealing misses). The 9 prescreen HTTP
+tests and the dev server now run on the persistent gateway — prescreen
+state survives a restart. Session verification: root **353/353** (38
+files, three consecutive runs — includes 10 new persistence proofs:
+durability across clients, cross-connection replay, nested-body conflict,
+one-winner concurrency, zero-residue failure, fail-closed RLS under a
+NOBYPASSRLS role), app **64/64**, lint, typecheck, `prisma validate`; zero
+residue from this session (pre-existing residue now 26 orgs/13 cases, all
+from other sessions — issue #24 updated). Deviations, both tracked: the
+two migrations were applied via the Prisma hotfix flow because unmerged
+network-branch migrations occupy the shared ledger (issue #31, new), and
+the migration-integrity test now asserts its stated intent (repository ⊆
+ledger, none rolled back) until #31 resolves. ADR numbering: 0016 taken;
+0015 left free for the network branch's collision fix (its PR #29
+currently claims the already-assigned 0014). Not claimed: provider-backed
+Cloud SQL/RLS, runtime-role app connection (dev connection is superuser),
+fresh-ledger replay this session, outbox dispatch for prescreen events,
+cross-org, UI, production readiness.
+
 **As of 2026-07-19 (prescreen API-slice session)** on branch
 `claude/clarity-opening-cfcdc5`, rebased onto `main` after the prescreen
 hardening session (PR #27). The owner resolved the prescreen role-mapping
@@ -162,7 +267,8 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 - **Phase 1 contracts (PR #19 plus post-merge hardening):** repo-native prescreen contracts in `packages/domain-contracts/src/prescreen.ts` — willingness, four-domain orientation + gate, possible-pathway derivation (medical-stabilization precedence; routing hints, never decisions), encounter/assessment lifecycles, target-scoped packet readiness (named gaps, no aggregate score), fail-closed consent-authority and transport-qualification evaluators over configured rules, stable error codes, and an event envelope limited to the six command-coupled event types. Conservative review hardening routes NON_OPPOSED to authorized noncontested review, fails closed on missing privacy regime or overlapping approved consent rules, disqualifies providers with unresolved restrictions, and requires both sending- and receiving-facility approval. 38 unit tests.
 - **Phase 2 command service (PR #23, ADR-0013):** `packages/prescreen-service` — six commands (StartPrescreenEncounter, SaveAssessmentDraft, AttestAssessment, CreateAssessmentSupplement, SubmitPrescreen, UpdatePacketRequirement) plus the read-only EvaluateTargetReadiness view, behind strict envelopes → injected explicit role policy → an atomic in-memory gateway (tenant-scoped reads, fresh-row state machine, versioned update, audit + outbox + idempotency committed together; failed commands leave zero residue — proven by test). Canonical recursively-sorted SHA-256 idempotency fingerprints close the reference package's nested-body replay defect. Submission records intent only: no acknowledgement, review, acceptance, admission, transport authority, or cross-organization access is expressible. 27 tests (includes the ADR-0014 §5 fingerprint-amendment test) covering all fourteen owner completion criteria plus post-merge review hardening (`docs/testing/PRESCREEN_SERVICE_TEST_MANIFEST.md`).
 - **Role mapping resolved + same-org API slice (this branch, ADR-0014):** the owner ruled Option 3 narrowly — exactly two equivalences (`INTAKE_COORDINATOR` ≡ Central Intake coordinator; `PHYSICIAN_REVIEWER` ≡ authorized practitioner, PMHNP signer authority as configured policy, matrix-conditional capabilities excluded fail-closed), external/field roles deferred to the cross-org design, no enum change. `PRESCREEN_PRODUCTION_POLICY` (compile-checked against `UserRole`) + seven HTTP routes on the existing node:http server: strict bodies mirror the envelopes minus every server-derived field (`organizationId`, `actor`, `occurredAt`, and for submit `receivingOrganizationId` — all principal-derived/server-stamped; supplying any is a 400, and cross-org submission is structurally inexpressible). Stable error-code → status mapping (403/404/409/400, content-free). Phase 2 amendment: the idempotency fingerprint excludes `occurredAt` so HTTP retries replay instead of conflicting; nested-body conflicts unchanged. 9 integration tests over real HTTP with DB-backed auth (`docs/testing/PRESCREEN_API_TEST_MANIFEST.md`).
-- **Not claimed for the prescreen slice:** persistence or restart durability of prescreen state (the gateway is still in-memory; a restart loses it), migrations, UI, event delivery, cross-organization collaboration, roles beyond the two ruled equivalences, PMHNP scope configuration, clinical/legal approval of any rule content, production readiness. Prescreen Phase 3 persistence remains gated on the separate provider-backed Cloud SQL/RLS verification plus a Phase 3 design approval.
+- **Phase 3 persistence (this branch, ADR-0016):** owner-authorized local bounded slice. Prescreen state persists in `clarity_dev` behind `PrismaPrescreenGateway` and survives restart; RLS (ENABLE+FORCE, fail-closed) covers the four new tables; all Phase 2 guarantees re-proven against Postgres (10 persistence tests + the 9 HTTP tests on the persistent gateway). See `docs/implementation/PRESCREEN_PHASE3_PERSISTENCE_IMPLEMENTATION.md` and `docs/testing/PRESCREEN_PERSISTENCE_TEST_MANIFEST.md`.
+- **Not claimed for the prescreen slice:** provider-backed Cloud SQL/RLS evidence (separate, non-waived gate), runtime-role deployment for the app connection (local dev connection is superuser and bypasses RLS; the proof used a NOBYPASSRLS role), outbox dispatch/delivery for prescreen events, UI, cross-organization collaboration, roles beyond the two ruled equivalences, PMHNP scope configuration, clinical/legal approval of any rule content, production readiness.
 - **Open decision packets:** the cross-organization submission/receipt model (successor to the resolved role-mapping packet — blocks field-originated prescreens and any external-actor work); consent-rule specificity ordering and fractional-age representation remain domain-review follow-ups in ADR-0013 (until an ordering policy is approved, overlapping consent rules fail closed).
 
 ## Completed (verified working)
@@ -228,4 +334,4 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 
 ~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011).
 
-**Current action:** The owner-approved prescreen chain is executed through the same-org API slice: package onboarded (PR #17), Phase 1 contracts merged (PR #19), Phase 2 command service (ADR-0013), role mapping resolved + same-org HTTP slice implemented and verified (ADR-0014, this branch — PR pending). Next: (1) provider-backed Cloud SQL/RLS verification remains the separate, non-waived infrastructure gate before Phase 3 prescreen persistence — blocked on the owner providing authenticated GCP access (`gcloud auth login` + the intended project; `om-venture-os` is currently configured but unconfirmed); (2) the cross-organization submission/receipt model is the successor decision packet before any field-originated prescreen or external-actor work; (3) a prescreen UI slice is now unblocked in principle but needs an owner scope decision; (4) the previously recorded H1/H2/H3, event-vocabulary, OD-6, migration-recovery, and outbox acceptances stand unchanged. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
+**Current action:** The owner-approved prescreen chain now runs durable end-to-end locally: package onboarded (PR #17), Phase 1 contracts (PR #19/#27), Phase 2 command service (ADR-0013), same-org HTTP slice + role ruling (ADR-0014, PR #28), and **Phase 3 local persistence (ADR-0016, branch `claude/prescreen-phase3-persistence` — PR pending)**. Next: (1) merge order for the parallel network-enrichment branch (PRs #29/#30) — it must renumber its ADR off the already-assigned 0014 (0015 left free) and reconcile the shared-ledger contention (issue #31) before or at merge; (2) provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate — still blocked on owner GCP access (`gcloud auth login` + intended project); (3) the cross-organization submission/receipt model is the successor decision packet before any field-originated prescreen or external-actor work; (4) a prescreen UI slice needs an owner scope decision; (5) prior H1/H2/H3, event-vocabulary, OD-6, migration-recovery, and outbox acceptances stand unchanged. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.

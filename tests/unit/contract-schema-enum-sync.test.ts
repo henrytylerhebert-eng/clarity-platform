@@ -59,6 +59,15 @@ const MIRRORED: Readonly<Record<string, string>> = {
   DenialReasonCode: "DENIAL_REASON_CODES",
   DocumentationGapCategory: "DOCUMENTATION_GAP_CATEGORIES",
   DocumentationGapStatus: "DOCUMENTATION_GAP_STATUSES",
+  // Prescreen Phase 3 persistence (ADR-0016, PR #32) added these six schema
+  // enums after this suite was written on a separate branch (PR #36); neither
+  // branch knew about the other's enums until the merge.
+  PrescreenEncounterStatus: "PRESCREEN_ENCOUNTER_STATUSES",
+  PrescreenAssessmentStatus: "PRESCREEN_ASSESSMENT_STATUSES",
+  PatientWillingness: "PATIENT_WILLINGNESS_STATES",
+  PossiblePathway: "POSSIBLE_PATHWAYS",
+  PrescreenReadinessTarget: "PRESCREEN_READINESS_TARGETS",
+  PacketRequirementState: "PACKET_REQUIREMENT_STATES",
 };
 
 /**
