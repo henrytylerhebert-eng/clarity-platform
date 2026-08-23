@@ -33,9 +33,9 @@ not decorative.
 
 | # | What | State | Your move |
 |---|---|---|---|
-| [PR #33](https://github.com/henrytylerhebert-eng/clarity-platform/pull/33) | Plan doc + ADR-0017, approved, 7 review findings fixed | Open, mergeable, 0 unresolved threads | Merge when CI unblocks (see #34) |
-| [PR #36](https://github.com/henrytylerhebert-eng/clarity-platform/pull/36) | Stage 0.4 enum-sync test | Open, mergeable | Merge when CI unblocks (see #34) |
-| [Issue #34](https://github.com/henrytylerhebert-eng/clarity-platform/issues/34) | `npm audit --audit-level=high` fails on every PR (brace-expansion, postcss) | Open, **blocks all merges** | Fix this or nothing merges. Out of Stage 0's scope by design — do it as its own `chore:` PR, precedent is PR #14 |
+| [PR #33](https://github.com/henrytylerhebert-eng/clarity-platform/pull/33) | Plan doc + ADR-0017 | Snapshot stale — check live PR threads and CI before acting | Resolve current review threads first; do not trust this dated row as merge authority |
+| [PR #36](https://github.com/henrytylerhebert-eng/clarity-platform/pull/36) | Stage 0.4 enum-sync test | Closed/merged after this handoff was written | No action from this handoff |
+| [Issue #34](https://github.com/henrytylerhebert-eng/clarity-platform/issues/34) | `npm audit --audit-level=high` failed on every PR (brace-expansion, postcss) | Closed by PR #37 on 2026-07-30 | Historical blocker only; do not route new work toward #34 unless it regresses |
 | [Issue #35](https://github.com/henrytylerhebert-eng/clarity-platform/issues/35) | Schema `CaseStatus` has two values (`MEDICAL_TRANSFER_REQUIRED`, `RETURNED_FOR_MORE_INFORMATION`) with zero TypeScript representation | Open, owner decision needed | Don't fix without an owner ruling on transition semantics — see the issue |
 
 **Check these are still current before trusting this table** — `gh pr list --state open`, `gh issue list --state open`. This doc is a snapshot from 2026-07-29.
@@ -59,7 +59,7 @@ Stage 0.2's move is bigger than "move the directory" — the plan doc has a veri
 
 2. **The local `clarity_dev` database is shared by every git worktree on this machine** (16, as of 2026-07-29 — check `git worktree list`). It accumulates migrations from whichever branches have run DB-backed tests recently, so `tests/integration/migration-integrity.test.ts` can fail on a perfectly clean branch just because another worktree applied a migration your branch doesn't have. Before treating a local test failure as a real defect: compare `ls prisma/migrations | grep -c '^2'` against what the test says is actually applied. **CI's ephemeral Postgres doesn't have this problem** — it's the real gate, not your local run.
 
-3. **ADR numbers collide across unmerged branches.** `docs/architecture/` on `main` is not the full picture — three ADR-number collisions existed simultaneously on 2026-07-29 (0014 claimed twice, 0015, 0016 each on different unmerged branches). Before allocating a number: `git log --all --name-only --pretty=format: -- "docs/architecture/ADR-*" | grep -oE "ADR-[0-9]{4}" | sort -u | tail -5`. This ADR is 0017 for exactly this reason.
+3. **ADR numbers collide across unmerged branches.** `docs/architecture/` on `main` is not the full picture — three ADR-number collisions existed simultaneously on 2026-07-29 (0014 claimed twice, 0015, 0016 each on different unmerged branches). Before allocating a number, fetch/query open PR refs, then compare ADR filenames across all refs; `git log --all` only examines refs already present locally. This ADR is 0017 for exactly this reason.
 
 4. **`gemini-code-assist` has been sunset** — it posted on PR #33 that its consumer GitHub integration has stopped reviewing entirely. `chatgpt-codex-connector` is the only automated external reviewer left, and it has been finding real, substantive issues (all 7 findings on PR #33 were valid, including one that falsified a safety claim the plan itself had made about R1's read-only property). Don't skip triaging its comments.
 
@@ -70,7 +70,9 @@ Stage 0.2's move is bigger than "move the directory" — the plan doc has a veri
 1. `gh pr list --state open` — is #30 merged/closed yet?
 2. If yes: do 0.1–0.3 following the plan doc exactly (it has the file-level acceptance checks). Re-run the shared-surface checks in §"Amendment 1" of the plan before touching anything.
 3. If no: don't start 0.1–0.3. Either wait, or ask the owner whether to force the merge order.
-4. Either way, issue #34 blocks every merge — consider fixing that first regardless of #30's state, since it's independent and unblocks both open PRs immediately.
+4. Do not treat issue #34 as the current merge blocker. PR #37 closed it on
+   2026-07-30; check `gh pr view`, current review threads, and CI status to find the
+   actual blocker before changing files.
 
 ## If you're starting Stage 1 (the R1 trial)
 

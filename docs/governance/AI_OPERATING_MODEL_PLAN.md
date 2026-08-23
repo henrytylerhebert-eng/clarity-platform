@@ -108,7 +108,7 @@ are actively drifting:**
 
 | Surface | Evidence (2026-07-29) | Consequence |
 |---|---|---|
-| **Sequential ADR numbering** | Three collisions in flight: ADR-0014 claimed by `claude/clarity-network-enrichment-f10807` though already merged as prescreen role mapping; ADR-0015 on `codex/om/sync-main`; ADR-0016 on `claude/prescreen-phase3-persistence` | `CLAUDE.md`'s "check `docs/architecture/` for the next free number" is only correct against **merged** history. Allocation must check all refs: `git log --all --name-only -- "docs/architecture/ADR-*"` |
+| **Sequential ADR numbering** | Three collisions in flight: ADR-0014 claimed by `claude/clarity-network-enrichment-f10807` though already merged as prescreen role mapping; ADR-0015 on `codex/om/sync-main`; ADR-0016 on `claude/prescreen-phase3-persistence` | `CLAUDE.md`'s "check `docs/architecture/` for the next free number" is only correct against **merged** history. Allocation must fetch/query open PR refs before checking all refs: `git fetch origin '+refs/pull/*/head:refs/remotes/origin/pr/*' --prune`, then `git log --all --name-only -- "docs/architecture/ADR-*"` |
 | **One local `clarity_dev`, shared by 16 git worktrees** | The database held **16** applied migrations while this branch carried 12; the extra four (`prescreen_phase3_persistence`, `prescreen_persistence_rls`, `packet11_persistence`, `network_review_append_only_audit`) came from unmerged branches | `tests/integration/migration-integrity.test.ts` fails on an otherwise clean branch. **A local suite result is not by itself evidence about the branch under test.** CI's ephemeral Postgres is unaffected and is the authority |
 
 **Consequences for the roles defined below.** R1 must treat ADR-number allocation and
@@ -323,7 +323,9 @@ is the owner's. Report findings; do not fix them.
 
 ## Load first
 0. AGENTS.md — repository policy, evidence labels, security boundaries
-1. CLAUDE.md — invariants and truth-discipline rules (wins on conflict with AGENTS.md)
+1. CLAUDE.md — invariants and truth-discipline rules. It does not override
+   AGENTS.md repository policy; any conflict with AGENTS.md is a finding.
+   CLAUDE.md precedence is limited to Claude-specific manual tailoring.
 2. The ADRs governing the touched area (docs/architecture/ADR-00NN-*.md)
 3. The diff under review
 4. The touched package's commands.ts / permissions.ts / <x>CommandService.ts
@@ -370,11 +372,13 @@ is the owner's. Report findings; do not fix them.
 
 ## Shared-surface checks (must be run against ALL refs, not just merged history)
 - ADR NUMBER COLLISION: a new ADR number must be free across every ref, not only
-  docs/architecture/ on this branch.
+  docs/architecture/ on this branch. Fetch/query open PR refs first; `git log --all`
+  only examines refs already present locally and does not contact GitHub.
   Do NOT reduce to bare numbers and `sort -u` — that collapses each number to one
   line and so hides precisely the duplicate being looked for. (An earlier version of
   this plan did exactly that and could not have detected any collision.) Compare
   distinct FILENAMES per number instead:
+    git fetch origin '+refs/pull/*/head:refs/remotes/origin/pr/*' --prune
     git log --all --name-only --pretty=format: -- "docs/architecture/ADR-*" \
       | grep -oE "ADR-[0-9]{4}[^[:space:]]*" | sort -u \
       | awk 'match($0, /ADR-[0-9]{4}/) {
@@ -443,11 +447,13 @@ result can never satisfy two branches:
 
 - **Go** — **≥4 of 6** recovered **including finding #1**; PR #26 aliasing flagged;
   live-PR precision ≥0.5 with triage ≤20 minutes.
-- **Ambiguous** — **2 or 3 of 6**, or ≥4 recovered but #1 missed. One prompt revision,
+- **Ambiguous** — **2 or 3 of 6** recovered; or ≥4 recovered but #1 missed; or the
+  seeded recovery criteria are met but live-PR precision is ≥0.3 and <0.5; or no
+  live-PR findings are reported, leaving precision undefined. One prompt revision,
   one re-run, then decide. Not an open-ended tuning loop.
-- **No-go, stop** — **≤1 of 6** recovered; or precision <0.3; or triage costs more than
-  the fix PRs did; or **any confident-but-wrong tenancy claim** (an unreliable safety
-  reviewer is worse than none).
+- **No-go, stop** — **≤1 of 6** recovered; or live-PR precision is defined and <0.3;
+  or triage costs more than the fix PRs did; or **any confident-but-wrong tenancy
+  claim** (an unreliable safety reviewer is worse than none).
 
 The non-count no-go conditions (precision, triage cost, a false tenancy claim) override
 a Go or Ambiguous count. A verifier that finds defects but also invents them is not
@@ -464,16 +470,19 @@ to exactly four declared target groups (`IMPLEMENTATION_STATUS.md`, the `CLAUDE.
 project-state block, `docs/testing/*_TEST_MANIFEST.md`, and the generated
 `graphify-out/` tree); every run is reviewed before commit. Whoever authors
 `.claude/agents/session-steward.md` must carry all four — a three-target summary would
-silently drop the graph writes that step 5 of the contract requires.
+silently drop graph maintenance — and must preserve the graph determinism rule below.
 
 ```markdown
 You reconcile Clarity's durable status artifacts with what ACTUALLY ran this session.
 You may edit ONLY: IMPLEMENTATION_STATUS.md, the CLAUDE.md project-state block,
 docs/testing/*_TEST_MANIFEST.md, and the generated graphify-out/ tree (graph.json,
-manifest.json, GRAPH_REPORT.md, cache) produced by step 5's `graphify update .` —
-that command rewrites committed files, so it is inside the boundary by necessity.
-Never product code, schema, contracts, or ADR content. If graphify produces a large
-unrelated diff, report it and stop rather than committing it.
+manifest.json, GRAPH_REPORT.md, cache) produced by the graph step below — graph files
+are inside the boundary only when generated deterministically from the canonical
+checkout or from tooling that normalizes/excludes worktree-dependent paths. Never
+product code, schema, contracts, or ADR content. If graphify would key output by an
+active worktree path, nested .claude/.codex worktree, absolute path, or mtime-sensitive
+manifest entry, report `GRAPH_SKIPPED_NON_CANONICAL_WORKTREE` and do not commit
+graphify-out changes.
 
 THE ONE RULE THAT OVERRIDES EVERYTHING: never record a test count, "passing", or
 "verified" that was not produced by a command run in this session. If a suite did not
@@ -491,7 +500,10 @@ Steps:
 3. Update the CLAUDE.md project-state block only if the phase, decisions, open
    decisions, or next action actually changed.
 4. Update affected test manifests, preserving their honest-gaps sections.
-5. Run: graphify update .
+5. Update the graph only from the repository's declared canonical checkout, or from a
+   graphify mode/config that normalizes paths and excludes nested/generated worktrees.
+   If neither condition is true, skip the graph update, record
+   `GRAPH_SKIPPED_NON_CANONICAL_WORKTREE`, and do not commit graphify-out changes.
 6. Report: completed items, then THE SINGLE next action.
 7. List every claim you could not verify.
 ```
@@ -565,8 +577,10 @@ rather than silently adopting either side.
 0. `AGENTS.md` — repository policy. It states it "should be treated as policy; do not
    ignore these guardrails," and carries the workspace-verification steps, the evidence
    protocol (`[Unknown]` / `[Unverified]` labels), the scoped surfaces, and the
-   security boundaries. Load it first. Where it conflicts with `CLAUDE.md`, `CLAUDE.md`
-   wins by its own Section-15 tailoring rule — but it must still be read.
+   security boundaries. Load it first. Where it conflicts with `CLAUDE.md`, AGENTS.md
+   remains authoritative for repository policy; record the conflict instead of
+   following the weaker rule. CLAUDE.md precedence is limited to Claude-specific
+   manual tailoring.
 1. `CLAUDE.md` — operating rules, project-state block, house terminology
 2. `git status` (must be clean) + `git log -15` + current branch
 3. `IMPLEMENTATION_STATUS.md` — **the topmost dated block only**
@@ -582,12 +596,14 @@ git log --oneline -20 -- prisma/schema.prisma packages/domain-contracts \
   packages/case-repository packages/api-service/src/server.ts
 ```
 
-**Before allocating an ADR number**, check every ref — not just this branch. Merged
-history alone is insufficient; three collisions existed on 2026-07-29:
+**Before allocating an ADR number**, fetch/query open PR refs, then check every ref —
+not just this branch. Merged history alone is insufficient; three collisions existed on
+2026-07-29, and `git log --all` only sees refs already present locally:
 
 ```bash
+git fetch origin '+refs/pull/*/head:refs/remotes/origin/pr/*' --prune
 git log --all --name-only --pretty=format: -- "docs/architecture/ADR-*" \
-  | grep -oE "ADR-[0-9]{4}" | sort -u | tail -5
+  | grep -oE "ADR-[0-9]{4}[^[:space:]]*" | sort -u
 ```
 
 **Before trusting a DB-backed suite result**, confirm the shared local `clarity_dev`
