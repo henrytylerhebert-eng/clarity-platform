@@ -707,12 +707,7 @@ export class PrismaEpisodePersistenceGateway {
       const existingEpisode = await withTenantContext(this.prisma, params.organizationId, (tx) => tx.episode.findFirst({
         where: { id: existingLink.episodeId, organizationId: params.organizationId },
       }));
-      if (!existingEpisode) {
-        if (isActiveAdmissionUniqueViolation(error)) {
-          throw new ActiveAdmissionExistsError(command.sourceCaseId);
-        }
-        throw error;
-      }
+      if (!existingEpisode) throw new EpisodeNotFoundError(existingLink.episodeId);
       if (!admissionIdentityMatches(existingLink, existingEpisode, command)) {
         throw new IdempotencyConflictError(command.acceptedFacilityResponseId);
       }
