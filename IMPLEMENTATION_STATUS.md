@@ -1,5 +1,24 @@
 # Implementation Status
 
+**2026-09-06: Rev Ops patient-day slice, locally verified, not deployed.**
+On `codex/om/rev-ops-patient-days`, the synthetic `/rev-ops` workflow now covers
+hospital/unit setup, delegated access, configurable cost center, budget
+upload/manual draft and approval, actuals upload/manual entry, accountable
+correction, period close/reopen and full/phased comparisons. Persistence,
+source history, optimistic concurrency and server-enforced tenant isolation
+are implemented. Forecast, collections and event-level stay counting remain deferred.
+
+Tyler completed the owner walkthrough and authorized a test/debug pass. Current
+verification: 451 root tests, 67 app tests, four Rev Ops browser journeys and all
+20 legacy browser checks passed. Typecheck, full source lint, app build, Prisma
+validation and diff checks passed. A real API restart preserved the full workspace
+and all audit revisions. Debugging fixed import validation/provenance, stale UI
+state, budget amendment handling, setup ambiguity and server logout; an additional
+migration protects history from application-role updates/deletes. Stale legacy
+selectors and an intermittent prescreen fixture collision were corrected.
+See [verification and remaining gates](docs/testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
+This is local synthetic proof, not production readiness or whole-product completion.
+
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.
 

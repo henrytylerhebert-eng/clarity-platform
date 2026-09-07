@@ -1,0 +1,15 @@
+tenant_key,facility_key,facility_label,unit_key,unit_label,timezone,period,monthly_budget,activity_date,patient_days,source_record_key
+demo-a,facility-a,Harbor Demo Hospital,adult-a,Adult,America/Chicago,2028-02,290,2028-02-01,9,a-01
+demo-a,facility-a,Harbor Demo Hospital,adult-a,Adult,America/Chicago,2028-02,290,2028-02-02,10,a-02
+demo-a,facility-a,Harbor Demo Hospital,adult-a,Adult,America/Chicago,2028-02,290,2028-02-03,11,a-03
+demo-a,facility-a,Harbor Demo Hospital,adult-a,Adult,America/Chicago,2028-02,290,2028-02-04,10,a-04
+demo-a,facility-a,Harbor Demo Hospital,adult-a,Adult,America/Chicago,2028-02,290,2028-02-05,12,a-05
+demo-a,facility-a,Harbor Demo Hospital,adult-a,Adult,America/Chicago,2028-02,290,2028-02-06,8,a-06
+demo-a,facility-a,Harbor Demo Hospital,adult-a,Adult,America/Chicago,2028-02,290,2028-02-07,10,a-07
+demo-b,facility-b,Harbor Demo Hospital,adult-b,Adult,America/Chicago,2028-02,145,2028-02-01,5,b-01
+demo-b,facility-b,Harbor Demo Hospital,adult-b,Adult,America/Chicago,2028-02,145,2028-02-02,5,b-02
+demo-b,facility-b,Harbor Demo Hospital,adult-b,Adult,America/Chicago,2028-02,145,2028-02-03,5,b-03
+demo-b,facility-b,Harbor Demo Hospital,adult-b,Adult,America/Chicago,2028-02,145,2028-02-04,5,b-04
+demo-b,facility-b,Harbor Demo Hospital,adult-b,Adult,America/Chicago,2028-02,145,2028-02-05,5,b-05
+demo-b,facility-b,Harbor Demo Hospital,adult-b,Adult,America/Chicago,2028-02,145,2028-02-06,5,b-06
+demo-b,facility-b,Harbor Demo Hospital,adult-b,Adult,America/Chicago,2028-02,145,2028-02-07,5,b-07
