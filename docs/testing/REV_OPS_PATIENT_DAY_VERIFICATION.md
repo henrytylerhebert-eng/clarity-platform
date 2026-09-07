@@ -142,6 +142,12 @@ passed. All four dedicated desktop/mobile browser journeys passed against the
 restarted API and migrated database. The legacy browser and restart-equality
 results above are retained from the preceding debug pass, not rerun here.
 
+The first CI run applied all 18 migrations successfully on PostgreSQL 16, then
+reported 462 passed and one assertion failure: the rejected key update returns
+`23503` there, versus `23001` on local PostgreSQL 18. The assertion now accepts
+either constraint code and requires the named journal foreign key; rejection and
+unchanged-record checks remain mandatory.
+
 This is a forward migration; earlier migration files are unchanged. ZIP64,
 multi-disk archives and ambiguous ZIP containers are intentionally unsupported.
 No dependency changes, source workbook access or new product scope were needed.

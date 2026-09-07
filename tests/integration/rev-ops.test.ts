@@ -633,7 +633,17 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
           w.id,
           `${w.id}-rewritten`,
         ),
-      ).rejects.toMatchObject({ code: "P2010", meta: { code: "23001" } });
+      ).rejects.toMatchObject({
+        code: "P2010",
+        meta: {
+          // PostgreSQL 16 reports foreign_key_violation; 18 reports
+          // restrict_violation for the same rejected referenced-key update.
+          code: expect.stringMatching(/^(23503|23001)$/),
+          message: expect.stringContaining(
+            "RevOpsChange_organizationId_workspaceId_fkey",
+          ),
+        },
+      });
       await tx.$executeRawUnsafe(
         "ROLLBACK TO SAVEPOINT immutable_workspace_key",
       );
