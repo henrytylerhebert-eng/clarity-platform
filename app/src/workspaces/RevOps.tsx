@@ -9,6 +9,8 @@ import type {
   RevOpsView,
   RevOpsCommand,
   RevOpsPermission,
+  RevOpsImportRow,
+  RevOpsReconciliationReceipt,
 } from "../../../packages/domain-contracts/src/revOps";
 import "./revOps.css";
 import {
@@ -18,6 +20,10 @@ import {
   SnapshotValues,
   customValues,
 } from "./RevOpsFields";
+import {
+  ReconciliationReview,
+  ReconciliationReceipt,
+} from "./RevOpsReconciliation";
 
 type Comparison = {
   onboarding?: {
@@ -47,6 +53,12 @@ type Preview = {
   commands: unknown[];
   issues: { row: number; message: string }[];
   replayed: boolean;
+  reconciliation?: {
+    period: string;
+    importKey: string;
+    rows: RevOpsImportRow[];
+  };
+  receipt?: RevOpsReconciliationReceipt;
 };
 type Change = {
   id: string;
@@ -54,7 +66,7 @@ type Change = {
   actorId: string;
   action: string;
   occurredAt: string;
-  details: unknown;
+  details: { reconciliation?: RevOpsReconciliationReceipt };
 };
 const permissionLabels: Record<RevOpsPermission, string> = {
   view: "View reports and history",
@@ -104,6 +116,9 @@ export function RevOps() {
   const [error, setError] = useState("");
   const [upload, setUpload] = useState<Upload | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
+  const [receipt, setReceipt] = useState<RevOpsReconciliationReceipt | null>(
+    null,
+  );
   const [kind, setKind] = useState<"budget" | "actuals">("actuals");
   const current = items.find((i) => i.id === selected);
   const can = (p: RevOpsPermission) =>
@@ -147,6 +162,7 @@ export function RevOps() {
   }
   useEffect(() => {
     setPreview(null);
+    setReceipt(null);
     setUpload(null);
     setBudgetId("");
     setMessage("");
@@ -199,6 +215,7 @@ export function RevOps() {
     const request = ++fileRead.current;
     setError("");
     setPreview(null);
+    setReceipt(null);
     setUpload(null);
     setBusy(true);
     try {
@@ -355,6 +372,7 @@ export function RevOps() {
                 value={period}
                 onChange={(e) => {
                   setPeriod(e.target.value);
+                  setPreview(null);
                   setThrough(`${e.target.value}-01`);
                   setBudgetId("");
                 }}
@@ -968,11 +986,15 @@ export function RevOps() {
                     e.preventDefault();
                     void run(
                       async () => {
+                        setPreview(null);
                         setPreview(
                           await apiRevOps<Preview>(`${base}/import`, {
                             revision: current.revision,
                             commit: false,
                             upload,
+                            ...(upload.kind === "actuals"
+                              ? { reconciliation: { period } }
+                              : {}),
                           }),
                         );
                       },
@@ -1101,32 +1123,76 @@ export function RevOps() {
                     {preview.replayed ? "· already imported" : ""}
                   </h3>
                   <p>Headers: {preview.headers.join(", ")}</p>
-                  {preview.issues.map((i, n) => (
-                    <p className="ro-warning" key={n}>
-                      Row {i.row}: {i.message}
-                    </p>
-                  ))}
-                  <details>
-                    <summary>Review mapped values</summary>
-                    <pre>{JSON.stringify(preview.commands, null, 2)}</pre>
-                  </details>
-                  <button
-                    disabled={busy || preview.issues.length > 0}
-                    onClick={() =>
-                      void run(async () => {
-                        await apiRevOps(`${base}/import`, {
-                          revision: preview.revision,
-                          commit: true,
-                          upload,
-                        });
+                  {preview.reconciliation ? (
+                    <ReconciliationReview
+                      rows={preview.reconciliation.rows}
+                      state={current.state}
+                      busy={busy}
+                      canEnter={can("actualEnter")}
+                      canCorrect={can("actualCorrect")}
+                      stale={current.revision !== preview.revision}
+                      replayed={preview.replayed}
+                      receipt={preview.receipt}
+                      onCancel={() => {
                         setPreview(null);
-                        setUpload(null);
-                      }, "Import accepted. Existing corrections and approved baselines are preserved.")
-                    }
-                  >
-                    Confirm import
-                  </button>
+                        setMessage("Preview discarded; no rows imported.");
+                      }}
+                      onConfirm={(decisions) =>
+                        void run(async () => {
+                          const result = await apiRevOps<{
+                            receipt?: RevOpsReconciliationReceipt;
+                          }>(`${base}/import`, {
+                            revision: preview.revision,
+                            commit: true,
+                            upload,
+                            reconciliation: {
+                              period: preview.reconciliation!.period,
+                              importKey: preview.reconciliation!.importKey,
+                              decisions,
+                            },
+                          });
+                          setReceipt(result.receipt ?? null);
+                          setPreview(null);
+                          setUpload(null);
+                        }, "Import accepted. Existing corrections and approved baselines are preserved.")
+                      }
+                    />
+                  ) : (
+                    <>
+                      {preview.issues.map((i, n) => (
+                        <p className="ro-warning" key={n}>
+                          Row {i.row}: {i.message}
+                        </p>
+                      ))}
+                      <details>
+                        <summary>Review mapped values</summary>
+                        <pre>{JSON.stringify(preview.commands, null, 2)}</pre>
+                      </details>
+                      <button
+                        disabled={busy || preview.issues.length > 0}
+                        onClick={() =>
+                          void run(async () => {
+                            await apiRevOps(`${base}/import`, {
+                              revision: preview.revision,
+                              commit: true,
+                              upload,
+                            });
+                            setPreview(null);
+                            setUpload(null);
+                          }, "Import accepted. Existing corrections and approved baselines are preserved.")
+                        }
+                      >
+                        Confirm import
+                      </button>
+                    </>
+                  )}
                 </div>
+              ) : null}
+              {receipt ? (
+                <ReconciliationReceipt
+                  receipt={receipt}
+                  state={current.state}
+                />
               ) : null}
             </section>
           ) : null}
@@ -1143,6 +1209,12 @@ export function RevOps() {
                     Revision {h.revision} · {h.action} · {h.actorId} ·{" "}
                     {h.occurredAt}
                   </summary>
+                  {h.details.reconciliation ? (
+                    <ReconciliationReceipt
+                      receipt={h.details.reconciliation}
+                      state={current.state}
+                    />
+                  ) : null}
                   <pre>{JSON.stringify(h.details, null, 2)}</pre>
                 </details>
               ))}

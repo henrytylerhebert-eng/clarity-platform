@@ -1,5 +1,241 @@
 import { expect, test } from "@playwright/test";
 
+test("census reconciliation reviews conflicts, rejects stale decisions and preserves receipts after replay", async ({
+  page,
+}, testInfo) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  const login = await page.request.post("/api/auth/login", {
+    data: { assertion: "syn-assert-revops-admin-dev" },
+  });
+  const { token } = await login.json();
+  const headers = { authorization: `Bearer ${token}` };
+  const name = `Synthetic reconciliation ${testInfo.project.name} ${Date.now()}`;
+  const created = await page.request.post("/api/rev-ops/workspaces", {
+    headers,
+    data: {
+      name,
+      unit: "Geriatric",
+      timezone: "America/Chicago",
+      costCenterLabel: "Cost center",
+      costCenterOptions: ["Inpatient"],
+    },
+  });
+  expect(created.ok()).toBe(true);
+  const w = await created.json();
+  const path = `/api/rev-ops/workspaces/${w.id}`;
+  const get = async () => (await page.request.get(path, { headers })).json();
+  const command = async (command: unknown) => {
+    const response = await page.request.post(path + "/commands", {
+      headers,
+      data: { revision: (await get()).revision, command },
+    });
+    expect(response.ok()).toBe(true);
+  };
+  await command({
+    action: "defineField",
+    scope: "actual",
+    type: "select",
+    label: "Census review",
+    required: true,
+    archived: false,
+    options: [
+      { label: "Reconciled", archived: false },
+      { label: "Pending", archived: false },
+    ],
+  });
+  await command({
+    action: "budget",
+    period: "2028-02",
+    total: 290,
+    costCenter: "Inpatient",
+  });
+  await command({
+    action: "approve",
+    budgetId: (await get()).state.budgets[0].id,
+  });
+  const members = await (
+    await page.request.get("/api/rev-ops/members", { headers })
+  ).json();
+  const staff = members.find(
+    (m: { displayName: string }) =>
+      m.displayName === "Synthetic Census Operator",
+  );
+  await command({
+    action: "grant",
+    userId: staff.id,
+    permissions: ["actualEnter", "actualCorrect"],
+  });
+  const csv = (counts: number[], pending = false) =>
+    "activity_date,patient_days,Field: Census review\n" +
+    counts
+      .map(
+        (n, i) =>
+          `2028-02-0${i + 1},${n},${pending && i === 4 ? "Pending" : "Reconciled"}`,
+      )
+      .join("\n");
+  const initial = await page.request.post(path + "/import", {
+    headers,
+    data: {
+      revision: (await get()).revision,
+      commit: true,
+      upload: {
+        kind: "actuals",
+        name: "baseline.csv",
+        mapping: {},
+        content: Buffer.from(csv([9, 10, 11, 10, 12, 8, 10])).toString(
+          "base64",
+        ),
+      },
+    },
+  });
+  expect(initial.ok()).toBe(true);
+  const before = await get();
+  await page.goto("/rev-ops");
+  await page
+    .getByLabel("Development assertion")
+    .fill("syn-assert-revops-census-dev");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page
+    .getByLabel("Hospital / unit")
+    .selectOption({ label: `${name} / Geriatric` });
+  const chooseFile = async () => {
+    await page.getByRole("button", { name: "Upload", exact: true }).click();
+    await page
+      .getByLabel("File", { exact: true })
+      .setInputFiles({
+        name: "revised-census.csv",
+        mimeType: "text/csv",
+        buffer: Buffer.from(csv([9, 10, 11, 10, 12, 9, 12, 4], true)),
+      });
+    await page.getByRole("button", { name: "Preview import" }).click();
+    await expect(
+      page.getByRole("heading", { name: "8 mapped rows" }),
+    ).toBeVisible();
+  };
+  const decisions = async () => {
+    for (const [date, choice, reason] of [
+      ["2028-02-05", "use", "Review reopened after source reconciliation"],
+      ["2028-02-06", "use", "Signed census corrected"],
+      ["2028-02-07", "keep", "Duplicate beds in source report"],
+    ]) {
+      await page.getByLabel(`Decision for ${date}`).selectOption(choice!);
+      await page.getByLabel(`Reason for ${date}`).fill(reason!);
+    }
+  };
+  await chooseFile();
+  await expect(
+    page.getByRole("button", { name: "Confirm import" }),
+  ).toBeDisabled();
+  await decisions();
+  await expect(page.getByText("Expected patient-day change: +5")).toBeVisible();
+  await page.getByRole("button", { name: "Discard preview" }).click();
+  expect(await get()).toEqual(before);
+  await page.getByRole("button", { name: "Preview import" }).click();
+  await expect(page.getByLabel("Decision for 2028-02-05")).toHaveValue("");
+  await decisions();
+  await command({
+    action: "close",
+    period: "2028-02",
+    reason: "Concurrent close review",
+  });
+  await command({
+    action: "reopen",
+    period: "2028-02",
+    reason: "Authorized reconciliation reopened",
+  });
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(page.getByText(/Data changed. Preview again/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Confirm import" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Preview import" }).click();
+  await expect(page.getByLabel("Decision for 2028-02-05")).toHaveValue("");
+  await decisions();
+  await page.screenshot({
+    path: testInfo.outputPath("reconciliation-review.png"),
+    fullPage: true,
+  });
+  await page.getByLabel("Decision for 2028-02-05").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("reconciliation-review-viewport.png") });
+  await page.getByRole("button", { name: "Confirm import" }).click();
+  await expect(page.getByRole("status")).toContainText("Import accepted");
+  await expect(
+    page.getByText("1 inserted · 2 corrected · 4 unchanged · 1 kept"),
+  ).toBeVisible();
+  const accepted = await get();
+  expect(
+    accepted.state.actuals["2028-02-05"].map((r: { count: number }) => r.count),
+  ).toEqual([12, 12]);
+  expect(
+    accepted.state.actuals["2028-02-06"].map((r: { count: number }) => r.count),
+  ).toEqual([8, 9]);
+  expect(accepted.state.actuals["2028-02-07"]).toEqual(
+    before.state.actuals["2028-02-07"],
+  );
+  expect(accepted.state.budgets).toEqual(before.state.budgets);
+  await page.getByRole("button", { name: "Comparison", exact: true }).click();
+  await expect(page.locator(".ro-metrics strong")).toHaveText([
+    "71",
+    "290",
+    "70",
+  ]);
+  await page
+    .getByRole("button", { name: "Daily actuals", exact: true })
+    .click();
+  await page.getByLabel("Activity date", { exact: true }).fill("2028-02-06");
+  await page.getByLabel("Patient days", { exact: true }).fill("10");
+  await page
+    .getByLabel("Correction reason", { exact: false })
+    .fill("Later signed census correction");
+  await page.getByRole("button", { name: "Save actual" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "Saved with source history",
+  );
+  const corrected = await get();
+  await chooseFile();
+  await expect(page.getByText(/Already imported. Confirmation/)).toBeVisible();
+  await page.getByRole("button", { name: "Confirm import" }).click();
+  await expect(page.getByRole("status")).toContainText("Import accepted");
+  expect(await get()).toEqual(corrected);
+  await page.reload();
+  await page
+    .getByLabel("Development assertion")
+    .fill("syn-assert-revops-census-dev");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page
+    .getByLabel("Hospital / unit")
+    .selectOption({ label: `${name} / Geriatric` });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const item = page
+    .locator("details")
+    .filter({
+      has: page.getByRole("heading", {
+        name: "Reconciliation receipt",
+        includeHidden: true,
+      }),
+    })
+    .first();
+  await item.locator("summary").first().click();
+  await expect(
+    page.getByText("1 inserted · 2 corrected · 4 unchanged · 1 kept"),
+  ).toBeVisible();
+  await page.getByText("Row decisions and sources", { exact: true }).click();
+  await expect(
+    page.getByText(/Duplicate beds in source report · actual revision 1/),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+  ).toBe(false);
+  await page.screenshot({
+    path: testInfo.outputPath("reconciliation-receipt.png"),
+    fullPage: true,
+  });
+  expect(errors).toEqual([]);
+});
+
 test("delegated census entry respects correction and revoked-access boundaries", async ({
   page,
 }, testInfo) => {
