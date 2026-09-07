@@ -574,6 +574,7 @@ export function App() {
             <p>Crisis Ops v0.2</p>
           </div>
         </div>
+        <a className="role-note" href="./rev-ops">Rev Ops · verified sign-in</a>
         <label className="role-select">
           Viewing as
           <select value={roleId} onChange={(event) => handleRoleChange(event.target.value as RoleId)}>

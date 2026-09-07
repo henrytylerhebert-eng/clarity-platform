@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './smoke',
+  testIgnore: 'rev-ops.spec.ts', // Dedicated config requires the isolated Rev Ops API.
   timeout: 30_000,
   use: {
     baseURL: 'http://127.0.0.1:5173',
