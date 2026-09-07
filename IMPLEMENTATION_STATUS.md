@@ -55,8 +55,10 @@ This is not a production Rev Ops deployment. Sensitive-field
 permissions and organization-wide field sharing remain deferred. Budget, actual
 activity, forecast and collections remain separate.
 
-**2026-09-07: Census-upload reconciliation — implemented, locally verified and agent-reviewed; owner merge decision pending.**
+**2026-09-07: Census-upload reconciliation — merged with synthetic verification.**
 Tyler approved the [bounded workflow](docs/product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md).
+PR #51 merged with owner authorization as `dc43505`;
+[post-merge CI passed](https://github.com/henrytylerhebert-eng/clarity-platform/actions/runs/34155541255).
 Reviewers can compare saved/incoming rows, choose keep/use with reasons, commit
 atomically and inspect a durable receipt. Entry-only users cannot commit conflicts,
 including all-keep batches. The server binds decisions to reparsed input and current
@@ -73,8 +75,22 @@ passed upload/correction/replay. See the
 [verification record](docs/testing/REV_OPS_RECONCILIATION_VERIFICATION.md).
 The scoped review found no blocking defect. Added failure injection proves a receipt
 write failure after the workspace update rolls back the entire transaction; forged
-authority fields and legacy-path conflict bypass are rejected. Owner merge decision
-and production gates remain separate; forecast and collections are outside this slice.
+authority fields and legacy-path conflict bypass are rejected. Production gates remain separate; forecast and collections are outside this slice.
+
+**2026-09-07: Month-end readiness and accountable close — implemented, locally verified; pending code review and merge.**
+The [approved slice](docs/product/INPATIENT_REV_OPS_MONTH_CLOSE_BRIEF.md) requires
+all calendar dates and an approved budget before closing. Leap years use the existing
+calendar rules. Closing saves a fixed budget/actual/source receipt in the existing
+transaction and journal; reopening preserves it, and the next close creates a new
+version. Legacy closed months remain readable without fabricated receipts.
+
+Verification: 512 root tests, 76 app tests, ten desktop/mobile journeys, lint,
+typecheck, build, Prisma validation and dependency audit passed. Receipt-failure
+injection rolls back the entire close. Two complete workspaces and histories
+survived API restart; four repeat closes remained no-ops. No schema, migration or
+dependency change. See the [evidence record](docs/testing/REV_OPS_MONTH_CLOSE_VERIFICATION.md).
+Production readiness, forecasts, collections and further expansion remain outside
+this bounded proof.
 
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.
