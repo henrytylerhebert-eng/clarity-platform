@@ -253,6 +253,45 @@ it("previews custom imports with stable mappings and preserves accepted replay a
   ).toBeGreaterThan(0);
 });
 
+it.each([false, true])(
+  "distinguishes automatic and explicitly empty mappings in replay identity (empty first: %s)",
+  async (emptyFirst) => {
+    const s = state(),
+      f = define(s, "actual", "text");
+    const { version: _version, ...definition } = f;
+    apply(s, { action: "defineField", ...definition, required: false });
+    const input = {
+      kind: "actuals" as const,
+      name: "mapping-mode.csv",
+      content: Buffer.from(
+        "activity_date,patient_days,Field: actual field\n2028-02-06,8,Reviewed\n",
+      ).toString("base64"),
+      mapping: {},
+    };
+    const ignored = { ...input, fieldMapping: [] };
+    const first = await parseRevOpsUpload(emptyFirst ? ignored : input, s);
+    expect(first.issues).toEqual([]);
+    apply(s, first.commands[0]!);
+    s.acceptedImports.push(first.importKey);
+    const saved = structuredClone(s);
+
+    const changed = await parseRevOpsUpload(emptyFirst ? input : ignored, s);
+    expect(changed.importKey).not.toBe(first.importKey);
+    expect(changed.replayed).toBe(false);
+    expect(changed.issues).toEqual([
+      {
+        row: 2,
+        message:
+          "Conflicts with existing custom values; use correction with a reason",
+      },
+    ]);
+    const repeat = await parseRevOpsUpload(emptyFirst ? ignored : input, s);
+    expect(repeat.replayed).toBe(true);
+    expect(repeat.issues).toEqual([]);
+    expect(s).toEqual(saved);
+  },
+);
+
 it("validates custom values in XLSX and retains mapped physical source rows", async () => {
   const { default: ExcelJS } = await import("exceljs");
   const s = state(),

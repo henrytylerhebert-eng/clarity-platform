@@ -109,9 +109,14 @@ export async function parseRevOpsUpload(
   )
     throw new RevOpsError("invalid_upload_shape", 400);
   const hash = createHash("sha256").update(bytes).digest("hex");
-  const requestedFieldMapping = input.fieldMapping?.length
-    ? [...input.fieldMapping].sort((a, b) => a.fieldId.localeCompare(b.fieldId))
-    : undefined;
+  // Omission enables automatic mapping; [] explicitly ignores custom columns.
+  // Keep those meanings distinct without changing legacy omitted-mapping keys.
+  const requestedFieldMapping =
+    input.fieldMapping === undefined
+      ? undefined
+      : [...input.fieldMapping].sort((a, b) =>
+          a.fieldId.localeCompare(b.fieldId),
+        );
   const importKey = createHash("sha256")
     .update(
       JSON.stringify({

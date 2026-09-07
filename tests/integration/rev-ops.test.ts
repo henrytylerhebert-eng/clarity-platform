@@ -147,6 +147,47 @@ afterAll(async () => {
 });
 
 describe("persisted patient-day workflow through authenticated Fastify routes", () => {
+  it("rejects a changed mapping mode instead of falsely replaying an accepted import", async () => {
+    const w = await workspace("Mapping mode accountability");
+    expect(
+      (
+        await command(w, {
+          action: "defineField",
+          scope: "actual",
+          type: "text",
+          label: "Review",
+          required: false,
+          archived: false,
+          options: [],
+        })
+      ).status,
+    ).toBe(200);
+    const file = upload(
+      "actuals",
+      "activity_date,patient_days,Field: Review\n2028-02-06,8,Reviewed\n",
+    );
+    expect((await importFile(w, file)).status).toBe(200);
+    const before = await current(w);
+    const history = (await request(tokenA, `/workspaces/${w.id}/history`)).body;
+    const changed = { ...file, fieldMapping: [] };
+    const preview = await importFile(w, changed, false);
+    expect(preview.body.replayed).toBe(false);
+    expect(preview.body.issues).toEqual([
+      {
+        row: 2,
+        message:
+          "Conflicts with existing custom values; use correction with a reason",
+      },
+    ]);
+    const rejected = await importFile(w, changed);
+    expect(rejected.status).toBe(400);
+    expect(rejected.body.error).toBe("import_has_unresolved_rows");
+    expect((await importFile(w, file)).body.replayed).toBe(true);
+    expect(await current(w)).toEqual(before);
+    expect((await request(tokenA, `/workspaces/${w.id}/history`)).body).toEqual(
+      history,
+    );
+  });
   it("allows a deliberate budget amendment back to a previous total without changing old approvals", async () => {
     const w = await workspace("Budget amendment");
     for (const total of [290, 300, 290]) {
