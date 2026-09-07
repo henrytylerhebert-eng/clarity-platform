@@ -4,7 +4,7 @@ Date: September 7, 2026. Branch: `codex/om/rev-ops-import-reconciliation`.
 Code commits: `d6bbbf0` (backend/contracts/tests), `381b297` (UI/browser tests).
 Base: PR #50 merge `c5e41132aabdf0d13f984400015cc1ca19082e03`.
 Status: owner-approved, implemented and locally verified with synthetic data;
-pending code review and merge. No production deployment or cutover approval.
+agent-reviewed; owner merge decision pending. No production deployment or cutover approval.
 Scope: [approved bounded brief](../product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md).
 
 ## Implemented workflow
@@ -34,7 +34,7 @@ port 55439. No production database or real hospital records were accessed.
 
 | Command/check | Result |
 |---|---|
-| `DATABASE_URL=<isolated URL> npm test` | 501 tests across 47 files passed. |
+| `DATABASE_URL=<isolated URL> npm test` | 502 tests across 47 files passed after review regressions. |
 | `npm --workspace app test` | 71 tests across 12 files passed. |
 | `API_PORT=4316 npx playwright test --config app/playwright.revops.config.ts` | Eight desktop/mobile journeys passed, including the new reconciliation workflow and all six existing Rev Ops journeys. |
 | `npm run lint` / `npm run typecheck` | Passed; typecheck includes root and app. |
@@ -110,3 +110,42 @@ connectivity, cross-hospital operations, production load or hospital cutover.
 No measurements found for efficiency gains, error reduction or production scale.
 Saved review queues, sensitive-field policy and further product expansion remain
 deferred. Budget, actual activity, forecast and collections remain separate.
+
+## September 7 merge-readiness review
+
+Reviewed runtime head `0532a7a` against merged PR #50 (`c5e4113`). No blocking
+defect was found in authorization, atomic commit or replay. This is a scoped
+agent review and merge recommendation, not production security approval. Runtime,
+schema and migration files did not change during this review.
+
+- Authorization: existing verified principal and workspace permissions remain
+  authoritative. Entry-only conflict commits, all-keep commits, revoked access and
+  cross-tenant reads/writes are rejected. Added direct HTTP checks show that forged
+  actor/tenant/command/classification fields are rejected and omitting reconciliation
+  cannot bypass the older import path's conflict rejection.
+- Atomicity: added a real PostgreSQL failure-injection regression. A Prisma query
+  extension observes the successful workspace update, then throws during receipt
+  creation. Fresh API reads prove that actuals, workspace revision, accepted-import
+  marker and journal all roll back. A normal retry creates one receipt and the
+  expected correction/new day; repeat execution preserves the state and journal.
+- Replay: current entry/view permissions are checked before returning accepted
+  results; original receipts survive later corrections, definition changes and
+  closed periods. Existing source/mapping identities and legacy imports remain
+  compatible. Concurrent confirmations still produce one accepted write.
+
+Review commands passed: complete root suite (502 tests / 47 files), focused app
+review/import suite (7 tests / 2 files), lint, root/app typecheck and diff checks.
+The added rollback regression initially compared an in-memory optional
+`undefined` property with its JSON-serialized receipt; the assertion now compares
+JSON representations, matching the API boundary. No runtime fix was needed.
+Review root log: `reconciliation-review-root-tests.log` in the proof directory.
+Full app/browser/build and restart evidence above belongs to the unchanged runtime
+head; those checks were not repeated locally for this test/documentation-only update.
+The PR records CI results for the final review commit.
+
+The existing CI warnings were inspected: v4 actions emit a Node runtime-deprecation
+notice, and checkout cleanup reports a missing `.gitmodules` URL for the unchanged
+`clarity-platform-visualizer` gitlink. That gitlink exists in the merged baseline;
+no workflow/configuration change is part of this PR. They do not fail verification,
+and remain separate maintenance work. Recommendation: the bounded synthetic slice
+is eligible for an owner merge decision; do not infer deployment or expansion approval.

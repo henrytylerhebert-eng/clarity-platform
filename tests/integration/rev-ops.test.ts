@@ -18,6 +18,8 @@ import {
   PRESCREEN_PRODUCTION_POLICY,
 } from "@clarity/prescreen-service";
 import { PrismaRevOpsGateway } from "../../packages/case-repository/src/revOpsGateway.js";
+import { parseRevOpsUpload } from "../../packages/api-service/src/revOpsImport.js";
+import { planReconciliation } from "../../packages/rev-ops-service/src/reconciliation.js";
 import type {
   RevOpsView,
   RevOpsCommand,
@@ -249,6 +251,34 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
     expect((await request(tokenStaff, path + "/import", commit)).status).toBe(
       403,
     );
+    // Omitting reconciliation cannot turn a conflicting import into an entry.
+    expect(
+      (
+        await request(tokenStaff, path + "/import", {
+          ...previewBody,
+          commit: true,
+          reconciliation: undefined,
+        })
+      ).status,
+    ).toBe(400);
+    // Server-derived authority, classifications and commands are not request fields.
+    for (const forged of [
+      { actorId: h.tenantA.userId },
+      { organizationId: h.tenantA.organizationId },
+      { commands: [] },
+      {
+        reconciliation: {
+          ...commit.reconciliation,
+          rows: [],
+          counts: { kept: 0 },
+        },
+      },
+    ]) {
+      expect(
+        (await request(tokenStaff, path + "/import", { ...commit, ...forged }))
+          .status,
+      ).toBe(400);
+    }
     for (const override of [
       { decisions: [] },
       { decisions: [decisions[0], decisions[0], decisions[2]] },
@@ -423,6 +453,113 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
       403,
     );
     expect((await request(tokenB, path + "/import", ready)).status).toBe(404);
+  });
+
+  it("rolls back reconciliation when receipt creation fails after the workspace update", async () => {
+    const w = await workspace("Synthetic receipt rollback");
+    const path = `/workspaces/${w.id}`;
+    await command(w, { action: "actual", date: "2028-02-06", count: 8 });
+    const before = await current(w);
+    const history = (await request(tokenA, path + "/history")).body;
+    const parsed = await parseRevOpsUpload(
+      upload(
+        "actuals",
+        "activity_date,patient_days\n2028-02-06,9\n2028-02-07,4\n",
+      ),
+      before.state,
+    );
+    const plan = planReconciliation(
+      before.state,
+      parsed.rows,
+      {
+        period: "2028-02",
+        importKey: parsed.importKey,
+        decisions: [
+          {
+            row: 2,
+            date: "2028-02-06",
+            choice: "use",
+            reason: "Signed correction",
+          },
+        ],
+      },
+      parsed.importKey,
+    );
+    let workspaceUpdateCompleted = false;
+    let receiptAttempted = false;
+    const failing = h.prisma.$extends({
+      query: {
+        revOpsWorkspace: {
+          async updateMany({ args, query }) {
+            const result = await query(args);
+            if (args.where?.id === w.id)
+              workspaceUpdateCompleted = result.count === 1;
+            return result;
+          },
+        },
+        revOpsChange: {
+          async create({ args, query }) {
+            if (
+              args.data.workspaceId === w.id &&
+              args.data.action === "import"
+            ) {
+              receiptAttempted = true;
+              throw new Error("synthetic receipt write failure");
+            }
+            return query(args);
+          },
+        },
+      },
+    });
+    // The extended client retains real PostgreSQL transactions; only journal creation fails.
+    const gateway = new PrismaRevOpsGateway(
+      failing as unknown as typeof h.prisma,
+    );
+    const actor = await auth.authenticate(tokenA);
+    const args = [
+      actor,
+      w.id,
+      before.revision,
+      plan.commands,
+      parsed.source,
+      parsed.importKey,
+      "actuals",
+      plan,
+    ] as const;
+    await expect(gateway.execute(...args)).rejects.toThrow(
+      "synthetic receipt write failure",
+    );
+    expect(workspaceUpdateCompleted).toBe(true);
+    expect(receiptAttempted).toBe(true);
+    expect(await current(w)).toEqual(before);
+    expect((await request(tokenA, path + "/history")).body).toEqual(history);
+    const normal = new PrismaRevOpsGateway(h.prisma);
+    const retry = await normal.execute(...args);
+    expect(retry).toMatchObject({
+      replayed: false,
+      receipt: { counts: { inserted: 1, corrected: 1, unchanged: 0, kept: 0 } },
+    });
+    const accepted = await current(w);
+    const acceptedHistory = (await request(tokenA, path + "/history")).body;
+    expect(accepted.state.actuals["2028-02-06"]?.map((r) => r.count)).toEqual([
+      8, 9,
+    ]);
+    expect(accepted.state.actuals["2028-02-07"]?.map((r) => r.count)).toEqual([
+      4,
+    ]);
+    expect(accepted.state.acceptedImports).toEqual([
+      ...before.state.acceptedImports,
+      parsed.importKey,
+    ]);
+    expect(acceptedHistory).toHaveLength(history.length + 1);
+    expect(await normal.execute(...args)).toMatchObject({
+      replayed: true,
+      receipt: JSON.parse(JSON.stringify(retry.receipt)),
+    });
+    expect(await current(w)).toEqual(accepted);
+    expect((await request(tokenA, path + "/history")).body).toEqual(
+      acceptedHistory,
+    );
   });
 
   it("audits keep-only batches, enforces permission and rejects changed definitions or closed periods", async () => {

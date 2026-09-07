@@ -55,7 +55,7 @@ This is not a production Rev Ops deployment. Sensitive-field
 permissions and organization-wide field sharing remain deferred. Budget, actual
 activity, forecast and collections remain separate.
 
-**2026-09-07: Census-upload reconciliation — implemented, locally verified; pending code review and merge.**
+**2026-09-07: Census-upload reconciliation — implemented, locally verified and agent-reviewed; owner merge decision pending.**
 Tyler approved the [bounded workflow](docs/product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md).
 Reviewers can compare saved/incoming rows, choose keep/use with reasons, commit
 atomically and inspect a durable receipt. Entry-only users cannot commit conflicts,
@@ -64,15 +64,17 @@ workspace revision; repeat accepted imports return the original receipt without
 replacing later corrections. Existing transactions, journal and import keys are
 preserved; no schema, migration or dependency changes.
 
-Local verification: 501 root tests, 71 app tests, eight desktop/mobile journeys,
+Local verification: 502 root tests after review regressions, 71 app tests, eight desktop/mobile journeys,
 lint, root/app typecheck, app build, Prisma validation and dependency audit passed.
 The synthetic receipt is 1 inserted / 2 corrected / 4 unchanged / 1 kept, for +5
 patient days. API restart preserved both workspaces, complete histories and original
 receipts; subsequent replay remained a no-op. The original unmodified XLSX also
 passed upload/correction/replay. See the
 [verification record](docs/testing/REV_OPS_RECONCILIATION_VERIFICATION.md).
-Merge review and production gates remain separate; forecast and collections are
-outside this slice.
+The scoped review found no blocking defect. Added failure injection proves a receipt
+write failure after the workspace update rolls back the entire transaction; forged
+authority fields and legacy-path conflict bypass are rejected. Owner merge decision
+and production gates remain separate; forecast and collections are outside this slice.
 
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.
