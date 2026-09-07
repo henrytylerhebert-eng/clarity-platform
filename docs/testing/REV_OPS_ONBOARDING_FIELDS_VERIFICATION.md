@@ -5,8 +5,9 @@ Code commits: `d6c7b80` (backend/contracts/tests), `c45d1f2` (UI/browser tests).
 Base: PR #49 merge `926b3776ae25df536ad3d2254d51c6d8019aff0a`.
 
 Status: implemented, locally verified and agent-reviewed with synthetic data;
-PR #50 remains draft. This is not merge, production deployment or hospital
-cutover approval.
+PR #50 merged with owner authorization as `c5e4113` on September 7, 2026.
+[Post-merge CI passed](https://github.com/henrytylerhebert-eng/clarity-platform/actions/runs/34152431610).
+This is not production deployment or hospital cutover approval.
 Scope: [approved direction and bounded brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
 
 ## Implemented journey
@@ -114,8 +115,8 @@ understand the added values. If a defect is found, pause affected writes, retain
 the journal and use a forward fix or separately verified restoration. Production
 rollback, security/privacy approval and cutover remain unverified.
 
-Next: review the draft PR and its latest-head CI. Do not merge or expand this
-slice merely because local checks pass. The 20 legacy app smoke checks were not
+The owner subsequently authorized merge after review; see the merged status above.
+The 20 legacy app smoke checks were not
 rerun for this extension; dedicated Rev Ops and full root/app suites were run.
 
 ## PR #50 workflow walkthrough and review follow-up
@@ -175,4 +176,5 @@ Review evidence is under the same local proof directory: `pr50-review-root-tests
 `pr50-review-browser/`, restart snapshots and `pr50-original-sample/`.
 No additional blocking defects were identified in the reviewed scope. Production
 identity, sensitive data use, cutover, scale and rollback remain outside this
-review's proof. Keep PR #50 draft for the owner's merge decision.
+review's proof. At review closeout PR #50 remained draft; the later owner-authorized
+merge and post-merge CI are recorded above.

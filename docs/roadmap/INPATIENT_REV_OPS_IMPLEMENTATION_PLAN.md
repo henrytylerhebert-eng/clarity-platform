@@ -1,6 +1,7 @@
 # Inpatient Rev Ops implementation plan
 
-Status: First slice merged in PR #49 after synthetic verification; wider roadmap remains
+Status: Patient-day and onboarding/field slices merged in PRs #49 and #50 after
+synthetic verification; wider roadmap remains
 proposed. Product owner and functional reviewer: Tyler. Current test evidence:
 [verification record](../testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
 
@@ -170,8 +171,12 @@ Production and improvement measurements remain outside that proof.
 Tyler authorized the next hospital onboarding/custom-field slice and confirmed
 fields belong in both setup and data entry. Follow its
 [bounded brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
-That slice is now locally implemented and verified; prepare its draft code
-review using the [evidence record](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
-It is not merged or deployed. Preserve the
+That slice merged in PR #50 after review; see the
+[evidence record](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
+The next recommended workflow is
+[conflicting census-upload reconciliation](../product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md).
+Review that proposal's role rules, explicit keep/use choices, synthetic results
+and atomicity/replay checks before authorizing implementation. No new runtime
+work or production deployment is included in defining it. Preserve the
 same sequence: architecture across the product, one complete workflow, end-to-end
 proof, then expansion.

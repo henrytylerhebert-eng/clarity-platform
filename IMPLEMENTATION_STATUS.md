@@ -30,8 +30,9 @@ migrations were unchanged in this final fix.
 See [verification and remaining gates](docs/testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
 This is local synthetic proof, not production readiness or whole-product completion.
 
-**2026-09-07: Onboarding and additional fields — implemented and locally verified.**
-On `codex/om/rev-ops-onboarding-fields`, administrators can save/resume setup and
+**2026-09-07: Onboarding and additional fields — merged with synthetic verification.**
+[PR #50](https://github.com/henrytylerhebert-eng/clarity-platform/pull/50) merged
+as `c5e41132aabdf0d13f984400015cc1ca19082e03`. Administrators can save/resume setup and
 define bounded text/select fields for setup, budgets and actuals. Manual entry
 and imports share validation; values retain definition snapshots, metadata-only
 corrections are audited, and renamed/archived fields preserve history. The UI
@@ -48,10 +49,16 @@ unmodified XLSX still passes upload/correction/replay. See the
 [scope brief](docs/product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
 The review fixed an import mapping-mode replay collision and a client-test build
 failure; CI's existing typecheck now includes app code. The verification record corrects the
-earlier build claim. Agent walkthrough/review is complete; PR #50 remains draft
-for the owner's merge decision. This slice is not merged or deployed. Sensitive-field
+earlier build claim. The owner authorized merge after the agent walkthrough/review;
+[post-merge CI passed](https://github.com/henrytylerhebert-eng/clarity-platform/actions/runs/34152431610).
+This is not a production Rev Ops deployment. Sensitive-field
 permissions and organization-wide field sharing remain deferred. Budget, actual
 activity, forecast and collections remain separate.
+
+**Next proposed Rev Ops slice — documented only.**
+[Conflicting census-upload reconciliation](docs/product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md)
+defines explicit keep/use decisions, reasons, atomic commit and preserved replay.
+Its priority and rules await owner review; no runtime implementation has started.
 
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.
