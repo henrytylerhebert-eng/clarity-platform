@@ -1,3 +1,4 @@
+import { PrismaRevOpsGateway } from "../../case-repository/src/revOpsGateway.js";
 import {
   assertLocalClarityDevDatabase,
   createPrismaClient,
@@ -24,6 +25,8 @@ const CASE_KEY = "SYN-API-CASE-0001";
 const LEGAL_RECORD_ID = "synthetic-legal-record-api-dev";
 
 const DEV_USERS = [
+  { id: "synthetic-revops-admin", email: "syn-revops-admin@example.test", displayName: "Synthetic Rev Ops Admin", roles: ["ORGANIZATION_ADMIN"], assertion: "syn-assert-revops-admin-dev" },
+  { id: "synthetic-revops-census", email: "syn-revops-census@example.test", displayName: "Synthetic Census Operator", roles: ["READ_ONLY_AUDITOR"], assertion: "syn-assert-revops-census-dev" },
   {
     id: "synthetic-user-api-physician",
     email: "syn-api-physician@example.test",
@@ -120,7 +123,7 @@ async function main(): Promise<void> {
   // Phase 3 gateway: prescreen state persists in local clarity_dev and
   // survives a server restart (provider-backed verification stays gated).
   const prescreen = new PrescreenCommandService(new PrismaPrescreenGateway(prisma), PRESCREEN_PRODUCTION_POLICY);
-  const server = createApiServer({ auth, caseCommands, prescreen });
+  const server = createApiServer({ revOps: new PrismaRevOpsGateway(prisma), auth, caseCommands, prescreen });
 
   const port = Number(process.env.API_PORT ?? 4315);
   server.listen(port, "127.0.0.1", () => {

@@ -41,7 +41,10 @@
     "schema": "prisma/schema.prisma"
   },
   "overrides": {
-    "deepmerge-ts": "^8.0.2"
+    "deepmerge-ts": "^8.0.2",
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   },
   "allowScripts": {
     "prisma@6.19.3": true,
