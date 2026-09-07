@@ -45,12 +45,12 @@ Tyler selected hospital onboarding and additional fields in both setup and data
 entry; that slice merged in PR #50 after review and synthetic verification.
 See its [brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md)
 and [evidence](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
-The owner-approved current bounded workflow is
-[conflicting census-upload reconciliation](../product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md):
-review current versus incoming values, record keep/use decisions and reasons,
-commit atomically, then verify history and replay. Implementation and local synthetic
-verification are complete; review authorization, source binding and receipt/replay
-before deciding to merge. See the [evidence record](../testing/REV_OPS_RECONCILIATION_VERIFICATION.md).
+Census-upload reconciliation merged in PR #51 after scoped review and synthetic
+verification. The current owner-approved bounded workflow is
+[month-end readiness and accountable close](../product/INPATIENT_REV_OPS_MONTH_CLOSE_BRIEF.md).
+Implementation and local verification are complete; review full-calendar checks,
+selected-budget binding and atomic receipts before merging. See the
+[evidence record](../testing/REV_OPS_MONTH_CLOSE_VERIFICATION.md).
 Further expansion and production deployment remain outside this slice.
 The [detailed execution plan](INPATIENT_REV_OPS_IMPLEMENTATION_PLAN.md)
 remains grounded in the established workbook workflow. This lane does not change

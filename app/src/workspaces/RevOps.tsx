@@ -11,6 +11,8 @@ import type {
   RevOpsPermission,
   RevOpsImportRow,
   RevOpsReconciliationReceipt,
+  RevOpsClosingReceipt,
+  RevOpsCloseReadiness,
 } from "../../../packages/domain-contracts/src/revOps";
 import "./revOps.css";
 import {
@@ -25,7 +27,12 @@ import {
   ReconciliationReceipt,
 } from "./RevOpsReconciliation";
 
+import { MonthClose, ClosingReceipt } from "./RevOpsMonthClose";
+
 type Comparison = {
+  revision: number;
+  closeReadiness?: RevOpsCloseReadiness;
+  closingReceipt?: RevOpsClosingReceipt | null;
   onboarding?: {
     complete: boolean;
     steps: { label: string; complete: boolean; missing: string[] }[];
@@ -66,7 +73,10 @@ type Change = {
   actorId: string;
   action: string;
   occurredAt: string;
-  details: { reconciliation?: RevOpsReconciliationReceipt };
+  details: {
+    reconciliation?: RevOpsReconciliationReceipt;
+    closing?: RevOpsClosingReceipt;
+  };
 };
 const permissionLabels: Record<RevOpsPermission, string> = {
   view: "View reports and history",
@@ -149,12 +159,12 @@ export function RevOps() {
       setBusy(false);
     }
   }
-  async function command(command: RevOpsCommand) {
+  async function command(command: RevOpsCommand, expectedRevision?: number) {
     if (!current) return;
     await run(
       () =>
         apiRevOps(`/workspaces/${current.id}/commands`, {
-          revision: current.revision,
+          revision: expectedRevision ?? current.revision,
           command,
         }),
       "Saved with source history.",
@@ -354,7 +364,10 @@ export function RevOps() {
                 aria-label="Hospital / unit"
                 disabled={busy}
                 value={selected}
-                onChange={(e) => setSelected(e.target.value)}
+                onChange={(e) => {
+                  setComparison(null);
+                  setSelected(e.target.value);
+                }}
               >
                 <option value="">Select workspace</option>
                 {items.map((i) => (
@@ -371,6 +384,7 @@ export function RevOps() {
                 type="month"
                 value={period}
                 onChange={(e) => {
+                  setComparison(null);
                   setPeriod(e.target.value);
                   setPreview(null);
                   setThrough(`${e.target.value}-01`);
@@ -618,7 +632,10 @@ export function RevOps() {
                 Approved baseline
                 <select
                   value={budgetId}
-                  onChange={(e) => setBudgetId(e.target.value)}
+                  onChange={(e) => {
+                    setComparison(null);
+                    setBudgetId(e.target.value);
+                  }}
                 >
                   <option value="">Latest approved version</option>
                   {current.state.budgets
@@ -690,43 +707,18 @@ export function RevOps() {
                     : `Comparison unavailable: ${comparisonError.replaceAll("_", " ")}. Check the selected dates and baseline.`}
                 </p>
               )}
-              {can("periodClose") || can("periodReopen") ? (
-                <form
-                  className="ro-inline"
-                  onSubmit={(e) => {
-                    const d = fields(e);
-                    void command({
-                      action: current.state.closedPeriods.includes(period)
-                        ? "reopen"
-                        : "close",
-                      period,
-                      reason: value(d, "reason"),
-                    });
-                  }}
-                >
-                  <label>
-                    Reason to{" "}
-                    {current.state.closedPeriods.includes(period)
-                      ? "reopen"
-                      : "close"}{" "}
-                    period
-                    <input name="reason" required minLength={3} />
-                  </label>
-                  <button
-                    disabled={
-                      busy ||
-                      !can(
-                        current.state.closedPeriods.includes(period)
-                          ? "periodReopen"
-                          : "periodClose",
-                      )
-                    }
-                  >
-                    {current.state.closedPeriods.includes(period)
-                      ? "Reopen period"
-                      : "Close period"}
-                  </button>
-                </form>
+              {comparison?.closeReadiness ? (
+                <MonthClose
+                  key={`${current.id}:${period}:${comparison.revision}:${comparison.closeReadiness.budget?.id ?? ""}`}
+                  readiness={comparison.closeReadiness}
+                  receipt={comparison.closingReceipt ?? null}
+                  revision={comparison.revision}
+                  currentRevision={current.revision}
+                  busy={busy}
+                  canClose={can("periodClose")}
+                  canReopen={can("periodReopen")}
+                  onCommand={(c, r) => void command(c, r)}
+                />
               ) : null}
             </section>
           ) : null}
@@ -1214,6 +1206,9 @@ export function RevOps() {
                       receipt={h.details.reconciliation}
                       state={current.state}
                     />
+                  ) : null}
+                  {h.details.closing ? (
+                    <ClosingReceipt receipt={h.details.closing} />
                   ) : null}
                   <pre>{JSON.stringify(h.details, null, 2)}</pre>
                 </details>

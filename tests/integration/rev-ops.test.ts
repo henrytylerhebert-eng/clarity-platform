@@ -93,6 +93,42 @@ async function importFile(
     upload: u,
   });
 }
+// Existing lock/replay tests need a genuinely complete month under the new close rule.
+async function completeMonthFixture(w: RevOpsView) {
+  const state = (await current(w)).state;
+  if (
+    !state.budgets.some(
+      (b) => b.period === "2028-02" && b.status === "approved",
+    )
+  ) {
+    await command(w, {
+      action: "budget",
+      period: "2028-02",
+      total: 290,
+      costCenter: "Inpatient",
+    });
+    await command(w, {
+      action: "approve",
+      budgetId: (await current(w)).state.budgets.at(-1)!.id,
+    });
+  }
+  const fields = (state.customFields ?? [])
+    .filter((f) => f.scope === "actual" && !f.archived && f.required)
+    .map((f) => ({
+      fieldId: f.id,
+      value:
+        f.type === "select"
+          ? f.options.find((o) => !o.archived)!.id
+          : "Synthetic complete",
+    }));
+  for (let day = 1; day <= 29; day++) {
+    const date = `2028-02-${String(day).padStart(2, "0")}`;
+    if (!state.actuals[date]?.length)
+      expect(
+        (await command(w, { action: "actual", date, count: 0, fields })).status,
+      ).toBe(200);
+  }
+}
 beforeAll(async () => {
   h = await createHarness();
   await h.prisma.user.update({
@@ -149,6 +185,454 @@ afterAll(async () => {
 });
 
 describe("persisted patient-day workflow through authenticated Fastify routes", () => {
+  it("closes a complete leap month with a fixed budget and preserves receipts through reopen and correction", async () => {
+    const w = await workspace("Synthetic leap-month close");
+    await command(w, {
+      action: "defineField",
+      scope: "actual",
+      type: "text",
+      label: "Original signoff",
+      required: false,
+      archived: false,
+      options: [],
+    });
+    const signoff = (await current(w)).state.customFields![0]!;
+
+    const path = `/workspaces/${w.id}`;
+    const comparison = (token = tokenA, budgetId = "") =>
+      request(
+        token,
+        path +
+          `/comparison?period=2028-02&through=2028-02-07${budgetId ? `&budgetId=${budgetId}` : ""}`,
+      );
+    const close = (revision: number, budgetId?: string) => ({
+      revision,
+      command: {
+        action: "close",
+        period: "2028-02",
+        budgetId,
+        reason: "Month reviewed against signed census",
+      },
+    });
+    await command(w, {
+      action: "budget",
+      period: "2028-02",
+      total: 290,
+      costCenter: "Inpatient",
+    });
+    const budget = (await current(w)).state.budgets[0]!;
+    await importFile(
+      w,
+      upload(
+        "actuals",
+        "activity_date,patient_days\n" +
+          Array.from(
+            { length: 28 },
+            (_, i) => `2028-02-${String(i + 1).padStart(2, "0")},10`,
+          ).join("\n"),
+      ),
+    );
+    const incomplete = await current(w);
+    expect(
+      (await request(tokenA, path + "/commands", close(incomplete.revision)))
+        .body.error,
+    ).toBe("approved_budget_required_for_close");
+    expect(
+      (
+        await request(
+          tokenA,
+          path + "/commands",
+          close(incomplete.revision, budget.id),
+        )
+      ).body.error,
+    ).toBe("approved_budget_not_found");
+    await command(w, { action: "approve", budgetId: budget.id });
+    const report = (await comparison()).body;
+    expect(report.actuals).toBe(70); // Partial comparison is complete; month close is not.
+    expect(report.closeReadiness).toMatchObject({
+      expectedDays: 29,
+      recordedDays: 28,
+      missingDates: ["2028-02-29"],
+      actuals: null,
+      knownActuals: 280,
+      ready: false,
+    });
+    expect(
+      (
+        await request(
+          tokenA,
+          path + "/commands",
+          close(report.revision, budget.id),
+        )
+      ).body.error,
+    ).toBe("complete_month_required_for_close");
+    await command(w, {
+      action: "actual",
+      date: "2028-02-29",
+      count: 0,
+      fields: [{ fieldId: signoff.id, value: "Reviewed zero" }],
+    });
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: ["actualEnter"],
+    });
+    const ready = await current(w);
+    const journal = (await request(tokenA, path + "/history")).body;
+    expect(
+      (
+        await request(
+          tokenStaff,
+          path + "/commands",
+          close(ready.revision, budget.id),
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await request(
+          tokenB,
+          path + "/commands",
+          close(ready.revision, budget.id),
+        )
+      ).status,
+    ).toBe(404);
+    expect((await comparison(tokenB)).status).toBe(404);
+    for (const commandOverride of [
+      { reason: " " },
+      { budgetId: "foreign-or-unknown-budget" },
+      { closingReceipt: { actuals: 0 } },
+      { actuals: 0 },
+      { actorId: h.tenantA.userId },
+    ]) {
+      const body = close(ready.revision, budget.id);
+      expect(
+        (
+          await request(tokenA, path + "/commands", {
+            ...body,
+            command: { ...body.command, ...commandOverride },
+          })
+        ).status,
+      ).toBeGreaterThanOrEqual(400);
+    }
+    expect(await current(w)).toEqual(ready);
+    expect((await request(tokenA, path + "/history")).body).toEqual(journal);
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: ["periodClose"],
+    });
+    expect(
+      (
+        await request(
+          tokenStaff,
+          path + "/commands",
+          close(ready.revision, budget.id),
+        )
+      ).status,
+    ).toBe(409);
+    const fresh = await current(w);
+    const payload = close(fresh.revision, budget.id);
+    const results = await Promise.all([
+      request(tokenStaff, path + "/commands", payload),
+      request(tokenStaff, path + "/commands", payload),
+    ]);
+    expect(
+      results.filter((r) => r.status === 200 && !r.body.replayed),
+    ).toHaveLength(1);
+    expect(results.every((r) => r.status === 200 || r.status === 409)).toBe(
+      true,
+    );
+    const receipt = results.find((r) => r.status === 200)!.body.closingReceipt;
+    expect(receipt).toMatchObject({
+      period: "2028-02",
+      expectedDays: 29,
+      through: "2028-02-29",
+      actuals: 280,
+      budget: { id: budget.id, total: 290, status: "approved" },
+      variance: -10,
+      closingNumber: 1,
+      actorId: `staff-${h.runId}`,
+    });
+    expect(receipt.days).toHaveLength(29);
+    expect(receipt.days.at(-1)).toMatchObject({
+      date: "2028-02-29",
+      actualRevision: 1,
+      actual: { count: 0, source: { kind: "manual" } },
+    });
+    expect(receipt.days[0].actual.source.rows).toEqual([2]);
+    expect(receipt.days.at(-1).actual.fields[0]).toMatchObject({
+      label: "Original signoff",
+      value: "Reviewed zero",
+      version: 1,
+    });
+    const closed = await current(w);
+    const closedHistory = (await request(tokenA, path + "/history")).body;
+    expect(closedHistory[0].details.closing).toEqual(receipt);
+    expect((await comparison()).body.closingReceipt).toEqual(receipt);
+    expect(
+      (
+        await request(
+          tokenStaff,
+          path + "/commands",
+          close(closed.revision, budget.id),
+        )
+      ).body,
+    ).toMatchObject({ replayed: true, closingReceipt: receipt });
+    expect(await current(w)).toEqual(closed);
+    expect((await request(tokenA, path + "/history")).body).toEqual(
+      closedHistory,
+    );
+    expect(
+      (
+        await command(w, {
+          action: "correct",
+          date: "2028-02-29",
+          count: 5,
+          reason: "Late signed census",
+        })
+      ).body.error,
+    ).toBe("period_closed");
+    expect(
+      (
+        await command(
+          w,
+          { action: "reopen", period: "2028-02", reason: "Late signed census" },
+          tokenStaff,
+        )
+      ).status,
+    ).toBe(403);
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: ["periodClose", "periodReopen"],
+    });
+    expect(
+      (
+        await command(
+          w,
+          { action: "reopen", period: "2028-02", reason: "Late signed census" },
+          tokenStaff,
+        )
+      ).status,
+    ).toBe(200);
+    const beforeCorrection = await current(w);
+    const { version: _version, ...definition } = signoff;
+    await command(w, {
+      action: "defineField",
+      ...definition,
+      label: "Updated signoff",
+    });
+
+    await command(w, {
+      action: "correct",
+      date: "2028-02-29",
+      count: 5,
+      reason: "Late signed census",
+      fields: [{ fieldId: signoff.id, value: "Corrected signoff" }],
+    });
+    expect(
+      (
+        await request(
+          tokenStaff,
+          path + "/commands",
+          close(beforeCorrection.revision, budget.id),
+        )
+      ).status,
+    ).toBe(409);
+    const beforeApproval = await current(w);
+    await command(w, {
+      action: "budget",
+      period: "2028-02",
+      total: 300,
+      costCenter: "Inpatient",
+    });
+    await command(w, {
+      action: "approve",
+      budgetId: (await current(w)).state.budgets.at(-1)!.id,
+    });
+    expect(
+      (
+        await request(
+          tokenStaff,
+          path + "/commands",
+          close(beforeApproval.revision, budget.id),
+        )
+      ).status,
+    ).toBe(409);
+    expect((await comparison()).body.closeReadiness.budget.total).toBe(300);
+    const selected = (await comparison(tokenA, budget.id)).body;
+    expect(selected.closingReceipt).toEqual(receipt);
+    expect(selected.closeReadiness).toMatchObject({
+      actuals: 285,
+      variance: -5,
+      ready: true,
+      budget: { total: 290 },
+    });
+    const reclosed = await request(
+      tokenStaff,
+      path + "/commands",
+      close(selected.revision, budget.id),
+    );
+    expect(reclosed.status).toBe(200);
+    expect(
+      reclosed.body.closingReceipt.days.at(-1).actual.fields[0],
+    ).toMatchObject({
+      label: "Updated signoff",
+      value: "Corrected signoff",
+      version: 2,
+    });
+    expect(reclosed.body.closingReceipt).toMatchObject({
+      closingNumber: 2,
+      previousClosingRevision: receipt.revision,
+      actuals: 285,
+      variance: -5,
+      budget: { id: budget.id, total: 290 },
+    });
+    const history = (await request(tokenA, path + "/history")).body;
+    expect(
+      history.filter((r: { action: string }) => r.action === "close"),
+    ).toHaveLength(2);
+    expect(
+      history.find((r: { revision: number }) => r.revision === receipt.revision)
+        .details.closing,
+    ).toEqual(receipt);
+    const freshPrisma = createPrismaClient();
+    try {
+      const gateway = new PrismaRevOpsGateway(freshPrisma);
+      const saved = await gateway.comparison(
+        await auth.authenticate(tokenStaff),
+        w.id,
+        "2028-02",
+        "2028-02-29",
+      );
+      expect(saved.closingReceipt).toEqual(reclosed.body.closingReceipt);
+    } finally {
+      await freshPrisma.$disconnect();
+    }
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: [],
+    });
+    expect((await comparison(tokenStaff)).status).toBe(403);
+    expect(
+      (
+        await command(
+          w,
+          { action: "reopen", period: "2028-02", reason: "Revoked operator" },
+          tokenStaff,
+        )
+      ).status,
+    ).toBe(403);
+  });
+
+  it("rolls back closed state when closing receipt creation fails after the update", async () => {
+    const w = await workspace("Synthetic close rollback");
+    await completeMonthFixture(w);
+    const before = await current(w);
+    const path = `/workspaces/${w.id}`;
+    const journal = (await request(tokenA, path + "/history")).body;
+    let updated = false;
+    const failing = h.prisma.$extends({
+      query: {
+        revOpsWorkspace: {
+          async updateMany({ args, query }) {
+            const result = await query(args);
+            if (args.where?.id === w.id) updated = result.count === 1;
+            return result;
+          },
+        },
+        revOpsChange: {
+          async create({ args, query }) {
+            if (args.data.workspaceId === w.id && args.data.action === "close")
+              throw new Error("synthetic closing receipt failure");
+            return query(args);
+          },
+        },
+      },
+    });
+    const gateway = new PrismaRevOpsGateway(
+      failing as unknown as typeof h.prisma,
+    );
+    const args = [
+      await auth.authenticate(tokenA),
+      w.id,
+      before.revision,
+      [
+        {
+          action: "close",
+          period: "2028-02",
+          reason: "Reviewed complete month",
+        },
+      ] as RevOpsCommand[],
+      { kind: "manual" as const, name: "Synthetic close" },
+    ] as const;
+    await expect(gateway.execute(...args)).rejects.toThrow(
+      "synthetic closing receipt failure",
+    );
+    expect(updated).toBe(true);
+    expect(await current(w)).toEqual(before);
+    expect((await request(tokenA, path + "/history")).body).toEqual(journal);
+    expect(
+      (
+        await request(
+          tokenA,
+          path + "/comparison?period=2028-02&through=2028-02-29",
+        )
+      ).body.closingReceipt,
+    ).toBeNull();
+    expect(
+      (await new PrismaRevOpsGateway(h.prisma).execute(...args)).closingReceipt
+        ?.closingNumber,
+    ).toBe(1);
+  });
+
+  it("preserves legacy closed periods without fabricating a receipt and requires readiness after reopening", async () => {
+    const w = await workspace("Synthetic legacy close");
+    await h.prisma.revOpsWorkspace.update({
+      where: { id: w.id },
+      data: {
+        state: JSON.parse(
+          JSON.stringify({ ...w.state, closedPeriods: ["2028-02"] }),
+        ),
+      },
+    });
+    const report = (
+      await request(
+        tokenA,
+        `/workspaces/${w.id}/comparison?period=2028-02&through=2028-02-07`,
+      )
+    ).body;
+    expect(report).toMatchObject({
+      closingReceipt: null,
+      closeReadiness: { closed: true, ready: false },
+    });
+    expect(
+      (
+        await command(w, {
+          action: "close",
+          period: "2028-02",
+          reason: "Existing legacy close",
+        })
+      ).body.replayed,
+    ).toBe(true);
+    await command(w, {
+      action: "reopen",
+      period: "2028-02",
+      reason: "Review legacy records",
+    });
+    expect(
+      (
+        await command(w, {
+          action: "close",
+          period: "2028-02",
+          reason: "Incomplete legacy month",
+        })
+      ).body.error,
+    ).toBe("approved_budget_required_for_close");
+  });
+
   it("atomically reconciles the eight-day example and preserves its receipt across corrections and replay", async () => {
     const w = await workspace("Synthetic reconciliation receipt");
     const path = `/workspaces/${w.id}`;
@@ -426,6 +910,7 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
     });
     const { version: _version, ...definition } = field;
     await command(w, { action: "defineField", ...definition, archived: true });
+    await completeMonthFixture(w);
     await command(w, {
       action: "close",
       period: "2028-02",
@@ -611,6 +1096,7 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
       options: [],
     });
     expect((await request(tokenA, path + "/import", payload)).status).toBe(409);
+    await completeMonthFixture(w);
     await command(w, {
       action: "close",
       period: "2028-02",
@@ -923,6 +1409,7 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
         })
       ).status,
     ).toBe(404);
+    await completeMonthFixture(w);
     expect(
       (
         await command(w, {
@@ -1403,6 +1890,7 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
     });
     const priorHistory = (await current(w)).state.actuals["2028-02-06"]!;
     expect(priorHistory.at(-1)?.fields?.[0]?.label).toBe("Census review");
+    await completeMonthFixture(w);
     await command(w, {
       action: "close",
       period: "2028-02",

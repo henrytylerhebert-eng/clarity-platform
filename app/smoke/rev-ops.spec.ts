@@ -1,5 +1,270 @@
 import { expect, test } from "@playwright/test";
 
+test("month close requires every leap-year date and preserves original and revised receipts", async ({
+  page,
+}, testInfo) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  const login = await page.request.post("/api/auth/login", {
+    data: { assertion: "syn-assert-revops-admin-dev" },
+  });
+  const { token } = await login.json();
+  const headers = { authorization: `Bearer ${token}` };
+  const name = `Synthetic month close ${testInfo.project.name} ${Date.now()}`;
+  const response = await page.request.post("/api/rev-ops/workspaces", {
+    headers,
+    data: {
+      name,
+      unit: "Geriatric",
+      timezone: "America/Chicago",
+      costCenterLabel: "Cost center",
+      costCenterOptions: ["Inpatient"],
+    },
+  });
+  expect(response.ok()).toBe(true);
+  const w = await response.json();
+  const path = `/api/rev-ops/workspaces/${w.id}`;
+  const get = async () => (await page.request.get(path, { headers })).json();
+  const cmd = async (command: unknown) => {
+    const result = await page.request.post(path + "/commands", {
+      headers,
+      data: { revision: (await get()).revision, command },
+    });
+    expect(result.ok()).toBe(true);
+    return result.json();
+  };
+  await cmd({
+    action: "budget",
+    period: "2028-02",
+    total: 290,
+    costCenter: "Inpatient",
+  });
+  const budgetId = (await get()).state.budgets[0].id;
+  await cmd({ action: "approve", budgetId });
+  const members = await (
+    await page.request.get("/api/rev-ops/members", { headers })
+  ).json();
+  const staff = members.find(
+    (m: { displayName: string }) =>
+      m.displayName === "Synthetic Census Operator",
+  );
+  await cmd({
+    action: "grant",
+    userId: staff.id,
+    permissions: [
+      "actualEnter",
+      "actualCorrect",
+      "periodClose",
+      "periodReopen",
+    ],
+  });
+  await page.goto("/rev-ops");
+  await page
+    .getByLabel("Development assertion")
+    .fill("syn-assert-revops-census-dev");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page
+    .getByLabel("Hospital / unit")
+    .selectOption({ label: `${name} / Geriatric` });
+  await page.getByRole("button", { name: "Upload", exact: true }).click();
+  await page
+    .getByLabel("File", { exact: true })
+    .setInputFiles({
+      name: "february-28-dates.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(
+        "activity_date,patient_days\n" +
+          Array.from(
+            { length: 28 },
+            (_, i) => `2028-02-${String(i + 1).padStart(2, "0")},10`,
+          ).join("\n"),
+      ),
+    });
+  await page.getByRole("button", { name: "Preview import" }).click();
+  await expect(
+    page.getByRole("heading", { name: "28 mapped rows" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Confirm import" }).click();
+  await expect(page.getByRole("status")).toContainText("Import accepted");
+  await page.getByRole("button", { name: "Comparison", exact: true }).click();
+  await expect(page.getByText(/28 of 29 calendar dates/)).toBeVisible();
+  await expect(page.locator(".ro-metrics strong")).toHaveText([
+    "70",
+    "290",
+    "70",
+  ]);
+  await page
+    .getByLabel("Reason to close period")
+    .fill("Review missing leap day");
+  await expect(
+    page.getByRole("button", { name: "Close period", exact: true }),
+  ).toBeDisabled();
+  await page.screenshot({
+    path: testInfo.outputPath("month-close-missing.png"),
+    fullPage: true,
+  });
+  const enter = async (count: string, reason?: string) => {
+    await page
+      .getByRole("button", { name: "Daily actuals", exact: true })
+      .click();
+    await page.getByLabel("Activity date", { exact: true }).fill("2028-02-29");
+    await page.getByLabel("Patient days", { exact: true }).fill(count);
+    if (reason)
+      await page.getByLabel("Correction reason", { exact: false }).fill(reason);
+    await page
+      .getByRole("button", { name: "Save actual", exact: true })
+      .click();
+    await expect(page.getByRole("status")).toContainText(
+      "Saved with source history",
+    );
+    await page.getByRole("button", { name: "Comparison", exact: true }).click();
+  };
+  await enter("0");
+  await expect(page.getByText(/29 of 29 calendar dates/)).toBeVisible();
+  await page.getByLabel("Approved baseline").selectOption(budgetId);
+  await page
+    .getByLabel("Reason to close period")
+    .fill("Signed leap-month census");
+  await page.getByRole("button", { name: "Close period", exact: true }).click();
+  await expect(page.getByText("Closed period", { exact: true })).toBeVisible();
+  const receipt1 = (
+    await (await page.request.get(path + "/history", { headers })).json()
+  )[0].details.closing;
+  expect(receipt1).toMatchObject({
+    actuals: 280,
+    variance: -10,
+    closingNumber: 1,
+    expectedDays: 29,
+  });
+  await expect(
+    page.getByRole("heading", { name: "Closing receipt #1", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByText("Closing budget and daily sources", { exact: true })
+    .click();
+  await expect(
+    page.getByText(/2028-02-29 · 0 patient days · actual revision 1/),
+  ).toBeVisible();
+  await page
+    .getByRole("heading", { name: "Closing receipt #1", exact: true })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath("month-close-receipt-viewport.png"),
+  });
+  await page
+    .getByLabel("Reason to reopen period")
+    .fill("Late signed census arrived");
+  await page
+    .getByRole("button", { name: "Reopen period", exact: true })
+    .click();
+  await expect(page.getByText("Open period", { exact: true })).toBeVisible();
+  await enter("5", "Late signed leap-day census");
+  await expect(page.getByText(/Known full-month actuals: 285/)).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Closing receipt 1", exact: true }),
+  ).toContainText("Closed actuals: 280");
+  await page
+    .getByLabel("Reason to close period")
+    .fill("Reviewed corrected month");
+  await page.getByRole("button", { name: "Close period", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Closing receipt #2", exact: true }),
+  ).toBeVisible();
+  const afterClose = await get();
+  const history = await (
+    await page.request.get(path + "/history", { headers })
+  ).json();
+  const receipt2 = history[0].details.closing;
+  expect(receipt2).toMatchObject({
+    actuals: 285,
+    variance: -5,
+    closingNumber: 2,
+    previousClosingRevision: receipt1.revision,
+  });
+  expect(
+    history.find((h: { revision: number }) => h.revision === receipt1.revision)
+      .details.closing,
+  ).toEqual(receipt1);
+  expect(
+    (
+      await cmd({
+        action: "close",
+        period: "2028-02",
+        budgetId,
+        reason: "Retry closed month",
+      })
+    ).closingReceipt,
+  ).toEqual(receipt2);
+  expect(await get()).toEqual(afterClose);
+  // Ordinary February requires 28 dates, not 29, in the same hospital calendar.
+  await cmd({
+    action: "budget",
+    period: "2027-02",
+    total: 280,
+    costCenter: "Inpatient",
+  });
+  await cmd({
+    action: "approve",
+    budgetId: (await get()).state.budgets.at(-1).id,
+  });
+  const ordinary = await page.request.post(path + "/import", {
+    headers,
+    data: {
+      revision: (await get()).revision,
+      commit: true,
+      upload: {
+        kind: "actuals",
+        name: "ordinary-february.csv",
+        mapping: {},
+        content: Buffer.from(
+          "activity_date,patient_days\n" +
+            Array.from(
+              { length: 28 },
+              (_, i) => `2027-02-${String(i + 1).padStart(2, "0")},10`,
+            ).join("\n"),
+        ).toString("base64"),
+      },
+    },
+  });
+  expect(ordinary.ok()).toBe(true);
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await page.getByLabel("Month", { exact: true }).fill("2027-02");
+  await expect(page.getByText(/28 of 28 calendar dates/)).toBeVisible();
+  await page
+    .getByLabel("Reason to close period")
+    .fill("Ordinary February reviewed");
+  await page.getByRole("button", { name: "Close period", exact: true }).click();
+  await expect(page.getByText("Closed period", { exact: true })).toBeVisible();
+  await page.reload();
+  await page
+    .getByLabel("Development assertion")
+    .fill("syn-assert-revops-census-dev");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page
+    .getByLabel("Hospital / unit")
+    .selectOption({ label: `${name} / Geriatric` });
+  await expect(
+    page.getByRole("heading", { name: "Closing receipt #2", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  await page
+    .getByText(new RegExp(`Revision ${receipt1.revision} · close`))
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Closing receipt 1", exact: true }),
+  ).toContainText("Closed actuals: 280");
+  await page.screenshot({
+    path: testInfo.outputPath("month-close-history.png"),
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+  ).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 test("census reconciliation reviews conflicts, rejects stale decisions and preserves receipts after replay", async ({
   page,
 }, testInfo) => {
@@ -101,13 +366,11 @@ test("census reconciliation reviews conflicts, rejects stale decisions and prese
     .selectOption({ label: `${name} / Geriatric` });
   const chooseFile = async () => {
     await page.getByRole("button", { name: "Upload", exact: true }).click();
-    await page
-      .getByLabel("File", { exact: true })
-      .setInputFiles({
-        name: "revised-census.csv",
-        mimeType: "text/csv",
-        buffer: Buffer.from(csv([9, 10, 11, 10, 12, 9, 12, 4], true)),
-      });
+    await page.getByLabel("File", { exact: true }).setInputFiles({
+      name: "revised-census.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(csv([9, 10, 11, 10, 12, 9, 12, 4], true)),
+    });
     await page.getByRole("button", { name: "Preview import" }).click();
     await expect(
       page.getByRole("heading", { name: "8 mapped rows" }),
@@ -134,15 +397,16 @@ test("census reconciliation reviews conflicts, rejects stale decisions and prese
   await page.getByRole("button", { name: "Preview import" }).click();
   await expect(page.getByLabel("Decision for 2028-02-05")).toHaveValue("");
   await decisions();
+  // A changed grant invalidates the review without closing this incomplete month.
   await command({
-    action: "close",
-    period: "2028-02",
-    reason: "Concurrent close review",
+    action: "grant",
+    userId: staff.id,
+    permissions: ["actualEnter"],
   });
   await command({
-    action: "reopen",
-    period: "2028-02",
-    reason: "Authorized reconciliation reopened",
+    action: "grant",
+    userId: staff.id,
+    permissions: ["actualEnter", "actualCorrect"],
   });
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(page.getByText(/Data changed. Preview again/)).toBeVisible();
@@ -157,7 +421,9 @@ test("census reconciliation reviews conflicts, rejects stale decisions and prese
     fullPage: true,
   });
   await page.getByLabel("Decision for 2028-02-05").scrollIntoViewIfNeeded();
-  await page.screenshot({ path: testInfo.outputPath("reconciliation-review-viewport.png") });
+  await page.screenshot({
+    path: testInfo.outputPath("reconciliation-review-viewport.png"),
+  });
   await page.getByRole("button", { name: "Confirm import" }).click();
   await expect(page.getByRole("status")).toContainText("Import accepted");
   await expect(
@@ -422,6 +688,27 @@ test("hospital setup, budget upload/approval, actuals, correction and period acc
     "290",
     "70",
   ]);
+  // Explicitly supply the rest of the calendar before exercising the period lock.
+  await page.getByRole("button", { name: "Upload", exact: true }).click();
+  await page.getByLabel("File", { exact: true }).setInputFiles({
+    name: "remaining-calendar.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      "activity_date,patient_days\n" +
+        Array.from(
+          { length: 22 },
+          (_, i) => `2028-02-${String(i + 8).padStart(2, "0")},0`,
+        ).join("\n"),
+    ),
+  });
+  await page.getByRole("button", { name: "Preview import" }).click();
+  await expect(
+    page.getByRole("heading", { name: "22 mapped rows" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Confirm import" }).click();
+  await expect(page.getByRole("status")).toContainText("Import accepted");
+  await page.getByRole("button", { name: "Comparison", exact: true }).click();
+  await expect(page.getByText(/29 of 29 calendar dates/)).toBeVisible();
   await page.getByLabel("Reason to close period").fill("Month reconciled");
   await page.getByRole("button", { name: "Close period", exact: true }).click();
   await expect(page.getByText("Closed period", { exact: true })).toBeVisible();

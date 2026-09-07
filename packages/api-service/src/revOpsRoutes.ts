@@ -10,7 +10,6 @@ import {
   RevOpsReconciliationSchema,
 } from "../../domain-contracts/src/revOps.js";
 import {
-  compareRevOps,
   requirePermission,
   RevOpsError,
 } from "../../rev-ops-service/src/index.js";
@@ -143,7 +142,7 @@ export function registerRevOpsRoutes(
     },
   );
   app.get("/api/rev-ops/workspaces/:id/comparison", async (req) => {
-    const view = await gateway.get(await principal(req), id(req));
+    const actor = await principal(req);
     const q = z
       .object({
         period: RevOpsPeriod,
@@ -152,10 +151,7 @@ export function registerRevOpsRoutes(
       })
       .strict()
       .parse(req.query);
-    return {
-      ...compareRevOps(view.state, q.period, q.through, q.budgetId),
-      revision: view.revision,
-    };
+    return gateway.comparison(actor, id(req), q.period, q.through, q.budgetId);
   });
   app.get("/api/rev-ops/workspaces/:id/history", async (req) => {
     const q = z

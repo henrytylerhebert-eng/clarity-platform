@@ -7,6 +7,7 @@ import type {
   RevOpsState,
   RevOpsReconciliationPlan,
   RevOpsReconciliationReceipt,
+  RevOpsClosingReceipt,
 } from "../../domain-contracts/src/revOps.js";
 import {
   applyRevOpsCommand,
@@ -17,6 +18,8 @@ import {
   RevOpsError,
   requireSetupValues,
   assertOpen,
+  compareRevOps,
+  monthCloseReadiness,
 } from "../../rev-ops-service/src/index.js";
 import { withTenantContext } from "./tenantContext.js";
 
@@ -24,6 +27,56 @@ const json = (value: unknown): Prisma.InputJsonValue =>
   JSON.parse(JSON.stringify(value));
 export class PrismaRevOpsGateway {
   constructor(private readonly prisma: PrismaClient) {}
+  private async latestClosing(
+    tx: Prisma.TransactionClient,
+    organizationId: string,
+    workspaceId: string,
+    period: string,
+    revision: number,
+  ): Promise<RevOpsClosingReceipt | undefined> {
+    const change = await tx.revOpsChange.findFirst({
+      where: {
+        organizationId,
+        workspaceId,
+        action: "close",
+        revision: { lte: revision },
+        details: { path: ["closing", "period"], equals: period },
+      },
+      orderBy: { revision: "desc" },
+      select: { details: true },
+    });
+    return (change?.details as { closing?: RevOpsClosingReceipt } | undefined)
+      ?.closing;
+  }
+  async comparison(
+    actor: AuthenticatedPrincipal,
+    id: string,
+    period: string,
+    through: string,
+    budgetId?: string,
+  ) {
+    return withTenantContext(this.prisma, actor.organizationId, async (tx) => {
+      const row = await tx.revOpsWorkspace.findFirst({
+        where: { id, organizationId: actor.organizationId },
+      });
+      if (!row) throw new RevOpsError("resource_not_found", 404);
+      const state = row.state as unknown as RevOpsState;
+      requirePermission(state, actor, "view");
+      return {
+        ...compareRevOps(state, period, through, budgetId),
+        closeReadiness: monthCloseReadiness(state, period, budgetId),
+        closingReceipt:
+          (await this.latestClosing(
+            tx,
+            actor.organizationId,
+            id,
+            period,
+            row.revision,
+          )) ?? null,
+        revision: row.revision,
+      };
+    });
+  }
   private async receipt(
     tx: Prisma.TransactionClient,
     organizationId: string,
@@ -229,6 +282,19 @@ export class PrismaRevOpsGateway {
       }
       if (row.revision !== revision)
         throw new RevOpsError("version_conflict_refresh_required");
+      const close =
+        commands.length === 1 && commands[0]?.action === "close"
+          ? commands[0]
+          : undefined;
+      const priorClosing = close
+        ? await this.latestClosing(
+            tx,
+            actor.organizationId,
+            id,
+            close.period,
+            revision,
+          )
+        : undefined;
       if (reconciliation) {
         if (!importKey || importKind !== "actuals")
           throw new RevOpsError("invalid_reconciliation", 400);
@@ -276,13 +342,51 @@ export class PrismaRevOpsGateway {
         state.acceptedImports.push(importKey);
         changed = true;
       }
-      if (!changed) return { replayed: true, revision: row.revision };
+      if (!changed)
+        return {
+          replayed: true,
+          revision: row.revision,
+          ...(priorClosing ? { closingReceipt: priorClosing } : {}),
+        };
       const updated = await tx.revOpsWorkspace.updateMany({
         where: { id, organizationId: actor.organizationId, revision },
         data: { state: json(state), revision: { increment: 1 } },
       });
       if (updated.count !== 1)
         throw new RevOpsError("version_conflict_refresh_required");
+      let closingReceipt: RevOpsClosingReceipt | undefined;
+      if (close) {
+        const ready = monthCloseReadiness(state, close.period, close.budgetId);
+        closingReceipt = {
+          workspaceId: id,
+          unit: state.unit,
+          timezone: state.timezone,
+          dateConvention: "end-of-day",
+          period: close.period,
+          through: ready.through,
+          expectedDays: ready.expectedDays,
+          actuals: ready.actuals!,
+          budget: structuredClone(ready.budget!),
+          variance: ready.variance!,
+          days: Array.from({ length: ready.expectedDays }, (_, i) => {
+            const date = `${close.period}-${String(i + 1).padStart(2, "0")}`;
+            const actuals = state.actuals[date]!;
+            return {
+              date,
+              actualRevision: actuals.length,
+              actual: structuredClone(actuals.at(-1)!),
+            };
+          }),
+          actorId: actor.userId,
+          at,
+          reason: close.reason,
+          revision: revision + 1,
+          closingNumber: (priorClosing?.closingNumber ?? 0) + 1,
+          ...(priorClosing
+            ? { previousClosingRevision: priorClosing.revision }
+            : {}),
+        };
+      }
       const receipt: RevOpsReconciliationReceipt | undefined = reconciliation
         ? {
             importKey: importKey!,
@@ -312,6 +416,7 @@ export class PrismaRevOpsGateway {
             previousField,
             ...(importKey ? { importKey } : {}),
             ...(receipt ? { reconciliation: receipt } : {}),
+            ...(closingReceipt ? { closing: closingReceipt } : {}),
             ...(fieldChange
               ? { previousCustomFields, customFields: state.customFields }
               : {}),
@@ -326,6 +431,7 @@ export class PrismaRevOpsGateway {
         replayed: false,
         revision: revision + 1,
         ...(receipt ? { receipt } : {}),
+        ...(closingReceipt ? { closingReceipt } : {}),
       };
     });
   }

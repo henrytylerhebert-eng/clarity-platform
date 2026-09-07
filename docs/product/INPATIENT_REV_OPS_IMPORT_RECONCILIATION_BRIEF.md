@@ -1,6 +1,6 @@
 # Rev Ops — reconcile a conflicting census upload
 
-Status: **owner-approved, implemented and locally verified with synthetic data; pending code review and merge**.
+Status: **owner-approved, implemented and locally verified with synthetic data; merged in PR #51 as `dc43505`**.
 Prepared September 7, 2026 at merged baseline `c5e4113` (PR #50).
 Owner: Tyler. Subsequent approval ("lets get it done") authorized the bounded implementation and verification. Merge, deployment and expansion remain separate decisions.
 
@@ -172,6 +172,6 @@ integration, month-close policy change, forecast or collections. No production
 identity, PHI, clinical/payer decisions or deployment. Existing production gates
 remain unchanged.
 
-Next: review the implemented authorization, source binding, atomic commit and
-receipt/replay behavior before a merge decision. This implementation does not
+The implemented authorization, atomic commit and replay review passed; the owner
+authorized merge in PR #51. This implementation does not
 authorize deployment or expansion.

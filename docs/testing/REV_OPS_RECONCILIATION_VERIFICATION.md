@@ -4,7 +4,7 @@ Date: September 7, 2026. Branch: `codex/om/rev-ops-import-reconciliation`.
 Code commits: `d6bbbf0` (backend/contracts/tests), `381b297` (UI/browser tests).
 Base: PR #50 merge `c5e41132aabdf0d13f984400015cc1ca19082e03`.
 Status: owner-approved, implemented and locally verified with synthetic data;
-agent-reviewed; owner merge decision pending. No production deployment or cutover approval.
+agent-reviewed; merged in PR #51 with owner authorization as `dc43505`. No production deployment or cutover approval.
 Scope: [approved bounded brief](../product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md).
 
 ## Implemented workflow
@@ -149,3 +149,5 @@ notice, and checkout cleanup reports a missing `.gitmodules` URL for the unchang
 no workflow/configuration change is part of this PR. They do not fail verification,
 and remain separate maintenance work. Recommendation: the bounded synthetic slice
 is eligible for an owner merge decision; do not infer deployment or expansion approval.
+
+PR #51 [post-merge CI passed](https://github.com/henrytylerhebert-eng/clarity-platform/actions/runs/34155541255).
