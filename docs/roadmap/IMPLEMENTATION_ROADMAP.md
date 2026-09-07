@@ -39,6 +39,12 @@ related_adrs: ADR-0001, ADR-0002
 
 ## Next concrete issue
 
+The inpatient Rev Ops analytics lane now has a
+[proposed implementation plan](INPATIENT_REV_OPS_IMPLEMENTATION_PLAN.md), grounded
+in the established workbook workflow. It defines a patient-day budget vertical
+slice and conditional expansion; it does not change the platform priority below
+or promote the lane to implemented/build-ready status.
+
 Reconcile ADR-0012 with the implemented `packages/api-service` spike and decide hosting/tenancy (OD-5/OD-6). Then implement one authorized read-only Product Studio server projection before any mutation or release-control surface.
 
 ## Intake-to-admission lane (added 2026-07-17)

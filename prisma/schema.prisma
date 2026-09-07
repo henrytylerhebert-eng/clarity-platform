@@ -906,10 +906,44 @@ model FacilityProfile {
   referrals               Referral[]
   episodes                Episode[]
   timezoneConfigurations  FacilityTimezoneConfiguration[]
+  revOpsWorkspaces        RevOpsWorkspace[]
   createdAt               DateTime                        @default(now())
   updatedAt               DateTime                        @updatedAt
 
   @@index([organizationId, name])
+  @@unique([organizationId, id])
+}
+
+/// Bounded aggregate patient-day workspace. No patient records or forecast/cash values.
+model RevOpsWorkspace {
+  id             String @id @default(cuid())
+  organizationId String
+  facilityId     String
+  unit           String
+  facility       FacilityProfile @relation(fields: [organizationId, facilityId], references: [organizationId, id])
+  revision       Int @default(1)
+  state          Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  changes        RevOpsChange[]
+
+  @@unique([organizationId, facilityId, unit])
+  @@unique([organizationId, id])
+}
+
+/// Immutable application audit records; no update/delete command is exposed.
+model RevOpsChange {
+  id             String @id @default(cuid())
+  organizationId String
+  workspaceId    String
+  workspace      RevOpsWorkspace @relation(fields: [organizationId, workspaceId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  revision       Int
+  actorId        String
+  action         String
+  details        Json
+  occurredAt     DateTime @default(now())
+
+  @@unique([organizationId, workspaceId, revision])
 }
 
 model Referral {

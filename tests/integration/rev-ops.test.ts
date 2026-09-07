@@ -1,0 +1,702 @@
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { once } from "node:events";
+import type { Server } from "node:http";
+import {
+  AuthenticationService,
+  LocalDevIdentityProvider,
+} from "@clarity/auth-service";
+import {
+  createPrismaClient,
+  PrismaAuthGateway,
+  PrismaCaseCommandGateway,
+} from "@clarity/case-repository";
+import { CaseCommandService } from "@clarity/case-service";
+import { createApiServer } from "@clarity/api-service";
+import {
+  InMemoryPrescreenGateway,
+  PrescreenCommandService,
+  PRESCREEN_PRODUCTION_POLICY,
+} from "@clarity/prescreen-service";
+import { PrismaRevOpsGateway } from "../../packages/case-repository/src/revOpsGateway.js";
+import type {
+  RevOpsView,
+  RevOpsCommand,
+} from "../../packages/domain-contracts/src/revOps.js";
+import { createHarness, type Harness } from "./helpers/harness.js";
+import ExcelJS from "exceljs";
+import JSZip from "jszip";
+
+let h: Harness;
+let server: Server;
+let base: string;
+let tokenA: string;
+let tokenB: string;
+let tokenStaff: string;
+let auth: AuthenticationService;
+const setup = {
+  name: "Harbor Demo Hospital",
+  unit: "Adult",
+  timezone: "America/Chicago",
+  costCenterLabel: "Cost center",
+  costCenterOptions: ["Inpatient"],
+};
+// The HTTP assertions below check heterogeneous success/error envelopes.
+async function request(
+  token: string,
+  path: string,
+  body?: unknown,
+): Promise<{ status: number; body: any }> { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const r = await fetch(base + path, {
+    method: body === undefined ? "GET" : "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${token}`,
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+  return { status: r.status, body: await r.json() };
+}
+async function workspace(name: string) {
+  return (await request(tokenA, "/workspaces", { ...setup, name }))
+    .body as RevOpsView;
+}
+async function current(w: RevOpsView) {
+  return (await request(tokenA, `/workspaces/${w.id}`)).body as RevOpsView;
+}
+async function command(w: RevOpsView, cmd: RevOpsCommand, token = tokenA) {
+  const c = await current(w);
+  return request(token, `/workspaces/${w.id}/commands`, {
+    revision: c.revision,
+    command: cmd,
+  });
+}
+const upload = (kind: "budget" | "actuals", csv: string) => ({
+  kind,
+  name: `${kind}.csv`,
+  content: Buffer.from(csv).toString("base64"),
+  mapping: {},
+});
+async function importFile(
+  w: RevOpsView,
+  u: ReturnType<typeof upload> & { sheet?: string },
+  commit = true,
+) {
+  const c = await current(w);
+  return request(tokenA, `/workspaces/${w.id}/import`, {
+    revision: c.revision,
+    commit,
+    upload: u,
+  });
+}
+beforeAll(async () => {
+  h = await createHarness();
+  await h.prisma.user.update({
+    where: { id: h.tenantA.userId },
+    data: { roles: ["ORGANIZATION_ADMIN"] },
+  });
+  await h.prisma.user.update({
+    where: { id: h.tenantB.userId },
+    data: { roles: ["ORGANIZATION_ADMIN"] },
+  });
+  await h.prisma.user.create({
+    data: {
+      id: `staff-${h.runId}`,
+      organizationId: h.tenantA.organizationId,
+      email: `staff-${h.runId}@example.test`,
+      displayName: "Synthetic Census",
+      roles: ["READ_ONLY_AUDITOR"],
+    },
+  });
+  const provider = new LocalDevIdentityProvider();
+  for (const [assertion, id] of [
+    ["synthetic-revops-test-a", h.tenantA.userId],
+    ["synthetic-revops-test-b", h.tenantB.userId],
+    ["synthetic-revops-staff", `staff-${h.runId}`],
+  ]) {
+    const u = await h.prisma.user.findUniqueOrThrow({ where: { id } });
+    provider.register(assertion!, u.email);
+  }
+  auth = new AuthenticationService(provider, new PrismaAuthGateway(h.prisma));
+  tokenA = (await auth.login("synthetic-revops-test-a")).token;
+  tokenB = (await auth.login("synthetic-revops-test-b")).token;
+  tokenStaff = (await auth.login("synthetic-revops-staff")).token;
+  server = createApiServer({
+    auth,
+    caseCommands: new CaseCommandService(
+      new PrismaCaseCommandGateway(h.prisma),
+    ),
+    prescreen: new PrescreenCommandService(
+      new InMemoryPrescreenGateway(),
+      PRESCREEN_PRODUCTION_POLICY,
+    ),
+    revOps: new PrismaRevOpsGateway(h.prisma),
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  base = `http://127.0.0.1:${(server.address() as { port: number }).port}/api/rev-ops`;
+});
+afterAll(async () => {
+  if (server)
+    await new Promise<void>((resolve, reject) =>
+      server.close((e) => (e ? reject(e) : resolve())),
+    );
+  if (h) await h.dispose();
+});
+
+describe("persisted patient-day workflow through authenticated Fastify routes", () => {
+  it("allows a deliberate budget amendment back to a previous total without changing old approvals", async () => {
+    const w = await workspace("Budget amendment");
+    for (const total of [290, 300, 290]) {
+      await command(w, {
+        action: "budget",
+        period: "2028-02",
+        total,
+        costCenter: "Inpatient",
+      });
+      const latest = (await current(w)).state.budgets.at(-1)!;
+      await command(w, { action: "approve", budgetId: latest.id });
+    }
+    const snapshot = await current(w);
+    expect(snapshot.state.budgets.map((b) => b.total)).toEqual([290, 300, 290]);
+    const compare = `/workspaces/${w.id}/comparison?period=2028-02&through=2028-02-07`;
+    expect((await request(tokenA, compare)).body.fullMonthBudget).toBe(290);
+    expect((await request(tokenA, compare + "&budgetId=missing")).status).toBe(
+      404,
+    );
+    expect(
+      (
+        await request(
+          tokenA,
+          compare + `&budgetId=${snapshot.state.budgets[1]!.id}`,
+        )
+      ).body.fullMonthBudget,
+    ).toBe(300);
+  });
+  it("rejects inconsistent facility timezones and ambiguous existing hospital identities", async () => {
+    const name = "One timezone hospital";
+    await workspace(name);
+    expect(
+      (
+        await request(tokenA, "/workspaces", {
+          ...setup,
+          name,
+          unit: "Geri",
+          timezone: "America/New_York",
+        })
+      ).status,
+    ).toBe(409);
+    expect(
+      (await request(tokenA, "/workspaces", { ...setup, name, unit: "Geri" }))
+        .status,
+    ).toBe(200);
+    const row = await h.prisma.facilityProfile.findFirstOrThrow({
+      where: { organizationId: h.tenantA.organizationId, name },
+    });
+    const { id: _id, acceptedAges: _ages, ...copy } = row;
+    await h.prisma.facilityProfile.create({ data: copy });
+    expect(
+      (await request(tokenA, "/workspaces", { ...setup, name, unit: "Third" }))
+        .status,
+    ).toBe(409);
+  });
+  it("keeps identical hospital labels and separate budget totals isolated across tenants", async () => {
+    const a = await workspace("Same hospital label");
+    const b = (
+      await request(tokenB, "/workspaces", {
+        ...setup,
+        name: "Same hospital label",
+      })
+    ).body as RevOpsView;
+    let revision = b.revision;
+    const write = async (command: RevOpsCommand) => {
+      const r = await request(tokenB, `/workspaces/${b.id}/commands`, {
+        revision,
+        command,
+      });
+      expect(r.status).toBe(200);
+      revision = r.body.revision;
+    };
+    await write({
+      action: "budget",
+      period: "2028-02",
+      total: 145,
+      costCenter: "Inpatient",
+    });
+    const snapshot = (await request(tokenB, `/workspaces/${b.id}`))
+      .body as RevOpsView;
+    await write({ action: "approve", budgetId: snapshot.state.budgets[0]!.id });
+    for (let i = 1; i <= 7; i++)
+      await write({ action: "actual", date: `2028-02-0${i}`, count: 5 });
+    expect(
+      (
+        await request(
+          tokenB,
+          `/workspaces/${b.id}/comparison?period=2028-02&through=2028-02-07`,
+        )
+      ).body,
+    ).toMatchObject({
+      actuals: 35,
+      fullMonthBudget: 145,
+      phasedTarget: 35,
+      phasedVariance: 0,
+    });
+    expect((await current(a)).state.budgets).toEqual([]);
+    expect((await request(tokenA, `/workspaces/${b.id}`)).status).toBe(404);
+  });
+  it("imports, approves, reconciles, corrects, replays and survives a fresh database client", async () => {
+    const w = await workspace("Full journey");
+    expect(w.revision).toBe(1);
+    const b = upload(
+      "budget",
+      "period,monthly_budget,cost_center\n2028-02,290,Inpatient\n",
+    );
+    expect((await importFile(w, b, false)).body.issues).toEqual([]);
+    expect((await current(w)).state.budgets).toHaveLength(0);
+    expect((await importFile(w, b)).status).toBe(200);
+    const budget = (await current(w)).state.budgets[0]!;
+    expect(
+      (await command(w, { action: "approve", budgetId: budget.id })).status,
+    ).toBe(200);
+    const actual = upload(
+      "actuals",
+      "activity_date,patient_days\n" +
+        [9, 10, 11, 10, 12, 8, 10]
+          .map((n, i) => `2028-02-0${i + 1},${n}`)
+          .join("\n"),
+    );
+    expect((await importFile(w, actual)).status).toBe(200);
+    const comparison = () =>
+      request(
+        tokenA,
+        `/workspaces/${w.id}/comparison?period=2028-02&through=2028-02-07`,
+      );
+    expect((await comparison()).body).toMatchObject({
+      actuals: 70,
+      fullMonthBudget: 290,
+      phasedTarget: 70,
+      fullMonthVariance: -220,
+      phasedVariance: 0,
+      forecast: null,
+      collections: null,
+    });
+    expect(
+      (
+        await command(w, {
+          action: "correct",
+          date: "2028-02-06",
+          count: 9,
+          reason: "Reconciled signed census",
+        })
+      ).status,
+    ).toBe(200);
+    expect((await comparison()).body).toMatchObject({
+      actuals: 71,
+      fullMonthVariance: -219,
+      phasedVariance: 1,
+    });
+    expect((await importFile(w, actual)).body.replayed).toBe(true);
+    const changed = await current(w);
+    expect(changed.state.actuals["2028-02-06"]).toHaveLength(2);
+    expect(changed.state.budgets[0]!.total).toBe(290);
+    expect(changed.state.actuals["2028-02-06"]![0]!.source.rows).toEqual([7]);
+    expect(changed.state.actuals["2028-02-06"]![0]!.cutoffInstant).toBe(
+      "2028-02-07T06:00:00.000Z",
+    );
+    const fresh = createPrismaClient();
+    try {
+      const result = await new PrismaRevOpsGateway(fresh).get(
+        await auth.authenticate(tokenA),
+        w.id,
+      );
+      expect(result.state.actuals["2028-02-06"]?.at(-1)?.count).toBe(9);
+    } finally {
+      await fresh.$disconnect();
+    }
+    const journal = await request(tokenA, `/workspaces/${w.id}/history`);
+    expect(
+      journal.body.some(
+        (e: { action: string; actorId: string }) =>
+          e.action === "correct" && e.actorId === h.tenantA.userId,
+      ),
+    ).toBe(true);
+  });
+  it("enforces tenant, facility and delegated permissions, including close/reopen accountability", async () => {
+    const w = await workspace("Permissions");
+    expect((await request(tokenB, `/workspaces/${w.id}`)).status).toBe(404);
+    expect((await request(tokenB, `/workspaces/${w.id}/history`)).status).toBe(
+      404,
+    );
+    expect(
+      (
+        await command(
+          w,
+          { action: "actual", date: "2028-02-01", count: 99 },
+          tokenB,
+        )
+      ).status,
+    ).toBe(404);
+    expect((await request(tokenStaff, `/workspaces/${w.id}`)).status).toBe(403);
+    expect((await request("bad-token", "/workspaces")).status).toBe(401);
+    expect(
+      (
+        await command(w, {
+          action: "grant",
+          userId: `staff-${h.runId}`,
+          permissions: ["actualEnter"],
+        })
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await command(
+          w,
+          { action: "actual", date: "2028-02-01", count: 9 },
+          tokenStaff,
+        )
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await command(
+          w,
+          {
+            action: "correct",
+            date: "2028-02-01",
+            count: 10,
+            reason: "Count correction",
+          },
+          tokenStaff,
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await command(w, {
+          action: "grant",
+          userId: h.tenantB.userId,
+          permissions: ["view"],
+        })
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await command(w, {
+          action: "close",
+          period: "2028-02",
+          reason: "Month reconciled",
+        })
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await command(
+          w,
+          { action: "actual", date: "2028-02-02", count: 9 },
+          tokenStaff,
+        )
+      ).body.error,
+    ).toBe("period_closed");
+    expect(
+      (
+        await command(
+          w,
+          {
+            action: "reopen",
+            period: "2028-02",
+            reason: "Late census received",
+          },
+          tokenStaff,
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await command(w, {
+          action: "reopen",
+          period: "2028-02",
+          reason: "Late census received",
+        })
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await request(tokenA, `/workspaces/${w.id}/commands`, {
+          revision: (await current(w)).revision,
+          command: {
+            action: "correct",
+            date: "2028-02-01",
+            count: 10,
+            reason: "",
+          },
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request(tokenA, "/workspaces", {
+          ...setup,
+          organizationId: h.tenantB.organizationId,
+        })
+      ).status,
+    ).toBe(400);
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: [],
+    });
+    expect((await request(tokenStaff, `/workspaces/${w.id}`)).status).toBe(403);
+  });
+  it("rejects conflicting/duplicate/error rows atomically and flags incomplete periods", async () => {
+    const w = await workspace("Import errors");
+    await command(w, { action: "actual", date: "2028-02-01", count: 9 });
+    const bad = upload(
+      "actuals",
+      "activity_date,patient_days\n2028-02-02,10\n2028-02-01,22\n2028-02-02,12\n2028-02-30,4\n2028-02-03,#REF!\n",
+    );
+    const preview = await importFile(w, bad, false);
+    expect(preview.body.issues).toHaveLength(4);
+    expect((await importFile(w, bad)).status).toBe(400);
+    expect((await current(w)).state.actuals["2028-02-02"]).toBeUndefined();
+    const c = await request(
+      tokenA,
+      `/workspaces/${w.id}/comparison?period=2028-02&through=2028-02-02`,
+    );
+    expect(c.body).toMatchObject({
+      knownActuals: 9,
+      actuals: null,
+      missingDates: ["2028-02-02"],
+      phasedVariance: null,
+    });
+  });
+  it("preserves budget/field history, checks phasing totals and rejects stale writes", async () => {
+    const w = await workspace("Version controls");
+    expect(
+      (
+        await command(w, {
+          action: "budget",
+          period: "2028-02",
+          total: 290,
+          costCenter: "Inpatient",
+          dailyTargets: [290],
+        })
+      ).status,
+    ).toBe(400);
+    await command(w, {
+      action: "budget",
+      period: "2028-02",
+      total: 290,
+      costCenter: "Inpatient",
+      dailyTargets: [20, ...Array(27).fill(10), 0],
+    });
+    const b = (await current(w)).state.budgets[0]!;
+    await command(w, { action: "approve", budgetId: b.id });
+    expect(
+      (
+        await request(
+          tokenA,
+          `/workspaces/${w.id}/comparison?period=2028-02&through=2028-02-07`,
+        )
+      ).body.phasedTarget,
+    ).toBe(80);
+    await command(w, {
+      action: "field",
+      label: "Department",
+      options: ["New inpatient"],
+      archived: false,
+    });
+    expect((await current(w)).state.budgets[0]!.costCenterLabel).toBe(
+      "Cost center",
+    );
+    await command(w, {
+      action: "field",
+      label: "Department",
+      options: ["New inpatient"],
+      archived: true,
+    });
+    expect(
+      (
+        await command(w, {
+          action: "budget",
+          period: "2028-03",
+          total: 300,
+          costCenter: "New inpatient",
+        })
+      ).status,
+    ).toBe(400);
+    const snap = await current(w);
+    const payload = {
+      revision: snap.revision,
+      command: { action: "actual", date: "2028-02-01", count: 10 },
+    };
+    const results = await Promise.all([
+      request(tokenA, `/workspaces/${w.id}/commands`, payload),
+      request(tokenA, `/workspaces/${w.id}/commands`, {
+        ...payload,
+        command: { ...payload.command, count: 11 },
+      }),
+    ]);
+    expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect((await current(w)).state.actuals["2028-02-01"]).toHaveLength(1);
+  });
+  it("accepts XLSX values and rejects formula cells without executing them", async () => {
+    const w = await workspace("Excel import");
+    const wb = new ExcelJS.Workbook();
+    const s = wb.addWorksheet("Budget");
+    s.addRow(["period", "monthly_budget", "cost_center"]);
+    s.addRow(["2028-02", 290, "Inpatient"]);
+    const content = Buffer.from(await wb.xlsx.writeBuffer()).toString("base64");
+    const result = await importFile(w, {
+      kind: "budget",
+      name: "budget.xlsx",
+      content,
+      mapping: {},
+    });
+    expect(result.status).toBe(200);
+    expect((await current(w)).state.budgets[0]!.source.sheet).toBe("Budget");
+    s.getCell("B2").value = { formula: "1+1", result: 2 };
+    const invalid = await importFile(
+      w,
+      {
+        kind: "budget",
+        name: "budget.xlsx",
+        content: Buffer.from(await wb.xlsx.writeBuffer()).toString("base64"),
+        mapping: {},
+      },
+      false,
+    );
+    expect(invalid.body.issues).toHaveLength(1);
+  });
+  it("rejects oversized unused worksheets over HTTP without writing activity or history", async () => {
+    const w = await workspace("Unsafe workbook");
+    const wb = new ExcelJS.Workbook();
+    wb.addWorksheet("Actuals").addRows([
+      ["activity_date", "patient_days"],
+      ["2028-02-01", 9],
+    ]);
+    wb.addWorksheet("Notes").getCell("A1").value = "Synthetic";
+    const zip = await JSZip.loadAsync(await wb.xlsx.writeBuffer());
+    zip.file(
+      "xl/worksheets/sheet2.xml",
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:XFD1048576"/></worksheet>',
+    );
+    const before = await request(tokenA, `/workspaces/${w.id}/history`);
+    const result = await importFile(w, {
+      kind: "actuals",
+      name: "unsafe.xlsx",
+      sheet: "Actuals",
+      mapping: {},
+      content: (
+        await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" })
+      ).toString("base64"),
+    });
+    expect(result.status).toBe(400);
+    expect(result.body.error).toBe("worksheet_missing_or_too_large");
+    expect((await current(w)).revision).toBe(w.revision);
+    expect((await current(w)).state.actuals).toEqual({});
+    expect((await request(tokenA, `/workspaces/${w.id}/history`)).body).toEqual(
+      before.body,
+    );
+  });
+  it("RLS fails closed for a non-bypass role and protects tenant writes", async () => {
+    const w = await workspace("RLS test");
+    await h.prisma.$executeRawUnsafe(
+      `DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='revops_rls_test') THEN CREATE ROLE revops_rls_test NOLOGIN NOSUPERUSER NOBYPASSRLS; END IF; END $$;`,
+    );
+    await h.prisma.$executeRawUnsafe(
+      `GRANT SELECT, UPDATE, DELETE ON "RevOpsWorkspace" TO revops_rls_test`,
+    );
+    await h.prisma.$executeRawUnsafe(
+      `GRANT SELECT, INSERT, UPDATE, DELETE ON "RevOpsChange" TO revops_rls_test`,
+    );
+    await h.prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe("SET LOCAL ROLE revops_rls_test");
+      expect(
+        await tx.$queryRawUnsafe(
+          `SELECT id FROM "RevOpsWorkspace" WHERE id=$1`,
+          w.id,
+        ),
+      ).toEqual([]);
+      await tx.$executeRaw`SELECT set_config('app.current_organization_id',${h.tenantB.organizationId},true)`;
+      expect(
+        await tx.$executeRawUnsafe(
+          `UPDATE "RevOpsWorkspace" SET revision=999 WHERE id=$1`,
+          w.id,
+        ),
+      ).toBe(0);
+      await tx.$executeRaw`SELECT set_config('app.current_organization_id',${h.tenantA.organizationId},true)`;
+      expect(
+        await tx.$queryRawUnsafe(
+          `SELECT id FROM "RevOpsWorkspace" WHERE id=$1`,
+          w.id,
+        ),
+      ).toEqual([{ id: w.id }]);
+      expect(
+        await tx.$queryRawUnsafe(
+          `SELECT revision FROM "RevOpsChange" WHERE "workspaceId"=$1`,
+          w.id,
+        ),
+      ).toEqual([{ revision: 1 }]);
+      expect(
+        await tx.$executeRawUnsafe(
+          `UPDATE "RevOpsChange" SET action='tampered' WHERE "workspaceId"=$1`,
+          w.id,
+        ),
+      ).toBe(0);
+      expect(
+        await tx.$executeRawUnsafe(
+          `DELETE FROM "RevOpsChange" WHERE "workspaceId"=$1`,
+          w.id,
+        ),
+      ).toBe(0);
+      expect(
+        await tx.$executeRawUnsafe(
+          `DELETE FROM "RevOpsWorkspace" WHERE id=$1`,
+          w.id,
+        ),
+      ).toBe(0);
+      const journalBefore = await tx.$queryRawUnsafe(
+        `SELECT * FROM "RevOpsChange" WHERE "workspaceId"=$1`,
+        w.id,
+      );
+      await tx.$executeRawUnsafe("SAVEPOINT immutable_workspace_key");
+      await expect(
+        tx.$executeRawUnsafe(
+          `UPDATE "RevOpsWorkspace" SET id=$2 WHERE id=$1`,
+          w.id,
+          `${w.id}-rewritten`,
+        ),
+      ).rejects.toMatchObject({
+        code: "P2010",
+        meta: {
+          // PostgreSQL 16 reports foreign_key_violation; 18 reports
+          // restrict_violation for the same rejected referenced-key update.
+          code: expect.stringMatching(/^(23503|23001)$/),
+          message: expect.stringContaining(
+            "RevOpsChange_organizationId_workspaceId_fkey",
+          ),
+        },
+      });
+      await tx.$executeRawUnsafe(
+        "ROLLBACK TO SAVEPOINT immutable_workspace_key",
+      );
+      expect(
+        await tx.$queryRawUnsafe(
+          `SELECT * FROM "RevOpsChange" WHERE "workspaceId"=$1`,
+          w.id,
+        ),
+      ).toEqual(journalBefore);
+      expect(
+        await tx.$queryRawUnsafe(
+          `SELECT id FROM "RevOpsWorkspace" WHERE id=$1`,
+          w.id,
+        ),
+      ).toEqual([{ id: w.id }]);
+      expect(
+        await tx.$queryRawUnsafe(
+          `SELECT revision FROM "RevOpsChange" WHERE "workspaceId"=$1`,
+          w.id,
+        ),
+      ).toEqual([{ revision: 1 }]);
+    });
+  });
+});

@@ -1,5 +1,33 @@
 # Implementation Status
 
+**2026-09-06: Rev Ops patient-day slice, locally verified, not deployed.**
+On `codex/om/rev-ops-patient-days`, the synthetic `/rev-ops` workflow now covers
+hospital/unit setup, delegated access, configurable cost center, budget
+upload/manual draft and approval, actuals upload/manual entry, accountable
+correction, period close/reopen and full/phased comparisons. Persistence,
+source history, optimistic concurrency and server-enforced tenant isolation
+are implemented. Forecast, collections and event-level stay counting remain deferred.
+
+Tyler completed the owner walkthrough and authorized a test/debug pass. Current
+verification: 480 root tests, 67 app tests and four Rev Ops browser journeys passed
+after review fixes; all 20 legacy browser checks passed in the preceding debug pass.
+Typecheck, full source lint, app build, Prisma
+validation and diff checks passed. A real API restart preserved the full workspace
+and all audit revisions. Debugging fixed import validation/provenance, stale UI
+state, budget amendment handling, setup ambiguity and server logout; an additional
+migration protects history from application-role updates/deletes. Stale legacy
+selectors and an intermittent prescreen fixture collision were corrected.
+The subsequent review reproduced and fixed a ZIP entry-count validation bypass
+and cascading audit-reference rewrites. Complete ZIP directory validation and a
+fourth forward migration now protect those paths; both regressions pass.
+The final import fix replaces full workbook-model loading with a bounded,
+namespace-aware scalar reader, covering unused-sheet expansion and the original
+sample's namespace compatibility failure. The original workbook now passes upload,
+approval, correction, replay and reload without modification. Authorization and
+migrations were unchanged in this final fix.
+See [verification and remaining gates](docs/testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
+This is local synthetic proof, not production readiness or whole-product completion.
+
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.
 

@@ -32,8 +32,16 @@ export class ApiError extends Error {
 
 let bearerToken: string | null = null;
 
+export async function apiRevOps<T>(path: string, body?: unknown): Promise<T> {
+  const response = await request(`/api/rev-ops${path}`, {
+    token: true,
+    ...(body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }),
+  });
+  return response.json() as Promise<T>;
+}
+
 async function request(path: string, init?: RequestInit & { token?: boolean }): Promise<Response> {
-  const headers: Record<string, string> = { "content-type": "application/json" };
+  const headers: Record<string, string> = init?.body === undefined ? {} : { "content-type": "application/json" };
   if (init?.token) {
     if (!bearerToken) throw new ApiError(401, "authentication_failed");
     headers.authorization = `Bearer ${bearerToken}`;

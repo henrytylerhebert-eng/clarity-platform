@@ -1,4 +1,8 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+import Fastify from "fastify";
+import { registerRevOpsRoutes } from "./revOpsRoutes.js";
+import type { PrismaRevOpsGateway } from "../../case-repository/src/revOpsGateway.js";
+import { RevOpsError } from "../../rev-ops-service/src/index.js";
 import { z, ZodError } from "zod";
 import {
   AuthenticationFailedError,
@@ -47,7 +51,7 @@ import {
  * - Failures are uniform and content-free: 401 for anything wrong with the
  *   token, 403 for a role the policy does not permit, 404 for a case the
  *   tenant cannot see. Internals are never echoed.
- * - No framework: node:http only, JSON only, 64 KiB body cap.
+ * - Thin Fastify adapter; JSON only, 64 KiB default body cap.
  */
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -143,6 +147,7 @@ export interface ApiDeps {
   auth: AuthenticationService;
   caseCommands: CaseCommandService;
   prescreen: PrescreenCommandService;
+  revOps?: PrismaRevOpsGateway;
 }
 
 class HttpError extends Error {
@@ -180,23 +185,6 @@ function bearerToken(req: IncomingMessage): string {
   return header.slice(7);
 }
 
-async function readJsonBody(req: IncomingMessage): Promise<unknown> {
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const chunk of req) {
-    size += (chunk as Buffer).length;
-    if (size > MAX_BODY_BYTES) throw new HttpError(413, "body_too_large");
-    chunks.push(chunk as Buffer);
-  }
-  const raw = Buffer.concat(chunks).toString("utf8");
-  if (!raw) return {};
-  try {
-    return JSON.parse(raw);
-  } catch {
-    throw new HttpError(400, "invalid_json");
-  }
-}
-
 /** Stable prescreen error-code → HTTP status. Codes are content-free by design (errors.ts). */
 const PRESCREEN_ERROR_STATUS: Record<string, number> = {
   PERMISSION_DENIED: 403,
@@ -210,6 +198,7 @@ const PRESCREEN_ERROR_STATUS: Record<string, number> = {
 
 function toHttpError(error: unknown): HttpError {
   if (error instanceof HttpError) return error;
+  if (error instanceof RevOpsError) return new HttpError(error.status, error.code);
   if (error instanceof LoginRejectedError || error instanceof AuthenticationFailedError) {
     return new HttpError(401, "authentication_failed");
   }
@@ -242,12 +231,42 @@ function prescreenActorFor(principal: AuthenticatedPrincipal) {
 }
 
 export function createApiServer(deps: ApiDeps): Server {
-  return createServer(async (req, res) => {
+  const app = Fastify({
+    bodyLimit: MAX_BODY_BYTES,
+    logger: false,
+    serverFactory(handler) {
+      return createServer(async (req, res) => {
+        try {
+          await app.ready();
+          handler(req, res);
+        } catch {
+          res.writeHead(500);
+          res.end();
+        }
+      });
+    },
+  });
+  app.setErrorHandler((error, _request, reply) => {
+    const e = error as { code?: string };
+    const http = e.code === "FST_ERR_CTP_BODY_TOO_LARGE"
+      ? new HttpError(413, "body_too_large")
+      : ["FST_ERR_CTP_INVALID_JSON_BODY", "FST_ERR_CTP_EMPTY_JSON_BODY"].includes(e.code ?? "")
+        ? new HttpError(400, "invalid_json")
+        : e.code === "FST_ERR_CTP_INVALID_MEDIA_TYPE"
+          ? new HttpError(415, "unsupported_media_type")
+          : toHttpError(error);
+    void reply.code(http.status).send({ error: http.code });
+  });
+  if (deps.revOps) registerRevOpsRoutes(app, deps.auth, deps.revOps);
+  app.all("/*", async (request, reply) => {
+    reply.hijack();
+    const req = request.raw;
+    const res = reply.raw;
     const url = (req.url ?? "").split("?")[0] ?? "";
     const method = req.method ?? "GET";
     try {
       if (method === "POST" && url === "/api/auth/login") {
-        const { assertion } = LoginBodySchema.parse(await readJsonBody(req));
+        const { assertion } = LoginBodySchema.parse(request.body ?? {});
         const { token, principal } = await deps.auth.login(assertion);
         return sendJson(res, 200, { token, principal: serializePrincipal(principal) });
       }
@@ -266,7 +285,7 @@ export function createApiServer(deps: ApiDeps): Server {
       const rationaleMatch = method === "POST" ? DECISION_RATIONALE_PATH.exec(url) : null;
       if (rationaleMatch) {
         const principal = await deps.auth.authenticate(bearerToken(req));
-        const body = DecisionRationaleBodySchema.parse(await readJsonBody(req));
+        const body = DecisionRationaleBodySchema.parse(request.body ?? {});
         // The load-bearing lines of the slice: tenant and actor come from the
         // verified principal, not from anything the caller sent.
         const result = await deps.caseCommands.recordDecisionRationale({
@@ -287,7 +306,7 @@ export function createApiServer(deps: ApiDeps): Server {
 
       if (method === "POST" && url === "/api/prescreen/encounters") {
         const principal = await deps.auth.authenticate(bearerToken(req));
-        const body = PrescreenStartBodySchema.parse(await readJsonBody(req));
+        const body = PrescreenStartBodySchema.parse(request.body ?? {});
         const result = await deps.prescreen.startEncounter({
           organizationId: principal.organizationId,
           actor: prescreenActorFor(principal),
@@ -317,7 +336,7 @@ export function createApiServer(deps: ApiDeps): Server {
 
         if (method === "POST" && action !== "readiness") {
           const principal = await deps.auth.authenticate(bearerToken(req));
-          const rawBody = await readJsonBody(req);
+          const rawBody = request.body ?? {};
           // Server-derived envelope fields. Bodies are strict, so a caller
           // supplying organizationId, actor, occurredAt, or (for submit)
           // receivingOrganizationId gets a 400 — never a silent overwrite.
@@ -372,4 +391,5 @@ export function createApiServer(deps: ApiDeps): Server {
       return sendJson(res, httpError.status, { error: httpError.code });
     }
   });
+  return app.server;
 }

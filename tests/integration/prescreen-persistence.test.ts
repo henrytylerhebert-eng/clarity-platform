@@ -334,7 +334,8 @@ describe("concurrency", () => {
 
   it("saveAssessmentDraft contention does not leak raw Prisma unique-index violations", async () => {
     const started = await startEncounter(h.tenantA, caseIdFor("a"));
-    const duplicateAssessmentId = `syn-psp-asv-race2-${h.runId}`;
+    // Share within this race, but never reuse an ID the preceding race may win.
+    const duplicateAssessmentId = `syn-psp-asv-duplicate-race-${h.runId}`;
     const base = {
       organizationId: h.tenantA.organizationId,
       actor: actorFor(h.tenantA),

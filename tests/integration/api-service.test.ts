@@ -139,6 +139,13 @@ describe("authentication over HTTP", () => {
     expect(await garbage.json()).toEqual({ error: "authentication_failed" });
   });
 
+  it("rejects empty JSON and unsupported media as client errors", async () => {
+    const empty=await fetch(`${baseUrl}/api/auth/login`,{method:"POST",headers:{"content-type":"application/json"}});
+    expect(empty.status).toBe(400);
+    const unsupported=await fetch(`${baseUrl}/api/auth/login`,{method:"POST",headers:{"content-type":"application/octet-stream"},body:"invalid"});
+    expect(unsupported.status).toBe(415);
+  });
+
   it("logout revokes the session; the token stops working immediately", async () => {
     const token = await login(ASSERTIONS.physician);
     const logout = await fetch(`${baseUrl}/api/auth/logout`, {
