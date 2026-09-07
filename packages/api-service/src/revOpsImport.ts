@@ -8,6 +8,8 @@ import {
   type RevOpsCommand,
   type RevOpsSource,
   type RevOpsState,
+  type RevOpsImportRow,
+  type RevOpsFieldSnapshot,
 } from "../../domain-contracts/src/revOps.js";
 import {
   RevOpsError,
@@ -143,6 +145,13 @@ export async function parseRevOpsUpload(
           )
           .map((f) => ({ fieldId: f.id, column: `Field: ${f.label}` }));
   const issues: { row: number; message: string }[] = [];
+  const invalidRows = new Set<number>();
+  const incomingFields = new Map<number, RevOpsFieldSnapshot[]>();
+  const dates = new Map<number, string>();
+  const invalid = (issue: { row: number; message: string }) => {
+    invalidRows.add(issue.row);
+    issues.push(issue);
+  };
   const commands: RevOpsCommand[] = [];
   const commandRows: number[] = [];
   const seen = new Set<string>();
@@ -199,7 +208,7 @@ export async function parseRevOpsUpload(
         });
     } catch (e) {
       if (!replayed)
-        issues.push({
+        invalid({
           row: sourceRow,
           message:
             e instanceof Error ? e.message : "Invalid custom field mapping",
@@ -210,13 +219,14 @@ export async function parseRevOpsUpload(
       ...(customValues ? { fields: customValues } : {}),
     });
     if (!parsed.success) {
-      issues.push({
+      invalid({
         row: sourceRow,
         message: "Missing or invalid mapped value",
       });
       return;
     }
     const cmd = parsed.data;
+    if (cmd.action === "actual") dates.set(sourceRow, cmd.date);
     const key =
       cmd.action === "budget"
         ? cmd.period
@@ -224,14 +234,14 @@ export async function parseRevOpsUpload(
           ? cmd.date
           : "";
     if (seen.has(key))
-      issues.push({
+      invalid({
         row: sourceRow,
         message:
           "Duplicate period/date; upload detail or a single monthly total, not both",
       });
     seen.add(key);
     if (state.closedPeriods.includes(key.slice(0, 7)))
-      issues.push({
+      invalid({
         row: sourceRow,
         message: "Period is closed; authorized reopening required",
       });
@@ -239,7 +249,7 @@ export async function parseRevOpsUpload(
       cmd.action === "budget" &&
       (state.field.archived || !state.field.options.includes(cmd.costCenter))
     )
-      issues.push({
+      invalid({
         row: sourceRow,
         message: "Unmapped or archived cost center",
       });
@@ -267,17 +277,20 @@ export async function parseRevOpsUpload(
           cmd.fields ?? [],
           prior,
         );
-        if (
-          cmd.action === "actual" &&
-          state.actuals[cmd.date]?.length &&
-          !sameFieldValues(prior, snapshots)
-        )
-          throw new RevOpsError(
-            "Conflicts with existing custom values; use correction with a reason",
-            400,
-          );
+        if (cmd.action === "actual") {
+          incomingFields.set(sourceRow, snapshots);
+          if (
+            state.actuals[cmd.date]?.length &&
+            !sameFieldValues(prior, snapshots)
+          )
+            issues.push({
+              row: sourceRow,
+              message:
+                "Conflicts with existing custom values; use correction with a reason",
+            });
+        }
       } catch (e) {
-        issues.push({
+        invalid({
           row: sourceRow,
           message: e instanceof Error ? e.message : "Invalid custom fields",
         });
@@ -286,6 +299,36 @@ export async function parseRevOpsUpload(
     commands.push(cmd);
     commandRows.push(sourceRow);
   });
+  const rows: RevOpsImportRow[] =
+    input.kind === "actuals"
+      ? sourceRows.map((row) => {
+          const date = dates.get(row);
+          const saved = date ? state.actuals[date]?.at(-1) : undefined;
+          const cmd = commands[commandRows.indexOf(row)];
+          const incoming =
+            cmd?.action === "actual"
+              ? { count: cmd.count, fields: incomingFields.get(row) ?? [] }
+              : undefined;
+          const rowIssues = issues
+            .filter((i) => i.row === row)
+            .map((i) => i.message);
+          return {
+            row,
+            date,
+            saved,
+            incoming,
+            issues: rowIssues,
+            status:
+              invalidRows.has(row) || !incoming
+                ? "invalid"
+                : rowIssues.length
+                  ? "conflict"
+                  : saved
+                    ? "unchanged"
+                    : "new",
+          };
+        })
+      : [];
   const source: RevOpsSource = {
     kind: "upload",
     name: input.name,
@@ -297,6 +340,7 @@ export async function parseRevOpsUpload(
   };
   return {
     headers,
+    rows: replayed ? [] : rows,
     commands,
     issues: replayed ? [] : issues,
     source,
