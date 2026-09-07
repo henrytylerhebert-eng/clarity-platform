@@ -161,6 +161,7 @@ export const RevOpsCommandSchema = z.discriminatedUnion("action", [
     .object({
       action: z.literal("close"),
       period: RevOpsPeriod,
+      budgetId: text.optional(),
       reason: z.string().trim().min(3).max(1000),
     })
     .strict(),
@@ -208,6 +209,38 @@ export interface RevOpsActual {
   at: string;
   cutoffInstant: string;
   reason?: string;
+}
+export interface RevOpsCloseReadiness {
+  period: string;
+  through: string;
+  expectedDays: number;
+  recordedDays: number;
+  missingDates: string[];
+  knownActuals: number;
+  actuals: number | null;
+  budget: RevOpsBudget | null;
+  variance: number | null;
+  closed: boolean;
+  ready: boolean;
+}
+export interface RevOpsClosingReceipt {
+  workspaceId: string;
+  unit: string;
+  timezone: string;
+  dateConvention: "end-of-day";
+  period: string;
+  through: string;
+  expectedDays: number;
+  actuals: number;
+  budget: RevOpsBudget;
+  variance: number;
+  days: { date: string; actualRevision: number; actual: RevOpsActual }[];
+  actorId: string;
+  at: string;
+  reason: string;
+  revision: number;
+  closingNumber: number;
+  previousClosingRevision?: number;
 }
 export const RevOpsReconciliationSchema = z
   .object({

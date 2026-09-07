@@ -7,6 +7,7 @@ import {
   type RevOpsState,
   type RevOpsPermission,
   type RevOpsSource,
+  type RevOpsCloseReadiness,
 } from "../../domain-contracts/src/revOps.js";
 
 import { RevOpsError } from "./error.js";
@@ -261,14 +262,47 @@ export function applyRevOpsCommand(
     command.action === "close" ? "periodClose" : "periodReopen",
   );
   const closed = state.closedPeriods.includes(command.period);
-  if (command.action === "close" && !closed)
+  if (command.action === "close" && !closed) {
+    const readiness = monthCloseReadiness(
+      state,
+      command.period,
+      command.budgetId,
+    );
+    if (!readiness.budget)
+      throw new RevOpsError("approved_budget_required_for_close", 400);
+    if (readiness.missingDates.length)
+      throw new RevOpsError("complete_month_required_for_close", 400);
     state.closedPeriods.push(command.period);
-  else if (command.action === "reopen" && closed)
+  } else if (command.action === "reopen" && closed)
     state.closedPeriods = state.closedPeriods.filter(
       (p) => p !== command.period,
     );
   else return false;
   return true;
+}
+
+export function monthCloseReadiness(
+  state: RevOpsState,
+  period: string,
+  budgetId?: string,
+): RevOpsCloseReadiness {
+  const expectedDays = daysInPeriod(period);
+  const through = `${period}-${expectedDays}`;
+  const report = compareRevOps(state, period, through, budgetId);
+  const closed = state.closedPeriods.includes(period);
+  return {
+    period,
+    through,
+    expectedDays,
+    recordedDays: expectedDays - report.missingDates.length,
+    missingDates: report.missingDates,
+    knownActuals: report.knownActuals,
+    actuals: report.actuals,
+    budget: report.budget,
+    variance: report.fullMonthVariance,
+    closed,
+    ready: !closed && !!report.budget && !report.missingDates.length,
+  };
 }
 
 export function compareRevOps(
