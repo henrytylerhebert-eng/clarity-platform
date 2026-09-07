@@ -9,7 +9,7 @@ source history, optimistic concurrency and server-enforced tenant isolation
 are implemented. Forecast, collections and event-level stay counting remain deferred.
 
 Tyler completed the owner walkthrough and authorized a test/debug pass. Current
-verification: 463 root tests, 67 app tests and four Rev Ops browser journeys passed
+verification: 480 root tests, 67 app tests and four Rev Ops browser journeys passed
 after review fixes; all 20 legacy browser checks passed in the preceding debug pass.
 Typecheck, full source lint, app build, Prisma
 validation and diff checks passed. A real API restart preserved the full workspace
@@ -20,6 +20,11 @@ selectors and an intermittent prescreen fixture collision were corrected.
 The subsequent review reproduced and fixed a ZIP entry-count validation bypass
 and cascading audit-reference rewrites. Complete ZIP directory validation and a
 fourth forward migration now protect those paths; both regressions pass.
+The final import fix replaces full workbook-model loading with a bounded,
+namespace-aware scalar reader, covering unused-sheet expansion and the original
+sample's namespace compatibility failure. The original workbook now passes upload,
+approval, correction, replay and reload without modification. Authorization and
+migrations were unchanged in this final fix.
 See [verification and remaining gates](docs/testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
 This is local synthetic proof, not production readiness or whole-product completion.
 

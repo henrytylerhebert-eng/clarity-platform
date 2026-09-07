@@ -58,7 +58,7 @@ migration was applied to the existing synthetic database during review fixes.
 
 | Check | Observed result |
 |---|---|
-| `DATABASE_URL=<isolated URL> npm test` | 463 tests passed across 44 files after the review fixes. |
+| `DATABASE_URL=<isolated URL> npm test` | 480 tests passed across 45 files after the structural import fixes. |
 | `npm --workspace app test` | 67 tests passed across 11 files. |
 | Dedicated Playwright Rev Ops config | Four tests passed: complete workflow and delegated census/correction/revocation/logout, each on desktop and mobile. |
 | `npm --workspace app run smoke` | All 20 legacy browser checks passed after correcting stale selectors. |
@@ -150,7 +150,49 @@ unchanged-record checks remain mandatory.
 
 This is a forward migration; earlier migration files are unchanged. ZIP64,
 multi-disk archives and ambiguous ZIP containers are intentionally unsupported.
-No dependency changes, source workbook access or new product scope were needed.
+No dependency changes, source workbook access or new product scope were needed
+for those two earlier fixes.
+
+## Structural import and namespace fix (2026-09-06)
+
+A subsequent review found that a 7 KB file could declare a merge spanning
+17,179,869,184 cells on an unused sheet. A guarded probe stopped the old ExcelJS
+model loader before allocation. The generated sample also exposed ExcelJS's
+failure to read valid prefixed SpreadsheetML namespaces. Both regressions failed
+against the old implementation before the replacement reader was installed.
+
+`revOpsXlsx.ts` now extracts validated ZIP entries once and reads bounded scalar
+cell values with namespace-aware SAX callbacks. No merged cells, drawing objects,
+formatting ranges or data-validation objects are constructed. Source hashes still
+identify the original uploaded bytes. Selected sheet, physical row references,
+formula rejection, blanks versus zero and 1900/1904 date epochs are preserved.
+
+Explicit limits: 1 MiB upload, 200 ZIP entries, 10 MiB cumulative expansion,
+401 rows and 40 columns per worksheet (including unused sheets), 100,000 actual
+cells per workbook, 200,000 XML nodes, XML depth 32, 64 attributes per element,
+1,000 cell styles/custom number formats, 100,000 shared strings and 32,767
+characters per cell. Selected imports still allow at most 366 data rows. DTDs,
+external worksheet relationships, ambiguous ZIP records, invalid indexes and
+duplicate row/cell identities are rejected. This bounded UTF-8 values reader
+does not promise arbitrary legacy workbook features or strict-OOXML namespaces.
+
+Verification: all 480 root tests, 67 app tests, source lint, typecheck, app build,
+Prisma validation and migration status passed. All four dedicated desktop/mobile
+journeys passed. Dependency audit reported zero vulnerabilities. The added HTTP
+regression confirms rejection leaves the workspace revision, activity and journal
+unchanged. No migration or authorization code changed in this fix.
+
+The original unmodified Scranton–Pawnee workbook also passed through the actual
+browser upload: budget 290 approved, seven daily rows totaling 70, February 6
+corrected from 8 to 9, repeat upload retained 71, and reload plus a fresh server
+read retained all five history records. Phased variance was +1 and full-month
+variance -219. Desktop/mobile views passed without browser errors. No workbook
+namespace workaround was needed. Its earlier normalized copy remains compatible.
+
+Final code review checked the bounded allocation paths, namespace handling,
+original-byte source identity, unchanged permission checks and unchanged four
+migrations. No remaining blocker was found in this bounded synthetic scope.
+GitHub CI and matching-head verification remain the final merge checks.
 
 ## Remaining gates
 

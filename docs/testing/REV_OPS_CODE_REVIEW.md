@@ -29,10 +29,12 @@ complete. Merge, release and expansion remain separate decisions.
   amendments discard prior evidence? The retention regression first reproduced
   a cascading-delete bypass, then passed after the third migration. The fourth
   migration prevents parent key changes from rewriting journal references.
-- Can forged ZIP metadata hide entries from the decompression guard? The importer
-  validates the complete directory consumed by ExcelJS/JSZip, rejects count and
-  boundary disagreements, and bounds actual expansion. Ordinary stored/deflated
-  single-disk ZIP files are supported; ZIP64 and ambiguous containers are rejected.
+- Can workbook structures expand beyond byte limits? `revOpsXlsx.ts` decodes the
+  validated ZIP entries once and uses namespace-aware SAX parsing of bounded cell
+  values. It never constructs ExcelJS workbook objects. Bounds apply to unused
+  worksheets too; merges, column ranges, validations and dimensions cannot trigger
+  model expansion. Ordinary stored/deflated ZIP files are supported; ZIP64 and
+  ambiguous containers are rejected. Review the limits in the verification record.
 - Are full-month and phased comparisons clearly distinguished, with missing
   census dates represented as unknown? Can an upload be mistaken for collections
   or forecast data? Neither later lane has a write path here.
@@ -91,6 +93,9 @@ they are not currently separate GitHub CI jobs.
 
 The lockfile includes Fastify, ExcelJS and CSV parsing dependencies, the ExcelJS
 UUID override, and resolved transitive updates from installation/audit remediation.
+Saxes 6 is now a direct runtime dependency and JSZip is a direct test dependency;
+both versions were already in the lockfile. ExcelJS is retained for fixture tests,
+but the Rev Ops upload path no longer invokes its model loader.
 No workbook binaries, patient records, `.env` values or generated screenshots
 are included. Existing smoke-selector and prescreen-fixture fixes are separated
 from feature code in the commit history for review.
