@@ -1,6 +1,8 @@
 # Rev Ops onboarding and custom fields — next bounded slice
 
-Status: documented implementation brief; runtime work has not started.
+Status: implemented and locally verified on `codex/om/rev-ops-onboarding-fields`;
+not merged or deployed. See the
+[verification record](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
 Owner: Tyler. Scope decision: additional fields appear in **both setup and data
 entry**, confirmed in the task on September 6, 2026. This extends the approved
 [product definition](INPATIENT_REV_OPS_PRODUCT_DEFINITION.md) and the proven

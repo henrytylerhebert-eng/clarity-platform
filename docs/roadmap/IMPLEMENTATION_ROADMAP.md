@@ -42,8 +42,10 @@ related_adrs: ADR-0001, ADR-0002
 The inpatient Rev Ops patient-day slice merged in PR #49 with synthetic
 [verification evidence](../testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
 Tyler selected hospital onboarding and additional fields in both setup and data
-entry as the next bounded slice; its [brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md)
-is documented only. The [detailed execution plan](INPATIENT_REV_OPS_IMPLEMENTATION_PLAN.md)
+entry as the next bounded slice; it is now locally implemented and verified,
+pending draft code review. See its [brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md)
+and [evidence](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
+The [detailed execution plan](INPATIENT_REV_OPS_IMPLEMENTATION_PLAN.md)
 remains grounded in the established workbook workflow. This lane does not change
 the platform priority below or establish production readiness.
 

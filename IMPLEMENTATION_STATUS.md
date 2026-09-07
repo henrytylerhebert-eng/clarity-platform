@@ -30,11 +30,25 @@ migrations were unchanged in this final fix.
 See [verification and remaining gates](docs/testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
 This is local synthetic proof, not production readiness or whole-product completion.
 
-**Next slice — documented only:** Tyler selected custom fields in both setup
-and data entry. The [onboarding/fields brief](docs/product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md)
-defines resumable workspace setup, bounded text/select fields, manual/import
-validation and historical snapshots. Runtime implementation has not started.
-Budget, actual activity, forecast and collections remain separate.
+**2026-09-07: Onboarding and additional fields — implemented and locally verified.**
+On `codex/om/rev-ops-onboarding-fields`, administrators can save/resume setup and
+define bounded text/select fields for setup, budgets and actuals. Manual entry
+and imports share validation; values retain definition snapshots, metadata-only
+corrections are audited, and renamed/archived fields preserve history. The UI
+shows onboarding progress from saved state and retains the preview revision at
+import confirmation. Existing tenant transactions and JSON storage are reused;
+no schema, migration, dependency or new service was added.
+
+Verification: 490 root tests, 68 app tests, six desktop/mobile journeys, lint,
+typecheck, build, Prisma validation and dependency audit passed. API restart
+preserved two field-enabled workspaces and the original PR #49 sample, with
+identical saves remaining no-ops after PostgreSQL JSONB round-trips. The original
+unmodified XLSX still passes upload/correction/replay. See the
+[verification record](docs/testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md) and
+[scope brief](docs/product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
+Draft code review is next; this slice is not merged or deployed. Sensitive-field
+permissions and organization-wide field sharing remain deferred. Budget, actual
+activity, forecast and collections remain separate.
 
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.

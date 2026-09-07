@@ -1,5 +1,10 @@
 # Rev Ops — resume on September 7, 2026
 
+Resumed September 7: the onboarding/fields runtime is now locally implemented
+and verified. The checkpoint below is retained as the overnight record; current
+status and next review steps are in
+[the new verification record](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
+
 Saved at the end of September 6 in America/Chicago. Tyler requested a clean
 stopping point for the night. Do not start more runtime work until he resumes.
 

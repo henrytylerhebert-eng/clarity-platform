@@ -170,6 +170,8 @@ Production and improvement measurements remain outside that proof.
 Tyler authorized the next hospital onboarding/custom-field slice and confirmed
 fields belong in both setup and data entry. Follow its
 [bounded brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
-That next slice is documented only; runtime work has not started. Preserve the
+That slice is now locally implemented and verified; prepare its draft code
+review using the [evidence record](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
+It is not merged or deployed. Preserve the
 same sequence: architecture across the product, one complete workflow, end-to-end
 proof, then expansion.
