@@ -12,7 +12,7 @@ test('case queue and custody verification render across viewports', async ({ pag
 
   await page.getByRole('button', { name: 'Custody Ledger' }).click();
   await page.getByRole('button', { name: 'Verify custody chain' }).click();
-  await expect(page.getByText('Verified')).toBeVisible();
+  await expect(page.getByText('Verified', { exact: true })).toBeVisible();
 
   await page.screenshot({
     path: `/tmp/clarity-v01-${testInfo.project.name}.png`,
@@ -40,7 +40,7 @@ test('packet-ready case shows review gates and accepts mock routing updates', as
   await expect(page.getByText('Needs clinician review', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Legal Status' }).click();
-  await expect(page.getByText('Counsel validation required', { exact: true }).last()).toBeVisible();
+  await expect(page.locator('.legal-warning')).toContainText('require counsel validation before enforcement');
 
   await page.getByRole('button', { name: 'Packet Preview' }).click();
   await expect(page.getByRole('heading', { name: 'Assessment summary' })).toBeVisible();
@@ -159,7 +159,7 @@ test('intake case can generate and send a packet with custody events', async ({ 
   await expect(page.getByText('PACKET_HASH_SEALED').first()).toBeVisible();
   await expect(page.getByText('PACKET_SENT').first()).toBeVisible();
   await page.getByRole('button', { name: 'Verify custody chain' }).click();
-  await expect(page.getByText('Verified')).toBeVisible();
+  await expect(page.getByText('Verified', { exact: true })).toBeVisible();
 });
 
 test('mock admit lab filters the synthetic cohort and preserves review gates', async ({ page }) => {
