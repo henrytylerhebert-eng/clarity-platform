@@ -209,3 +209,69 @@ it("confirms an import with its preview revision even after a refresh", async ()
     ).toBe(true),
   );
 });
+
+it("removes the previous close review while a newly selected budget is loading", async () => {
+  const fallback = vi.mocked(apiRevOps).getMockImplementation()!;
+  const w = workspace("Hospital A", "Cost center A");
+  w.permissions.push("periodClose");
+  const budget = {
+    id: "approved-a",
+    period: "2028-02",
+    total: 290,
+    dailyTargets: Array(29).fill(10),
+    costCenter: "Inpatient",
+    costCenterLabel: "Cost center",
+    fieldVersion: 1,
+    status: "approved" as const,
+    source: { kind: "manual" as const, name: "Synthetic" },
+    createdBy: "admin",
+    createdAt: "2028-01-01",
+  };
+  w.state.budgets = [budget, { ...budget, id: "approved-b", total: 300 }];
+  vi.mocked(apiRevOps).mockImplementation(async (path, body) => {
+    if (path === "/workspaces") return [w];
+    if (path.includes("/comparison")) {
+      if (path.includes("budgetId=")) return new Promise(() => {});
+      return {
+        actuals: 280,
+        knownActuals: 280,
+        fullMonthBudget: 290,
+        phasedTarget: 70,
+        fullMonthVariance: -10,
+        phasedVariance: 210,
+        missingDates: [],
+        budget,
+        revision: 1,
+        closeReadiness: {
+          period: "2028-02",
+          through: "2028-02-29",
+          expectedDays: 29,
+          recordedDays: 29,
+          missingDates: [],
+          knownActuals: 280,
+          actuals: 280,
+          budget,
+          variance: -10,
+          ready: true,
+          closed: false,
+        },
+        closingReceipt: null,
+      };
+    }
+    return fallback(path, body);
+  });
+  await login();
+  fireEvent.change(screen.getByLabelText("Reason to close period"), {
+    target: { value: "Reviewed first budget" },
+  });
+  expect(screen.getByRole("button", { name: "Close period" })).toBeEnabled();
+  fireEvent.change(screen.getByLabelText("Approved baseline"), {
+    target: { value: "approved-b" },
+  });
+  expect(
+    screen.queryByRole("button", { name: "Close period" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByLabelText("Reason to close period"),
+  ).not.toBeInTheDocument();
+});
