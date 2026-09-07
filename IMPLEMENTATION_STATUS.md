@@ -39,14 +39,17 @@ shows onboarding progress from saved state and retains the preview revision at
 import confirmation. Existing tenant transactions and JSON storage are reused;
 no schema, migration, dependency or new service was added.
 
-Verification: 490 root tests, 68 app tests, six desktop/mobile journeys, lint,
+Verification after PR #50 review: 493 root tests, 68 app tests, six desktop/mobile journeys, lint,
 typecheck, build, Prisma validation and dependency audit passed. API restart
 preserved two field-enabled workspaces and the original PR #49 sample, with
 identical saves remaining no-ops after PostgreSQL JSONB round-trips. The original
 unmodified XLSX still passes upload/correction/replay. See the
 [verification record](docs/testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md) and
 [scope brief](docs/product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
-Draft code review is next; this slice is not merged or deployed. Sensitive-field
+The review fixed an import mapping-mode replay collision and a client-test build
+failure; CI's existing typecheck now includes app code. The verification record corrects the
+earlier build claim. Agent walkthrough/review is complete; PR #50 remains draft
+for the owner's merge decision. This slice is not merged or deployed. Sensitive-field
 permissions and organization-wide field sharing remain deferred. Budget, actual
 activity, forecast and collections remain separate.
 

@@ -4,8 +4,9 @@ Date: September 7, 2026. Branch: `codex/om/rev-ops-onboarding-fields`.
 Code commits: `d6c7b80` (backend/contracts/tests), `c45d1f2` (UI/browser tests).
 Base: PR #49 merge `926b3776ae25df536ad3d2254d51c6d8019aff0a`.
 
-Status: implemented and locally verified with synthetic data, pending draft
-code review. This is not production deployment or hospital cutover approval.
+Status: implemented, locally verified and agent-reviewed with synthetic data;
+PR #50 remains draft. This is not merge, production deployment or hospital
+cutover approval.
 Scope: [approved direction and bounded brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
 
 ## Implemented journey
@@ -45,7 +46,7 @@ on port 55439. No production database or real hospital records were accessed.
 
 | Command/check | Result |
 |---|---|
-| `DATABASE_URL=<isolated URL> npm test` | 490 tests across 46 files passed. |
+| `DATABASE_URL=<isolated URL> npm test` | 493 tests across 46 files passed after the PR review fixes below. |
 | `npm --workspace app test` | 68 tests across 11 files passed. |
 | `API_PORT=4316 npx playwright test --config app/playwright.revops.config.ts` | Six journeys passed: original workflow, delegated/revoked access, and onboarding/fields, each desktop/mobile. |
 | `npm run typecheck` / `npm run lint` | Passed. |
@@ -116,3 +117,62 @@ rollback, security/privacy approval and cutover remain unverified.
 Next: review the draft PR and its latest-head CI. Do not merge or expand this
 slice merely because local checks pass. The 20 legacy app smoke checks were not
 rerun for this extension; dedicated Rev Ops and full root/app suites were run.
+
+## PR #50 workflow walkthrough and review follow-up
+
+Reviewed starting head `5154adb92ff4770e77dd38fd950aab330605d41a` against
+`926b3776ae25df536ad3d2254d51c6d8019aff0a`. Mapping fix: `c098e3f`.
+Two defects were found and fixed:
+
+- **P2 — Import mapping modes shared a replay key.** An omitted `fieldMapping`
+  automatically matches template columns; an explicit empty array ignores custom
+  columns. Both previously hashed identically, so changing modes could return
+  “already imported” instead of reporting a metadata conflict. Two unit cases
+  failed before the fix. The key now retains the empty array while preserving
+  legacy omitted-mapping keys. A database/API regression confirms that changed
+  metadata is rejected, state/history stay unchanged and the original upload
+  still replays. Pre-fix explicit-empty requests are revalidated under the new
+  key; the fix does not rewrite accepted records.
+- **P2 — The app build failed despite green CI.** The client regression passed
+  an unsupported `exact` option to Testing Library's `getByRole`. A fresh build
+  reproduced TS2769. Removing the option preserves exact string-name matching
+  and fixes the build. The existing `npm run typecheck` now also compiles `app/`,
+  so CI catches app type errors; previously it excluded app code and running
+  tests did not expose this error. The earlier claim that
+  the starting head's app build passed is superseded by this fresh result.
+
+GitHub rejected the initial push containing an app-build workflow step because
+the OAuth credential lacks `workflow` scope. That unpublished workflow edit was
+removed. The final change extends the repository's existing typecheck script;
+`.github/workflows/ci.yml` remains unchanged. The full Vite app build was verified
+locally; CI checks app types through its existing Typecheck step.
+
+The fresh desktop/mobile walkthrough exercised:
+
+| Step | Observed behavior |
+|---|---|
+| Admin: setup and resume | Hospital/unit, timezone, three scoped fields, saved reporting code and delegations persist after reload. |
+| Finance: upload and approve | Required planning metadata accompanies the 290 monthly draft; approval preserves that version. |
+| Census: import/manual entry | Seven accepted daily counts total 70; manual February 8 entry is outside the February 7 report cutoff. |
+| Correction authority: reconcile | February 6 changes 8 to 9; a metadata-only correction adds history without changing the count. History is `[8,9,9]`. |
+| Reviewer: repeat upload and compare | Repeat upload retains corrections. Through February 7: actuals 71, monthly budget 290, phased variance +1, monthly variance -219. |
+| Admin/reviewer: field lifecycle and history | Rename, retired choice, archive and reload retain historical labels/values. Archived values are read-only during correction. |
+
+Custom-column mapping is all-explicit when a mapping array is supplied: include
+every intended custom column. An omitted array uses automatic `Field: label`
+matching. Review mapped values before confirmation; optional unmapped values are
+not inferred.
+
+Fresh root tests include authorization, cross-tenant and revoked-access denials,
+atomic imports, stale previews, bounded unused worksheets and legacy compatibility.
+No schema or migration changed; Prisma validation passed. App tests (68), lint,
+root typecheck and the corrected app build passed. The app regression was rerun
+after its query fix. An API restart with the fixed reader preserved two newly
+walked field workspaces (revision/history 14 each), the legacy workspace
+(revision/history 5), and six identical-save no-ops.
+
+Review evidence is under the same local proof directory: `pr50-review-root-tests.log`,
+`pr50-review-browser/`, restart snapshots and `pr50-original-sample/`.
+No additional blocking defects were identified in the reviewed scope. Production
+identity, sensitive data use, cutover, scale and rollback remain outside this
+review's proof. Keep PR #50 draft for the owner's merge decision.
