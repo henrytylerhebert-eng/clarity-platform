@@ -193,7 +193,7 @@ it("confirms an import with its preview revision even after a refresh", async ()
   );
   await screen.findByRole("button", { name: "Confirm import" });
   revision = 2;
-  fireEvent.click(screen.getByRole("button", { name: "Refresh", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
   await screen.findByText("Refreshed from server.");
   fireEvent.click(screen.getByRole("button", { name: "Confirm import" }));
   await waitFor(() =>

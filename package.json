@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:app": "npm --workspace app test",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -b app/tsconfig.json",
     "prisma:format": "prisma format",
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
