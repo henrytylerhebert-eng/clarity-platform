@@ -24,6 +24,7 @@ import type {
 } from "../../packages/domain-contracts/src/revOps.js";
 import { createHarness, type Harness } from "./helpers/harness.js";
 import ExcelJS from "exceljs";
+import JSZip from "jszip";
 
 let h: Harness;
 let server: Server;
@@ -77,7 +78,7 @@ const upload = (kind: "budget" | "actuals", csv: string) => ({
 });
 async function importFile(
   w: RevOpsView,
-  u: ReturnType<typeof upload>,
+  u: ReturnType<typeof upload> & { sheet?: string },
   commit = true,
 ) {
   const c = await current(w);
@@ -564,6 +565,37 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
       false,
     );
     expect(invalid.body.issues).toHaveLength(1);
+  });
+  it("rejects oversized unused worksheets over HTTP without writing activity or history", async () => {
+    const w = await workspace("Unsafe workbook");
+    const wb = new ExcelJS.Workbook();
+    wb.addWorksheet("Actuals").addRows([
+      ["activity_date", "patient_days"],
+      ["2028-02-01", 9],
+    ]);
+    wb.addWorksheet("Notes").getCell("A1").value = "Synthetic";
+    const zip = await JSZip.loadAsync(await wb.xlsx.writeBuffer());
+    zip.file(
+      "xl/worksheets/sheet2.xml",
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:XFD1048576"/></worksheet>',
+    );
+    const before = await request(tokenA, `/workspaces/${w.id}/history`);
+    const result = await importFile(w, {
+      kind: "actuals",
+      name: "unsafe.xlsx",
+      sheet: "Actuals",
+      mapping: {},
+      content: (
+        await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" })
+      ).toString("base64"),
+    });
+    expect(result.status).toBe(400);
+    expect(result.body.error).toBe("worksheet_missing_or_too_large");
+    expect((await current(w)).revision).toBe(w.revision);
+    expect((await current(w)).state.actuals).toEqual({});
+    expect((await request(tokenA, `/workspaces/${w.id}/history`)).body).toEqual(
+      before.body,
+    );
   });
   it("RLS fails closed for a non-bypass role and protects tenant writes", async () => {
     const w = await workspace("RLS test");
