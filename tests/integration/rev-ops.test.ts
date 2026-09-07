@@ -622,6 +622,33 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
           w.id,
         ),
       ).toBe(0);
+      const journalBefore = await tx.$queryRawUnsafe(
+        `SELECT * FROM "RevOpsChange" WHERE "workspaceId"=$1`,
+        w.id,
+      );
+      await tx.$executeRawUnsafe("SAVEPOINT immutable_workspace_key");
+      await expect(
+        tx.$executeRawUnsafe(
+          `UPDATE "RevOpsWorkspace" SET id=$2 WHERE id=$1`,
+          w.id,
+          `${w.id}-rewritten`,
+        ),
+      ).rejects.toMatchObject({ code: "P2010", meta: { code: "23001" } });
+      await tx.$executeRawUnsafe(
+        "ROLLBACK TO SAVEPOINT immutable_workspace_key",
+      );
+      expect(
+        await tx.$queryRawUnsafe(
+          `SELECT * FROM "RevOpsChange" WHERE "workspaceId"=$1`,
+          w.id,
+        ),
+      ).toEqual(journalBefore);
+      expect(
+        await tx.$queryRawUnsafe(
+          `SELECT id FROM "RevOpsWorkspace" WHERE id=$1`,
+          w.id,
+        ),
+      ).toEqual([{ id: w.id }]);
       expect(
         await tx.$queryRawUnsafe(
           `SELECT revision FROM "RevOpsChange" WHERE "workspaceId"=$1`,

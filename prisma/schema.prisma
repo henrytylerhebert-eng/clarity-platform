@@ -936,7 +936,7 @@ model RevOpsChange {
   id             String @id @default(cuid())
   organizationId String
   workspaceId    String
-  workspace      RevOpsWorkspace @relation(fields: [organizationId, workspaceId], references: [organizationId, id], onDelete: Cascade)
+  workspace      RevOpsWorkspace @relation(fields: [organizationId, workspaceId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
   revision       Int
   actorId        String
   action         String
