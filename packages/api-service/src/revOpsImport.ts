@@ -38,24 +38,52 @@ const number = (v: unknown) => {
   return Number(v.trim());
 };
 
-// Bound actual decompression before ExcelJS; directory sizes alone are untrusted.
+// Validate the same complete directory ExcelJS/JSZip will read, then bound
+// actual decompression. Only ordinary single-disk ZIP containers are supported.
 function checkZip(bytes: Buffer) {
-  let end = -1;
-  for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--)
-    if (bytes.readUInt32LE(i) === 0x06054b50) {
-      end = i;
-      break;
-    }
-  if (end < 0) throw new RevOpsError("invalid_workbook", 400);
+  // JSZip selects the last signature, including any inside a ZIP comment.
+  const end = bytes.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  if (
+    end < 0 ||
+    end + 22 > bytes.length ||
+    end + 22 + bytes.readUInt16LE(end + 20) !== bytes.length ||
+    bytes.readUInt16LE(end + 4) !== 0 ||
+    bytes.readUInt16LE(end + 6) !== 0
+  )
+    throw new RevOpsError("invalid_workbook", 400);
   const entries = bytes.readUInt16LE(end + 10);
-  let offset = bytes.readUInt32LE(end + 16);
+  const directory = bytes.readUInt32LE(end + 16);
+  if (
+    bytes.readUInt16LE(end + 8) !== entries ||
+    directory + bytes.readUInt32LE(end + 12) !== end
+  )
+    throw new RevOpsError("invalid_workbook", 400);
+  let offset = directory;
+  let count = 0;
   let size = 0;
   const limit = 10 * 1024 * 1024;
   if (entries > 200 || entries === 0)
     throw new RevOpsError("workbook_too_large", 413);
-  for (let n = 0; n < entries; n++) {
-    if (offset + 46 > bytes.length || bytes.readUInt32LE(offset) !== 0x02014b50)
+  while (offset < end) {
+    if (
+      ++count > entries ||
+      offset + 46 > end ||
+      bytes.readUInt32LE(offset) !== 0x02014b50
+    )
       throw new RevOpsError("invalid_workbook", 400);
+    const extraStart = offset + 46 + bytes.readUInt16LE(offset + 28);
+    const extraEnd = extraStart + bytes.readUInt16LE(offset + 30);
+    const next = extraEnd + bytes.readUInt16LE(offset + 32);
+    if (next > end || bytes.readUInt16LE(offset + 34) !== 0)
+      throw new RevOpsError("invalid_workbook", 400);
+    // Reject ZIP64 overrides and malformed extra fields before a second parser
+    // can interpret sizes or offsets differently.
+    for (let extra = extraStart; extra < extraEnd; ) {
+      if (extra + 4 > extraEnd || bytes.readUInt16LE(extra) === 0x0001)
+        throw new RevOpsError("invalid_workbook", 400);
+      extra += 4 + bytes.readUInt16LE(extra + 2);
+      if (extra > extraEnd) throw new RevOpsError("invalid_workbook", 400);
+    }
     const declaredSize = bytes.readUInt32LE(offset + 24);
     const compressedSize = bytes.readUInt32LE(offset + 20);
     const local = bytes.readUInt32LE(offset + 42);
@@ -63,9 +91,12 @@ function checkZip(bytes: Buffer) {
     if (declaredSize > limit - size)
       throw new RevOpsError("workbook_too_large", 413);
     if (
-      local + 30 > bytes.length ||
+      local + 30 > directory ||
       bytes.readUInt32LE(local) !== 0x04034b50 ||
-      ![0, 8].includes(method)
+      ![0, 8].includes(method) ||
+      bytes.readUInt16LE(local + 8) !== method ||
+      bytes.readUInt16LE(local + 6) !== bytes.readUInt16LE(offset + 8) ||
+      (bytes.readUInt16LE(offset + 8) & 1) !== 0
     )
       throw new RevOpsError("invalid_workbook", 400);
     const start =
@@ -73,7 +104,7 @@ function checkZip(bytes: Buffer) {
       30 +
       bytes.readUInt16LE(local + 26) +
       bytes.readUInt16LE(local + 28);
-    if (start + compressedSize > bytes.length)
+    if (start + compressedSize > directory)
       throw new RevOpsError("invalid_workbook", 400);
     const compressed = bytes.subarray(start, start + compressedSize);
     let actualSize: number;
@@ -91,12 +122,9 @@ function checkZip(bytes: Buffer) {
       throw new RevOpsError("invalid_workbook", 400);
     size += actualSize;
     if (size > limit) throw new RevOpsError("workbook_too_large", 413);
-    offset +=
-      46 +
-      bytes.readUInt16LE(offset + 28) +
-      bytes.readUInt16LE(offset + 30) +
-      bytes.readUInt16LE(offset + 32);
+    offset = next;
   }
+  if (count !== entries) throw new RevOpsError("invalid_workbook", 400);
 }
 export async function parseRevOpsUpload(
   input: RevOpsUpload,
