@@ -45,11 +45,13 @@ Tyler selected hospital onboarding and additional fields in both setup and data
 entry; that slice merged in PR #50 after review and synthetic verification.
 See its [brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md)
 and [evidence](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
-The recommended next bounded workflow is
+The owner-approved current bounded workflow is
 [conflicting census-upload reconciliation](../product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md):
 review current versus incoming values, record keep/use decisions and reasons,
-commit atomically, then verify history and replay. This is a documented proposal
-awaiting Tyler's scope approval, not authorized implementation or expansion.
+commit atomically, then verify history and replay. Implementation and local synthetic
+verification are complete; review authorization, source binding and receipt/replay
+before deciding to merge. See the [evidence record](../testing/REV_OPS_RECONCILIATION_VERIFICATION.md).
+Further expansion and production deployment remain outside this slice.
 The [detailed execution plan](INPATIENT_REV_OPS_IMPLEMENTATION_PLAN.md)
 remains grounded in the established workbook workflow. This lane does not change
 the platform priority below or establish production readiness.

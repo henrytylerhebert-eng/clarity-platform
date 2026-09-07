@@ -1,9 +1,9 @@
 # Inpatient Rev Ops implementation plan
 
 Status: Patient-day and onboarding/field slices merged in PRs #49 and #50 after
-synthetic verification; wider roadmap remains
-proposed. Product owner and functional reviewer: Tyler. Current test evidence:
-[verification record](../testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
+synthetic verification. Census-upload reconciliation is implemented and locally
+verified, pending code review and merge; wider roadmap remains proposed. Product owner and functional reviewer: Tyler. Current test evidence:
+[reconciliation verification record](../testing/REV_OPS_RECONCILIATION_VERIFICATION.md).
 
 Inputs: [product definition](../product/INPATIENT_REV_OPS_PRODUCT_DEFINITION.md),
 [systems map](../product/INPATIENT_REV_OPS_SYSTEMS_MAP.md), and
@@ -173,10 +173,11 @@ fields belong in both setup and data entry. Follow its
 [bounded brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
 That slice merged in PR #50 after review; see the
 [evidence record](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
-The next recommended workflow is
+The subsequent owner-approved workflow is
 [conflicting census-upload reconciliation](../product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md).
-Review that proposal's role rules, explicit keep/use choices, synthetic results
-and atomicity/replay checks before authorizing implementation. No new runtime
-work or production deployment is included in defining it. Preserve the
+Implementation and local synthetic verification are complete; review role rules,
+explicit keep/use choices, source binding and atomicity/replay before merging.
+See the [evidence record](../testing/REV_OPS_RECONCILIATION_VERIFICATION.md).
+No further expansion or production deployment is included. Preserve the
 same sequence: architecture across the product, one complete workflow, end-to-end
 proof, then expansion.

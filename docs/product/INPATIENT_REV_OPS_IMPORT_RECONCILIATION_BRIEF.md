@@ -1,15 +1,15 @@
 # Rev Ops — reconcile a conflicting census upload
 
-Status: **proposed, documented only; not approved for implementation**.
+Status: **owner-approved, implemented and locally verified with synthetic data; pending code review and merge**.
 Prepared September 7, 2026 at merged baseline `c5e4113` (PR #50).
-Owner: Tyler. This request authorizes definition of the next workflow only.
+Owner: Tyler. Subsequent approval ("lets get it done") authorized the bounded implementation and verification. Merge, deployment and expansion remain separate decisions.
 
 ## Goal and relevant context
 
 A census reviewer resolves a changed count or custom value in an uploaded file
 without retyping accepted source data into a separate correction form.
 
-Current code detects count and metadata conflicts and blocks import confirmation:
+At the merged baseline, code detected count and metadata conflicts and blocked import confirmation:
 [import parser](../../packages/api-service/src/revOpsImport.ts),
 [import UI](../../app/src/workspaces/RevOps.tsx). Accountable correction already
 exists in the [domain service](../../packages/rev-ops-service/src/index.ts).
@@ -18,8 +18,9 @@ its [verification record](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
 The [product definition](INPATIENT_REV_OPS_PRODUCT_DEFINITION.md), sections 7 and 9,
 calls for reconciled census and accountable handling of conflicting sources.
 
-This is the recommended next priority based on that concrete workflow gap.
-The owner has not yet approved its priority or the proposed rules below.
+The owner approved this workflow and its rules after definition. The implementation
+now supports explicit per-row reconciliation; see the
+[verification record](../testing/REV_OPS_RECONCILIATION_VERIFICATION.md).
 No measurements found for time saved or error reduction.
 
 ## Complete workflow and roles
@@ -27,7 +28,7 @@ No measurements found for time saved or error reduction.
 **Upload → compare with saved actuals → decide each conflict → confirm once →
 inspect comparison and history → repeat upload safely.**
 
-| Responsibility | Workflow point | Proposed behavior |
+| Responsibility | Workflow point | Approved behavior |
 |---|---|---|
 | Census staff with `actualEnter` | Daily reconciliation after the midnight census, or later receipt of a revised file | Upload one CSV/XLSX for one hospital/unit and selected month; inspect validation and disagreements. |
 | Reviewer with both `actualEnter` and `actualCorrect` | Before accepting any batch containing conflicts | Compare current and incoming values, choose each outcome and record reasons. Admin may delegate these existing permissions. |
@@ -40,7 +41,7 @@ including one whose decisions all retain current values. A reviewer can reopen
 the original local file in their own authorized session; a persistent assignment
 queue or stored draft-review handoff is outside this slice.
 
-## Required work and proposed decision rules
+## Required work and approved decision rules
 
 Show a readable table containing date, physical source row, saved count/custom
 values, incoming count/custom values, source names and classification. Use field
@@ -111,11 +112,11 @@ existing correction operation. Do not duplicate patient-day math or create a
 parallel actuals store. Candidate input and review decisions become actuals
 only at authorized commit; retained/rejected incoming values stay audit evidence.
 
-Exact command/route shape and receipt storage are implementation-design work
-after scope approval. No API contract, service, integration, database schema or
-migration is added by this brief. Prefer the existing gateway/journal; if durable
-receipt storage needs a schema change, review the forward migration and recovery
-path before implementation. Do not edit previously applied migrations.
+Implementation extends the existing `/import` body with an optional reconciliation
+request. A server-owned planner emits existing actual/correct commands; the existing
+gateway stores the receipt in its append-only journal within the same transaction.
+No endpoint, service package, integration, database schema, migration or dependency
+was added. Existing accepted import identities remain compatible.
 
 ## Synthetic acceptance example
 
@@ -159,8 +160,9 @@ imports must preserve subsequent corrections and require current permission.
 Run focused unit/API/UI regressions, then root/app tests, typecheck, lint, app
 build and dedicated Rev Ops browser journeys. Verify legacy accepted imports and
 the original workbook; test migrations/recovery only if storage changes. Record
-actual commands and results at implementation time. These are planned tests,
-not new passing evidence.
+actual commands and results in the
+[verification record](../testing/REV_OPS_RECONCILIATION_VERIFICATION.md), which
+distinguishes completed checks from production and scale limits.
 
 ## Non-goals and next decision
 
@@ -170,6 +172,6 @@ integration, month-close policy change, forecast or collections. No production
 identity, PHI, clinical/payer decisions or deployment. Existing production gates
 remain unchanged.
 
-Next: Tyler reviews this proposed workflow, role rule and row-level keep/use
-behavior. Approval would authorize a separate implementation pass against this
-bounded contract; it would not itself authorize merge, deployment or expansion.
+Next: review the implemented authorization, source binding, atomic commit and
+receipt/replay behavior before a merge decision. This implementation does not
+authorize deployment or expansion.
