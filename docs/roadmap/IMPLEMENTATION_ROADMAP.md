@@ -39,11 +39,13 @@ related_adrs: ADR-0001, ADR-0002
 
 ## Next concrete issue
 
-The inpatient Rev Ops analytics lane now has a
-[proposed implementation plan](INPATIENT_REV_OPS_IMPLEMENTATION_PLAN.md), grounded
-in the established workbook workflow. It defines a patient-day budget vertical
-slice and conditional expansion; it does not change the platform priority below
-or promote the lane to implemented/build-ready status.
+The inpatient Rev Ops patient-day slice merged in PR #49 with synthetic
+[verification evidence](../testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
+Tyler selected hospital onboarding and additional fields in both setup and data
+entry as the next bounded slice; its [brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md)
+is documented only. The [detailed execution plan](INPATIENT_REV_OPS_IMPLEMENTATION_PLAN.md)
+remains grounded in the established workbook workflow. This lane does not change
+the platform priority below or establish production readiness.
 
 Reconcile ADR-0012 with the implemented `packages/api-service` spike and decide hosting/tenancy (OD-5/OD-6). Then implement one authorized read-only Product Studio server projection before any mutation or release-control surface.
 

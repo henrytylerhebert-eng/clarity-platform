@@ -192,7 +192,18 @@ namespace workaround was needed. Its earlier normalized copy remains compatible.
 Final code review checked the bounded allocation paths, namespace handling,
 original-byte source identity, unchanged permission checks and unchanged four
 migrations. No remaining blocker was found in this bounded synthetic scope.
-GitHub CI and matching-head verification remain the final merge checks.
+[GitHub CI](https://github.com/henrytylerhebert-eng/clarity-platform/actions/runs/34080062032)
+passed on `90ac28f2eb9a33317bc6317e9cd7ca673781285f`: all 18 migrations on fresh
+PostgreSQL 16, lint, typecheck, 480 root tests, 67 app tests and dependency audit.
+The base remained `a7ece3a`; matching-head merge checks passed. Tyler authorized
+merging after these checks, and PR #49 merged as
+`926b3776ae25df536ad3d2254d51c6d8019aff0a` on September 6 in America/Chicago
+(September 7 UTC). Existing Actions deprecation and checkout-cleanup warnings
+did not fail CI; the latter references the unchanged visualizer gitlink.
+No Rev Ops deployment or production migration was performed. The existing Pages
+workflow publishes only the unchanged `docs/index.html` artifact.
+[Post-merge CI](https://github.com/henrytylerhebert-eng/clarity-platform/actions/runs/34080240757)
+also passed on `926b377`; the unchanged static Pages artifact published successfully.
 
 ## Remaining gates
 
@@ -202,5 +213,6 @@ identity/provider setup, deployment/migration/rollback, load measurement,
 operational retention, broad arbitrary custom fields and live hospital imports
 are not verified. No measurements found for production performance.
 Event-level transfer/admission/discharge counting remains deferred; the aggregate
-workflow cannot prove those future attribution rules. No additional product lane was started during this pass. The completed walkthrough
+workflow cannot prove those future attribution rules. The next onboarding/fields
+slice is documented separately; no runtime expansion was included in this pass. The completed walkthrough
 and passing local tests do not automatically promote the slice to production.

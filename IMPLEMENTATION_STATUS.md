@@ -1,7 +1,9 @@
 # Implementation Status
 
-**2026-09-06: Rev Ops patient-day slice, locally verified, not deployed.**
-On `codex/om/rev-ops-patient-days`, the synthetic `/rev-ops` workflow now covers
+**2026-09-06: Rev Ops patient-day slice merged; synthetic verification, not deployed.**
+[PR #49](https://github.com/henrytylerhebert-eng/clarity-platform/pull/49) merged
+as `926b3776ae25df536ad3d2254d51c6d8019aff0a` after latest-head CI passed.
+The synthetic `/rev-ops` workflow now covers
 hospital/unit setup, delegated access, configurable cost center, budget
 upload/manual draft and approval, actuals upload/manual entry, accountable
 correction, period close/reopen and full/phased comparisons. Persistence,
@@ -27,6 +29,12 @@ approval, correction, replay and reload without modification. Authorization and
 migrations were unchanged in this final fix.
 See [verification and remaining gates](docs/testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
 This is local synthetic proof, not production readiness or whole-product completion.
+
+**Next slice — documented only:** Tyler selected custom fields in both setup
+and data entry. The [onboarding/fields brief](docs/product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md)
+defines resumable workspace setup, bounded text/select fields, manual/import
+validation and historical snapshots. Runtime implementation has not started.
+Budget, actual activity, forecast and collections remain separate.
 
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.
