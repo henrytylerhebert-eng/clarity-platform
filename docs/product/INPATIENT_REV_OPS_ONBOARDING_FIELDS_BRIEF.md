@@ -1,7 +1,7 @@
 # Rev Ops onboarding and custom fields — next bounded slice
 
-Status: implemented and locally verified on `codex/om/rev-ops-onboarding-fields`;
-not merged or deployed. See the
+Status: implemented and synthetically verified; merged in PR #50 on September 7,
+2026 as `c5e4113`. Not a production Rev Ops deployment. See the
 [verification record](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
 Owner: Tyler. Scope decision: additional fields appear in **both setup and data
 entry**, confirmed in the task on September 6, 2026. This extends the approved

@@ -7,6 +7,7 @@ import {
   RevOpsSetupSchema,
   RevOpsDate,
   RevOpsPeriod,
+  RevOpsReconciliationSchema,
 } from "../../domain-contracts/src/revOps.js";
 import {
   compareRevOps,
@@ -14,6 +15,7 @@ import {
   RevOpsError,
 } from "../../rev-ops-service/src/index.js";
 import { parseRevOpsUpload, RevOpsUploadSchema } from "./revOpsImport.js";
+import { planReconciliation } from "../../rev-ops-service/src/reconciliation.js";
 
 export function registerRevOpsRoutes(
   app: FastifyInstance,
@@ -65,6 +67,7 @@ export function registerRevOpsRoutes(
           revision: z.number().int().positive(),
           commit: z.boolean(),
           upload: RevOpsUploadSchema,
+          reconciliation: RevOpsReconciliationSchema.optional(),
         })
         .strict()
         .parse(req.body);
@@ -77,6 +80,54 @@ export function registerRevOpsRoutes(
       const parsed = await parseRevOpsUpload(body.upload, view.state);
       if (body.revision !== view.revision && !parsed.replayed)
         throw new RevOpsError("version_conflict_refresh_required");
+      if (body.reconciliation) {
+        const request = body.reconciliation;
+        if (body.upload.kind !== "actuals")
+          throw new RevOpsError("actuals_reconciliation_only", 400);
+        if (body.commit && request.importKey !== parsed.importKey)
+          throw new RevOpsError("preview_source_changed");
+        const rows = parsed.rows.map((r) =>
+          r.date && !r.date.startsWith(request.period + "-")
+            ? {
+                ...r,
+                status: "invalid" as const,
+                issues: [...r.issues, "Row is outside the selected month"],
+              }
+            : r,
+        );
+        if (!body.commit)
+          return {
+            ...parsed,
+            revision: view.revision,
+            reconciliation: {
+              period: request.period,
+              importKey: parsed.importKey,
+              rows,
+            },
+            ...(parsed.replayed
+              ? {
+                  receipt: await gateway.importReceipt(
+                    actor,
+                    key,
+                    parsed.importKey,
+                  ),
+                }
+              : {}),
+          };
+        const plan = parsed.replayed
+          ? undefined
+          : planReconciliation(view.state, rows, request, parsed.importKey);
+        return gateway.execute(
+          actor,
+          key,
+          body.revision,
+          plan?.commands ?? [],
+          parsed.source,
+          parsed.importKey,
+          body.upload.kind,
+          plan,
+        );
+      }
       if (!body.commit) return { ...parsed, revision: view.revision };
       if (parsed.issues.length)
         throw new RevOpsError("import_has_unresolved_rows", 400);

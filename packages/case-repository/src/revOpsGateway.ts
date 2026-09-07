@@ -5,6 +5,8 @@ import type {
   RevOpsSetup,
   RevOpsSource,
   RevOpsState,
+  RevOpsReconciliationPlan,
+  RevOpsReconciliationReceipt,
 } from "../../domain-contracts/src/revOps.js";
 import {
   applyRevOpsCommand,
@@ -13,6 +15,8 @@ import {
   permissionsFor,
   requirePermission,
   RevOpsError,
+  requireSetupValues,
+  assertOpen,
 } from "../../rev-ops-service/src/index.js";
 import { withTenantContext } from "./tenantContext.js";
 
@@ -20,6 +24,44 @@ const json = (value: unknown): Prisma.InputJsonValue =>
   JSON.parse(JSON.stringify(value));
 export class PrismaRevOpsGateway {
   constructor(private readonly prisma: PrismaClient) {}
+  private async receipt(
+    tx: Prisma.TransactionClient,
+    organizationId: string,
+    workspaceId: string,
+    importKey: string,
+  ) {
+    const change = await tx.revOpsChange.findFirst({
+      where: {
+        organizationId,
+        workspaceId,
+        action: "import",
+        details: { path: ["importKey"], equals: importKey },
+      },
+      select: { details: true },
+    });
+    return (
+      change?.details as
+        | { reconciliation?: RevOpsReconciliationReceipt }
+        | undefined
+    )?.reconciliation;
+  }
+  async importReceipt(
+    actor: AuthenticatedPrincipal,
+    id: string,
+    importKey: string,
+  ) {
+    return withTenantContext(this.prisma, actor.organizationId, async (tx) => {
+      const row = await tx.revOpsWorkspace.findFirst({
+        where: { id, organizationId: actor.organizationId },
+      });
+      if (!row) throw new RevOpsError("resource_not_found", 404);
+      const state = row.state as unknown as RevOpsState;
+      requirePermission(state, actor, "view");
+      requirePermission(state, actor, "actualEnter");
+      if (!state.acceptedImports.includes(importKey)) return undefined;
+      return this.receipt(tx, actor.organizationId, id, importKey);
+    });
+  }
   async members(actor: AuthenticatedPrincipal) {
     if (!isRevOpsAdmin(actor)) throw new RevOpsError("permission_denied", 403);
     return this.prisma.user.findMany({
@@ -154,6 +196,7 @@ export class PrismaRevOpsGateway {
     source: RevOpsSource,
     importKey?: string,
     importKind?: "budget" | "actuals",
+    reconciliation?: RevOpsReconciliationPlan,
   ) {
     return withTenantContext(this.prisma, actor.organizationId, async (tx) => {
       const row = await tx.revOpsWorkspace.findFirst({
@@ -170,11 +213,31 @@ export class PrismaRevOpsGateway {
             ? "budgetImport"
             : "actualEnter",
         );
-        if (state.acceptedImports.includes(importKey))
-          return { replayed: true, revision: row.revision };
+        if (state.acceptedImports.includes(importKey)) {
+          const receipt = await this.receipt(
+            tx,
+            actor.organizationId,
+            id,
+            importKey,
+          );
+          return {
+            replayed: true,
+            revision: row.revision,
+            ...(receipt ? { receipt } : {}),
+          };
+        }
       }
       if (row.revision !== revision)
         throw new RevOpsError("version_conflict_refresh_required");
+      if (reconciliation) {
+        if (!importKey || importKind !== "actuals")
+          throw new RevOpsError("invalid_reconciliation", 400);
+        requirePermission(state, actor, "actualEnter");
+        if (reconciliation.counts.corrected || reconciliation.counts.kept)
+          requirePermission(state, actor, "actualCorrect");
+        requireSetupValues(state);
+        assertOpen(state, reconciliation.period);
+      }
       const at = new Date().toISOString();
       const previousField = state.field;
       const fieldChange = commands[0]?.action === "defineField";
@@ -200,7 +263,12 @@ export class PrismaRevOpsGateway {
             state,
             command,
             actor,
-            source.rows ? { ...source, rows: [source.rows[index]!] } : source,
+            source.rows
+              ? {
+                  ...source,
+                  rows: [(reconciliation?.commandRows ?? source.rows)[index]!],
+                }
+              : source,
             at,
           ) || changed;
       }
@@ -215,6 +283,22 @@ export class PrismaRevOpsGateway {
       });
       if (updated.count !== 1)
         throw new RevOpsError("version_conflict_refresh_required");
+      const receipt: RevOpsReconciliationReceipt | undefined = reconciliation
+        ? {
+            importKey: importKey!,
+            period: reconciliation.period,
+            source,
+            actorId: actor.userId,
+            at,
+            revision: revision + 1,
+            counts: reconciliation.counts,
+            patientDayChange: reconciliation.patientDayChange,
+            rows: reconciliation.rows.map((r) => ({
+              ...r,
+              actualRevision: state.actuals[r.date]!.length,
+            })),
+          }
+        : undefined;
       await tx.revOpsChange.create({
         data: {
           organizationId: actor.organizationId,
@@ -226,6 +310,8 @@ export class PrismaRevOpsGateway {
             commands,
             source,
             previousField,
+            ...(importKey ? { importKey } : {}),
+            ...(receipt ? { reconciliation: receipt } : {}),
             ...(fieldChange
               ? { previousCustomFields, customFields: state.customFields }
               : {}),
@@ -236,7 +322,11 @@ export class PrismaRevOpsGateway {
           occurredAt: new Date(at),
         },
       });
-      return { replayed: false, revision: revision + 1 };
+      return {
+        replayed: false,
+        revision: revision + 1,
+        ...(receipt ? { receipt } : {}),
+      };
     });
   }
   async history(actor: AuthenticatedPrincipal, id: string, before?: number) {

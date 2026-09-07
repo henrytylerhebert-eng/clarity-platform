@@ -294,3 +294,21 @@
 .ro-custom-setup fieldset {
   min-width: 0;
 }
+.ro-reconciliation-row,
+.ro-receipt {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #cadcde;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+.ro-review-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 600px) {
+  .ro-review-values {
+    grid-template-columns: 1fr;
+  }
+}

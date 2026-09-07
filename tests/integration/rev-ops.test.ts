@@ -18,6 +18,8 @@ import {
   PRESCREEN_PRODUCTION_POLICY,
 } from "@clarity/prescreen-service";
 import { PrismaRevOpsGateway } from "../../packages/case-repository/src/revOpsGateway.js";
+import { parseRevOpsUpload } from "../../packages/api-service/src/revOpsImport.js";
+import { planReconciliation } from "../../packages/rev-ops-service/src/reconciliation.js";
 import type {
   RevOpsView,
   RevOpsCommand,
@@ -147,6 +149,505 @@ afterAll(async () => {
 });
 
 describe("persisted patient-day workflow through authenticated Fastify routes", () => {
+  it("atomically reconciles the eight-day example and preserves its receipt across corrections and replay", async () => {
+    const w = await workspace("Synthetic reconciliation receipt");
+    const path = `/workspaces/${w.id}`;
+    await command(w, {
+      action: "defineField",
+      scope: "actual",
+      type: "select",
+      label: "Census review",
+      required: true,
+      archived: false,
+      options: [
+        { label: "Reconciled", archived: false },
+        { label: "Pending", archived: false },
+      ],
+    });
+    const field = (await current(w)).state.customFields![0]!;
+    await command(w, {
+      action: "budget",
+      period: "2028-02",
+      total: 290,
+      costCenter: "Inpatient",
+    });
+    await command(w, {
+      action: "approve",
+      budgetId: (await current(w)).state.budgets[0]!.id,
+    });
+    const csv = (counts: number[], pending = false) =>
+      "activity_date,patient_days,Field: Census review\n" +
+      counts
+        .map(
+          (n, i) =>
+            `2028-02-0${i + 1},${n},${pending && i === 4 ? "Pending" : "Reconciled"}`,
+        )
+        .join("\n");
+    const baseline = upload("actuals", csv([9, 10, 11, 10, 12, 8, 10]));
+    expect((await importFile(w, baseline)).status).toBe(200);
+    const candidate = upload(
+      "actuals",
+      csv([9, 10, 11, 10, 12, 9, 12, 4], true),
+    );
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: ["actualEnter"],
+    });
+    const previewBody = {
+      revision: (await current(w)).revision,
+      commit: false,
+      upload: candidate,
+      reconciliation: { period: "2028-02" },
+    };
+    const preview = await request(tokenStaff, path + "/import", previewBody);
+    expect(preview.status).toBe(200);
+    expect(
+      preview.body.reconciliation.rows.map((r: { status: string }) => r.status),
+    ).toEqual([
+      "unchanged",
+      "unchanged",
+      "unchanged",
+      "unchanged",
+      "conflict",
+      "conflict",
+      "conflict",
+      "new",
+    ]);
+    const decisions = [
+      {
+        row: 6,
+        date: "2028-02-05",
+        choice: "use",
+        reason: "Review reopened after source reconciliation",
+      },
+      {
+        row: 7,
+        date: "2028-02-06",
+        choice: "use",
+        reason: "Signed census corrected",
+      },
+      {
+        row: 8,
+        date: "2028-02-07",
+        choice: "keep",
+        reason: "Duplicate beds in source report",
+      },
+    ];
+    const commit = {
+      ...previewBody,
+      commit: true,
+      reconciliation: {
+        period: "2028-02",
+        importKey: preview.body.importKey,
+        decisions,
+      },
+    };
+    const before = await current(w);
+    const history = (await request(tokenA, path + "/history")).body;
+    expect((await request(tokenB, path + "/import", previewBody)).status).toBe(
+      404,
+    );
+    expect((await request(tokenStaff, path + "/import", commit)).status).toBe(
+      403,
+    );
+    // Omitting reconciliation cannot turn a conflicting import into an entry.
+    expect(
+      (
+        await request(tokenStaff, path + "/import", {
+          ...previewBody,
+          commit: true,
+          reconciliation: undefined,
+        })
+      ).status,
+    ).toBe(400);
+    // Server-derived authority, classifications and commands are not request fields.
+    for (const forged of [
+      { actorId: h.tenantA.userId },
+      { organizationId: h.tenantA.organizationId },
+      { commands: [] },
+      {
+        reconciliation: {
+          ...commit.reconciliation,
+          rows: [],
+          counts: { kept: 0 },
+        },
+      },
+    ]) {
+      expect(
+        (await request(tokenStaff, path + "/import", { ...commit, ...forged }))
+          .status,
+      ).toBe(400);
+    }
+    for (const override of [
+      { decisions: [] },
+      { decisions: [decisions[0], decisions[0], decisions[2]] },
+      { decisions: decisions.map((d) => ({ ...d, reason: " " })) },
+      { decisions: decisions.map((d) => ({ ...d, row: 99 })) },
+      { decisions: decisions.map((d) => ({ ...d, date: "2028-02-01" })) },
+      { importKey: "a".repeat(64) },
+    ]) {
+      expect(
+        (
+          await request(tokenA, path + "/import", {
+            ...commit,
+            reconciliation: { ...commit.reconciliation, ...override },
+          })
+        ).status,
+      ).toBeGreaterThanOrEqual(400);
+      expect(await current(w)).toEqual(before);
+    }
+    const invalid = {
+      ...candidate,
+      content: Buffer.from(
+        csv([9, 10, 11, 10, 12, 9, 12, 4], true).replace(
+          "2028-02-08,4",
+          "2028-02-08,",
+        ),
+      ).toString("base64"),
+    };
+    const badPreview = await request(tokenA, path + "/import", {
+      ...previewBody,
+      upload: invalid,
+    });
+    expect(badPreview.body.reconciliation.rows.at(-1).status).toBe("invalid");
+    expect(
+      (
+        await request(tokenA, path + "/import", {
+          ...commit,
+          upload: invalid,
+          reconciliation: {
+            ...commit.reconciliation,
+            importKey: badPreview.body.importKey,
+          },
+        })
+      ).status,
+    ).toBe(400);
+    expect(await current(w)).toEqual(before);
+    expect((await request(tokenA, path + "/history")).body).toEqual(history);
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: ["actualEnter", "actualCorrect"],
+    });
+    expect((await request(tokenStaff, path + "/import", commit)).status).toBe(
+      409,
+    );
+    const fresh = await request(tokenStaff, path + "/import", {
+      ...previewBody,
+      revision: (await current(w)).revision,
+    });
+    const ready = { ...commit, revision: fresh.body.revision };
+    const results = await Promise.all([
+      request(tokenStaff, path + "/import", ready),
+      request(tokenStaff, path + "/import", ready),
+    ]);
+    expect(
+      results.filter((r) => r.status === 200 && !r.body.replayed),
+    ).toHaveLength(1);
+    expect(results.every((r) => r.status === 200 || r.status === 409)).toBe(
+      true,
+    );
+    const result = results.find((r) => r.status === 200 && !r.body.replayed)!;
+    const receipt = result.body.receipt;
+    expect(receipt.counts).toEqual({
+      inserted: 1,
+      corrected: 2,
+      unchanged: 4,
+      kept: 1,
+    });
+    expect(receipt.patientDayChange).toBe(5);
+    expect(receipt.actorId).toBe(`staff-${h.runId}`);
+    expect(
+      receipt.rows.map((r: { actualRevision: number }) => r.actualRevision),
+    ).toEqual([1, 1, 1, 1, 2, 2, 1, 1]);
+    const saved = await current(w);
+    expect(saved.state.actuals["2028-02-05"]?.map((r) => r.count)).toEqual([
+      12, 12,
+    ]);
+    expect(saved.state.actuals["2028-02-06"]?.map((r) => r.count)).toEqual([
+      8, 9,
+    ]);
+    expect(saved.state.actuals["2028-02-07"]).toEqual(
+      before.state.actuals["2028-02-07"],
+    );
+    expect(saved.state.actuals["2028-02-06"]?.at(-1)?.source.rows).toEqual([7]);
+    expect(saved.state.actuals["2028-02-08"]?.at(-1)?.source.rows).toEqual([9]);
+    expect(saved.state.budgets).toEqual(before.state.budgets);
+    expect(
+      (
+        await request(
+          tokenA,
+          path + "/comparison?period=2028-02&through=2028-02-07",
+        )
+      ).body,
+    ).toMatchObject({
+      actuals: 71,
+      fullMonthBudget: 290,
+      phasedVariance: 1,
+      fullMonthVariance: -219,
+    });
+    expect(
+      (
+        await request(
+          tokenA,
+          path + "/comparison?period=2028-02&through=2028-02-08",
+        )
+      ).body,
+    ).toMatchObject({
+      actuals: 75,
+      phasedVariance: -5,
+      fullMonthVariance: -215,
+    });
+    const journal = (await request(tokenA, path + "/history")).body;
+    expect(
+      journal.filter(
+        (e: { details: { importKey?: string } }) =>
+          e.details.importKey === receipt.importKey,
+      ),
+    ).toHaveLength(1);
+    expect(journal[0].details.reconciliation).toEqual(receipt);
+    const freshPrisma = createPrismaClient();
+    try {
+      const gateway = new PrismaRevOpsGateway(freshPrisma);
+      const principal = await auth.authenticate(tokenStaff);
+      expect(
+        await gateway.importReceipt(principal, w.id, receipt.importKey),
+      ).toEqual(receipt);
+    } finally {
+      await freshPrisma.$disconnect();
+    }
+    await command(w, {
+      action: "correct",
+      date: "2028-02-06",
+      count: 10,
+      fields: [{ fieldId: field.id, value: field.options[0]!.id }],
+      reason: "Later signed correction",
+    });
+    const { version: _version, ...definition } = field;
+    await command(w, { action: "defineField", ...definition, archived: true });
+    await command(w, {
+      action: "close",
+      period: "2028-02",
+      reason: "Month reviewed",
+    });
+    const later = await current(w);
+    const replay = await request(tokenStaff, path + "/import", ready);
+    expect(replay.body).toMatchObject({ replayed: true, receipt });
+    expect(await current(w)).toEqual(later);
+    expect(
+      (
+        await request(tokenStaff, path + "/import", {
+          ...previewBody,
+          revision: later.revision,
+        })
+      ).body.receipt,
+    ).toEqual(receipt);
+    expect((await importFile(w, baseline)).body.replayed).toBe(true);
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: [],
+    });
+    expect((await request(tokenStaff, path + "/import", ready)).status).toBe(
+      403,
+    );
+    expect((await request(tokenB, path + "/import", ready)).status).toBe(404);
+  });
+
+  it("rolls back reconciliation when receipt creation fails after the workspace update", async () => {
+    const w = await workspace("Synthetic receipt rollback");
+    const path = `/workspaces/${w.id}`;
+    await command(w, { action: "actual", date: "2028-02-06", count: 8 });
+    const before = await current(w);
+    const history = (await request(tokenA, path + "/history")).body;
+    const parsed = await parseRevOpsUpload(
+      upload(
+        "actuals",
+        "activity_date,patient_days\n2028-02-06,9\n2028-02-07,4\n",
+      ),
+      before.state,
+    );
+    const plan = planReconciliation(
+      before.state,
+      parsed.rows,
+      {
+        period: "2028-02",
+        importKey: parsed.importKey,
+        decisions: [
+          {
+            row: 2,
+            date: "2028-02-06",
+            choice: "use",
+            reason: "Signed correction",
+          },
+        ],
+      },
+      parsed.importKey,
+    );
+    let workspaceUpdateCompleted = false;
+    let receiptAttempted = false;
+    const failing = h.prisma.$extends({
+      query: {
+        revOpsWorkspace: {
+          async updateMany({ args, query }) {
+            const result = await query(args);
+            if (args.where?.id === w.id)
+              workspaceUpdateCompleted = result.count === 1;
+            return result;
+          },
+        },
+        revOpsChange: {
+          async create({ args, query }) {
+            if (
+              args.data.workspaceId === w.id &&
+              args.data.action === "import"
+            ) {
+              receiptAttempted = true;
+              throw new Error("synthetic receipt write failure");
+            }
+            return query(args);
+          },
+        },
+      },
+    });
+    // The extended client retains real PostgreSQL transactions; only journal creation fails.
+    const gateway = new PrismaRevOpsGateway(
+      failing as unknown as typeof h.prisma,
+    );
+    const actor = await auth.authenticate(tokenA);
+    const args = [
+      actor,
+      w.id,
+      before.revision,
+      plan.commands,
+      parsed.source,
+      parsed.importKey,
+      "actuals",
+      plan,
+    ] as const;
+    await expect(gateway.execute(...args)).rejects.toThrow(
+      "synthetic receipt write failure",
+    );
+    expect(workspaceUpdateCompleted).toBe(true);
+    expect(receiptAttempted).toBe(true);
+    expect(await current(w)).toEqual(before);
+    expect((await request(tokenA, path + "/history")).body).toEqual(history);
+    const normal = new PrismaRevOpsGateway(h.prisma);
+    const retry = await normal.execute(...args);
+    expect(retry).toMatchObject({
+      replayed: false,
+      receipt: { counts: { inserted: 1, corrected: 1, unchanged: 0, kept: 0 } },
+    });
+    const accepted = await current(w);
+    const acceptedHistory = (await request(tokenA, path + "/history")).body;
+    expect(accepted.state.actuals["2028-02-06"]?.map((r) => r.count)).toEqual([
+      8, 9,
+    ]);
+    expect(accepted.state.actuals["2028-02-07"]?.map((r) => r.count)).toEqual([
+      4,
+    ]);
+    expect(accepted.state.acceptedImports).toEqual([
+      ...before.state.acceptedImports,
+      parsed.importKey,
+    ]);
+    expect(acceptedHistory).toHaveLength(history.length + 1);
+    expect(await normal.execute(...args)).toMatchObject({
+      replayed: true,
+      receipt: JSON.parse(JSON.stringify(retry.receipt)),
+    });
+    expect(await current(w)).toEqual(accepted);
+    expect((await request(tokenA, path + "/history")).body).toEqual(
+      acceptedHistory,
+    );
+  });
+
+  it("audits keep-only batches, enforces permission and rejects changed definitions or closed periods", async () => {
+    const w = await workspace("Keep-only reconciliation");
+    const path = `/workspaces/${w.id}`;
+    await command(w, { action: "actual", date: "2028-02-06", count: 8 });
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: ["actualEnter"],
+    });
+    const file = upload(
+      "actuals",
+      "activity_date,patient_days\n2028-02-06,9\n",
+    );
+    const preview = await request(tokenStaff, path + "/import", {
+      revision: (await current(w)).revision,
+      commit: false,
+      upload: file,
+      reconciliation: { period: "2028-02" },
+    });
+    const payload = {
+      revision: preview.body.revision,
+      commit: true,
+      upload: file,
+      reconciliation: {
+        period: "2028-02",
+        importKey: preview.body.importKey,
+        decisions: [
+          {
+            row: 2,
+            date: "2028-02-06",
+            choice: "keep",
+            reason: "Saved census verified",
+          },
+        ],
+      },
+    };
+    expect((await request(tokenStaff, path + "/import", payload)).status).toBe(
+      403,
+    );
+    await command(w, {
+      action: "defineField",
+      scope: "actual",
+      type: "text",
+      label: "Review",
+      required: false,
+      archived: false,
+      options: [],
+    });
+    expect((await request(tokenA, path + "/import", payload)).status).toBe(409);
+    await command(w, {
+      action: "close",
+      period: "2028-02",
+      reason: "Closed period",
+    });
+    const closed = await current(w);
+    expect(
+      (
+        await request(tokenA, path + "/import", {
+          ...payload,
+          revision: closed.revision,
+        })
+      ).status,
+    ).toBe(400);
+    expect(await current(w)).toEqual(closed);
+    await command(w, {
+      action: "reopen",
+      period: "2028-02",
+      reason: "Authorized reconciliation",
+    });
+    const open = await current(w);
+    const result = await request(tokenA, path + "/import", {
+      ...payload,
+      revision: open.revision,
+    });
+    expect(result.status).toBe(200);
+    expect(result.body.receipt.counts.kept).toBe(1);
+    expect((await current(w)).state.actuals).toEqual(open.state.actuals);
+    const wrongMonth = await request(tokenA, path + "/import", {
+      revision: (await current(w)).revision,
+      commit: false,
+      upload: upload("actuals", "activity_date,patient_days\n2028-03-01,4\n"),
+      reconciliation: { period: "2028-02" },
+    });
+    expect(wrongMonth.body.reconciliation.rows[0].status).toBe("invalid");
+  });
+
   it("rejects a changed mapping mode instead of falsely replaying an accepted import", async () => {
     const w = await workspace("Mapping mode accountability");
     expect(

@@ -209,6 +209,67 @@ export interface RevOpsActual {
   cutoffInstant: string;
   reason?: string;
 }
+export const RevOpsReconciliationSchema = z
+  .object({
+    period: RevOpsPeriod,
+    importKey: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
+    decisions: z
+      .array(
+        z
+          .object({
+            row: z.number().int().positive(),
+            date: RevOpsDate,
+            choice: z.enum(["keep", "use"]),
+            reason: z.string().trim().min(3).max(1000),
+          })
+          .strict(),
+      )
+      .max(366)
+      .default([]),
+  })
+  .strict();
+export type RevOpsReconciliation = z.infer<typeof RevOpsReconciliationSchema>;
+export interface RevOpsImportRow {
+  row: number;
+  date?: string;
+  status: "new" | "unchanged" | "conflict" | "invalid";
+  saved?: RevOpsActual;
+  incoming?: { count: number; fields: RevOpsFieldSnapshot[] };
+  issues: string[];
+}
+export type RevOpsReconciliationOutcome =
+  | "inserted"
+  | "corrected"
+  | "unchanged"
+  | "kept";
+export interface RevOpsReconciliationPlan {
+  period: string;
+  commands: RevOpsCommand[];
+  commandRows: number[];
+  rows: (Omit<RevOpsImportRow, "status" | "issues"> & {
+    date: string;
+    outcome: RevOpsReconciliationOutcome;
+    reason?: string;
+  })[];
+  counts: Record<RevOpsReconciliationOutcome, number>;
+  patientDayChange: number;
+}
+export interface RevOpsReconciliationReceipt {
+  importKey: string;
+  period: string;
+  source: RevOpsSource;
+  actorId: string;
+  at: string;
+  revision: number;
+  rows: (RevOpsReconciliationPlan["rows"][number] & {
+    actualRevision: number;
+  })[];
+  counts: RevOpsReconciliationPlan["counts"];
+  patientDayChange: number;
+}
 export interface RevOpsState {
   customFields?: RevOpsCustomField[];
   setupValues?: RevOpsFieldSnapshot[];
