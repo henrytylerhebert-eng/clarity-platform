@@ -44,7 +44,72 @@ export const RevOpsSetupSchema = z
   })
   .strict();
 
+export const RevOpsFieldScopeSchema = z.enum(["setup", "budget", "actual"]);
+export const RevOpsFieldValuesSchema = z
+  .array(
+    z
+      .object({
+        fieldId: z.string().uuid(),
+        value: z.string().trim().max(160),
+      })
+      .strict(),
+  )
+  .max(20)
+  .refine(
+    (values) => new Set(values.map((v) => v.fieldId)).size === values.length,
+    "Duplicate field",
+  );
+export const RevOpsFieldDefinitionSchema = z
+  .object({
+    action: z.literal("defineField"),
+    id: z.string().uuid().optional(),
+    scope: RevOpsFieldScopeSchema,
+    type: z.enum(["text", "select"]),
+    label: text,
+    required: z.boolean(),
+    archived: z.boolean(),
+    options: z
+      .array(
+        z
+          .object({
+            id: z.string().uuid().optional(),
+            label: text,
+            archived: z.boolean(),
+          })
+          .strict(),
+      )
+      .max(50),
+  })
+  .strict();
+export type RevOpsFieldValues = z.infer<typeof RevOpsFieldValuesSchema>;
+export type RevOpsFieldScope = z.infer<typeof RevOpsFieldScopeSchema>;
+export interface RevOpsCustomField {
+  id: string;
+  scope: RevOpsFieldScope;
+  type: "text" | "select";
+  label: string;
+  required: boolean;
+  archived: boolean;
+  version: number;
+  options: { id: string; label: string; archived: boolean }[];
+}
+export interface RevOpsFieldSnapshot {
+  fieldId: string;
+  version: number;
+  label: string;
+  type: "text" | "select";
+  value: string;
+  optionLabel?: string;
+}
+
 export const RevOpsCommandSchema = z.discriminatedUnion("action", [
+  RevOpsFieldDefinitionSchema,
+  z
+    .object({
+      action: z.literal("setupValues"),
+      values: RevOpsFieldValuesSchema,
+    })
+    .strict(),
   z
     .object({
       action: z.literal("grant"),
@@ -71,6 +136,7 @@ export const RevOpsCommandSchema = z.discriminatedUnion("action", [
       total: z.number().min(0).max(1000000),
       dailyTargets: z.array(z.number().min(0).max(100000)).max(31).optional(),
       costCenter: text,
+      fields: RevOpsFieldValuesSchema.optional(),
     })
     .strict(),
   z.object({ action: z.literal("approve"), budgetId: text }).strict(),
@@ -79,6 +145,7 @@ export const RevOpsCommandSchema = z.discriminatedUnion("action", [
       action: z.literal("actual"),
       date: RevOpsDate,
       count: RevOpsCount,
+      fields: RevOpsFieldValuesSchema.optional(),
     })
     .strict(),
   z
@@ -86,6 +153,7 @@ export const RevOpsCommandSchema = z.discriminatedUnion("action", [
       action: z.literal("correct"),
       date: RevOpsDate,
       count: RevOpsCount,
+      fields: RevOpsFieldValuesSchema.optional(),
       reason: z.string().trim().min(3).max(1000),
     })
     .strict(),
@@ -113,8 +181,10 @@ export interface RevOpsSource {
   rows?: number[];
   sheet?: string;
   mapping?: Record<string, string | undefined>;
+  fieldMapping?: { fieldId: string; column: string }[];
 }
 export interface RevOpsBudget {
+  fields?: RevOpsFieldSnapshot[];
   id: string;
   period: string;
   total: number;
@@ -131,6 +201,7 @@ export interface RevOpsBudget {
   approvalOrder?: number;
 }
 export interface RevOpsActual {
+  fields?: RevOpsFieldSnapshot[];
   count: number;
   source: RevOpsSource;
   actorId: string;
@@ -139,6 +210,8 @@ export interface RevOpsActual {
   reason?: string;
 }
 export interface RevOpsState {
+  customFields?: RevOpsCustomField[];
+  setupValues?: RevOpsFieldSnapshot[];
   unit: string;
   timezone: string;
   field: {

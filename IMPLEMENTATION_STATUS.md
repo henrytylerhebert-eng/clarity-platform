@@ -1,7 +1,9 @@
 # Implementation Status
 
-**2026-09-06: Rev Ops patient-day slice, locally verified, not deployed.**
-On `codex/om/rev-ops-patient-days`, the synthetic `/rev-ops` workflow now covers
+**2026-09-06: Rev Ops patient-day slice merged; synthetic verification, not deployed.**
+[PR #49](https://github.com/henrytylerhebert-eng/clarity-platform/pull/49) merged
+as `926b3776ae25df536ad3d2254d51c6d8019aff0a` after latest-head CI passed.
+The synthetic `/rev-ops` workflow now covers
 hospital/unit setup, delegated access, configurable cost center, budget
 upload/manual draft and approval, actuals upload/manual entry, accountable
 correction, period close/reopen and full/phased comparisons. Persistence,
@@ -27,6 +29,29 @@ approval, correction, replay and reload without modification. Authorization and
 migrations were unchanged in this final fix.
 See [verification and remaining gates](docs/testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
 This is local synthetic proof, not production readiness or whole-product completion.
+
+**2026-09-07: Onboarding and additional fields — implemented and locally verified.**
+On `codex/om/rev-ops-onboarding-fields`, administrators can save/resume setup and
+define bounded text/select fields for setup, budgets and actuals. Manual entry
+and imports share validation; values retain definition snapshots, metadata-only
+corrections are audited, and renamed/archived fields preserve history. The UI
+shows onboarding progress from saved state and retains the preview revision at
+import confirmation. Existing tenant transactions and JSON storage are reused;
+no schema, migration, dependency or new service was added.
+
+Verification after PR #50 review: 493 root tests, 68 app tests, six desktop/mobile journeys, lint,
+typecheck, build, Prisma validation and dependency audit passed. API restart
+preserved two field-enabled workspaces and the original PR #49 sample, with
+identical saves remaining no-ops after PostgreSQL JSONB round-trips. The original
+unmodified XLSX still passes upload/correction/replay. See the
+[verification record](docs/testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md) and
+[scope brief](docs/product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
+The review fixed an import mapping-mode replay collision and a client-test build
+failure; CI's existing typecheck now includes app code. The verification record corrects the
+earlier build claim. Agent walkthrough/review is complete; PR #50 remains draft
+for the owner's merge decision. This slice is not merged or deployed. Sensitive-field
+permissions and organization-wide field sharing remain deferred. Budget, actual
+activity, forecast and collections remain separate.
 
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.

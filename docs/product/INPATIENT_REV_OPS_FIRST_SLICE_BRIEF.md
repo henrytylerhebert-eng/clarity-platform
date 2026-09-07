@@ -144,4 +144,7 @@ preparation, superseded by the current [verification record](../testing/REV_OPS_
 
 Budget and actual activity remain separate. Forecast, collections and event-level
 stay counting are deferred. No production deployment or production data use is
-claimed. Next: owner review of the running synthetic workflow before expansion.
+claimed. The owner walkthrough is complete; PR #49 merged after the import
+security fixes and latest-head verification. Next: the
+[onboarding/custom-fields slice](INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md),
+with fields in both setup and data entry as Tyler selected.

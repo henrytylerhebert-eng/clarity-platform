@@ -270,3 +270,27 @@
     transition: none;
   }
 }
+.ro-onboarding {
+  background: #eef5f3;
+  border: 1px solid #c8dcd6;
+  border-radius: 8px;
+  padding: 16px !important;
+  margin: 16px 0;
+}
+.ro-onboarding summary {
+  font-weight: 650;
+}
+.ro-onboarding ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.ro-field-values {
+  margin: 6px 0;
+  padding-left: 16px;
+  overflow-wrap: anywhere;
+}
+.ro-custom-setup fieldset {
+  min-width: 0;
+}

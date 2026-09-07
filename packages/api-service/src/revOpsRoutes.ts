@@ -75,7 +75,9 @@ export function registerRevOpsRoutes(
         body.upload.kind === "budget" ? "budgetImport" : "actualEnter",
       );
       const parsed = await parseRevOpsUpload(body.upload, view.state);
-      if (!body.commit) return parsed;
+      if (body.revision !== view.revision && !parsed.replayed)
+        throw new RevOpsError("version_conflict_refresh_required");
+      if (!body.commit) return { ...parsed, revision: view.revision };
       if (parsed.issues.length)
         throw new RevOpsError("import_has_unresolved_rows", 400);
       return gateway.execute(
@@ -85,6 +87,7 @@ export function registerRevOpsRoutes(
         parsed.commands,
         parsed.source,
         parsed.importKey,
+        body.upload.kind,
       );
     },
   );

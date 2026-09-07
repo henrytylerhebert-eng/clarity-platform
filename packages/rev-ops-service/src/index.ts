@@ -9,14 +9,21 @@ import {
   type RevOpsSource,
 } from "../../domain-contracts/src/revOps.js";
 
-export class RevOpsError extends Error {
-  constructor(
-    readonly code: string,
-    readonly status = 409,
-  ) {
-    super(code);
-  }
-}
+import { RevOpsError } from "./error.js";
+export { RevOpsError } from "./error.js";
+import {
+  defineCustomField,
+  fieldSnapshots,
+  sameFieldValues,
+  sameFieldSnapshots,
+  requireSetupValues,
+  onboardingStatus,
+} from "./customFields.js";
+export {
+  fieldSnapshots,
+  sameFieldValues,
+  requireSetupValues,
+} from "./customFields.js";
 export function isRevOpsAdmin(actor: AuthenticatedPrincipal): boolean {
   return actor.roles.includes("ORGANIZATION_ADMIN");
 }
@@ -99,6 +106,21 @@ export function applyRevOpsCommand(
   source: RevOpsSource,
   at: string,
 ): boolean {
+  if (command.action === "defineField" || command.action === "setupValues") {
+    if (!isRevOpsAdmin(actor)) throw new RevOpsError("permission_denied", 403);
+    if (command.action === "defineField")
+      return defineCustomField(state, command);
+    const next = fieldSnapshots(
+      state,
+      "setup",
+      command.values,
+      state.setupValues,
+      false,
+    );
+    if (sameFieldSnapshots(next, state.setupValues)) return false;
+    state.setupValues = next;
+    return true;
+  }
   if (command.action === "grant" || command.action === "field") {
     if (!isRevOpsAdmin(actor)) throw new RevOpsError("permission_denied", 403);
     if (command.action === "grant")
@@ -123,6 +145,7 @@ export function applyRevOpsCommand(
       !state.field.options.includes(command.costCenter)
     )
       throw new RevOpsError("invalid_cost_center", 400);
+    requireSetupValues(state);
     const n = daysInPeriod(command.period);
     const targets =
       command.dailyTargets ??
@@ -135,8 +158,15 @@ export function applyRevOpsCommand(
     const latest = state.budgets
       .filter((b) => b.period === command.period)
       .at(-1);
+    const custom = fieldSnapshots(
+      state,
+      "budget",
+      command.fields ?? [],
+      latest?.fields,
+    );
     const existing =
       latest &&
+      sameFieldSnapshots(latest.fields, custom) &&
       latest.total === command.total &&
       latest.costCenter === command.costCenter &&
       latest.fieldVersion === state.field.version &&
@@ -150,6 +180,7 @@ export function applyRevOpsCommand(
       total: command.total,
       dailyTargets: targets,
       costCenter: command.costCenter,
+      ...(custom.length ? { fields: custom } : {}),
       costCenterLabel: state.field.label,
       fieldVersion: state.field.version,
       status: "draft",
@@ -165,6 +196,17 @@ export function applyRevOpsCommand(
     if (!b) throw new RevOpsError("resource_not_found", 404);
     assertOpen(state, b.period);
     if (b.status === "approved") return false;
+    requireSetupValues(state);
+    fieldSnapshots(
+      state,
+      "budget",
+      (b.fields ?? [])
+        .filter((v) =>
+          state.customFields?.some((f) => f.id === v.fieldId && !f.archived),
+        )
+        .map((v) => ({ fieldId: v.fieldId, value: v.value })),
+      b.fields,
+    );
     b.status = "approved";
     b.approvedAt = at;
     b.approvedBy = actor.userId;
@@ -179,22 +221,31 @@ export function applyRevOpsCommand(
       command.action === "actual" ? "actualEnter" : "actualCorrect",
     );
     assertOpen(state, command.date.slice(0, 7));
+    requireSetupValues(state);
     const history = state.actuals[command.date] ?? [];
     const current = history.at(-1);
+    const custom = fieldSnapshots(
+      state,
+      "actual",
+      command.fields ?? [],
+      current?.fields,
+    );
+    const sameValues = sameFieldValues(current?.fields, custom);
     if (
       command.action === "actual" &&
       current &&
-      current.count !== command.count
+      (current.count !== command.count || !sameValues)
     )
       throw new RevOpsError("actual_conflict_requires_correction");
     if (command.action === "correct" && !current)
       throw new RevOpsError("actual_not_found", 404);
-    if (current?.count === command.count) return false;
+    if (current?.count === command.count && sameValues) return false;
     if (Object.keys(state.actuals).length >= 3660 && !current)
       throw new RevOpsError("workspace_day_limit");
     if (history.length >= 100) throw new RevOpsError("day_revision_limit");
     history.push({
       count: command.count,
+      ...(custom.length ? { fields: custom } : {}),
       actorId: actor.userId,
       at,
       cutoffInstant: midnightEnding(command.date, state.timezone),
@@ -255,6 +306,7 @@ export function compareRevOps(
   return {
     period,
     through,
+    onboarding: onboardingStatus(state, period),
     timezone: state.timezone,
     dateConvention: "end-of-day",
     budget: budget ?? null,

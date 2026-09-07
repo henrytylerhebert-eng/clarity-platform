@@ -78,7 +78,10 @@ const upload = (kind: "budget" | "actuals", csv: string) => ({
 });
 async function importFile(
   w: RevOpsView,
-  u: ReturnType<typeof upload> & { sheet?: string },
+  u: ReturnType<typeof upload> & {
+    sheet?: string;
+    fieldMapping?: { fieldId: string; column: string }[];
+  },
   commit = true,
 ) {
   const c = await current(w);
@@ -144,6 +147,47 @@ afterAll(async () => {
 });
 
 describe("persisted patient-day workflow through authenticated Fastify routes", () => {
+  it("rejects a changed mapping mode instead of falsely replaying an accepted import", async () => {
+    const w = await workspace("Mapping mode accountability");
+    expect(
+      (
+        await command(w, {
+          action: "defineField",
+          scope: "actual",
+          type: "text",
+          label: "Review",
+          required: false,
+          archived: false,
+          options: [],
+        })
+      ).status,
+    ).toBe(200);
+    const file = upload(
+      "actuals",
+      "activity_date,patient_days,Field: Review\n2028-02-06,8,Reviewed\n",
+    );
+    expect((await importFile(w, file)).status).toBe(200);
+    const before = await current(w);
+    const history = (await request(tokenA, `/workspaces/${w.id}/history`)).body;
+    const changed = { ...file, fieldMapping: [] };
+    const preview = await importFile(w, changed, false);
+    expect(preview.body.replayed).toBe(false);
+    expect(preview.body.issues).toEqual([
+      {
+        row: 2,
+        message:
+          "Conflicts with existing custom values; use correction with a reason",
+      },
+    ]);
+    const rejected = await importFile(w, changed);
+    expect(rejected.status).toBe(400);
+    expect(rejected.body.error).toBe("import_has_unresolved_rows");
+    expect((await importFile(w, file)).body.replayed).toBe(true);
+    expect(await current(w)).toEqual(before);
+    expect((await request(tokenA, `/workspaces/${w.id}/history`)).body).toEqual(
+      history,
+    );
+  });
   it("allows a deliberate budget amendment back to a previous total without changing old approvals", async () => {
     const w = await workspace("Budget amendment");
     for (const total of [290, 300, 290]) {
@@ -596,6 +640,333 @@ describe("persisted patient-day workflow through authenticated Fastify routes", 
     expect((await request(tokenA, `/workspaces/${w.id}/history`)).body).toEqual(
       before.body,
     );
+  });
+  it("persists setup and field history through imports, corrections, stale previews and tenant/role denials", async () => {
+    const w = await workspace("Synthetic onboarding proof");
+    const define = async (
+      scope: "setup" | "budget" | "actual",
+      type: "text" | "select",
+      label: string,
+    ) => {
+      const result = await command(w, {
+        action: "defineField",
+        scope,
+        type,
+        label,
+        required: true,
+        archived: false,
+        options:
+          type === "select"
+            ? [
+                { label: "Pending", archived: false },
+                { label: "Reconciled", archived: false },
+              ]
+            : [],
+      });
+      expect(result.status).toBe(200);
+      return (await current(w)).state.customFields!.at(-1)!;
+    };
+    const reporting = await define("setup", "text", "Reporting code");
+    const planning = await define("budget", "text", "Planning basis");
+    const review = await define("actual", "select", "Census review");
+    const path = `/workspaces/${w.id}`;
+    const fieldCommand = {
+      action: "defineField",
+      scope: "setup",
+      type: "text",
+      label: "Unauthorized",
+      required: false,
+      archived: false,
+      options: [],
+    } as const;
+    expect(
+      (
+        await request(tokenStaff, path + "/commands", {
+          revision: (await current(w)).revision,
+          command: fieldCommand,
+        })
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await request(tokenB, path + "/commands", {
+          revision: (await current(w)).revision,
+          command: fieldCommand,
+        })
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await importFile(
+          w,
+          upload("actuals", "activity_date,patient_days\n2028-02-01,9\n"),
+        )
+      ).status,
+    ).toBe(400);
+    expect((await current(w)).state.actuals).toEqual({});
+    expect(
+      (await command(w, { action: "setupValues", values: [] })).status,
+    ).toBe(200);
+    expect(
+      (
+        await command(w, {
+          action: "setupValues",
+          values: [{ fieldId: reporting.id, value: "SP-GERI" }],
+        })
+      ).status,
+    ).toBe(200);
+    const stable = await current(w);
+    expect(
+      (
+        await command(w, {
+          action: "setupValues",
+          values: [{ fieldId: reporting.id, value: "SP-GERI" }],
+        })
+      ).body.replayed,
+    ).toBe(true);
+    const { version: _planningVersion, ...sameDefinition } = planning;
+    expect(
+      (await command(w, { action: "defineField", ...sameDefinition })).body
+        .replayed,
+    ).toBe(true);
+    expect((await current(w)).revision).toBe(stable.revision);
+    const budgetUpload = {
+      ...upload(
+        "budget",
+        "period,monthly_budget,cost_center,Field: Planning basis\n2028-02,290,Inpatient,Approved plan\n",
+      ),
+    };
+    expect((await importFile(w, budgetUpload)).status).toBe(200);
+    const b = (await current(w)).state.budgets[0]!;
+    expect(b.fields?.[0]).toMatchObject({
+      fieldId: planning.id,
+      label: "Planning basis",
+      value: "Approved plan",
+      version: 1,
+    });
+    expect(
+      (await command(w, { action: "approve", budgetId: b.id })).status,
+    ).toBe(200);
+    await command(w, {
+      action: "grant",
+      userId: `staff-${h.runId}`,
+      permissions: ["actualEnter", "actualCorrect"],
+    });
+    const beforeRepeatBudget = await current(w);
+    expect(
+      (
+        await command(w, {
+          action: "budget",
+          period: "2028-02",
+          total: 290,
+          costCenter: "Inpatient",
+          fields: [{ fieldId: planning.id, value: "Approved plan" }],
+        })
+      ).body.replayed,
+    ).toBe(true);
+    expect((await current(w)).revision).toBe(beforeRepeatBudget.revision);
+    const actualUpload = {
+      ...upload(
+        "actuals",
+        "activity_date,patient_days,review\n" +
+          [9, 10, 11, 10, 12, 8, 10]
+            .map((n, i) => `2028-02-0${i + 1},${n},Reconciled`)
+            .join("\n"),
+      ),
+      fieldMapping: [{ fieldId: review.id, column: "review" }],
+    };
+    const invalidBatch = {
+      ...actualUpload,
+      content: Buffer.from(
+        "activity_date,patient_days,review\n2028-02-01,9,Reconciled\n2028-02-02,10,\n",
+      ).toString("base64"),
+    };
+    const beforeRejected = await current(w);
+    const historyBeforeRejected = (await request(tokenA, path + "/history"))
+      .body;
+    expect((await importFile(w, invalidBatch)).status).toBe(400);
+    expect(await current(w)).toEqual(beforeRejected);
+    expect((await request(tokenA, path + "/history")).body).toEqual(
+      historyBeforeRejected,
+    );
+    const preview = await importFile(w, actualUpload, false);
+    expect(preview.body.issues).toEqual([]);
+    expect(
+      (
+        await request(tokenStaff, path + "/import", {
+          revision: preview.body.revision,
+          commit: true,
+          upload: actualUpload,
+        })
+      ).status,
+    ).toBe(200);
+    const corrected = {
+      action: "correct" as const,
+      date: "2028-02-06",
+      count: 9,
+      reason: "Signed census reconciled",
+      fields: [{ fieldId: review.id, value: review.options[1]!.id }],
+    };
+    expect((await command(w, corrected, tokenStaff)).status).toBe(200);
+    expect(
+      (
+        await command(
+          w,
+          {
+            ...corrected,
+            reason: "Metadata-only follow-up",
+            fields: [{ fieldId: review.id, value: review.options[0]!.id }],
+          },
+          tokenStaff,
+        )
+      ).status,
+    ).toBe(200);
+    const snapshot = await current(w);
+    expect(snapshot.state.actuals["2028-02-06"]?.map((a) => a.count)).toEqual([
+      8, 9, 9,
+    ]);
+    expect(snapshot.state.budgets[0]).toMatchObject({
+      status: "approved",
+      total: 290,
+    });
+    const journal = (await request(tokenA, path + "/history")).body;
+    expect(
+      journal.find((c: { action: string }) => c.action === "setupValues")
+        .details,
+    ).toMatchObject({
+      previousSetupValues: [],
+      setupValues: [{ label: "Reporting code", value: "SP-GERI" }],
+    });
+    const newUpload = {
+      ...actualUpload,
+      content: Buffer.from(
+        "activity_date,patient_days,review\n2028-02-08,10,Reconciled\n",
+      ).toString("base64"),
+    };
+    const pending = await importFile(w, newUpload, false);
+    const { version: _version, ...definition } = review;
+    expect(
+      (
+        await command(w, {
+          action: "defineField",
+          ...definition,
+          label: "Reconciled review",
+        })
+      ).status,
+    ).toBe(200);
+    const beforeStale = await current(w);
+    expect(
+      (
+        await request(tokenStaff, path + "/import", {
+          revision: pending.body.revision,
+          commit: true,
+          upload: newUpload,
+        })
+      ).status,
+    ).toBe(409);
+    expect((await current(w)).revision).toBe(beforeStale.revision);
+    const conflict = await importFile(
+      w,
+      {
+        ...actualUpload,
+        content: Buffer.from(
+          "activity_date,patient_days,review\n2028-02-06,9,Reconciled\n",
+        ).toString("base64"),
+      },
+      false,
+    );
+    expect(
+      conflict.body.issues.some((i: { message: string }) =>
+        i.message.includes("custom values"),
+      ),
+    ).toBe(true);
+    await command(w, {
+      action: "defineField",
+      ...definition,
+      label: "Reconciled review",
+      archived: true,
+    });
+    const replay = await importFile(w, actualUpload);
+    expect(replay.body.replayed).toBe(true);
+    const report = (
+      await request(
+        tokenA,
+        path + "/comparison?period=2028-02&through=2028-02-07",
+      )
+    ).body;
+    expect(report).toMatchObject({
+      actuals: 71,
+      fullMonthBudget: 290,
+      phasedVariance: 1,
+      fullMonthVariance: -219,
+    });
+    const priorHistory = (await current(w)).state.actuals["2028-02-06"]!;
+    expect(priorHistory.at(-1)?.fields?.[0]?.label).toBe("Census review");
+    await command(w, {
+      action: "close",
+      period: "2028-02",
+      reason: "Reviewed close",
+    });
+    expect(
+      (await command(w, { ...corrected, count: 10, fields: [] }, tokenStaff))
+        .status,
+    ).toBe(409);
+    await command(w, {
+      action: "reopen",
+      period: "2028-02",
+      reason: "Authorized late correction",
+    });
+    expect(
+      (await command(w, { ...corrected, count: 10, fields: [] }, tokenStaff))
+        .status,
+    ).toBe(200);
+    expect(
+      (await current(w)).state.actuals["2028-02-06"]?.at(-1)?.fields,
+    ).toEqual(priorHistory.at(-1)?.fields);
+    for (const token of [tokenB, tokenStaff]) {
+      if (token === tokenStaff)
+        await command(w, {
+          action: "grant",
+          userId: `staff-${h.runId}`,
+          permissions: [],
+        });
+      for (const suffix of [
+        "",
+        "/history",
+        "/comparison?period=2028-02&through=2028-02-07",
+      ])
+        expect((await request(token, path + suffix)).status).toBe(
+          token === tokenB ? 404 : 403,
+        );
+      expect(
+        (
+          await request(token, path + "/import", {
+            revision: (await current(w)).revision,
+            commit: false,
+            upload: actualUpload,
+          })
+        ).status,
+      ).toBe(token === tokenB ? 404 : 403);
+      expect(
+        (
+          await request(token, path + "/import", {
+            revision: (await current(w)).revision,
+            commit: true,
+            upload: actualUpload,
+          })
+        ).status,
+      ).toBe(token === tokenB ? 404 : 403);
+    }
+    // Fresh Prisma connection proves the additive JSON state did not rely on process memory.
+    const fresh = createPrismaClient();
+    try {
+      const persisted = await fresh.revOpsWorkspace.findUniqueOrThrow({
+        where: { id: w.id },
+      });
+      expect(persisted.state).toEqual((await current(w)).state);
+    } finally {
+      await fresh.$disconnect();
+    }
   });
   it("RLS fails closed for a non-bypass role and protects tenant writes", async () => {
     const w = await workspace("RLS test");

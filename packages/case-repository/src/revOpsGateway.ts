@@ -153,6 +153,7 @@ export class PrismaRevOpsGateway {
     commands: RevOpsCommand[],
     source: RevOpsSource,
     importKey?: string,
+    importKind?: "budget" | "actuals",
   ) {
     return withTenantContext(this.prisma, actor.organizationId, async (tx) => {
       const row = await tx.revOpsWorkspace.findFirst({
@@ -165,7 +166,9 @@ export class PrismaRevOpsGateway {
         requirePermission(
           state,
           actor,
-          commands[0]?.action === "budget" ? "budgetImport" : "actualEnter",
+          (importKind ?? commands[0]?.action) === "budget"
+            ? "budgetImport"
+            : "actualEnter",
         );
         if (state.acceptedImports.includes(importKey))
           return { replayed: true, revision: row.revision };
@@ -174,6 +177,10 @@ export class PrismaRevOpsGateway {
         throw new RevOpsError("version_conflict_refresh_required");
       const at = new Date().toISOString();
       const previousField = state.field;
+      const fieldChange = commands[0]?.action === "defineField";
+      const setupChange = commands[0]?.action === "setupValues";
+      const previousCustomFields = state.customFields ?? [];
+      const previousSetupValues = state.setupValues ?? [];
       let changed = false;
       for (const [index, command] of commands.entries()) {
         if (command.action === "grant") {
@@ -215,7 +222,17 @@ export class PrismaRevOpsGateway {
           revision: revision + 1,
           actorId: actor.userId,
           action: importKey ? "import" : commands[0]!.action,
-          details: json({ commands, source, previousField }),
+          details: json({
+            commands,
+            source,
+            previousField,
+            ...(fieldChange
+              ? { previousCustomFields, customFields: state.customFields }
+              : {}),
+            ...(setupChange
+              ? { previousSetupValues, setupValues: state.setupValues }
+              : {}),
+          }),
           occurredAt: new Date(at),
         },
       });

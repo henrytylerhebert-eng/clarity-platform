@@ -11,8 +11,19 @@ import type {
   RevOpsPermission,
 } from "../../../packages/domain-contracts/src/revOps";
 import "./revOps.css";
+import {
+  CustomFieldSetup,
+  EntryFields,
+  ActualEntry,
+  SnapshotValues,
+  customValues,
+} from "./RevOpsFields";
 
 type Comparison = {
+  onboarding?: {
+    complete: boolean;
+    steps: { label: string; complete: boolean; missing: string[] }[];
+  };
   knownActuals: number;
   actuals: number | null;
   fullMonthBudget: number | null;
@@ -28,8 +39,10 @@ type Upload = {
   content: string;
   sheet?: string;
   mapping: Record<string, string>;
+  fieldMapping?: { fieldId: string; column: string }[];
 };
 type Preview = {
+  revision: number;
   headers: string[];
   commands: unknown[];
   issues: { row: number; message: string }[];
@@ -208,6 +221,35 @@ export function RevOps() {
       if (request === fileRead.current) setBusy(false);
     }
   }
+  const template = (kind: "budget" | "actual") => {
+    if (!current) return "";
+    const columns = (current.state.customFields ?? [])
+      .filter((f) => f.scope === kind && !f.archived)
+      .map((f) => `Field: ${f.label}`);
+    const quote = (v: string) => `"${v.replaceAll('"', '""')}"`;
+    const headers =
+      kind === "budget"
+        ? ["period", "monthly_budget", "cost_center"]
+        : ["activity_date", "patient_days"];
+    const center = current.state.field.options[0] ?? "";
+    // Do not generate spreadsheet formulas from a configured cost-center label.
+    const safeCenter = /^[=+@\-\t\r\n]/.test(center) ? "" : center;
+    const rows =
+      kind === "budget"
+        ? [[period, "290", safeCenter]]
+        : [9, 10, 11, 10, 12, 8, 10].map((n, i) => [
+            `${period}-${String(i + 1).padStart(2, "0")}`,
+            String(n),
+          ]);
+    return (
+      [
+        [...headers, ...columns],
+        ...rows.map((r) => [...r, ...columns.map(() => "")]),
+      ]
+        .map((r) => r.map(quote).join(","))
+        .join("\n") + "\n"
+    );
+  };
   const base = current ? `/workspaces/${current.id}` : "";
   return (
     <main className="revops">
@@ -353,6 +395,30 @@ export function RevOps() {
               </button>
             ))}
           </nav>
+          {current && comparison?.onboarding ? (
+            <details
+              className="ro-onboarding"
+              open={!comparison.onboarding.complete && tab === "Setup & access"}
+            >
+              <summary>
+                {comparison.onboarding.complete
+                  ? "Synthetic workflow configured"
+                  : "Finish workspace setup"}
+              </summary>
+              <p>
+                Progress is based on saved setup, delegated responsibilities and{" "}
+                {period} records.
+              </p>
+              <ul>
+                {comparison.onboarding.steps.map((step) => (
+                  <li key={step.label}>
+                    {step.complete ? "✓" : "○"} {step.label}
+                    {step.missing.length ? ` — ${step.missing.join(", ")}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
           {!current && tab !== "Setup & access" ? (
             <section>
               <h2>No accessible workspace</h2>
@@ -416,6 +482,11 @@ export function RevOps() {
               </form>
               {current ? (
                 <>
+                  <CustomFieldSetup
+                    current={current}
+                    busy={busy}
+                    command={command}
+                  />
                   <h2>Delegate access</h2>
                   <form
                     className="ro-form"
@@ -660,6 +731,7 @@ export function RevOps() {
                       period,
                       total: Number(d.get("total")),
                       costCenter: value(d, "center"),
+                      fields: customValues(d, current.state, "budget"),
                       ...(targets
                         ? {
                             dailyTargets: targets
@@ -695,6 +767,15 @@ export function RevOps() {
                       placeholder="Leave blank for an even daily allocation"
                     />
                   </label>
+                  <EntryFields
+                    state={current.state}
+                    scope="budget"
+                    values={
+                      current.state.budgets
+                        .filter((b) => b.period === period)
+                        .at(-1)?.fields
+                    }
+                  />
                   <button disabled={busy || current.state.field.archived}>
                     Create draft budget
                   </button>
@@ -717,6 +798,11 @@ export function RevOps() {
                       <td>{format(b.total)}</td>
                       <td>
                         {b.costCenterLabel}: {b.costCenter}
+                        <SnapshotValues
+                          state={current.state}
+                          scope="budget"
+                          values={b.fields}
+                        />
                       </td>
                       <td>
                         {b.status} · {b.source.name}
@@ -752,53 +838,13 @@ export function RevOps() {
                 an existing value requires delegated permission and a reason.
               </p>
               {can("actualEnter") || can("actualCorrect") ? (
-                <form
-                  key={`actual-${current.id}-${through}`}
-                  className="ro-form"
-                  onSubmit={(e) => {
-                    const d = fields(e);
-                    const reason = value(d, "reason").trim();
-                    void command(
-                      reason
-                        ? {
-                            action: "correct",
-                            date: value(d, "date"),
-                            count: Number(d.get("count")),
-                            reason,
-                          }
-                        : {
-                            action: "actual",
-                            date: value(d, "date"),
-                            count: Number(d.get("count")),
-                          },
-                    );
-                  }}
-                >
-                  <label>
-                    Activity date
-                    <input
-                      type="date"
-                      name="date"
-                      defaultValue={through}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Patient days
-                    <input
-                      type="number"
-                      name="count"
-                      min="0"
-                      step="1"
-                      required
-                    />
-                  </label>
-                  <label>
-                    Correction reason (leave blank for a new entry)
-                    <input name="reason" />
-                  </label>
-                  <button disabled={busy}>Save actual</button>
-                </form>
+                <ActualEntry
+                  key={`${current.id}-${through}`}
+                  current={current}
+                  busy={busy}
+                  command={command}
+                  through={through}
+                />
               ) : null}
               <table>
                 <thead>
@@ -819,18 +865,32 @@ export function RevOps() {
                         <tr key={date}>
                           <td>{date}</td>
                           <td>{v.count}</td>
-                          <td>{v.source.name}</td>
+                          <td>
+                            {v.source.name}
+                            <SnapshotValues
+                              state={current.state}
+                              scope="actual"
+                              values={v.fields}
+                            />
+                          </td>
                           <td>
                             <details>
                               <summary>
                                 {versions.length} revision(s) · {v.actorId}
                               </summary>
                               {versions.map((x, i) => (
-                                <p key={i}>
-                                  {x.at}: {x.count} · {x.actorId} ·{" "}
-                                  {x.reason ?? "Original entry"} ·{" "}
-                                  {x.source.name}
-                                </p>
+                                <div key={i}>
+                                  <p>
+                                    {x.at}: {x.count} · {x.actorId} ·{" "}
+                                    {x.reason ?? "Original entry"} ·{" "}
+                                    {x.source.name}
+                                  </p>
+                                  <SnapshotValues
+                                    state={current.state}
+                                    scope="actual"
+                                    values={x.fields}
+                                  />
+                                </div>
                               ))}
                             </details>
                           </td>
@@ -853,10 +913,7 @@ export function RevOps() {
                 <button
                   className="ro-secondary"
                   onClick={() =>
-                    download(
-                      "budget-template.csv",
-                      `period,monthly_budget,cost_center\n${period},290,${current.state.field.options[0]}\n`,
-                    )
+                    download("budget-template.csv", template("budget"))
                   }
                 >
                   Budget template
@@ -864,15 +921,17 @@ export function RevOps() {
                 <button
                   className="ro-secondary"
                   onClick={() =>
-                    download(
-                      "actuals-template.csv",
-                      `activity_date,patient_days\n${[9, 10, 11, 10, 12, 8, 10].map((n, i) => `${period}-${String(i + 1).padStart(2, "0")},${n}`).join("\n")}\n`,
-                    )
+                    download("actuals-template.csv", template("actual"))
                   }
                 >
                   Synthetic actuals template
                 </button>
               </div>
+              <p>
+                Templates include your current custom columns. Fill their values
+                before uploading. “Field: label” headers map automatically; use
+                the column inputs below for other files.
+              </p>
               <label>
                 Import type
                 <select
@@ -907,15 +966,19 @@ export function RevOps() {
                   className="ro-form"
                   onSubmit={(e) => {
                     e.preventDefault();
-                    void run(async () => {
-                      setPreview(
-                        await apiRevOps<Preview>(`${base}/import`, {
-                          revision: current.revision,
-                          commit: false,
-                          upload,
-                        }),
-                      );
-                    }, "Preview loaded; no rows imported.");
+                    void run(
+                      async () => {
+                        setPreview(
+                          await apiRevOps<Preview>(`${base}/import`, {
+                            revision: current.revision,
+                            commit: false,
+                            upload,
+                          }),
+                        );
+                      },
+                      "Preview loaded; no rows imported.",
+                      false,
+                    );
                   }}
                 >
                   <p>Selected file: {upload.name}</p>
@@ -976,6 +1039,51 @@ export function RevOps() {
                       />
                     </label>
                   ))}
+                  {(current.state.customFields ?? [])
+                    .filter(
+                      (f) =>
+                        f.scope === (kind === "budget" ? "budget" : "actual") &&
+                        !f.archived,
+                    )
+                    .map((f) => (
+                      <label key={f.id}>
+                        {f.label} column
+                        {f.required ? " (required)" : " (optional)"}
+                        <input
+                          disabled={busy}
+                          value={
+                            upload.fieldMapping?.find((m) => m.fieldId === f.id)
+                              ?.column ?? ""
+                          }
+                          aria-label={`${f.label} column${f.required ? " (required)" : " (optional)"}`}
+                          placeholder={`Column containing ${f.label}`}
+                          onChange={(e) => {
+                            const rest = (upload.fieldMapping ?? []).filter(
+                              (m) => m.fieldId !== f.id,
+                            );
+                            setUpload({
+                              ...upload,
+                              fieldMapping: e.target.value
+                                ? [
+                                    ...rest,
+                                    { fieldId: f.id, column: e.target.value },
+                                  ]
+                                : rest,
+                            });
+                            setPreview(null);
+                          }}
+                        />
+                        {f.type === "select" ? (
+                          <small>
+                            Choices:{" "}
+                            {f.options
+                              .filter((o) => !o.archived)
+                              .map((o) => o.label)
+                              .join(", ")}
+                          </small>
+                        ) : null}
+                      </label>
+                    ))}
                   <button
                     disabled={
                       busy ||
@@ -1007,7 +1115,7 @@ export function RevOps() {
                     onClick={() =>
                       void run(async () => {
                         await apiRevOps(`${base}/import`, {
-                          revision: current.revision,
+                          revision: preview.revision,
                           commit: true,
                           upload,
                         });
