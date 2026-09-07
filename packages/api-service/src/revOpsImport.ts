@@ -9,7 +9,12 @@ import {
   type RevOpsSource,
   type RevOpsState,
 } from "../../domain-contracts/src/revOps.js";
-import { RevOpsError } from "../../rev-ops-service/src/index.js";
+import {
+  RevOpsError,
+  fieldSnapshots,
+  sameFieldValues,
+  requireSetupValues,
+} from "../../rev-ops-service/src/index.js";
 
 export const RevOpsUploadSchema = z
   .object({
@@ -17,6 +22,18 @@ export const RevOpsUploadSchema = z
     name: z.string().trim().min(1).max(160),
     content: z.string().max(1400000),
     sheet: z.string().max(100).optional(),
+    fieldMapping: z
+      .array(
+        z
+          .object({
+            fieldId: z.string().uuid(),
+            column: z.string().trim().min(1).max(200),
+          })
+          .strict(),
+      )
+      .max(20)
+      .refine((v) => new Set(v.map((f) => f.fieldId)).size === v.length)
+      .optional(),
     // Explicit column mapping is saved in audit alongside the source hash.
     mapping: z
       .object({
@@ -91,6 +108,35 @@ export async function parseRevOpsUpload(
     new Set(headers).size !== headers.length
   )
     throw new RevOpsError("invalid_upload_shape", 400);
+  const hash = createHash("sha256").update(bytes).digest("hex");
+  const requestedFieldMapping = input.fieldMapping?.length
+    ? [...input.fieldMapping].sort((a, b) => a.fieldId.localeCompare(b.fieldId))
+    : undefined;
+  const importKey = createHash("sha256")
+    .update(
+      JSON.stringify({
+        hash,
+        kind: input.kind,
+        sheet: input.sheet ?? "",
+        mapping: input.mapping,
+        ...(requestedFieldMapping
+          ? { fieldMapping: requestedFieldMapping }
+          : {}),
+      }),
+    )
+    .digest("hex");
+  const replayed = state.acceptedImports.includes(importKey);
+  const fieldMapping =
+    input.fieldMapping !== undefined
+      ? requestedFieldMapping
+      : (state.customFields ?? [])
+          .filter(
+            (f) =>
+              !f.archived &&
+              f.scope === (input.kind === "budget" ? "budget" : "actual") &&
+              headers.includes(`Field: ${f.label}`),
+          )
+          .map((f) => ({ fieldId: f.id, column: `Field: ${f.label}` }));
   const issues: { row: number; message: string }[] = [];
   const commands: RevOpsCommand[] = [];
   const commandRows: number[] = [];
@@ -115,7 +161,49 @@ export async function parseRevOpsUpload(
             date: String(get(row, "date", "activity_date") ?? ""),
             count: number(get(row, "count", "patient_days")),
           };
-    const parsed = RevOpsCommandSchema.safeParse(raw);
+    let customValues: { fieldId: string; value: string }[] | undefined;
+    try {
+      if (fieldMapping?.length)
+        customValues = fieldMapping.map((m) => {
+          const f = state.customFields?.find(
+            (f) =>
+              f.id === m.fieldId &&
+              f.scope === (input.kind === "budget" ? "budget" : "actual") &&
+              !f.archived,
+          );
+          const column = headers.indexOf(m.column);
+          if (!f || column < 0)
+            throw new RevOpsError(
+              "Unknown field or unmapped custom column",
+              400,
+            );
+          const cell = row[column];
+          if (typeof cell !== "string" && cell != null)
+            throw new RevOpsError("Custom fields require text values", 400);
+          const value = String(cell ?? "").trim();
+          const matches = f.options.filter(
+            (o) => o.id === value || o.label === value,
+          );
+          if (matches.length > 1)
+            throw new RevOpsError("Ambiguous custom field option", 400);
+          const option = matches[0];
+          return {
+            fieldId: f.id,
+            value: f.type === "select" && value ? (option?.id ?? value) : value,
+          };
+        });
+    } catch (e) {
+      if (!replayed)
+        issues.push({
+          row: sourceRow,
+          message:
+            e instanceof Error ? e.message : "Invalid custom field mapping",
+        });
+    }
+    const parsed = RevOpsCommandSchema.safeParse({
+      ...raw,
+      ...(customValues ? { fields: customValues } : {}),
+    });
     if (!parsed.success) {
       issues.push({
         row: sourceRow,
@@ -160,21 +248,39 @@ export async function parseRevOpsUpload(
             "Conflicts with existing actual; use correction with a reason",
         });
     }
+    if (!replayed && (cmd.action === "actual" || cmd.action === "budget")) {
+      try {
+        requireSetupValues(state);
+        const prior =
+          cmd.action === "actual"
+            ? state.actuals[cmd.date]?.at(-1)?.fields
+            : state.budgets.filter((b) => b.period === cmd.period).at(-1)
+                ?.fields;
+        const snapshots = fieldSnapshots(
+          state,
+          cmd.action === "actual" ? "actual" : "budget",
+          cmd.fields ?? [],
+          prior,
+        );
+        if (
+          cmd.action === "actual" &&
+          state.actuals[cmd.date]?.length &&
+          !sameFieldValues(prior, snapshots)
+        )
+          throw new RevOpsError(
+            "Conflicts with existing custom values; use correction with a reason",
+            400,
+          );
+      } catch (e) {
+        issues.push({
+          row: sourceRow,
+          message: e instanceof Error ? e.message : "Invalid custom fields",
+        });
+      }
+    }
     commands.push(cmd);
     commandRows.push(sourceRow);
   });
-  const hash = createHash("sha256").update(bytes).digest("hex");
-  const importKey = createHash("sha256")
-    .update(
-      JSON.stringify({
-        hash,
-        kind: input.kind,
-        sheet: input.sheet ?? "",
-        mapping: input.mapping,
-      }),
-    )
-    .digest("hex");
-  const replayed = state.acceptedImports.includes(importKey);
   const source: RevOpsSource = {
     kind: "upload",
     name: input.name,
@@ -182,6 +288,7 @@ export async function parseRevOpsUpload(
     rows: commandRows,
     ...(selectedSheet ? { sheet: selectedSheet } : {}),
     mapping: input.mapping,
+    ...(fieldMapping?.length ? { fieldMapping } : {}),
   };
   return {
     headers,
@@ -191,5 +298,6 @@ export async function parseRevOpsUpload(
     importKey,
     replayed,
     mapping: input.mapping,
+    ...(fieldMapping?.length ? { fieldMapping } : {}),
   };
 }
