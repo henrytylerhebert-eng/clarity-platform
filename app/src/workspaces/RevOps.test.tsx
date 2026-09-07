@@ -157,3 +157,55 @@ it("loads the selected hospital history even when comparison dates are invalid",
   await screen.findByText(/operator-b/);
   expect(screen.queryByText(/operator-a/)).not.toBeInTheDocument();
 });
+
+it("confirms an import with its preview revision even after a refresh", async () => {
+  let revision = 1;
+  const original = vi.mocked(apiRevOps).getMockImplementation()!;
+  vi.mocked(apiRevOps).mockImplementation(async (path, body) => {
+    if (path === "/workspaces")
+      return [{ ...structuredClone(rows[0]!), revision }];
+    if (path.includes("/import"))
+      return {
+        revision: 1,
+        headers: ["activity_date", "patient_days"],
+        commands: [],
+        issues: [],
+        replayed: false,
+      };
+    return original(path, body);
+  });
+  await login();
+  fireEvent.click(screen.getByRole("button", { name: "Upload" }));
+  const file = new File(
+    ["activity_date,patient_days\n2028-02-01,9"],
+    "preview.csv",
+  );
+  Object.defineProperty(file, "arrayBuffer", {
+    value: async () =>
+      new TextEncoder().encode("activity_date,patient_days\n2028-02-01,9")
+        .buffer,
+  });
+  fireEvent.change(screen.getByLabelText("File", { exact: true }), {
+    target: { files: [file] },
+  });
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Preview import" }),
+  );
+  await screen.findByRole("button", { name: "Confirm import" });
+  revision = 2;
+  fireEvent.click(screen.getByRole("button", { name: "Refresh", exact: true }));
+  await screen.findByText("Refreshed from server.");
+  fireEvent.click(screen.getByRole("button", { name: "Confirm import" }));
+  await waitFor(() =>
+    expect(
+      vi
+        .mocked(apiRevOps)
+        .mock.calls.some(
+          ([path, body]) =>
+            path.endsWith("/import") &&
+            (body as { commit?: boolean; revision?: number })?.commit &&
+            (body as { revision: number }).revision === 1,
+        ),
+    ).toBe(true),
+  );
+});
