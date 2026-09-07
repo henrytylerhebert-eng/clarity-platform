@@ -32,7 +32,9 @@ and field labels are retained. Forecast and collections are not implemented.
   organization RLS. Migration `20260907000200_rev_ops_append_only_history`
   prevents ordinary application roles from updating or deleting audit rows.
   Migration `20260907000300_rev_ops_retain_workspace_history` also prevents
-  parent deletion from cascading into the journal.
+  parent deletion from cascading into the journal. Migration
+  `20260907000400_rev_ops_retain_workspace_identity` restricts referenced workspace
+  key updates so they cannot cascade into audit history.
   Facility/unit permissions are enforced by the gateway.
 
 State is a bounded JSON aggregate, updated atomically with its change journal.
@@ -50,12 +52,13 @@ database administrator tamper resistance is not claimed.
 All database work used an isolated loopback PostgreSQL instance on port 55439,
 database `clarity_dev`, with synthetic fixtures. No shared database or `.env`
 configuration was changed. The original 15 migrations applied successfully to
-the fresh database; the two additional history-retention migrations subsequently
-applied, for 17 total. Prisma generation and validation passed.
+the fresh database; three additional history-retention migrations subsequently
+applied, for 18 total. Prisma generation and validation passed. The fourth Rev Ops
+migration was applied to the existing synthetic database during review fixes.
 
 | Check | Observed result |
 |---|---|
-| `DATABASE_URL=<isolated URL> npm test` | 451 tests passed across 44 files in the final run. |
+| `DATABASE_URL=<isolated URL> npm test` | 463 tests passed across 44 files after the review fixes. |
 | `npm --workspace app test` | 67 tests passed across 11 files. |
 | Dedicated Playwright Rev Ops config | Four tests passed: complete workflow and delegated census/correction/revocation/logout, each on desktop and mobile. |
 | `npm --workspace app run smoke` | All 20 legacy browser checks passed after correcting stale selectors. |
@@ -115,6 +118,33 @@ regression test for cascading workspace deletion. It reproduced loss of history
 under a non-bypass application role; the third migration blocks parent deletion
 and the regression passes. See the [review guide](REV_OPS_CODE_REVIEW.md) for
 review order, reproduction commands and architectural questions.
+
+## Review findings resolved
+
+The authorization/import/migration review found two additional defects. Regression
+tests reproduced both before the fixes (12 passed, two failed in the focused run):
+
+- **XLSX entry-count bypass:** an 11 MiB synthetic worksheet compressed to a small
+  upload still imported after both ZIP entry counts were forged to one. The guard
+  now checks the complete central-directory boundary, record count and local data
+  bounds, rejects ZIP64 overrides and ambiguous end records, and retains the
+  cumulative 10 MiB decompression limit. Tests cover the bypass, nine malformed
+  container variants, and valid stored/deflated workbooks with ZIP comments.
+- **Audit reference rewrite:** a non-bypass role could update its workspace ID,
+  causing the foreign key's `ON UPDATE CASCADE` to rewrite audit references despite
+  journal RLS. The fourth migration replaces this with `ON UPDATE RESTRICT` in a
+  transaction; Prisma declares the same behavior. The regression verifies the
+  restriction error and unchanged workspace identity and full journal contents.
+
+After these fixes, 25 focused import/integration tests, all 463 root tests, 67 app
+tests, lint, typecheck, app build, Prisma validation/generation and diff checks
+passed. All four dedicated desktop/mobile browser journeys passed against the
+restarted API and migrated database. The legacy browser and restart-equality
+results above are retained from the preceding debug pass, not rerun here.
+
+This is a forward migration; earlier migration files are unchanged. ZIP64,
+multi-disk archives and ambiguous ZIP containers are intentionally unsupported.
+No dependency changes, source workbook access or new product scope were needed.
 
 ## Remaining gates
 

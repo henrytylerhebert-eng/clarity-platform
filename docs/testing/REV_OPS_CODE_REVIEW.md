@@ -12,7 +12,7 @@ complete. Merge, release and expansion remain separate decisions.
    `packages/rev-ops-service/src/index.ts`: strict commands, immutable budget
    baselines, current actuals with retained revisions, completeness and comparisons.
 3. `packages/case-repository/src/revOpsGateway.ts`, `prisma/schema.prisma`, and
-   the three `20260907000*` migrations: atomic state/journal updates, revision
+   the four `20260907000*` migrations: atomic state/journal updates, revision
    conflicts, organization RLS, unit-scoped permissions and audit retention.
 4. `packages/api-service/src/server.ts`, `revOpsRoutes.ts`, `revOpsImport.ts`:
    thin Fastify migration, verified principal boundaries, import validation,
@@ -25,9 +25,14 @@ complete. Merge, release and expansion remain separate decisions.
 
 - Can any request supply or bypass organization, actor, permission or revision
   authority? Verify grants are evaluated from persisted state on each command.
-- Can corrections, repeated uploads, closed periods, parent deletion or budget
+- Can corrections, repeated uploads, closed periods, parent deletion/key updates or budget
   amendments discard prior evidence? The retention regression first reproduced
-  a cascading-delete bypass, then passed after the third migration.
+  a cascading-delete bypass, then passed after the third migration. The fourth
+  migration prevents parent key changes from rewriting journal references.
+- Can forged ZIP metadata hide entries from the decompression guard? The importer
+  validates the complete directory consumed by ExcelJS/JSZip, rejects count and
+  boundary disagreements, and bounds actual expansion. Ordinary stored/deflated
+  single-disk ZIP files are supported; ZIP64 and ambiguous containers are rejected.
 - Are full-month and phased comparisons clearly distinguished, with missing
   census dates represented as unknown? Can an upload be mistaken for collections
   or forecast data? Neither later lane has a write path here.
