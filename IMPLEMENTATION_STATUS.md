@@ -77,7 +77,7 @@ The scoped review found no blocking defect. Added failure injection proves a rec
 write failure after the workspace update rolls back the entire transaction; forged
 authority fields and legacy-path conflict bypass are rejected. Production gates remain separate; forecast and collections are outside this slice.
 
-**2026-09-07: Month-end readiness and accountable close — implemented, locally verified; pending code review and merge.**
+**2026-09-07: Month-end readiness and accountable close — merged in PR #52 (`c9a00bd`), synthetically verified.**
 The [approved slice](docs/product/INPATIENT_REV_OPS_MONTH_CLOSE_BRIEF.md) requires
 all calendar dates and an approved budget before closing. Leap years use the existing
 calendar rules. Closing saves a fixed budget/actual/source receipt in the existing
@@ -91,6 +91,18 @@ survived API restart; four repeat closes remained no-ops. No schema, migration o
 dependency change. See the [evidence record](docs/testing/REV_OPS_MONTH_CLOSE_VERIFICATION.md).
 Production readiness, forecasts, collections and further expansion remain outside
 this bounded proof.
+
+**2026-09-08: Operational census receipt export — implemented locally; pending review, not merged or deployed.**
+Tyler authorized the [bounded export workflow](docs/product/INPATIENT_REV_OPS_EXPORT_BRIEF.md)
+and Daily Midnight Census Count definition v1. Future receipts snapshot the metric
+and historical hospital identity; legacy definitions stay unrecorded. Explicitly
+delegated users can review/download selected original or revised receipts, with
+fresh server authorization, source hashes, bounded values-only workbooks and
+separate durable export events. Existing budget selection remains unchanged.
+Hospital-specific inclusion rules, production retention/limits and real-data use
+remain unverified. No schema, migration, dependency or MiroFish changes.
+See the [verification record](docs/testing/REV_OPS_EXPORT_VERIFICATION.md) for exact
+checks and remaining gates. This is synthetic implementation evidence, not a pilot.
 
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.
