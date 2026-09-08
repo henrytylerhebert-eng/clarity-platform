@@ -119,4 +119,15 @@ describe("App smoke", () => {
     await user.click(screen.getByRole("button", { name: "Parking Lot" }));
     expect(screen.getByRole("heading", { name: "Production auth, tenancy, and release controls" })).toBeInTheDocument();
   });
+
+  it("opens the synthetic IOP reconciliation workspace for the program director demo role", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+
+    await user.selectOptions(screen.getByRole("combobox"), "executive");
+    await user.click(screen.getByRole("button", { name: "IOP Reconciliation" }));
+    expect(await screen.findByRole("heading", { name: "Attendance reconciliation review" })).toBeInTheDocument();
+    expect(screen.getByText(/does not determine clinical compliance or billing eligibility/)).toBeInTheDocument();
+  });
 });

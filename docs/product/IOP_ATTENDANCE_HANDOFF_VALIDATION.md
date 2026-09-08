@@ -119,6 +119,8 @@ For a bounded synthetic or de-identified day/program sample:
 
 The companion unit test removes one reviewed exception and verifies that the sample fails the reconciliation close gate. This is a contract proof only; it does not connect to an EHR, note system, charge system, or EMR billing system.
 
+[`IOP_ATTENDANCE_RECONCILIATION_SYNTHETIC_IMPORT.json`](evidence/IOP_ATTENDANCE_RECONCILIATION_SYNTHETIC_IMPORT.json) supplies the first adapter envelope: a source-system label, source file name, export time, and immutable source cutoff alongside the reconciliation sample. The adapter’s close receipt records that cutoff, the human reviewer token, review timestamp, issue count, and reviewed-exception count.
+
 ## Product implication
 
 Do not implement IOP “compliance,” billables, income, or fraud controls from the workbook totals alone. The next product slice should be a source-linked **IOP attendance-to-billable reconciliation review**, beginning with de-identified or synthetic records and explicit exception states. The workbook can serve as a legacy reporting reference, but not as the authority for enrollment, treatment plan, note audit, charge-slip, or EMR billing truth.

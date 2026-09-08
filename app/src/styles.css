@@ -81,6 +81,34 @@ button {
   margin: 0;
 }
 
+.iop-hero,
+.iop-import-panel,
+.iop-source-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: start;
+}
+
+.iop-hero p { max-width: 72ch; }
+.iop-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.iop-file-input { cursor: pointer; }
+.iop-file-input input { display: none; }
+.iop-source-detail dl,
+.iop-receipt { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.iop-source-detail dt,
+.iop-receipt dt { color: #526173; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.iop-source-detail dd,
+.iop-receipt dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.iop-issue-list { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.iop-issue-list li { border-left: 3px solid #d88a2f; background: #fff9ef; padding: 10px 12px; display: grid; gap: 3px; }
+.iop-issue-list span,
+.iop-issue-list small { color: #526173; overflow-wrap: anywhere; }
+.iop-reviewer { display: grid; gap: 6px; margin: 16px 0; font-weight: 700; }
+.iop-reviewer input { max-width: 360px; }
+.iop-ready { color: #176b65; font-weight: 700; }
+.iop-receipt { margin-top: 18px; border-top: 1px solid #dce5e9; padding-top: 14px; }
+
 .brand-block h1 {
   font-size: 18px;
   line-height: 1.1;
