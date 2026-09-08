@@ -57,21 +57,27 @@ describe("IOP reconciliation persistence", () => {
     const imported = await gateway.import(actor, withGap);
     await expect(gateway.close(actor, imported.import.id, { expectedRevision: 1, idempotencyKey: "iop-close-key-004", reason: "Premature close." }))
       .rejects.toMatchObject({ code: "unreviewed_exceptions", status: 400 });
-    const review = await gateway.review(actor, imported.import.id, "attendance:ATT_001:note_audit_missing", {
+    const planReview = await gateway.review(actor, imported.import.id, "attendance:ATT_001:attendance_plan_mismatch", {
       expectedRevision: 1,
       idempotencyKey: "iop-review-key-004a",
       disposition: "ACCEPTED_EXCEPTION",
-      reason: "Synthetic documentation variance reviewed.",
+      reason: "Synthetic plan linkage variance reviewed.",
     });
-    await gateway.review(actor, imported.import.id, "attendance:ATT_001:charge_missing_or_note_mismatch", {
+    await gateway.review(actor, imported.import.id, "attendance:ATT_001:note_audit_missing", {
       expectedRevision: 1,
       idempotencyKey: "iop-review-key-004b",
       disposition: "ACCEPTED_EXCEPTION",
+      reason: "Synthetic documentation variance reviewed.",
+    });
+    await gateway.review(actor, imported.import.id, "attendance:ATT_001:charge_missing", {
+      expectedRevision: 1,
+      idempotencyKey: "iop-review-key-004c",
+      disposition: "ACCEPTED_EXCEPTION",
       reason: "Synthetic charge variance reviewed.",
     });
-    expect(review.review.reviewerId).toBe(h.tenantA.userId);
+    expect(planReview.review.reviewerId).toBe(h.tenantA.userId);
     const close = await gateway.close(actor, imported.import.id, { expectedRevision: 1, idempotencyKey: "iop-close-key-005", reason: "All synthetic exceptions reviewed." });
-    expect(close.receipt.reviewedCount).toBe(2);
+    expect(close.receipt.reviewedCount).toBe(3);
   });
 
   it("denies underprivileged callers and makes cross-tenant imports non-revealing", async () => {
