@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const REV_OPS_PERMISSIONS = [
   "view",
+  "receiptExport",
   "budgetImport",
   "budgetApprove",
   "actualEnter",
@@ -114,7 +115,7 @@ export const RevOpsCommandSchema = z.discriminatedUnion("action", [
     .object({
       action: z.literal("grant"),
       userId: text,
-      permissions: z.array(z.enum(REV_OPS_PERMISSIONS)).max(7),
+      permissions: z.array(z.enum(REV_OPS_PERMISSIONS)).max(REV_OPS_PERMISSIONS.length),
     })
     .strict(),
   z
@@ -224,6 +225,10 @@ export interface RevOpsCloseReadiness {
   ready: boolean;
 }
 export interface RevOpsClosingReceipt {
+  /** Absent on legacy receipts; never backfilled from current configuration. */
+  hospitalId?: string;
+  hospitalName?: string;
+  metric?: RevOpsMetricSnapshot;
   workspaceId: string;
   unit: string;
   timezone: string;
@@ -241,6 +246,42 @@ export interface RevOpsClosingReceipt {
   revision: number;
   closingNumber: number;
   previousClosingRevision?: number;
+}
+
+export interface RevOpsMetricSnapshot {
+  metric_code: string;
+  metric_label: string;
+  definition_version: string;
+  definition: string;
+  timezone: string;
+  census_local_time: string;
+  service_date_rule: string;
+  validation_status: "unverified";
+  inclusion_rule_version: null;
+  effective_from: null;
+  hospital_rules: Record<"included_statuses" | "observation" | "leave_pass" | "transfer_at_midnight" | "unit_assignment" | "admission_discharge_at_midnight" | "temporary_closure", null>;
+}
+export const REV_OPS_CENSUS_METRIC = {
+  metric_code: "DAILY_MIDNIGHT_CENSUS",
+  definition_version: "1.0",
+  metric_label: "Daily Midnight Census Count",
+  definition: "Number of inpatients assigned to the selected hospital/unit at the facility's designated local midnight census time, attributed to the calendar day that just ended.",
+  census_local_time: "00:00",
+  service_date_rule: "PRIOR_CALENDAR_DAY",
+  validation_status: "unverified",
+  inclusion_rule_version: null,
+  effective_from: null,
+  hospital_rules: { included_statuses: null, observation: null, leave_pass: null, transfer_at_midnight: null, unit_assignment: null, admission_discharge_at_midnight: null, temporary_closure: null },
+} as const;
+
+export interface RevOpsExportDocument {
+  templateVersion: string;
+  receiptHash: string;
+  receiptRevision: number;
+  workspaceRevision: number;
+  period: string;
+  filename: string;
+  sheets: { name: string; rows: (string | number | null)[][] }[];
 }
 export const RevOpsReconciliationSchema = z
   .object({

@@ -33,7 +33,7 @@ export function permissionsFor(
   actor: AuthenticatedPrincipal,
 ): RevOpsPermission[] {
   return isRevOpsAdmin(actor)
-    ? [...REV_OPS_PERMISSIONS]
+    ? REV_OPS_PERMISSIONS.filter((p) => p !== "receiptExport" || state.grants[actor.userId]?.includes(p))
     : (state.grants[actor.userId] ?? []);
 }
 export function requirePermission(
