@@ -121,6 +121,8 @@ The companion unit test removes one reviewed exception and verifies that the sam
 
 [`IOP_ATTENDANCE_RECONCILIATION_SYNTHETIC_IMPORT.json`](evidence/IOP_ATTENDANCE_RECONCILIATION_SYNTHETIC_IMPORT.json) supplies the first adapter envelope: a source-system label, source file name, export time, and immutable source cutoff alongside the reconciliation sample. The adapter’s close receipt records that cutoff, the human reviewer token, review timestamp, issue count, and reviewed-exception count.
 
+The proposed authenticated, source-owned production path is defined in [IOP authenticated source import path](IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md). It is documented-only and must not be represented as a live integration or production API.
+
 ## Product implication
 
 Do not implement IOP “compliance,” billables, income, or fraud controls from the workbook totals alone. The next product slice should be a source-linked **IOP attendance-to-billable reconciliation review**, beginning with de-identified or synthetic records and explicit exception states. The workbook can serve as a legacy reporting reference, but not as the authority for enrollment, treatment plan, note audit, charge-slip, or EMR billing truth.
