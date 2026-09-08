@@ -29,7 +29,7 @@ describe("IOP persisted import contract", () => {
     expect(iopPermissionsFor(principal(["READ_ONLY_AUDITOR"]))).toEqual([]);
   });
 
-  it("requires a stable source record version and a cutoff that precedes export", () => {
+  it("requires a stable source record version, entity coverage, and a cutoff before export", () => {
     const base = {
       facilityId: "facility-synthetic",
       programId: "IOP_PROGRAM_001",
@@ -39,13 +39,7 @@ describe("IOP persisted import contract", () => {
         exportedAt: "2028-02-08T15:00:00.000Z",
         cutoffAt: "2028-02-07T23:59:59.999Z",
       },
-      sourceRecords: [
-        {
-          type: "ATTENDANCE",
-          sourceRecordId: "ATT_001",
-          sourceVersion: "1",
-        },
-      ],
+      sourceRecords: [{ type: "ENROLLMENT", sourceRecordId: "ENR_001", sourceVersion: "1" }],
       reconciliation: {
         privacy: "SYNTHETIC_ONLY",
         sampleId: "IOP_SAMPLE_001",
@@ -74,5 +68,11 @@ describe("IOP persisted import contract", () => {
         source: { ...base.source, cutoffAt: "2028-02-09T00:00:00.000Z" },
       }),
     ).toThrow("Source cutoff cannot be after export time");
+    expect(() =>
+      IopPersistedImportRequestSchema.parse({
+        ...base,
+        sourceRecords: [{ type: "ENROLLMENT", sourceRecordId: "ENR_OTHER", sourceVersion: "1" }],
+      }),
+    ).toThrow("Missing stable ENROLLMENT source record for ENR_001");
   });
 });

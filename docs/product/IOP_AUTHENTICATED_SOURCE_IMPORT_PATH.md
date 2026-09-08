@@ -87,11 +87,10 @@ Uniqueness is scoped as `(organizationId, integrationId, resourceType, sourceRec
 
 | Record | Immutable fields | Mutable fields | Retention rule |
 |---|---|---|---|
-| `IopSourceImport` | tenant, facility/program, integration, snapshot hash, cutoff/export times, actor/service principal, accepted time | none | Never overwrite; supersede with a later import. |
-| `IopImportedEvent` | import ID, resource type, source record/version, normalized linkage keys, source status | none | Append later source versions; retain original. |
-| `IopReconciliationIssue` | issue key, import ID, detection rule/version, affected source IDs, detected time | resolved only through a linked review | Never delete. |
-| `IopExceptionReview` | issue ID, reviewer principal, reviewed time, disposition, reason | none | One append-only review per action; later action supersedes, never edits. |
-| `IopReconciliationCloseReceipt` | import ID, source cutoff, reviewer principal, close time, rule/contract version, issue counts, snapshot hash | none | Close is immutable; reopening creates a new review cycle. |
+| `IopReconciliationImport` | tenant, facility/program, integration, snapshot hash, cutoff/export times, actor, source-record/version coverage, reconciliation snapshot | none | Never overwrite; supersede with a later import. |
+| Derived reconciliation issue | issue key and affected source IDs, recomputed from the immutable import snapshot | none | Close and review validate the same deterministic rule set. |
+| `IopReconciliationExceptionReview` | issue key, reviewer principal, reviewed time, disposition, reason | none | One append-only review per action; later action is rejected once closed. |
+| `IopReconciliationCloseReceipt` | import ID, source cutoff, reviewer principal, close time, issue counts | none | Close is immutable; reopening requires a future review-cycle design. |
 
 No table stores a raw therapist note body. The exact source record reference and audit state are sufficient for this reconciliation slice.
 
@@ -113,13 +112,13 @@ The implemented close command is:
 
 `POST /api/iop/reconciliation-imports/:importId/close`
 
-The body supplies only a required close reason and expected import revision. The server stamps reviewer identity/time, copies the immutable source cutoff and rule version, and rejects the command if any issue lacks a current `REVIEWED` exception. A `HOLD` exception remains an exception; it does not convert an event to billable or compliant.
+The body supplies only a required close reason and expected import revision. The server stamps reviewer identity/time, copies the immutable source cutoff, and rejects the command if any issue lacks a current authenticated exception review. A reviewed exception does not convert an event to billable or compliant.
 
 ## Tenant isolation and audit rules
 
 - Repositories apply `organizationId` on every import, event, issue, review, receipt, and read query.
 - Database RLS/tenant-context enforcement is required before production data use; service-level checks alone are insufficient.
-- Every accepted import, rejected import, exception review, close, and reopen emits one append-only audit event and an outbox event in the same transaction.
+- Every accepted import, exception review, and close emits one append-only audit event in the same transaction. Outbox delivery is deferred.
 - Audit metadata stores IDs, hashes, statuses, and sanitized filenames only. It must not store raw payloads, note text, patient names, coverage identifiers, or credentials.
 - Read access returns only records within the verified principal’s tenant and authorized program scope.
 
@@ -129,9 +128,9 @@ The body supplies only a required close reason and expected import revision. The
 2. The same source snapshot retry is idempotent; a changed snapshot cannot replay under the old key.
 3. Cross-tenant facility/program, import, issue, and receipt reads/writes are non-revealing failures.
 4. Every imported event can be traced to a source system, source record ID, version/update marker, and import cutoff.
-5. Every detected mismatch has an immutable issue record; closing fails until each has a current reviewed exception.
-6. The close receipt captures reviewer identity, review time, source cutoff, source snapshot hash, rule version, and issue counts.
-7. Every material mutation is atomic with its audit/outbox event; a failed audit write leaves no import, review, or close residue.
+5. Every detected mismatch is deterministically derived from the immutable import snapshot; closing fails until each has an authenticated, immutable review.
+6. The close receipt captures reviewer identity, review time, source cutoff, and issue counts.
+7. Every material mutation is atomic with its audit event; a failed audit write leaves no import, review, or close residue.
 8. Tests prove permission denial, tenant isolation, retry/idempotency, stale revision rejection, cutoff preservation, and close-gate behavior.
 
 ## Required decisions before implementation

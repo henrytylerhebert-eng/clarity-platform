@@ -78,6 +78,12 @@ describe("IOP reconciliation persistence", () => {
     expect(planReview.review.reviewerId).toBe(h.tenantA.userId);
     const close = await gateway.close(actor, imported.import.id, { expectedRevision: 1, idempotencyKey: "iop-close-key-005", reason: "All synthetic exceptions reviewed." });
     expect(close.receipt.reviewedCount).toBe(3);
+    await expect(gateway.review(actor, imported.import.id, "attendance:ATT_001:charge_missing", {
+      expectedRevision: 1,
+      idempotencyKey: "iop-review-key-004d",
+      disposition: "ACCEPTED_EXCEPTION",
+      reason: "Post-close review must be rejected.",
+    })).rejects.toMatchObject({ code: "reconciliation_already_closed", status: 409 });
   });
 
   it("denies underprivileged callers and makes cross-tenant imports non-revealing", async () => {

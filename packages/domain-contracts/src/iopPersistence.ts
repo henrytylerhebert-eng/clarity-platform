@@ -54,7 +54,28 @@ export const IopPersistedImportRequestSchema = z
       ),
     reconciliation: IopReconciliationSampleSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((request, context) => {
+    const expectedSourceIds = {
+      ENROLLMENT: request.reconciliation.enrollments.map((entry) => entry.enrollmentId),
+      TREATMENT_PLAN: request.reconciliation.treatmentPlans.map((entry) => entry.planId),
+      ATTENDANCE: request.reconciliation.attendanceEvents.map((entry) => entry.attendanceId),
+      NOTE_AUDIT: request.reconciliation.noteAudits.map((entry) => entry.noteId),
+      CHARGE_LINE: request.reconciliation.chargeLines.map((entry) => entry.chargeLineId),
+      EMR_BILLABLE_LINE: request.reconciliation.emrBillableLines.map((entry) => entry.billableLineId),
+    } as const;
+    for (const [type, sourceIds] of Object.entries(expectedSourceIds)) {
+      for (const sourceRecordId of sourceIds) {
+        if (!request.sourceRecords.some((record) => record.type === type && record.sourceRecordId === sourceRecordId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["sourceRecords"],
+            message: `Missing stable ${type} source record for ${sourceRecordId}`,
+          });
+        }
+      }
+    }
+  });
 export type IopPersistedImportRequest = z.infer<
   typeof IopPersistedImportRequestSchema
 >;

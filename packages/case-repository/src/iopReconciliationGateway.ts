@@ -144,6 +144,12 @@ export class PrismaIopReconciliationGateway {
         if (existing.requestHash === requestHash) return { review: existing, replayed: true };
         throw new IopReconciliationError("idempotency_key_reused", 409);
       }
+      const closeReceipt = await tx.iopReconciliationCloseReceipt.findFirst({
+        where: { organizationId: actor.organizationId, importId: record.id },
+        select: { id: true },
+      });
+      if (closeReceipt)
+        throw new IopReconciliationError("reconciliation_already_closed", 409);
       const payload = record.payload as unknown as { reconciliation: unknown };
       const issues = validateIopReconciliationSample(payload.reconciliation).issues;
       if (!issues.some((issue) => issue.issueKey === issueKey))
