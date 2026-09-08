@@ -13,6 +13,7 @@ import type {
   RevOpsReconciliationReceipt,
   RevOpsClosingReceipt,
   RevOpsCloseReadiness,
+  RevOpsStaffingComparison,
 } from "../../../packages/domain-contracts/src/revOps";
 import "./revOps.css";
 import {
@@ -45,6 +46,7 @@ type Comparison = {
   phasedVariance: number | null;
   missingDates: string[];
   budget: { id: string } | null;
+  staffing: RevOpsStaffingComparison | null;
 };
 type Upload = {
   kind: "budget" | "actuals";
@@ -80,12 +82,16 @@ type Change = {
 };
 const permissionLabels: Record<RevOpsPermission, string> = {
   view: "View reports and history",
+  receiptExport: "Review / export closing receipts (explicit grant)",
   budgetImport: "Enter / import budgets",
   budgetApprove: "Approve budgets",
   actualEnter: "Enter / import actuals",
   actualCorrect: "Correct actuals",
   periodClose: "Close periods",
   periodReopen: "Reopen periods",
+  staffingEnter: "Enter staffing actuals",
+  staffingCorrect: "Correct staffing actuals",
+  staffingRuleApprove: "Approve staffing metric and plan rules",
 };
 const fields = (event: FormEvent<HTMLFormElement>) => {
   event.preventDefault();
@@ -412,6 +418,7 @@ export function RevOps() {
           <nav className="ro-tabs" aria-label="Rev Ops sections">
             {[
               "Comparison",
+              "Staffing",
               "Budgets",
               "Daily actuals",
               "Upload",
@@ -717,8 +724,204 @@ export function RevOps() {
                   busy={busy}
                   canClose={can("periodClose")}
                   canReopen={can("periodReopen")}
+                  canExport={can("receiptExport")}
                   onCommand={(c, r) => void command(c, r)}
                 />
+              ) : null}
+            </section>
+          ) : null}
+          {current && tab === "Staffing" ? (
+            <section>
+              <div className="ro-section-title">
+                <div>
+                  <h2>Staffing-plan variance</h2>
+                  <p>
+                    An approved, date-effective operational plan compares
+                    configured staffing hours with daily census. It does not
+                    represent a mandated ratio, payroll close, or clinical
+                    recommendation.
+                  </p>
+                </div>
+              </div>
+              {comparison?.staffing ? (
+                <>
+                  <div className="ro-metrics">
+                    <div>
+                      <span>Actual staffing hours</span>
+                      <strong>{format(comparison.staffing.actualHours)}</strong>
+                    </div>
+                    <div>
+                      <span>Planned staffing hours</span>
+                      <strong>{format(comparison.staffing.expectedHours)}</strong>
+                    </div>
+                    <div>
+                      <span>Actual minus plan</span>
+                      <strong>{format(comparison.staffing.variance)}</strong>
+                    </div>
+                  </div>
+                  <p className="ro-muted">
+                    Measure: {comparison.staffing.metric?.label} ·{" "}
+                    {comparison.staffing.metric?.unit}
+                  </p>
+                  {comparison.staffing.missingCensusDates.length ||
+                  comparison.staffing.missingStaffingDates.length ||
+                  comparison.staffing.missingRuleDates.length ? (
+                    <p className="ro-warning">
+                      Calculation incomplete. Missing census:{" "}
+                      {comparison.staffing.missingCensusDates.join(", ") || "none"};
+                      {" "}staffing:{" "}
+                      {comparison.staffing.missingStaffingDates.join(", ") || "none"};
+                      {" "}approved rule:{" "}
+                      {comparison.staffing.missingRuleDates.join(", ") || "none"}.
+                    </p>
+                  ) : (
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Census</th>
+                          <th>Actual hours</th>
+                          <th>Plan hours</th>
+                          <th>Variance</th>
+                          <th>Rule effective</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {comparison.staffing.contributors.map((row) => (
+                          <tr key={row.date}>
+                            <td>{row.date}</td>
+                            <td>{format(row.census)}</td>
+                            <td>{format(row.actualHours)}</td>
+                            <td>{format(row.expectedHours)}</td>
+                            <td>{format(row.variance)}</td>
+                            <td>{row.ruleEffectiveFrom}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </>
+              ) : (
+                <p className="ro-muted">
+                  No approved staffing metric is effective for this cutoff.
+                  An administrator must define and approve the measure before a
+                  staffing-plan calculation is available.
+                </p>
+              )}
+              {admin ? (
+                <>
+                  <h3>Metric definition</h3>
+                  <form
+                    className="ro-form"
+                    onSubmit={(e) => {
+                      const d = fields(e);
+                      void command({
+                        action: "defineStaffingMetric",
+                        code: value(d, "code"),
+                        label: value(d, "label"),
+                        definition: value(d, "definition"),
+                        unit: value(d, "unit"),
+                        version: value(d, "version"),
+                        effectiveFrom: value(d, "effectiveFrom"),
+                      });
+                    }}
+                  >
+                    <label>Code<input name="code" defaultValue="RN_WORKED_HOURS" required /></label>
+                    <label>Label<input name="label" defaultValue="Synthetic RN worked hours" required /></label>
+                    <label>Definition<textarea name="definition" defaultValue="Define the included worked hours and source before approval." required /></label>
+                    <label>Unit<input name="unit" defaultValue="hours" required /></label>
+                    <label>Version<input name="version" defaultValue="1.0.0" pattern="\d+\.\d+\.\d+" required /></label>
+                    <label>Effective from<input name="effectiveFrom" type="date" defaultValue={period + "-01"} required /></label>
+                    <button disabled={busy}>Create metric draft</button>
+                  </form>
+                  {(current.state.staffingMetrics ?? [])
+                    .filter((metric) => metric.status === "draft")
+                    .map((metric) => (
+                      <p key={metric.code + metric.version} className="ro-inline">
+                        {metric.code} v{metric.version} is a draft.
+                        <button
+                          disabled={busy || !can("staffingRuleApprove")}
+                          onClick={() =>
+                            void command({
+                              action: "approveStaffingMetric",
+                              code: metric.code,
+                              version: metric.version,
+                            })
+                          }
+                        >
+                          Approve metric
+                        </button>
+                      </p>
+                    ))}
+                  <h3>Staffing-plan rule</h3>
+                  <form
+                    className="ro-form"
+                    onSubmit={(e) => {
+                      const d = fields(e);
+                      void command({
+                        action: "staffingRule",
+                        metricCode: value(d, "metricCode"),
+                        effectiveFrom: value(d, "effectiveFrom"),
+                        targetHoursPerCensus: Number(value(d, "targetHoursPerCensus")),
+                      });
+                    }}
+                  >
+                    <label>
+                      Approved metric
+                      <select name="metricCode" required>
+                        {(current.state.staffingMetrics ?? [])
+                          .filter((metric) => metric.status === "approved")
+                          .map((metric) => (
+                            <option key={metric.code + metric.version} value={metric.code}>
+                              {metric.label} ({metric.code})
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                    <label>Effective from<input name="effectiveFrom" type="date" defaultValue={period + "-01"} required /></label>
+                    <label>Target hours per census<input name="targetHoursPerCensus" type="number" min="0" step="0.01" required /></label>
+                    <button disabled={busy || !(current.state.staffingMetrics ?? []).some((metric) => metric.status === "approved")}>Create rule draft</button>
+                  </form>
+                  {(current.state.staffingRules ?? [])
+                    .filter((rule) => rule.status === "draft")
+                    .map((rule) => (
+                      <p key={rule.id} className="ro-inline">
+                        {rule.metricCode} from {rule.effectiveFrom}:{" "}
+                        {rule.targetHoursPerCensus} hours per census is a draft.
+                        <button
+                          disabled={busy || !can("staffingRuleApprove")}
+                          onClick={() =>
+                            void command({
+                              action: "approveStaffingRule",
+                              ruleId: rule.id,
+                            })
+                          }
+                        >
+                          Approve rule
+                        </button>
+                      </p>
+                    ))}
+                </>
+              ) : null}
+              {can("staffingEnter") ? (
+                <>
+                  <h3>Daily staffing actual</h3>
+                  <form
+                    className="ro-form"
+                    onSubmit={(e) => {
+                      const d = fields(e);
+                      void command({
+                        action: "staffingActual",
+                        date: value(d, "date"),
+                        hours: Number(value(d, "hours")),
+                      });
+                    }}
+                  >
+                    <label>Date<input name="date" type="date" defaultValue={through} required /></label>
+                    <label>Worked hours<input name="hours" type="number" min="0" step="0.01" required /></label>
+                    <button disabled={busy}>Save staffing actual</button>
+                  </form>
+                </>
               ) : null}
             </section>
           ) : null}
@@ -1208,7 +1411,7 @@ export function RevOps() {
                     />
                   ) : null}
                   {h.details.closing ? (
-                    <ClosingReceipt receipt={h.details.closing} />
+                    <ClosingReceipt receipt={h.details.closing} canExport={can("receiptExport")} />
                   ) : null}
                   <pre>{JSON.stringify(h.details, null, 2)}</pre>
                 </details>

@@ -20,13 +20,60 @@ import {
   assertOpen,
   compareRevOps,
   monthCloseReadiness,
+  staffingComparison,
 } from "../../rev-ops-service/src/index.js";
 import { withTenantContext } from "./tenantContext.js";
+import { REV_OPS_CENSUS_METRIC } from "../../domain-contracts/src/revOps.js";
+import { PrismaCaseAuditWriter } from "./auditWriter.js";
 
 const json = (value: unknown): Prisma.InputJsonValue =>
   JSON.parse(JSON.stringify(value));
 export class PrismaRevOpsGateway {
   constructor(private readonly prisma: PrismaClient) {}
+  async exportContext(actor: AuthenticatedPrincipal, id: string, receiptRevision: number) {
+    return withTenantContext(this.prisma, actor.organizationId, async tx => {
+      const row = await tx.revOpsWorkspace.findFirst({where:{id,organizationId:actor.organizationId}});
+      if (!row) throw new RevOpsError("resource_not_found",404);
+      const state=row.state as unknown as RevOpsState;
+      requirePermission(state,actor,"view"); requirePermission(state,actor,"receiptExport");
+      const read = async (revision: number) => {
+        // Bound transferred JSON in SQL, before materializing an untrusted historic payload in Node.
+        const rows=await tx.$queryRaw<{receipt: RevOpsClosingReceipt | null; size: number}[]>`
+          SELECT CASE WHEN octet_length(("details"->'closing')::text) <= 262144
+            THEN "details"->'closing' ELSE NULL END AS receipt,
+            octet_length(("details"->'closing')::text) AS size
+          FROM "RevOpsChange" WHERE "organizationId"=${actor.organizationId}
+            AND "workspaceId"=${id} AND "revision"=${revision} AND "action"='close'`;
+        if ((rows[0]?.size ?? 0) > 262144) throw new RevOpsError("export_size_limit",413);
+        if(!rows[0]?.receipt) throw new RevOpsError("historical_receipt_not_found",404);
+        if(rows[0].receipt.workspaceId!==id || rows[0].receipt.revision!==revision) throw new RevOpsError("invalid_historical_receipt",400);
+        return rows[0].receipt;
+      };
+      if(receiptRevision>row.revision) throw new RevOpsError("historical_receipt_not_found",404);
+      const receipt=await read(receiptRevision);
+      const predecessor=receipt.previousClosingRevision ? await read(receipt.previousClosingRevision) : undefined;
+      const successor=await tx.revOpsChange.findFirst({where:{organizationId:actor.organizationId,workspaceId:id,action:"close",revision:{gt:receiptRevision,lte:row.revision},details:{path:["closing","period"],equals:receipt.period}},orderBy:{revision:"asc"},select:{revision:true}});
+      return {receipt,predecessor,successorRevision:successor?.revision,workspaceRevision:row.revision,periodClosed:state.closedPeriods.includes(receipt.period),observedAt:new Date().toISOString()};
+    });
+  }
+  async exportEvent(actor: AuthenticatedPrincipal, id: string, expectedRevision: number, metadata: {requestId:string; receiptRevision:number; receiptHash:string; templateVersion:string; bytes?:number}, event: "requested" | "generated_delivery_authorized" | "failed") {
+    return withTenantContext(this.prisma,actor.organizationId,async tx=>{
+      // Serialize the final authority check against grant changes/period changes.
+      await tx.$queryRaw`SELECT "id" FROM "RevOpsWorkspace" WHERE "id"=${id} AND "organizationId"=${actor.organizationId} FOR SHARE`;
+      const row=await tx.revOpsWorkspace.findFirst({where:{id,organizationId:actor.organizationId}});
+      if(!row) throw new RevOpsError("resource_not_found",404);
+      if(event!=="failed") {
+        requirePermission(row.state as unknown as RevOpsState,actor,"view");
+        requirePermission(row.state as unknown as RevOpsState,actor,"receiptExport");
+        if(row.revision!==expectedRevision) throw new RevOpsError("version_conflict_refresh_required");
+      }
+      await new PrismaCaseAuditWriter().write(tx,{
+        organizationId:actor.organizationId,caseId:null,actor:{actorId:actor.userId,actorType:"USER"},
+        action:`rev_ops_export_${event}`,objectType:"rev_ops_receipt_export",objectId:id,
+        metadata:{...metadata,workspaceRevision:expectedRevision},occurredAt:new Date(),
+      });
+    });
+  }
   private async latestClosing(
     tx: Prisma.TransactionClient,
     organizationId: string,
@@ -64,6 +111,7 @@ export class PrismaRevOpsGateway {
       requirePermission(state, actor, "view");
       return {
         ...compareRevOps(state, period, through, budgetId),
+        staffing: staffingComparison(state, period, through),
         closeReadiness: monthCloseReadiness(state, period, budgetId),
         closingReceipt:
           (await this.latestClosing(
@@ -254,6 +302,7 @@ export class PrismaRevOpsGateway {
     return withTenantContext(this.prisma, actor.organizationId, async (tx) => {
       const row = await tx.revOpsWorkspace.findFirst({
         where: { id, organizationId: actor.organizationId },
+        include: { facility: { select: { name: true } } },
       });
       if (!row) throw new RevOpsError("resource_not_found", 404);
       const state = row.state as unknown as RevOpsState;
@@ -359,6 +408,9 @@ export class PrismaRevOpsGateway {
         const ready = monthCloseReadiness(state, close.period, close.budgetId);
         closingReceipt = {
           workspaceId: id,
+          hospitalId: row.facilityId,
+          hospitalName: row.facility.name,
+          metric: { ...structuredClone(REV_OPS_CENSUS_METRIC), timezone: state.timezone },
           unit: state.unit,
           timezone: state.timezone,
           dateConvention: "end-of-day",
@@ -377,6 +429,22 @@ export class PrismaRevOpsGateway {
               actual: structuredClone(actuals.at(-1)!),
             };
           }),
+          ...(ready.staffing
+            ? {
+                staffing: {
+                  comparison: structuredClone(ready.staffing),
+                  days: Array.from({ length: ready.expectedDays }, (_, i) => {
+                    const date = `${close.period}-${String(i + 1).padStart(2, "0")}`;
+                    const actuals = state.staffingActuals![date]!;
+                    return {
+                      date,
+                      actualRevision: actuals.length,
+                      actual: structuredClone(actuals.at(-1)!),
+                    };
+                  }),
+                },
+              }
+            : {}),
           actorId: actor.userId,
           at,
           reason: close.reason,

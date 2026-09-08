@@ -15,7 +15,8 @@ export type WorkspaceId =
   | "ledger"
   | "training"
   | "mock-admits"
-  | "studio";
+  | "studio"
+  | "iop-reconciliation";
 
 export const allWorkspaceIds: WorkspaceId[] = [
   "queue",
@@ -35,6 +36,7 @@ export const allWorkspaceIds: WorkspaceId[] = [
   "training",
   "mock-admits",
   "studio",
+  "iop-reconciliation",
 ];
 
 export type RoleId =
@@ -130,7 +132,7 @@ export const roles: RoleDefinition[] = [
     label: "Executive / program director",
     description: "Read-focused pipeline oversight. Full metrics dashboard arrives in v0.3.",
     mission: "See throughput and risk at a glance; measure before claiming improvement.",
-    workspaces: ["command", "queue", "ledger", "training", "mock-admits", "studio"],
+    workspaces: ["command", "queue", "ledger", "training", "mock-admits", "studio", "iop-reconciliation"],
     defaultWorkspace: "command",
   },
 ];

@@ -946,6 +946,88 @@ model RevOpsChange {
   @@unique([organizationId, workspaceId, revision])
 }
 
+/// Tenant-owned configuration for a source that supplies IOP reconciliation facts.
+/// Credentials and raw clinical content are intentionally outside this model.
+model IopSourceIntegration {
+  id             String                    @id @default(cuid())
+  organizationId String
+  integrationKey String
+  label          String
+  active         Boolean                   @default(true)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  imports        IopReconciliationImport[]
+
+  @@unique([organizationId, integrationKey])
+  @@index([organizationId, active])
+}
+
+/// Immutable accepted source snapshot. The payload contains synthetic source IDs
+/// and reconciliation status only; it does not store raw therapist-note text.
+model IopReconciliationImport {
+  id               String                             @id @default(cuid())
+  organizationId   String
+  facilityId       String
+  programId        String
+  integrationId    String
+  integration      IopSourceIntegration               @relation(fields: [integrationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  idempotencyKey   String
+  requestHash      String
+  snapshotHash     String
+  exportedAt       DateTime
+  cutoffAt         DateTime
+  sourceFileName   String?
+  payload          Json
+  revision         Int                                @default(1)
+  acceptedBy       String
+  acceptedAt       DateTime                           @default(now())
+  exceptionReviews IopReconciliationExceptionReview[]
+  closeReceipt     IopReconciliationCloseReceipt?
+
+  @@unique([organizationId, idempotencyKey])
+  @@unique([organizationId, integrationId, snapshotHash])
+  @@unique([organizationId, id])
+  @@index([organizationId, facilityId, programId, cutoffAt])
+}
+
+/// Append-only, authenticated disposition of a derived reconciliation issue.
+model IopReconciliationExceptionReview {
+  id             String                  @id @default(cuid())
+  organizationId String
+  importId       String
+  import         IopReconciliationImport @relation(fields: [organizationId, importId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict)
+  idempotencyKey String
+  requestHash    String
+  issueKey       String
+  disposition    String
+  reason         String
+  reviewerId     String
+  reviewedAt     DateTime                @default(now())
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, importId, issueKey, reviewedAt])
+}
+
+/// One immutable, human-authenticated close receipt per accepted source import.
+model IopReconciliationCloseReceipt {
+  id             String                  @id @default(cuid())
+  organizationId String
+  importId       String
+  import         IopReconciliationImport @relation(fields: [organizationId, importId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict)
+  idempotencyKey String
+  requestHash    String
+  reviewerId     String
+  reviewedAt     DateTime                @default(now())
+  reason         String
+  sourceCutoffAt DateTime
+  issueCount     Int
+  reviewedCount  Int
+
+  @@unique([organizationId, importId])
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, reviewedAt])
+}
+
 model Referral {
   id                   String               @id @default(cuid())
   caseId               String

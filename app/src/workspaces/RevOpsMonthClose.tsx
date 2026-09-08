@@ -1,17 +1,20 @@
 import { useState } from "react";
+import { ReceiptExport } from "./RevOpsReceiptExport";
 import type {
   RevOpsCloseReadiness,
   RevOpsClosingReceipt,
   RevOpsCommand,
 } from "../../../packages/domain-contracts/src/revOps";
 
-export function ClosingReceipt({ receipt }: { receipt: RevOpsClosingReceipt }) {
+export function ClosingReceipt({ receipt, canExport=false }: { receipt: RevOpsClosingReceipt; canExport?:boolean }) {
   return (
     <section
       className="ro-receipt"
       aria-label={`Closing receipt ${receipt.closingNumber}`}
     >
       <h3>Closing receipt #{receipt.closingNumber}</h3>
+      <p>{receipt.metric?.metric_label ?? "Metric definition: Definition not recorded"}. {receipt.metric ? "Monthly actual: Sum of Daily Midnight Census Counts. Hospital-specific rules remain unverified." : "No new metric definition has been attached to this historical receipt."}</p>
+      {canExport?<ReceiptExport workspaceId={receipt.workspaceId} receiptRevision={receipt.revision}/>:null}
       <p>
         {receipt.period} · {receipt.unit} · {receipt.timezone} · workspace
         revision {receipt.revision}
@@ -57,7 +60,7 @@ export function ClosingReceipt({ receipt }: { receipt: RevOpsClosingReceipt }) {
         {receipt.days.map((d) => (
           <article className="ro-reconciliation-row" key={d.date}>
             <h4>
-              {d.date} · {d.actual.count} patient days · actual revision{" "}
+              {d.date} · {d.actual.count} recorded count · actual revision{" "}
               {d.actualRevision}
             </h4>
             <p>
@@ -93,6 +96,7 @@ export function MonthClose({
   busy,
   canClose,
   canReopen,
+  canExport=false,
   onCommand,
 }: {
   readiness: RevOpsCloseReadiness;
@@ -102,6 +106,7 @@ export function MonthClose({
   busy: boolean;
   canClose: boolean;
   canReopen: boolean;
+  canExport?: boolean;
   onCommand: (command: RevOpsCommand, revision: number) => void;
 }) {
   const [reason, setReason] = useState("");
@@ -203,7 +208,7 @@ export function MonthClose({
           permission.
         </p>
       )}
-      {receipt ? <ClosingReceipt receipt={receipt} /> : null}
+      {receipt ? <ClosingReceipt receipt={receipt} canExport={canExport} /> : null}
     </section>
   );
 }

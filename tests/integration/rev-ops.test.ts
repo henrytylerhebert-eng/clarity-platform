@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { once } from "node:events";
 import type { Server } from "node:http";
 import {
@@ -35,6 +35,7 @@ let tokenA: string;
 let tokenB: string;
 let tokenStaff: string;
 let auth: AuthenticationService;
+let revOpsGateway: PrismaRevOpsGateway;
 const setup = {
   name: "Harbor Demo Hospital",
   unit: "Adult",
@@ -161,6 +162,7 @@ beforeAll(async () => {
   tokenA = (await auth.login("synthetic-revops-test-a")).token;
   tokenB = (await auth.login("synthetic-revops-test-b")).token;
   tokenStaff = (await auth.login("synthetic-revops-staff")).token;
+  revOpsGateway = new PrismaRevOpsGateway(h.prisma);
   server = createApiServer({
     auth,
     caseCommands: new CaseCommandService(
@@ -170,7 +172,7 @@ beforeAll(async () => {
       new InMemoryPrescreenGateway(),
       PRESCREEN_PRODUCTION_POLICY,
     ),
-    revOps: new PrismaRevOpsGateway(h.prisma),
+    revOps: revOpsGateway,
   });
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
@@ -185,6 +187,64 @@ afterAll(async () => {
 });
 
 describe("persisted patient-day workflow through authenticated Fastify routes", () => {
+  it("reviews and exports preserved receipts with explicit authorization, fresh checks and separate audit",async()=>{
+    const w=await workspace("Synthetic export proof");
+    expect((await importFile(w,upload("actuals","activity_date,patient_days\n"+Array.from({length:28},(_,i)=>`2028-02-${String(i+1).padStart(2,"0")},10`).join("\n")))).status).toBe(200);
+    await completeMonthFixture(w);
+    const closed=await command(w,{action:"close",period:"2028-02",reason:"Private close reason"});
+    expect(closed.status).toBe(200);
+    const receipt=closed.body.closingReceipt;
+    expect(receipt.metric).toMatchObject({metric_code:"DAILY_MIDNIGHT_CENSUS",definition_version:"1.0",timezone:"America/Chicago",service_date_rule:"PRIOR_CALENDAR_DAY",validation_status:"unverified"});
+    expect(receipt.hospitalName).toBe("Synthetic export proof");
+    const path=`/workspaces/${w.id}/receipts/${receipt.revision}`;
+    expect((await request(tokenA,path)).status).toBe(403);
+    await command(w,{action:"grant",userId:h.tenantA.userId,permissions:["view","receiptExport"]});
+    const review=(await request(tokenA,path)).body;
+    expect(review.receiptRevision).toBe(receipt.revision);
+    expect((await request(tokenB,path)).status).toBe(404);
+    expect((await request(tokenStaff,path)).status).toBe(403);
+    const download=async(doc=review,token=tokenA)=>fetch(base+path+"/export",{method:"POST",headers:{authorization:`Bearer ${token}`,"content-type":"application/json"},body:JSON.stringify({workspaceRevision:doc.workspaceRevision,receiptHash:doc.receiptHash})});
+    expect((await request(tokenA,`/workspaces/${w.id}/receipts/invalid/export`,{workspaceRevision:review.workspaceRevision,receiptHash:review.receiptHash})).status).toBe(400);
+    const before=await current(w);
+    const first=await download();expect(first.status).toBe(200);expect(first.headers.get("cache-control")).toBe("no-store");
+    const book=new ExcelJS.Workbook();await book.xlsx.load(Buffer.from(await first.arrayBuffer()) as never);
+    expect(book.getWorksheet("Summary")!.getRow(3).getCell(2).value).toBe(280);
+    expect(book.getWorksheet("Daily activity")!.getRow(30).getCell(2).value).toBe(0);
+    expect((await download()).status).toBe(200);
+    expect((await current(w)).revision).toBe(before.revision);
+    const events=await h.prisma.auditEvent.findMany({where:{organizationId:h.tenantA.organizationId,objectId:w.id,objectType:"rev_ops_receipt_export"}});
+    expect(events.filter(e=>e.action==="rev_ops_export_requested")).toHaveLength(2);
+    expect(events.filter(e=>e.action==="rev_ops_export_generated_delivery_authorized")).toHaveLength(2);
+    expect(events.some(e=>e.action.includes("downloaded"))).toBe(false);
+    expect(JSON.stringify(events)).not.toContain("Private close reason");
+    await command(w,{action:"reopen",period:"2028-02",reason:"Synthetic correction"});
+    expect((await download()).status).toBe(409);
+    await command(w,{action:"correct",date:"2028-02-29",count:5,reason:"Private correction reason"});
+    const second=await command(w,{action:"close",period:"2028-02",budgetId:receipt.budget.id,reason:"Synthetic revised close"});
+    const revised=(await request(tokenA,`/workspaces/${w.id}/receipts/${second.body.closingReceipt.revision}`)).body;
+    expect(revised.sheets.find((s:{name:string})=>s.name==="Revision comparison").rows).toContainEqual(["Budget",290,290,0]);
+    const original=(await request(tokenA,path)).body;
+    expect(original.receiptHash).toBe(review.receiptHash);
+    expect(original.sheets[0].rows).toContainEqual(["Observed status","SUPERSEDED"]);
+    const fresh=createPrismaClient();
+    try { expect((await new PrismaRevOpsGateway(fresh).exportContext(await auth.authenticate(tokenA),w.id,receipt.revision)).receipt).toEqual(receipt); } finally {await fresh.$disconnect();}
+
+    // Revoke while generation is pending: final server authority check must deny delivery.
+    const event=revOpsGateway.exportEvent.bind(revOpsGateway);
+    const spy=vi.spyOn(revOpsGateway,"exportEvent").mockImplementation(async(...args)=>{
+      await event(...args);
+      if(args[4]==="requested")await command(w,{action:"grant",userId:h.tenantA.userId,permissions:["view"]});
+    });
+    try { const denied=await download(original);expect(denied.status).toBe(403);expect(denied.headers.get("content-type")).not.toContain("spreadsheet"); } finally {spy.mockRestore();}
+    expect(await h.prisma.auditEvent.count({where:{objectId:w.id,action:"rev_ops_export_failed"}})).toBe(1);
+    await command(w,{action:"grant",userId:h.tenantA.userId,permissions:["view","receiptExport"]});
+    const next=(await request(tokenA,path)).body;
+    const fail=vi.spyOn(revOpsGateway,"exportEvent").mockRejectedValue(new Error("Synthetic audit failure"));
+    try {expect((await download(next)).status).toBe(500);} finally {fail.mockRestore();}
+    expect((await current(w)).state.closedPeriods).toContain("2028-02");
+    expect((await request(tokenA,`/workspaces/${w.id}/receipts/1`)).status).toBe(404);
+    expect((await request(tokenA,path+"/export",{workspaceRevision:next.workspaceRevision,receiptHash:next.receiptHash,actorId:"forged"})).status).toBe(400);
+  });
   it("closes a complete leap month with a fixed budget and preserves receipts through reopen and correction", async () => {
     const w = await workspace("Synthetic leap-month close");
     await command(w, {

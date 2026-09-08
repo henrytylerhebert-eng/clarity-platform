@@ -15,12 +15,15 @@ import {
 } from "../../rev-ops-service/src/index.js";
 import { parseRevOpsUpload, RevOpsUploadSchema } from "./revOpsImport.js";
 import { planReconciliation } from "../../rev-ops-service/src/reconciliation.js";
+import { randomUUID } from "node:crypto";
+import { buildExportDocument, renderExport, EXPORT_TEMPLATE } from "./revOpsExport.js";
 
 export function registerRevOpsRoutes(
   app: FastifyInstance,
   auth: AuthenticationService,
   gateway: PrismaRevOpsGateway,
 ) {
+  const activeExports = new Set<string>();
   const principal = (req: FastifyRequest) => {
     const h = req.headers.authorization;
     if (!h?.startsWith("Bearer "))
@@ -29,6 +32,43 @@ export function registerRevOpsRoutes(
   };
   const id = (req: FastifyRequest) =>
     z.object({ id: z.string().min(1).max(160) }).parse(req.params).id;
+  const receiptRevision = (req: FastifyRequest) => z.object({revision:z.coerce.number().int().positive().max(2147483647)}).parse(req.params).revision;
+  app.get("/api/rev-ops/workspaces/:id/receipts/:revision", async(req,reply)=>{
+    reply.header("Cache-Control","no-store");
+    z.object({}).strict().parse(req.query);
+    return buildExportDocument(await gateway.exportContext(await principal(req),id(req),receiptRevision(req)));
+  });
+  app.post("/api/rev-ops/workspaces/:id/receipts/:revision/export", {bodyLimit:2048}, async(req,reply)=>{
+    reply.header("Cache-Control","no-store");
+    const actor=await principal(req);
+    const key=id(req);
+    const body=z.object({workspaceRevision:z.number().int().positive(),receiptHash:z.string().regex(/^[a-f0-9]{64}$/)}).strict().parse(req.body);
+    const revision=receiptRevision(req);
+    if(activeExports.size>=2 || activeExports.has(actor.organizationId)) throw new RevOpsError("export_busy_retry",429);
+    activeExports.add(actor.organizationId);
+    let requested=false;
+    const metadata={requestId:randomUUID(),receiptRevision:revision,receiptHash:body.receiptHash,templateVersion:EXPORT_TEMPLATE};
+    try {
+      const context=await gateway.exportContext(actor,key,metadata.receiptRevision);
+      const document=buildExportDocument(context);
+      if(body.workspaceRevision!==context.workspaceRevision || body.receiptHash!==document.receiptHash) throw new RevOpsError("version_conflict_refresh_required");
+      await gateway.exportEvent(actor,key,body.workspaceRevision,metadata,"requested");
+      requested=true;
+      const started=Date.now();
+      const bytes=await renderExport(document,metadata.requestId,new Date().toISOString(),actor.userId);
+      if(Date.now()-started>10000) throw new RevOpsError("export_generation_timeout",503);
+      // Session, active user, current roles and current workspace grant are rechecked before delivery.
+      const currentActor=await principal(req);
+      await gateway.exportEvent(currentActor,key,body.workspaceRevision,{...metadata,bytes:bytes.length},"generated_delivery_authorized");
+      return reply.type("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        .header("X-Content-Type-Options","nosniff")
+        .header("Content-Disposition",`attachment; filename="${document.filename}"`)
+        .header("X-Export-Request-Id",metadata.requestId).send(bytes);
+    } catch(error) {
+      if(requested) await gateway.exportEvent(actor,key,body.workspaceRevision,metadata,"failed");
+      throw error;
+    } finally { activeExports.delete(actor.organizationId); }
+  });
   app.get("/api/rev-ops/members", async (req) =>
     gateway.members(await principal(req)),
   );

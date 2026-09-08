@@ -2,12 +2,16 @@ import { z } from "zod";
 
 export const REV_OPS_PERMISSIONS = [
   "view",
+  "receiptExport",
   "budgetImport",
   "budgetApprove",
   "actualEnter",
   "actualCorrect",
   "periodClose",
   "periodReopen",
+  "staffingEnter",
+  "staffingCorrect",
+  "staffingRuleApprove",
 ] as const;
 export type RevOpsPermission = (typeof REV_OPS_PERMISSIONS)[number];
 const text = z.string().trim().min(1).max(160);
@@ -114,7 +118,7 @@ export const RevOpsCommandSchema = z.discriminatedUnion("action", [
     .object({
       action: z.literal("grant"),
       userId: text,
-      permissions: z.array(z.enum(REV_OPS_PERMISSIONS)).max(7),
+      permissions: z.array(z.enum(REV_OPS_PERMISSIONS)).max(REV_OPS_PERMISSIONS.length),
     })
     .strict(),
   z
@@ -172,6 +176,12 @@ export const RevOpsCommandSchema = z.discriminatedUnion("action", [
       reason: z.string().trim().min(3).max(1000),
     })
     .strict(),
+  z.object({ action: z.literal("defineStaffingMetric"), code: z.string().regex(/^[A-Z][A-Z0-9_]{2,63}$/), label: text, definition: z.string().trim().min(1).max(2000), unit: text, version: z.string().regex(/^\d+\.\d+\.\d+$/), effectiveFrom: RevOpsDate }).strict(),
+  z.object({ action: z.literal("approveStaffingMetric"), code: z.string().regex(/^[A-Z][A-Z0-9_]{2,63}$/), version: z.string().regex(/^\d+\.\d+\.\d+$/) }).strict(),
+  z.object({ action: z.literal("staffingRule"), metricCode: z.string().regex(/^[A-Z][A-Z0-9_]{2,63}$/), effectiveFrom: RevOpsDate, targetHoursPerCensus: z.number().finite().min(0).max(10000) }).strict(),
+  z.object({ action: z.literal("approveStaffingRule"), ruleId: text }).strict(),
+  z.object({ action: z.literal("staffingActual"), date: RevOpsDate, hours: z.number().finite().min(0).max(100000) }).strict(),
+  z.object({ action: z.literal("correctStaffingActual"), date: RevOpsDate, hours: z.number().finite().min(0).max(100000), reason: z.string().trim().min(3).max(1000) }).strict(),
 ]);
 export type RevOpsCommand = z.infer<typeof RevOpsCommandSchema>;
 export type RevOpsSetup = z.infer<typeof RevOpsSetupSchema>;
@@ -210,6 +220,38 @@ export interface RevOpsActual {
   cutoffInstant: string;
   reason?: string;
 }
+export interface RevOpsStaffingMetric {
+  code: string; label: string; definition: string; unit: string; version: string;
+  effectiveFrom: string; status: "draft" | "approved"; createdBy: string; createdAt: string;
+  approvedBy?: string; approvedAt?: string;
+}
+export interface RevOpsStaffingRule {
+  id: string; metricCode: string; effectiveFrom: string; targetHoursPerCensus: number;
+  status: "draft" | "approved"; source: RevOpsSource; createdBy: string; createdAt: string;
+  approvedBy?: string; approvedAt?: string;
+}
+export interface RevOpsStaffingActual {
+  hours: number; source: RevOpsSource; actorId: string; at: string; reason?: string;
+}
+export interface RevOpsStaffingContributor {
+  date: string;
+  census: number;
+  actualHours: number;
+  expectedHours: number;
+  variance: number;
+  ruleId: string;
+  ruleEffectiveFrom: string;
+}
+export interface RevOpsStaffingComparison {
+  metric: RevOpsStaffingMetric | null;
+  missingCensusDates: string[];
+  missingStaffingDates: string[];
+  missingRuleDates: string[];
+  expectedHours: number | null;
+  actualHours: number | null;
+  variance: number | null;
+  contributors: RevOpsStaffingContributor[];
+}
 export interface RevOpsCloseReadiness {
   period: string;
   through: string;
@@ -220,10 +262,16 @@ export interface RevOpsCloseReadiness {
   actuals: number | null;
   budget: RevOpsBudget | null;
   variance: number | null;
+  /** Null until a staffing metric has been approved for this workspace. */
+  staffing?: RevOpsStaffingComparison | null;
   closed: boolean;
   ready: boolean;
 }
 export interface RevOpsClosingReceipt {
+  /** Absent on legacy receipts; never backfilled from current configuration. */
+  hospitalId?: string;
+  hospitalName?: string;
+  metric?: RevOpsMetricSnapshot;
   workspaceId: string;
   unit: string;
   timezone: string;
@@ -235,12 +283,53 @@ export interface RevOpsClosingReceipt {
   budget: RevOpsBudget;
   variance: number;
   days: { date: string; actualRevision: number; actual: RevOpsActual }[];
+  /** Present only when the period was closed with an approved staffing metric. */
+  staffing?: {
+    comparison: RevOpsStaffingComparison;
+    days: { date: string; actualRevision: number; actual: RevOpsStaffingActual }[];
+  };
   actorId: string;
   at: string;
   reason: string;
   revision: number;
   closingNumber: number;
   previousClosingRevision?: number;
+}
+
+export interface RevOpsMetricSnapshot {
+  metric_code: string;
+  metric_label: string;
+  definition_version: string;
+  definition: string;
+  timezone: string;
+  census_local_time: string;
+  service_date_rule: string;
+  validation_status: "unverified";
+  inclusion_rule_version: null;
+  effective_from: null;
+  hospital_rules: Record<"included_statuses" | "observation" | "leave_pass" | "transfer_at_midnight" | "unit_assignment" | "admission_discharge_at_midnight" | "temporary_closure", null>;
+}
+export const REV_OPS_CENSUS_METRIC = {
+  metric_code: "DAILY_MIDNIGHT_CENSUS",
+  definition_version: "1.0",
+  metric_label: "Daily Midnight Census Count",
+  definition: "Number of inpatients assigned to the selected hospital/unit at the facility's designated local midnight census time, attributed to the calendar day that just ended.",
+  census_local_time: "00:00",
+  service_date_rule: "PRIOR_CALENDAR_DAY",
+  validation_status: "unverified",
+  inclusion_rule_version: null,
+  effective_from: null,
+  hospital_rules: { included_statuses: null, observation: null, leave_pass: null, transfer_at_midnight: null, unit_assignment: null, admission_discharge_at_midnight: null, temporary_closure: null },
+} as const;
+
+export interface RevOpsExportDocument {
+  templateVersion: string;
+  receiptHash: string;
+  receiptRevision: number;
+  workspaceRevision: number;
+  period: string;
+  filename: string;
+  sheets: { name: string; rows: (string | number | null)[][] }[];
 }
 export const RevOpsReconciliationSchema = z
   .object({
@@ -320,6 +409,9 @@ export interface RevOpsState {
   actuals: Record<string, RevOpsActual[]>;
   closedPeriods: string[];
   acceptedImports: string[];
+  staffingMetrics?: RevOpsStaffingMetric[];
+  staffingRules?: RevOpsStaffingRule[];
+  staffingActuals?: Record<string, RevOpsStaffingActual[]>;
 }
 export interface RevOpsView {
   id: string;

@@ -1,3 +1,4 @@
+import ExcelJS from "exceljs";
 import { expect, test } from "@playwright/test";
 
 test("month close requires every leap-year date and preserves original and revised receipts", async ({
@@ -56,6 +57,7 @@ test("month close requires every leap-year date and preserves original and revis
       "actualCorrect",
       "periodClose",
       "periodReopen",
+      "receiptExport",
     ],
   });
   await page.goto("/rev-ops");
@@ -139,11 +141,31 @@ test("month close requires every leap-year date and preserves original and revis
   await expect(
     page.getByRole("heading", { name: "Closing receipt #1", exact: true }),
   ).toBeVisible();
+  const downloadReceipt = async (revision: number, actual: number, status: string) => {
+    const region=page.getByRole("region",{name:`Excel export for receipt revision ${revision}`,exact:true});
+    await region.getByRole("button",{name:"Review Excel export",exact:true}).click();
+    await expect(region.getByText(status,{exact:true})).toBeVisible();
+    await expect(region.getByRole("cell",{name:"Daily Midnight Census Count",exact:true})).toBeVisible();
+    const pending=page.waitForEvent("download");
+    await region.getByRole("button",{name:"Download selected receipt (.xlsx)",exact:true}).click();
+    const download=await pending;
+    const output=testInfo.outputPath(`receipt-${revision}-${actual}.xlsx`);
+    await download.saveAs(output);
+    const book=new ExcelJS.Workbook();await book.xlsx.readFile(output);
+    expect(book.getWorksheet("Summary")!.getCell("B3").value).toBe(actual);
+    expect(book.getWorksheet("Summary")!.getCell("B4").value).toBe(290);
+    expect(book.getWorksheet("Daily activity")!.getCell("B30").value).toBe(actual===280?0:5);
+    expect(book.getWorksheet("Daily activity")!.getCell("A30").value).toEqual(new Date("2028-02-29T00:00:00Z"));
+    await expect(region.getByRole("status")).toContainText("handed to the browser");
+    await region.screenshot({path:testInfo.outputPath(`export-${revision}.png`)});
+    await region.getByRole("button",{name:"Hide Excel review",exact:true}).click();
+  };
+  await downloadReceipt(receipt1.revision,280,"LATEST CLOSED");
   await page
     .getByText("Closing budget and daily sources", { exact: true })
     .click();
   await expect(
-    page.getByText(/2028-02-29 · 0 patient days · actual revision 1/),
+    page.getByText(/2028-02-29 · 0 recorded count · actual revision 1/),
   ).toBeVisible();
   await page
     .getByRole("heading", { name: "Closing receipt #1", exact: true })
@@ -181,6 +203,7 @@ test("month close requires every leap-year date and preserves original and revis
     closingNumber: 2,
     previousClosingRevision: receipt1.revision,
   });
+  await downloadReceipt(receipt2.revision,285,"LATEST CLOSED");
   expect(
     history.find((h: { revision: number }) => h.revision === receipt1.revision)
       .details.closing,
@@ -253,6 +276,7 @@ test("month close requires every leap-year date and preserves original and revis
   await expect(
     page.getByRole("region", { name: "Closing receipt 1", exact: true }),
   ).toContainText("Closed actuals: 280");
+  await downloadReceipt(receipt1.revision,280,"SUPERSEDED");
   await page.screenshot({
     path: testInfo.outputPath("month-close-history.png"),
     fullPage: true,

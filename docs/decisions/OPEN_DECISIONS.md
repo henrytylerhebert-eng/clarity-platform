@@ -13,6 +13,9 @@ related_adrs: ADR-0001, ADR-0002
 
 # Open Decisions
 
+Rev Ops export implementation was authorized September 8, 2026. OD-15–17 distinguish
+the bounded synthetic implementation from unresolved hospital/production decisions.
+
 | # | Decision needed | Owner type | Blocking |
 |---|---|---|---|
 | OD-1 | Obtain the full master package v0.2.0 (72 files missing); re-run comparison for 12 summary-graded domains | Product owner | Canonical status of agent/API/UI/eval/commercial domains |
@@ -29,3 +32,6 @@ related_adrs: ADR-0001, ADR-0002
 | OD-12 | Baseline operational measurements (transfer timing, acceptance rate, packet completeness) | Product owner | ROI claims, pilot design |
 | OD-13 | CMS/Medicare/Medicaid regulatory reference acquisition: whether to execute the Phase 1 deep research prompt (`docs/legal/GEMINI_DEEP_RESEARCH_PROMPT_CMS_MEDICARE_MEDICAID.md`), and who reviews its output before any of it informs a rule | Product owner + counsel (OD-2) + clinical (OD-3) | Any regulatory grounding for readiness, authorization, transfer, or consent logic |
 | OD-14 | Per-organization AI-native policy & procedure index (Phase 2); see [org policy index decision packet](ORG_POLICY_INDEX_DECISION_PACKET.md). Unresolved: tenant-safe retrieval partitioning, reference-vs-authority scope, FDA CDS implications, who authors default interpretations, version staleness | Product owner + tech lead + counsel | Controlled extraction and AI-agent steps of the build sequence |
+| OD-15 | Rev Ops metric v1 approved: Daily Midnight Census Count, prior-calendar-day midnight; future receipts snapshot it, legacy receipts disclose definition not recorded. Hospital inclusion rules and their independent version/effective date remain unknown. See [export brief](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md). | Product + census/finance owners | Hospital validation and any patient-day equivalence; synthetic export implementation authorized |
+| OD-16 | Rev Ops budget: retain existing approved-budget selection for this export slice. Predecessor inheritance, separately accountable baseline changes and independent approval remain undecided. See [export brief](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md). | Product + finance owner | Changes to closing/budget policy; export must preserve the historically selected budget |
+| OD-17 | Rev Ops export: explicit delegated permission, safe projection, legacy disclosure, bounded synchronous generation and durable fail-closed audit implemented for synthetic testing. Production audit retention/tamper controls, distributed limits and real-data field policy remain unresolved. See [export brief](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md). | Product + technical/security reviewers | Production/pilot use; review implementation before merge, no production or real-data authority |

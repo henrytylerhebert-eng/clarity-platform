@@ -4,6 +4,7 @@ import {
   applyRevOpsCommand,
   createRevOpsState,
   monthCloseReadiness,
+  staffingComparison,
 } from "../../packages/rev-ops-service/src/index.js";
 import type { AuthenticatedPrincipal } from "@clarity/domain-contracts";
 const actor: AuthenticatedPrincipal = {
@@ -147,4 +148,86 @@ it("requires an approved budget and rejects the wrong month's approved version",
   expect(() =>
     monthCloseReadiness(state, "2028-02", state.budgets[0]!.id),
   ).toThrow("approved_budget_not_found");
+});
+it("preserves approved staffing-plan inputs in the deterministic close loop", () => {
+  const state = setup();
+  const period = "2028-02";
+  const run = (command: unknown) =>
+    applyRevOpsCommand(
+      state,
+      RevOpsCommandSchema.parse(command),
+      actor,
+      source,
+      "2028-03-01T06:00:00.000Z",
+    );
+  run({ action: "budget", period, total: 290, costCenter: "Inpatient" });
+  run({ action: "approve", budgetId: state.budgets[0]!.id });
+  run({
+    action: "defineStaffingMetric",
+    code: "RN_WORKED_HOURS",
+    label: "Synthetic RN worked hours",
+    definition: "Synthetic test measure for worked nursing hours.",
+    unit: "hours",
+    version: "1.0.0",
+    effectiveFrom: "2028-02-01",
+  });
+  run({
+    action: "approveStaffingMetric",
+    code: "RN_WORKED_HOURS",
+    version: "1.0.0",
+  });
+  run({
+    action: "staffingRule",
+    metricCode: "RN_WORKED_HOURS",
+    effectiveFrom: "2028-02-01",
+    targetHoursPerCensus: 2,
+  });
+  run({ action: "approveStaffingRule", ruleId: state.staffingRules![0]!.id });
+  for (let day = 1; day <= 29; day++) {
+    const date = `${period}-${String(day).padStart(2, "0")}`;
+    run({ action: "actual", date, count: 10 });
+    run({ action: "staffingActual", date, hours: 20 });
+  }
+  expect(staffingComparison(state, period, "2028-02-29")).toMatchObject({
+    metric: { code: "RN_WORKED_HOURS", status: "approved" },
+    expectedHours: 580,
+    actualHours: 580,
+    variance: 0,
+    missingCensusDates: [],
+    missingStaffingDates: [],
+    missingRuleDates: [],
+  });
+  run({
+    action: "staffingRule",
+    metricCode: "RN_WORKED_HOURS",
+    effectiveFrom: "2028-02-15",
+    targetHoursPerCensus: 3,
+  });
+  run({ action: "approveStaffingRule", ruleId: state.staffingRules![1]!.id });
+  expect(staffingComparison(state, period, "2028-02-29")).toMatchObject({
+    expectedHours: 730,
+    actualHours: 580,
+    variance: -150,
+  });
+  expect(monthCloseReadiness(state, period)).toMatchObject({
+    staffing: { variance: -150 },
+    ready: true,
+  });
+  run({ action: "close", period, reason: "Reviewed synthetic staffing close" });
+  expect(() =>
+    run({
+      action: "correctStaffingActual",
+      date: "2028-02-29",
+      hours: 21,
+      reason: "Late synthetic correction",
+    }),
+  ).toThrow("period_closed");
+  run({ action: "reopen", period, reason: "Late synthetic correction" });
+  run({
+    action: "correctStaffingActual",
+    date: "2028-02-29",
+    hours: 21,
+    reason: "Late synthetic correction",
+  });
+  expect(state.staffingActuals!["2028-02-29"]).toHaveLength(2);
 });
