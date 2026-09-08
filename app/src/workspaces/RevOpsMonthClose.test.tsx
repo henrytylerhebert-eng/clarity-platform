@@ -152,7 +152,7 @@ it("renders frozen closing values and historical labels without current definiti
   fireEvent.click(screen.getByText("Closing budget and daily sources"));
   expect(screen.getByText(/Original review label: Signed/)).toBeVisible();
   expect(
-    screen.getByText(/2028-02-29 · 0 patient days · actual revision 1/),
+    screen.getByText(/2028-02-29 · 0 recorded count · actual revision 1/),
   ).toBeVisible();
   expect(screen.getByText(/Fixed closing record/)).toBeVisible();
 });

@@ -80,6 +80,7 @@ type Change = {
 };
 const permissionLabels: Record<RevOpsPermission, string> = {
   view: "View reports and history",
+  receiptExport: "Review / export closing receipts (explicit grant)",
   budgetImport: "Enter / import budgets",
   budgetApprove: "Approve budgets",
   actualEnter: "Enter / import actuals",
@@ -717,6 +718,7 @@ export function RevOps() {
                   busy={busy}
                   canClose={can("periodClose")}
                   canReopen={can("periodReopen")}
+                  canExport={can("receiptExport")}
                   onCommand={(c, r) => void command(c, r)}
                 />
               ) : null}
@@ -1208,7 +1210,7 @@ export function RevOps() {
                     />
                   ) : null}
                   {h.details.closing ? (
-                    <ClosingReceipt receipt={h.details.closing} />
+                    <ClosingReceipt receipt={h.details.closing} canExport={can("receiptExport")} />
                   ) : null}
                   <pre>{JSON.stringify(h.details, null, 2)}</pre>
                 </details>
