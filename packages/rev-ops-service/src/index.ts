@@ -8,6 +8,7 @@ import {
   type RevOpsPermission,
   type RevOpsSource,
   type RevOpsCloseReadiness,
+  type RevOpsStaffingComparison,
 } from "../../domain-contracts/src/revOps.js";
 
 import { RevOpsError } from "./error.js";
@@ -99,6 +100,80 @@ export function midnightEnding(date: string, timezone: string): string {
 export function assertOpen(state: RevOpsState, period: string): void {
   if (state.closedPeriods.includes(period))
     throw new RevOpsError("period_closed");
+}
+export function staffingComparison(
+  state: RevOpsState,
+  period: string,
+  through: string,
+): RevOpsStaffingComparison | null {
+  if (through.slice(0, 7) !== period)
+    throw new RevOpsError("cutoff_period_mismatch", 400);
+  const metric =
+    state.staffingMetrics
+      ?.filter((m) => m.status === "approved" && m.effectiveFrom <= through)
+      .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom))
+      .at(0) ?? null;
+  if (!metric) return null;
+  const days = Number(through.slice(8));
+  const dates = Array.from(
+    { length: days },
+    (_, i) => `${period}-${String(i + 1).padStart(2, "0")}`,
+  );
+  const missingCensusDates = dates.filter((d) => !state.actuals[d]?.length);
+  const missingStaffingDates = dates.filter((d) => !state.staffingActuals?.[d]?.length);
+  const selectedRules = dates.map(
+    (date) =>
+      state.staffingRules
+        ?.filter(
+          (r) =>
+            r.status === "approved" &&
+            r.metricCode === metric.code &&
+            r.effectiveFrom <= date,
+        )
+        .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom))
+        .at(0) ?? null,
+  );
+  const missingRuleDates = dates.filter((_, index) => !selectedRules[index]);
+  if (
+    missingCensusDates.length ||
+    missingStaffingDates.length ||
+    missingRuleDates.length
+  )
+    return {
+      metric,
+      missingCensusDates,
+      missingStaffingDates,
+      missingRuleDates,
+      expectedHours: null,
+      actualHours: null,
+      variance: null,
+      contributors: [],
+    };
+  const contributors = dates.map((date, index) => {
+    const rule = selectedRules[index]!;
+    const census = state.actuals[date]!.at(-1)!.count;
+    const hours = state.staffingActuals![date]!.at(-1)!.hours;
+    const expectedHours = census * rule.targetHoursPerCensus;
+    return {
+      date,
+      census,
+      actualHours: hours,
+      expectedHours,
+      variance: hours - expectedHours,
+      ruleId: rule.id,
+      ruleEffectiveFrom: rule.effectiveFrom,
+    };
+  });
+  return {
+    metric,
+    missingCensusDates,
+    missingStaffingDates,
+    missingRuleDates,
+    expectedHours: contributors.reduce((sum, day) => sum + day.expectedHours, 0),
+    actualHours: contributors.reduce((sum, day) => sum + day.actualHours, 0),
+    variance: contributors.reduce((sum, day) => sum + day.variance, 0),
+    contributors,
+  };
 }
 export function applyRevOpsCommand(
   state: RevOpsState,
@@ -256,6 +331,52 @@ export function applyRevOpsCommand(
     state.actuals[command.date] = history;
     return true;
   }
+  if (command.action === "defineStaffingMetric") {
+    if (!isRevOpsAdmin(actor)) throw new RevOpsError("permission_denied", 403);
+    const metrics = state.staffingMetrics ?? (state.staffingMetrics = []);
+    if (metrics.some((m) => m.code === command.code && m.version === command.version)) throw new RevOpsError("staffing_metric_version_exists", 409);
+    metrics.push({ ...command, status: "draft", createdBy: actor.userId, createdAt: at });
+    return true;
+  }
+  if (command.action === "approveStaffingMetric") {
+    requirePermission(state, actor, "staffingRuleApprove");
+    const metric = state.staffingMetrics?.find(
+      (m) =>
+        m.code === command.code &&
+        m.version === command.version &&
+        m.status === "draft",
+    );
+    if (!metric) throw new RevOpsError("staffing_metric_not_found", 404);
+    metric.status = "approved"; metric.approvedBy = actor.userId; metric.approvedAt = at;
+    return true;
+  }
+  if (command.action === "staffingRule") {
+    if (!isRevOpsAdmin(actor)) throw new RevOpsError("permission_denied", 403);
+    const metric = state.staffingMetrics?.find((m) => m.code === command.metricCode && m.status === "approved");
+    if (!metric) throw new RevOpsError("approved_staffing_metric_required", 400);
+    const rules = state.staffingRules ?? (state.staffingRules = []);
+    rules.push({ id: randomUUID(), ...command, status: "draft", source, createdBy: actor.userId, createdAt: at });
+    return true;
+  }
+  if (command.action === "approveStaffingRule") {
+    requirePermission(state, actor, "staffingRuleApprove");
+    const rule = state.staffingRules?.find((r) => r.id === command.ruleId && r.status === "draft");
+    if (!rule) throw new RevOpsError("staffing_rule_not_found", 404);
+    rule.status = "approved"; rule.approvedBy = actor.userId; rule.approvedAt = at;
+    return true;
+  }
+  if (command.action === "staffingActual" || command.action === "correctStaffingActual") {
+    requirePermission(state, actor, command.action === "staffingActual" ? "staffingEnter" : "staffingCorrect");
+    assertOpen(state, command.date.slice(0, 7));
+    const all = state.staffingActuals ?? (state.staffingActuals = {});
+    const history = all[command.date] ?? []; const current = history.at(-1);
+    if (command.action === "staffingActual" && current && current.hours !== command.hours) throw new RevOpsError("staffing_actual_conflict_requires_correction");
+    if (command.action === "correctStaffingActual" && !current) throw new RevOpsError("staffing_actual_not_found", 404);
+    if (current?.hours === command.hours) return false;
+    history.push({ hours: command.hours, source, actorId: actor.userId, at, ...(command.action === "correctStaffingActual" ? { reason: command.reason } : {}) });
+    all[command.date] = history;
+    return true;
+  }
   requirePermission(
     state,
     actor,
@@ -272,6 +393,13 @@ export function applyRevOpsCommand(
       throw new RevOpsError("approved_budget_required_for_close", 400);
     if (readiness.missingDates.length)
       throw new RevOpsError("complete_month_required_for_close", 400);
+    if (
+      readiness.staffing &&
+      (readiness.staffing.missingCensusDates.length ||
+        readiness.staffing.missingStaffingDates.length ||
+        readiness.staffing.missingRuleDates.length)
+    )
+      throw new RevOpsError("complete_staffing_month_required_for_close", 400);
     state.closedPeriods.push(command.period);
   } else if (command.action === "reopen" && closed)
     state.closedPeriods = state.closedPeriods.filter(
@@ -289,6 +417,7 @@ export function monthCloseReadiness(
   const expectedDays = daysInPeriod(period);
   const through = `${period}-${expectedDays}`;
   const report = compareRevOps(state, period, through, budgetId);
+  const staffing = staffingComparison(state, period, through);
   const closed = state.closedPeriods.includes(period);
   return {
     period,
@@ -300,8 +429,16 @@ export function monthCloseReadiness(
     actuals: report.actuals,
     budget: report.budget,
     variance: report.fullMonthVariance,
+    staffing,
     closed,
-    ready: !closed && !!report.budget && !report.missingDates.length,
+    ready:
+      !closed &&
+      !!report.budget &&
+      !report.missingDates.length &&
+      (!staffing ||
+        (!staffing.missingCensusDates.length &&
+          !staffing.missingStaffingDates.length &&
+          !staffing.missingRuleDates.length)),
   };
 }
 

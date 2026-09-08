@@ -61,6 +61,31 @@ const receiptSchema = z.object({
   revision: integer.positive(), closingNumber: integer.positive(), previousClosingRevision: integer.positive().optional(), actorId: text, at: timestamp, reason: text,
   budget: z.object({ id: text, period: RevOpsPeriod, status: z.literal("approved"), total: z.number().min(0).max(1000000), dailyTargets: z.array(z.number().min(0).max(100000)).max(31), approvedBy: text, approvedAt: timestamp, source: sourceSchema }),
   days: z.array(z.object({ date: RevOpsDate, actualRevision: integer.positive(), actual: z.object({ count: integer.max(100000), actorId: text, at: timestamp, cutoffInstant: timestamp, source: sourceSchema }) })).max(31),
+  staffing: z.object({
+    comparison: z.object({
+      metric: z.object({
+        code: text, label: text, definition: text, unit: text,
+        version: z.string().regex(/^\d+\.\d+\.\d+$/),
+        effectiveFrom: RevOpsDate, status: z.literal("approved"),
+        createdBy: text, createdAt: timestamp, approvedBy: text, approvedAt: timestamp,
+      }).strict(),
+      missingCensusDates: z.array(RevOpsDate).max(31),
+      missingStaffingDates: z.array(RevOpsDate).max(31),
+      missingRuleDates: z.array(RevOpsDate).max(31),
+      expectedHours: z.number().finite().min(0).max(1000000),
+      actualHours: z.number().finite().min(0).max(1000000),
+      variance: z.number().finite(),
+      contributors: z.array(z.object({
+        date: RevOpsDate, census: integer.max(100000), actualHours: z.number().finite().min(0).max(100000),
+        expectedHours: z.number().finite().min(0).max(100000), variance: z.number().finite(),
+        ruleId: text, ruleEffectiveFrom: RevOpsDate,
+      }).strict()).max(31),
+    }).strict(),
+    days: z.array(z.object({
+      date: RevOpsDate, actualRevision: integer.positive(),
+      actual: z.object({ hours: z.number().finite().min(0).max(100000), actorId: text, at: timestamp, source: sourceSchema }),
+    }).strict()).max(31),
+  }).strict().optional(),
 });
 
 function validate(receipt: RevOpsClosingReceipt) {
@@ -73,7 +98,19 @@ function validate(receipt: RevOpsClosingReceipt) {
       r.days.some((d,i) => d.date !== `${r.period}-${String(i+1).padStart(2,"0")}`) ||
       r.days.reduce((s,d) => s+d.actual.count,0) !== r.actuals ||
       Math.abs(r.budget.dailyTargets.reduce((s,d) => s+d,0)-r.budget.total) > 1e-6 ||
-      Math.abs(r.actuals-r.budget.total-r.variance) > 1e-6) throw invalid();
+      Math.abs(r.actuals-r.budget.total-r.variance) > 1e-6 ||
+      (r.staffing && (
+        r.staffing.comparison.missingCensusDates.length ||
+        r.staffing.comparison.missingStaffingDates.length ||
+        r.staffing.comparison.missingRuleDates.length ||
+        r.staffing.days.length !== n ||
+        r.staffing.comparison.contributors.length !== n ||
+        r.staffing.days.some((d,i) => d.date !== `${r.period}-${String(i+1).padStart(2,"0")}`) ||
+        r.staffing.comparison.contributors.some((d,i) => d.date !== r.staffing!.days[i]!.date || d.actualHours !== r.staffing!.days[i]!.actual.hours) ||
+        Math.abs(r.staffing.comparison.contributors.reduce((s,d) => s+d.expectedHours,0)-r.staffing.comparison.expectedHours) > 1e-6 ||
+        Math.abs(r.staffing.comparison.contributors.reduce((s,d) => s+d.actualHours,0)-r.staffing.comparison.actualHours) > 1e-6 ||
+        Math.abs(r.staffing.comparison.actualHours-r.staffing.comparison.expectedHours-r.staffing.comparison.variance) > 1e-6
+      ))) throw invalid();
 }
 
 export interface ExportContext {
@@ -111,6 +148,7 @@ export function buildExportDocument(context: ExportContext): RevOpsExportDocumen
       ["Metric", metric?.metric_label ?? "Definition not recorded"],
       ["Actual — "+totalLabel, r.actuals], ["Selected budget — aggregate target", r.budget.total],
       ["Variance (actual minus budget)",r.variance], ["Variance percent",r.budget.total===0?"Not applicable: zero budget":r.variance/r.budget.total],
+      ["Staffing variance",r.staffing ? r.staffing.comparison.variance : "Not configured for this receipt"],
       ["Calendar dates",r.expectedDays], ["Recorded dates",r.days.length], ["Explicit zero dates",r.days.filter(d=>d.actual.count===0).length],
       ["Observed status",status], ["Budget metric validation","Hospital validation required; budget carries no independent metric contract"],
       ["Scope","Operational counts and selected budget only. Not accounting close, billed days, forecast, collections or regulatory filing."],
@@ -143,6 +181,15 @@ export function buildExportDocument(context: ExportContext): RevOpsExportDocumen
     ] },
     { name: "Sources", rows: sources },
   ];
+  if (r.staffing) sheets.push({name:"Staffing variance",rows:[
+    ["Service date","Census count","Staffing actual hours","Staffing plan hours","Variance","Staffing revision","Actor ID","Recorded at (UTC)","Source reference","Rule effective date"],
+    ...r.staffing.comparison.contributors.map((d,i)=>{
+      const actual=r.staffing!.days[i]!;
+      return [d.date,d.census,d.actualHours,d.expectedHours,d.variance,actual.actualRevision,actual.actual.actorId,actual.actual.at,ref(actual.actual.source),d.ruleEffectiveFrom];
+    }),
+    ["Metric",r.staffing.comparison.metric?.label ?? "Definition not recorded",r.staffing.comparison.metric?.unit ?? "Definition not recorded","Definition withheld from row export","","","","","",""],
+    ["Scope","Configured operational staffing-plan variance only. Not a mandated ratio, billing basis, payroll close, or clinical recommendation.","","","","","","","",""],
+  ]});
   if (p) sheets.push({name:"Revision comparison",rows:[
     ["Measure","Prior","Selected","Change"], [p.metric ? totalLabel : "Recorded aggregate total (prior definition not recorded)",p.actuals,r.actuals,r.actuals-p.actuals], ["Budget",p.budget.total,r.budget.total,r.budget.total-p.budget.total], ["Variance",p.variance,r.variance,r.variance-p.variance],
     ["Metric definition",p.metric?.metric_label??"Definition not recorded",metric?.metric_label??"Definition not recorded","Historical definitions retained"],

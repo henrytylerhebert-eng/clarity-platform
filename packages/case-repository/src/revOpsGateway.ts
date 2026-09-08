@@ -20,6 +20,7 @@ import {
   assertOpen,
   compareRevOps,
   monthCloseReadiness,
+  staffingComparison,
 } from "../../rev-ops-service/src/index.js";
 import { withTenantContext } from "./tenantContext.js";
 import { REV_OPS_CENSUS_METRIC } from "../../domain-contracts/src/revOps.js";
@@ -110,6 +111,7 @@ export class PrismaRevOpsGateway {
       requirePermission(state, actor, "view");
       return {
         ...compareRevOps(state, period, through, budgetId),
+        staffing: staffingComparison(state, period, through),
         closeReadiness: monthCloseReadiness(state, period, budgetId),
         closingReceipt:
           (await this.latestClosing(
@@ -427,6 +429,22 @@ export class PrismaRevOpsGateway {
               actual: structuredClone(actuals.at(-1)!),
             };
           }),
+          ...(ready.staffing
+            ? {
+                staffing: {
+                  comparison: structuredClone(ready.staffing),
+                  days: Array.from({ length: ready.expectedDays }, (_, i) => {
+                    const date = `${close.period}-${String(i + 1).padStart(2, "0")}`;
+                    const actuals = state.staffingActuals![date]!;
+                    return {
+                      date,
+                      actualRevision: actuals.length,
+                      actual: structuredClone(actuals.at(-1)!),
+                    };
+                  }),
+                },
+              }
+            : {}),
           actorId: actor.userId,
           at,
           reason: close.reason,

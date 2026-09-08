@@ -27,6 +27,26 @@ describe("bounded historical census export",()=>{
     const old=buildExportDocument({...context(first),successorRevision:10});expect(old.sheets[0]!.rows).toContainEqual(["Observed status","SUPERSEDED"]);
     const reopened=buildExportDocument({...context(first),periodClosed:false});expect(reopened.sheets[0]!.rows).toContainEqual(["Observed status","PERIOD REOPENED"]);
   });
+  it("exports a validated immutable staffing-plan variance when the close recorded one",()=>{
+    const r=exportFixture();
+    const staffingDays=r.days.map(day=>({
+      date:day.date,actualRevision:1,
+      actual:{hours:day.actual.count*2,actorId:"synthetic-staffing",at:r.at,source:day.actual.source},
+    }));
+    r.staffing={
+      comparison:{
+        metric:{code:"RN_WORKED_HOURS",label:"Synthetic RN worked hours",definition:"Synthetic fixture measure.",unit:"hours",version:"1.0.0",effectiveFrom:"2028-02-01",status:"approved",createdBy:"synthetic-admin",createdAt:r.at,approvedBy:"synthetic-admin",approvedAt:r.at},
+        missingCensusDates:[],missingStaffingDates:[],missingRuleDates:[],
+        expectedHours:560,actualHours:560,variance:0,
+        contributors:r.days.map(day=>({date:day.date,census:day.actual.count,actualHours:day.actual.count*2,expectedHours:day.actual.count*2,variance:0,ruleId:"synthetic-rule",ruleEffectiveFrom:"2028-02-01"})),
+      },
+      days:staffingDays,
+    };
+    const doc=buildExportDocument(context(r));
+    expect(doc.sheets.find(s=>s.name==="Staffing variance")!.rows).toContainEqual(["Scope","Configured operational staffing-plan variance only. Not a mandated ratio, billing basis, payroll close, or clinical recommendation.","","","","","","","",""]);
+    r.staffing.days[0]!.actual.hours=999;
+    expect(()=>buildExportDocument(context(r))).toThrow("invalid_historical_receipt");
+  });
   it("preserves all supported month lengths and recorded daylight-saving cutoffs",()=>{
     for(const [period,n] of [["2027-02",28],["2028-02",29],["2028-04",30],["2028-03",31]] as const){
       const r=exportFixture();r.period=period;r.through=`${period}-${n}`;r.expectedDays=n;
