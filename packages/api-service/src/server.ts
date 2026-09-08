@@ -2,6 +2,9 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import Fastify from "fastify";
 import { registerRevOpsRoutes } from "./revOpsRoutes.js";
 import type { PrismaRevOpsGateway } from "../../case-repository/src/revOpsGateway.js";
+import { registerIopReconciliationRoutes } from "./iopReconciliationRoutes.js";
+import type { PrismaIopReconciliationGateway } from "../../case-repository/src/iopReconciliationGateway.js";
+import { IopReconciliationError } from "../../case-repository/src/iopReconciliationGateway.js";
 import { RevOpsError } from "../../rev-ops-service/src/index.js";
 import { z, ZodError } from "zod";
 import {
@@ -148,6 +151,7 @@ export interface ApiDeps {
   caseCommands: CaseCommandService;
   prescreen: PrescreenCommandService;
   revOps?: PrismaRevOpsGateway;
+  iopReconciliation?: PrismaIopReconciliationGateway;
 }
 
 class HttpError extends Error {
@@ -199,6 +203,7 @@ const PRESCREEN_ERROR_STATUS: Record<string, number> = {
 function toHttpError(error: unknown): HttpError {
   if (error instanceof HttpError) return error;
   if (error instanceof RevOpsError) return new HttpError(error.status, error.code);
+  if (error instanceof IopReconciliationError) return new HttpError(error.status, error.code);
   if (error instanceof LoginRejectedError || error instanceof AuthenticationFailedError) {
     return new HttpError(401, "authentication_failed");
   }
@@ -258,6 +263,8 @@ export function createApiServer(deps: ApiDeps): Server {
     void reply.code(http.status).send({ error: http.code });
   });
   if (deps.revOps) registerRevOpsRoutes(app, deps.auth, deps.revOps);
+  if (deps.iopReconciliation)
+    registerIopReconciliationRoutes(app, deps.auth, deps.iopReconciliation);
   app.all("/*", async (request, reply) => {
     reply.hijack();
     const req = request.raw;

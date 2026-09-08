@@ -1,8 +1,9 @@
 ---
-status: documented-only
+status: implemented-for-synthetic-local-use
 owner: Product owner + technical lead + security/privacy reviewer + IOP operations owner
 data_boundary: synthetic-only until security/privacy approval records a different boundary
 related_artifacts:
+  - docs/product/IOP_SOURCE_INVENTORY_AND_PERMISSION_MATRIX.md
   - packages/domain-contracts/src/iopReconciliation.ts
   - packages/domain-contracts/src/iopReconciliationImport.ts
   - packages/api-service/src/revOpsRoutes.ts
@@ -35,14 +36,14 @@ The adapter must not copy note text, make a clinical-compliance finding, determi
 
 `POST /api/iop/reconciliation-imports`
 
-The route is **proposed**, not implemented. It reuses the existing API rule that organization and actor identity come from the verified session or a separately verified service principal. They must never be accepted from the request body, source file, or browser role selector.
+The synthetic route is implemented at `POST /api/iop/reconciliation-imports`, with authenticated exception review at `POST /api/iop/reconciliation-imports/:id/issues/:issueKey/reviews` and close at `POST /api/iop/reconciliation-imports/:id/close`. It reuses the existing API rule that organization and actor identity come from the verified session or a separately verified service principal. They must never be accepted from the request body, source file, or browser role selector.
 
 ### Required authentication and authorization
 
 1. A human caller uses the existing verified session path. A future machine connector uses a distinct service principal with a tenant-bound credential; API keys embedded in files are prohibited.
 2. The API derives `organizationId`, actor/service-principal ID, and permissions before parsing the body.
 3. The target `facilityId` and `programId` must belong to that organization. A cross-tenant, unknown, or unauthorized target returns the same non-revealing result.
-4. A new explicit permission model is required before implementation:
+4. The approved synthetic permission matrix is recorded in [IOP source inventory and permission matrix](IOP_SOURCE_INVENTORY_AND_PERMISSION_MATRIX.md). Its implementation permissions are:
    - `iopReconciliationImport` — create a source snapshot;
    - `iopReconciliationReview` — record a reviewed exception;
    - `iopReconciliationClose` — create a close receipt;
@@ -108,7 +109,7 @@ stateDiagram-v2
   CLOSED --> SUPERSEDED: later source import or reasoned reopen
 ```
 
-The close command is proposed as:
+The implemented close command is:
 
 `POST /api/iop/reconciliation-imports/:importId/close`
 

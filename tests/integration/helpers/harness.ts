@@ -62,6 +62,10 @@ async function createTenantRecords(prisma: PrismaClient, runId: string, label: s
 
 async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string[]): Promise<void> {
   // FK-safe order; every delete is scoped to the given organization ids only.
+  await prisma.iopReconciliationCloseReceipt.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.iopReconciliationExceptionReview.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.iopReconciliationImport.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.iopSourceIntegration.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.revOpsChange.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.revOpsWorkspace.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.outboxRecord.deleteMany({ where: { organizationId: { in: organizationIds } } });
