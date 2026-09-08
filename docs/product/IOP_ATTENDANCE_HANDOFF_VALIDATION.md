@@ -111,6 +111,14 @@ For a bounded synthetic or de-identified day/program sample:
 6. Counts and units reconcile by service date, program, group type, and status; unmatched records remain visible rather than becoming zero.
 7. A reviewed close snapshots source cutoffs, policy/version identifiers, exceptions, reviewer, and the original reconciliation result.
 
+## Executable synthetic reconciliation sample
+
+[`IOP_ATTENDANCE_RECONCILIATION_SYNTHETIC_SAMPLE.json`](evidence/IOP_ATTENDANCE_RECONCILIATION_SYNTHETIC_SAMPLE.json) is a fully synthetic, de-identified one-day program sample. It includes enrollment, an effective treatment-plan version and prescribed frequency, attendance/group events, note-audit evidence, charge lines, EMR billable lines, and five deliberate source-link gaps.
+
+[`iopReconciliation.ts`](../../packages/domain-contracts/src/iopReconciliation.ts) derives those gaps as stable issue keys. Every derived gap must have a separate exception record with `state: REVIEWED`; the fixture proves this by leaving no unresolved issues. A `HOLD` disposition preserves the exception for human follow-up. It does not make the attendance eligible, clinically compliant, charged, or billable.
+
+The companion unit test removes one reviewed exception and verifies that the sample fails the reconciliation close gate. This is a contract proof only; it does not connect to an EHR, note system, charge system, or EMR billing system.
+
 ## Product implication
 
 Do not implement IOP “compliance,” billables, income, or fraud controls from the workbook totals alone. The next product slice should be a source-linked **IOP attendance-to-billable reconciliation review**, beginning with de-identified or synthetic records and explicit exception states. The workbook can serve as a legacy reporting reference, but not as the authority for enrollment, treatment plan, note audit, charge-slip, or EMR billing truth.
