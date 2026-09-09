@@ -1,5 +1,43 @@
 # Implementation Status
 
+**2026-09-09: Restored workbook accepted; full parity and sourced financial-rate implementation authorized.**
+Tyler explicitly accepted **Dunder Mifflin Hospital - Restored Operations 2026**.
+The mapped and currently checked SHA-256 is
+`6e81bd61950c244e607ed03f8b0f13e1a4d0bea366ee7ad7cc54c053ef90de26`.
+See the [acceptance record](docs/product/RESTORED_WORKBOOK_ACCEPTANCE.md).
+The prior owner-acceptance gate is closed. MVP/interface updates, every mapped
+workbook parity gap, and official financial-rate implementation are authorized.
+
+**Implementation status:** the existing census/budget/staffing/close/export work
+below remains a reusable partial implementation. Full IP/IOP activity, effective
+payer/contract pricing, role costs, invoices, collections, forecasts, and complete
+reporting parity remain undelivered unless supported by a subsequent scoped
+implementation and verification entry. The existing UI definition is not proof
+that the full accepted MVP has been delivered.
+
+**Next work:** retain IOP review as one increment and start the financial source,
+rate-version, payer-distinction, and calculation lane in parallel. The Louisiana
+hospital provider identifier is pending only for its facility-specific calculations
+([OD-19](docs/decisions/OPEN_DECISIONS.md)). Budget, actual activity, modeled
+reimbursement, billed amounts, forecasts, and posted collections stay distinct.
+
+**Evidence limits:** this acceptance record includes a current file-hash check;
+native workbook mutation tests were not rerun. Historical native tests concern
+another byte version. Owner acceptance does not promote those results, application
+parity, rate calculations, or production readiness to verified. Patient/operating
+data remain synthetic; official financial reference data and calculation development
+are in scope.
+
+**Implemented interface correction — 2026-09-09:**
+[RevOps scope](app/src/workspaces/RevOpsScope.tsx) now identifies the accepted
+full MVP and displays coverage by operating domain. The
+[RevOps client](app/src/workspaces/RevOps.tsx) defaults to January 2026 while
+retaining other reporting years. Seven focused RevOps tests, scoped ESLint,
+and the app build passed. Authenticated desktop/mobile checks verified the
+defaults, expandable scope, and layout. These results verify the interface
+change; they do not verify financial-rate engines or full workbook parity.
+See the [verification record](docs/testing/REVOPS_ACCEPTED_SCOPE_VERIFICATION.md).
+
 **2026-09-06: Rev Ops patient-day slice merged; synthetic verification, not deployed.**
 [PR #49](https://github.com/henrytylerhebert-eng/clarity-platform/pull/49) merged
 as `926b3776ae25df536ad3d2254d51c6d8019aff0a` after latest-head CI passed.

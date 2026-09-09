@@ -29,6 +29,7 @@ import {
 } from "./RevOpsReconciliation";
 
 import { MonthClose, ClosingReceipt } from "./RevOpsMonthClose";
+import { RevOpsScope } from "./RevOpsScope";
 
 type Comparison = {
   revision: number;
@@ -116,8 +117,8 @@ export function RevOps() {
   const [items, setItems] = useState<RevOpsView[]>([]);
   const [selected, setSelected] = useState("");
   const [tab, setTab] = useState("Comparison");
-  const [period, setPeriod] = useState("2028-02");
-  const [through, setThrough] = useState("2028-02-07");
+  const [period, setPeriod] = useState("2026-01");
+  const [through, setThrough] = useState("2026-01-07");
   const [comparison, setComparison] = useState<Comparison | null>(null);
   const [budgetId, setBudgetId] = useState("");
   const fileRead = useRef(0);
@@ -298,36 +299,7 @@ export function RevOps() {
           Synthetic workspace · local development
         </span>
       </header>
-      <section className="ro-mvp" aria-labelledby="mvp-scope-title">
-        <div>
-          <span className="ro-eyebrow">CURRENT MVP</span>
-          <h2 id="mvp-scope-title">From daily activity to reviewed close</h2>
-          <p>
-            Configure a hospital and unit, approve a patient-day budget, record
-            daily midnight census, review staffing, reconcile differences, and
-            retain a close receipt.
-          </p>
-        </div>
-        <dl>
-          <div>
-            <dt>Activity</dt>
-            <dd>Daily patient days with source and correction history.</dd>
-          </div>
-          <div>
-            <dt>Budget</dt>
-            <dd>Approved monthly target and phased comparison.</dd>
-          </div>
-          <div>
-            <dt>Review</dt>
-            <dd>Staffing comparison, reconciliation, close, and export.</dd>
-          </div>
-        </dl>
-        <p className="ro-muted">
-          Forecast, collections, payer rates, claim adjudication, and IOP note
-          or charge audit are later phases. Missing source data remains
-          unavailable; it is never treated as zero.
-        </p>
-      </section>
+      <RevOpsScope />
       {!principal ? (
         <section className="ro-login">
           <h2>Sign in to your organization</h2>

@@ -90,17 +90,32 @@ async function login() {
   await screen.findByText("Actual patient days through cutoff");
 }
 
-it("states the Dunder Mifflin RevOps MVP boundary", () => {
+it("shows accepted workbook scope without promoting unbuilt rate workflows", () => {
   render(<RevOps />);
   expect(
     screen.getByText("DUNDER MIFFLIN HOSPITAL · RESTORED OPERATIONS 2026"),
   ).toBeInTheDocument();
   expect(
-    screen.getByRole("heading", { name: "From daily activity to reviewed close" }),
+    screen.getByRole("heading", { name: "Accepted workbook scope" }),
   ).toBeInTheDocument();
-  expect(
-    screen.getByText(/Forecast, collections, payer rates, claim adjudication/),
-  ).toBeInTheDocument();
+  const details = screen.getByText("View workbook coverage and remaining builds").closest("details")!;
+  expect(details).not.toHaveAttribute("open");
+  fireEvent.click(screen.getByText("View workbook coverage and remaining builds"));
+  expect(details).toHaveAttribute("open");
+  expect(screen.getByRole("heading", { name: "Payers, rates & service valuation" }).closest("article"))
+    .toHaveTextContent("To build");
+  expect(screen.getByRole("heading", { name: "Budgets, invoices & collections" })).toBeVisible();
+  expect(apiRevOps).not.toHaveBeenCalled();
+});
+
+it("opens the accepted 2026 reporting year and retains access to other years", async () => {
+  await login();
+  expect(screen.getByLabelText("Month", { exact: true })).toHaveValue("2026-01");
+  expect(screen.getByLabelText("Through date")).toHaveValue("2026-01-07");
+  fireEvent.change(screen.getByLabelText("Month", { exact: true }), { target: { value: "2028-02" } });
+  expect(screen.getByLabelText("Through date")).toHaveValue("2028-02-01");
+  await waitFor(() => expect(vi.mocked(apiRevOps).mock.calls.some(([path]) =>
+    path.includes("period=2028-02&through=2028-02-01"))).toBe(true));
 });
 
 it("resets unsaved actuals and field defaults when switching hospitals", async () => {
@@ -274,6 +289,8 @@ it("removes the previous close review while a newly selected budget is loading",
     return fallback(path, body);
   });
   await login();
+  fireEvent.change(screen.getByLabelText("Month", { exact: true }), { target: { value: "2028-02" } });
+  await screen.findByLabelText("Reason to close period");
   fireEvent.change(screen.getByLabelText("Reason to close period"), {
     target: { value: "Reviewed first budget" },
   });

@@ -2,17 +2,17 @@
 
 **Purpose:** A navigable view of the platform implied by the restored workbook, separate from current implementation status.
 
-**Legend:** `[R]` reference or source evidence; `[I]` implemented surface; `[P]` planned or requires an owner decision; `[S]` synthetic-only proof.
+**Legend:** `[A]` owner accepted; `[R]` reference or source evidence; `[I]` implemented surface; `[P]` authorized but still to build or verify; `[S]` synthetic-only proof. Acceptance does not change runtime status.
 
 The exact function, record, rule, and acceptance mappings remain in the [workflow map](WORKBOOK_TO_PLATFORM_WORKFLOW_MAP.md), [function export](evidence/WORKBOOK_PLATFORM_FUNCTION_MAP.csv), and [acceptance matrix](../testing/WORKBOOK_PLATFORM_ACCEPTANCE_MATRIX.md).
 
-The currently runnable first product slice is defined in the [Dunder Mifflin Hospital RevOps MVP](DUNDER_MIFFLIN_REVOPS_MVP.md).
+The full accepted product scope and current implementation coverage are defined in the [Dunder Mifflin Hospital RevOps MVP](DUNDER_MIFFLIN_REVOPS_MVP.md). Tyler accepted the workbook and authorized parity plus real financial-rate implementation on September 9, 2026.
 
 ## Architecture: horizontal
 
 ```mermaid
 flowchart LR
-    A[Workbook evidence<br/>[R]] --> B[Operating records<br/>[I/P]]
+    A[Accepted workbook<br/>A and R] --> B[Operating records<br/>I and P]
     B --> C[Care and operations<br/>[I/P]]
     C --> D[Revenue operations<br/>[I/P]]
     D --> E[Reporting and decisions<br/>[I/P]]
@@ -31,7 +31,7 @@ flowchart LR
 
 | Horizontal layer | Role in the platform | Current state |
 | --- | --- | --- |
-| Workbook evidence | Preserves sheet logic, examples, formulas, and acceptance expectations as source evidence. | Restored artifact mapped; exact workbook baseline still needs final acceptance. |
+| Workbook evidence | Preserves sheet logic, examples, formulas, and acceptance expectations as source evidence. | Accepted by Tyler on September 9, 2026; technical verification history retained. |
 | Operating records | Holds organization, facility, program, case/episode, payer, target, source-receipt, review, and exception data. | Core organization/case/payer records exist; program/rate/source registries remain planned. |
 | Care and operations | Runs intake, authorization, capacity, IOP enrollment, schedule, attendance, and activity capture. | Most intake/capacity surfaces exist; IOP persisted review is the selected next slice. |
 | Revenue operations | Separates actual activity, documentation, charges, rate logic, budget, forecast, and collections. | RevOps workspace exists; payer-rate and IOP charge/audit hardening remain planned. |
@@ -42,26 +42,36 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    P0[Phase 0 — Accept workbook baseline<br/>Exact hash, recalculation, reopen, mutation proof<br/>Status: planned gate]
-    P1[Phase 1 — Record IOP review decisions<br/>Program ownership, cutoff, reviewer, close/reopen policy<br/>Status: planned]
-    P2[Phase 2 — Harden persisted IOP review<br/>Contracts, migration, program scope, receipts, exceptions<br/>Status: next implementation]
-    P3[Phase 3 — Connect authenticated client<br/>Review, resolve, close, and audit via persisted API<br/>Status: planned]
-    P4[Phase 4 — Prove synthetic golden cases<br/>Attendance, activity, target, audit, charge, late change<br/>Status: planned]
-    P5[Phase 5 — Extend revenue model<br/>Payer plans, effective rates, budget/actual/forecast/collections<br/>Status: planned after IOP proof]
-    P6[Phase 6 — Reporting and controlled adapters<br/>Drill-through reports and source-adapter decisions<br/>Status: planned after upstream evidence]
+    P0[Phase 0 — Baseline and shared controls<br/>Owner acceptance complete; scoped setup and proof remain]
+    P1[Phase 1 — Inpatient activity to close<br/>Encounters, census, admissions, LOS, occupancy]
+    P2[Phase 2 — IOP operations and review<br/>Enrollment, attendance, units, meals, audit, close]
+    R[Financial foundation — can start now<br/>Sources, provider profile, contracts, versions]
+    P3[Phase 3 — Financial calculations<br/>Medicare, Medicaid, commercial, allowances, budgets, UR]
+    P4[Phase 4 — Staffing and cost<br/>Role hours, wages, agency, targets, variance]
+    P5[Phase 5 — Invoices and cash<br/>Ancillary, leases, receipts, allocations, reversals]
+    P6[Phase 6 — Forecast and management<br/>Scenarios, monthly/YTD reports, consolidated close]
+    P7[Phase 7 — Controlled source pilot<br/>Named systems, permissions, release and recovery proof]
 
-    P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6
+    P0 --> P1
+    P0 --> P2
+    P0 --> R
+    P1 --> P3
+    P2 --> P3
+    R --> P3
+    P1 --> P4
+    P3 --> P4 --> P5 --> P6 --> P7
 ```
 
 | Phase | What is built or decided | Exit evidence |
 | --- | --- | --- |
-| 0 | The exact restored workbook baseline. | One hash with recalculation, reopen, formula, and mutation proof. |
-| 1 | IOP lifecycle and ownership rules. | Decisions recorded with owner, scope, and status. |
-| 2 | Server-side IOP review model and authorization. | Focused contract, migration, gateway, and route tests pass. |
-| 3 | Authenticated client workflow. | UI displays server-derived reviewer and lifecycle state; no local-only close claim. |
-| 4 | Synthetic IOP proof. | Six golden cases pass with immutable receipts and visible exceptions. |
-| 5 | Revenue model extension. | Effective-dated payer/rate model preserves separate actual, budget, forecast, and collections facts. |
-| 6 | Reporting and controlled integrations. | Reports drill to accepted source evidence; connectors have owner and permission decisions. |
+| 0 | Accepted baseline and reused shared controls. | Owner acceptance recorded; existing evidence gaps remain explicit. |
+| 1 | Inpatient activity and census reconciliation. | AT02–AT06, AT35; month closes and recloses without rewriting history. |
+| 2 | IOP operating workflow and authenticated review. | AT13–AT16, AT34, AT39; program scope and independent audit proven. |
+| 3 | Sourced rate engines, service valuation, compatible budgets and UR. | AT07–AT12, AT30, AT38; official-method/contract calculations and date boundaries tested. Rate registry can begin alongside phases 1/2. |
+| 4 | Staffing detail and operating costs. | AT17–AT21, AT36; role/subset/cost arithmetic reconciles. |
+| 5 | Invoices, leases, cash and allocations. | AT22–AT23, AT32–AT33; posting date, service period and reversals remain distinct. |
+| 6 | Forecast and management package. | AT24–AT25, AT38, AT40; scenario isolation, source drill-through and parity proof. |
+| 7 | Controlled source pilot. | Named owners, permissions, connection and recovery evidence before live-source operation. |
 
 ```text
 Clarity operating platform
@@ -75,11 +85,11 @@ Clarity operating platform
 │   └── [S] Synthetic-data boundary; no PHI or production-source claim
 │
 ├── 1. Workbook evidence boundary
-│   ├── [R] Reporting Metrics Ops and Budget workbook
+│   ├── [A/R] Dunder Mifflin Hospital – Restored Operations 2026
 │   ├── [R] Sheet inventory, formula graph, examples, and mutation cases
-│   ├── [P] Accepted workbook hash, recalculation, reopen, and mutation proof
+│   ├── [A] Workbook accepted September 9; historical technical proof retained
 │   ├── [R] Function-to-record, rule, and acceptance crosswalks
-│   └── [P] Owner decisions for ambiguous legacy rules and empty sheets
+│   └── [P] Resolve substantive rule ambiguities in the affected implementation
 │
 ├── 2. Operating master data
 │   ├── [I] Organization and facility
@@ -112,7 +122,7 @@ Clarity operating platform
 │   ├── [I] RevOps workspace and onboarding fields
 │   ├── [I] Monthly close, patient-day retention, receipt/export, and reconciliation
 │   ├── [I] Append-only workspace history and retained identity migrations
-│   ├── [P] Rate-card, Medicare, Medicaid, and commercial payer distinctions
+│   ├── [P] Real Medicare, Louisiana Medicaid, and commercial contract calculations
 │   ├── [P] Contract-effective date and future payer-plan extensibility
 │   ├── [P] Charge linkage and documentation-audit exception workflow for IOP
 │   └── [P] Workbook-budget parity proof before financial outputs are promoted
@@ -144,8 +154,8 @@ Clarity operating platform
 ## First build path through the tree
 
 ```text
-1. Accept workbook baseline [P]
-   └── choose exact file hash and rerun native proof
+1. Workbook baseline accepted [A]
+   └── September 9 owner decision; no repeated acceptance gate
 
 2. Decide IOP review rules [P]
    └── program ownership, reviewer identity, cutoff, close/reopen policy
@@ -162,9 +172,11 @@ Clarity operating platform
 6. Prove six synthetic golden cases [S]
    └── activity, attendance, target, audit, charge, and late-change evidence
 
-7. Promote only the verified slice [P]
-   └── update roadmap and acceptance evidence; leave other branches planned
+7. Prove and record each delivered slice [P]
+   └── retain the full MVP target while building the remaining branches
 ```
+
+The IOP path above is one implementation increment within the full MVP. Financial source, provider-profile and contract-version work can begin alongside it; see the [rate implementation specification](REVOPS_FINANCIAL_RATE_IMPLEMENTATION.md). Tyler selected a specific Louisiana hospital and will supply its provider identifier. This missing input affects facility-specific pricing, not authorization to build the platform.
 
 ## Code tree
 
