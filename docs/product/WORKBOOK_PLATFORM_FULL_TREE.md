@@ -6,6 +6,8 @@
 
 The exact function, record, rule, and acceptance mappings remain in the [workflow map](WORKBOOK_TO_PLATFORM_WORKFLOW_MAP.md), [function export](evidence/WORKBOOK_PLATFORM_FUNCTION_MAP.csv), and [acceptance matrix](../testing/WORKBOOK_PLATFORM_ACCEPTANCE_MATRIX.md).
 
+The currently runnable first product slice is defined in the [Dunder Mifflin Hospital RevOps MVP](DUNDER_MIFFLIN_REVOPS_MVP.md).
+
 ## Architecture: horizontal
 
 ```mermaid

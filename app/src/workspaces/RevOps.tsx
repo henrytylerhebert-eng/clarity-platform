@@ -289,13 +289,45 @@ export function RevOps() {
       <header className="ro-header">
         <div>
           <a href="./">Clarity</a>
-          <span className="ro-eyebrow">INPATIENT OPERATIONS</span>
-          <h1>Budget & daily activity</h1>
+          <span className="ro-eyebrow">
+            DUNDER MIFFLIN HOSPITAL · RESTORED OPERATIONS 2026
+          </span>
+          <h1>RevOps MVP</h1>
         </div>
         <span className="ro-synthetic">
           Synthetic workspace · local development
         </span>
       </header>
+      <section className="ro-mvp" aria-labelledby="mvp-scope-title">
+        <div>
+          <span className="ro-eyebrow">CURRENT MVP</span>
+          <h2 id="mvp-scope-title">From daily activity to reviewed close</h2>
+          <p>
+            Configure a hospital and unit, approve a patient-day budget, record
+            daily midnight census, review staffing, reconcile differences, and
+            retain a close receipt.
+          </p>
+        </div>
+        <dl>
+          <div>
+            <dt>Activity</dt>
+            <dd>Daily patient days with source and correction history.</dd>
+          </div>
+          <div>
+            <dt>Budget</dt>
+            <dd>Approved monthly target and phased comparison.</dd>
+          </div>
+          <div>
+            <dt>Review</dt>
+            <dd>Staffing comparison, reconciliation, close, and export.</dd>
+          </div>
+        </dl>
+        <p className="ro-muted">
+          Forecast, collections, payer rates, claim adjudication, and IOP note
+          or charge audit are later phases. Missing source data remains
+          unavailable; it is never treated as zero.
+        </p>
+      </section>
       {!principal ? (
         <section className="ro-login">
           <h2>Sign in to your organization</h2>
@@ -495,7 +527,11 @@ export function RevOps() {
               >
                 <label>
                   Hospital name
-                  <input name="name" required />
+                  <input
+                    name="name"
+                    defaultValue="Dunder Mifflin Hospital"
+                    required
+                  />
                 </label>
                 <label>
                   Unit name

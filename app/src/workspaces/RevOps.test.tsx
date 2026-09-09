@@ -90,6 +90,19 @@ async function login() {
   await screen.findByText("Actual patient days through cutoff");
 }
 
+it("states the Dunder Mifflin RevOps MVP boundary", () => {
+  render(<RevOps />);
+  expect(
+    screen.getByText("DUNDER MIFFLIN HOSPITAL · RESTORED OPERATIONS 2026"),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { name: "From daily activity to reviewed close" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/Forecast, collections, payer rates, claim adjudication/),
+  ).toBeInTheDocument();
+});
+
 it("resets unsaved actuals and field defaults when switching hospitals", async () => {
   await login();
   fireEvent.click(screen.getByRole("button", { name: "Daily actuals" }));
