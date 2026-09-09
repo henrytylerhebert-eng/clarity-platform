@@ -1,0 +1,63 @@
+position,sheet,governed,visibility,used_range,nonempty_cells,formulas,tables,feature_ids,disposition
+1,INDEX,True,visible,A1:E100,309,62,tIndex A4:E64,F01; F28; F29,Mapped source/design evidence; not automatic application parity
+2,DASHBOARD,True,visible,A1:K35,182,86,tDashboard A4:C35,F05; F21; F25,Mapped source/design evidence; not automatic application parity
+3,SETUP,True,visible,A1:F25,57,4,,F05; F10; F21; F30; X01,Mapped source/design evidence; not automatic application parity
+4,PAYERS,True,visible,A1:K204,314,201,tPayers A4:K204,F10; F29,Mapped source/design evidence; not automatic application parity
+5,SERVICES,True,visible,A1:H104,75,1,tServices A4:H104,F10; F29,Mapped source/design evidence; not automatic application parity
+6,CONTRACT_RATES,True,visible,A1:Q64,1041,242,tRates A4:Q64,F10; F29; F30,Mapped source/design evidence; not automatic application parity
+7,PAYER_ACTIVITY,True,visible,A1:I364,3253,1082,tPayerMonth A4:I364,F10,Mapped source/design evidence; not automatic application parity
+8,INPATIENT,True,visible,A1:K369,3300,2922,tIP A4:K369,F04,Mapped source/design evidence; not automatic application parity
+9,IOP,True,visible,A1:P369,5860,5477,tIOP A4:P369,F13; F15; F16,Mapped source/design evidence; not automatic application parity
+10,STAFFING,True,visible,A1:U369,7690,6937,tStaff A4:U369,F17; F18; F20,Mapped source/design evidence; not automatic application parity
+11,COVERAGE,True,visible,A1:F64,369,61,tCoverage A4:F64,F04; F05; F28; X02; X03,Mapped source/design evidence; not automatic application parity
+12,BUDGET,True,visible,A1:R58,655,409,tBudget A4:H28; tProgramBudget A34:R58,F18; F21,Mapped source/design evidence; not automatic application parity
+13,FORECAST,True,visible,A1:L274,2474,577,tForecastMix A34:I274; tForecast A4:L28,F24; F29,Mapped source/design evidence; not automatic application parity
+14,ANCILLARY,True,visible,A1:L88,1024,302,tAnc A4:L88,F16; F22,Mapped source/design evidence; not automatic application parity
+15,Sheet1,False,visible,A1:A1,0,0,,,EMPTY_UNGOVERNED: preserve user file; no platform function assigned
+16,Sheet2,False,visible,A1:A1,0,0,,,EMPTY_UNGOVERNED: preserve user file; no platform function assigned
+17,COLLECTIONS,True,visible,A1:L565,6189,2807,tCash A4:L565,F23; F29,Mapped source/design evidence; not automatic application parity
+18,MONTHLY,True,visible,A1:AW16,641,578,tMonthly A4:AW16,F05; F06; F07; F11; F19; F20; F21; F22; F23; F24; F25,Mapped source/design evidence; not automatic application parity
+19,MEDICARE_REFERENCE,True,visible,A1:J35,222,0,tMedicare A4:J26,F30,Mapped source/design evidence; not automatic application parity
+20,IPF_FACTORS,True,visible,A1:D215,846,0,tIPFFactors A4:D214,F30,Mapped source/design evidence; not automatic application parity
+21,LA_IP_JAN_JUN,True,visible,A1:Q570,5642,0,tLAIPJANJUN A4:Q570,F30,Mapped source/design evidence; not automatic application parity
+22,LA_IP_JUL_DEC,True,visible,A1:Q564,5584,0,tLAIPJULDEC A4:Q564,F30,Mapped source/design evidence; not automatic application parity
+23,LA_SBH_CPT,True,visible,A1:O139,922,0,,F30,Mapped source/design evidence; not automatic application parity
+24,LA_SBH_HCPCS,True,visible,A1:I73,393,0,,F30,Mapped source/design evidence; not automatic application parity
+25,LA_SBH_ADULT_SMI,True,visible,A1:E11,25,0,,F30,Mapped source/design evidence; not automatic application parity
+26,LA_SBH_CRISIS,True,visible,A1:E16,53,0,,F30,Mapped source/design evidence; not automatic application parity
+27,LA_SBH_MHR,True,visible,A1:H24,89,0,,F30,Mapped source/design evidence; not automatic application parity
+28,LA_SBH_PROVIDER,True,visible,A1:F17,39,0,,F30,Mapped source/design evidence; not automatic application parity
+29,LA_SBH_CSOC,True,visible,A1:E19,44,0,,F30,Mapped source/design evidence; not automatic application parity
+30,LA_SBH_MODIFIERS,True,visible,A1:C46,126,0,,F30,Mapped source/design evidence; not automatic application parity
+31,LA_SBH_JAN_REFERENCE,True,visible,A1:B408,812,0,tSBHJan A4:B408,F30,Mapped source/design evidence; not automatic application parity
+32,README,True,visible,A1:C17,32,2,tReadme A4:B17,F01; F27,Mapped source/design evidence; not automatic application parity
+33,DECISIONS,True,visible,A1:C14,26,2,tDecisions A4:B14,F30; X02; X03,Mapped source/design evidence; not automatic application parity
+34,CHECKS,True,visible,A1:E47,224,88,tChecks A4:E47,F28,Mapped source/design evidence; not automatic application parity
+35,BENEFITS_REFERENCE,True,visible,A1:G15,44,0,tBenefits A4:G9,F08; F30,Mapped source/design evidence; not automatic application parity
+36,UR_PAYER,True,visible,A1:Q329,5546,1302,tUR A4:Q329,F12,Mapped source/design evidence; not automatic application parity
+37,PATIENTS,True,visible,A1:E107,523,1,tPatients A4:E107,F02; F29,Mapped source/design evidence; not automatic application parity
+38,ENCOUNTERS,True,visible,A1:AU329,15261,9102,tEnc A4:AU329,F02; F03; F04; F06; F07; F08; F09; F12; F23; F29,Mapped source/design evidence; not automatic application parity
+39,IOP_VISITS,True,visible,A1:X3242,71268,29146,tVisits A4:V3242,F13; F14; F15; F16; F29,Mapped source/design evidence; not automatic application parity
+40,PRESSURE_TEST,True,visible,A1:C60,34,4,tPressure A4:C13,F28; F29,Mapped source/design evidence; not automatic application parity
+41,IOP_ROSTER,True,visible,A1:L43,445,79,tEnroll A4:L43,F13; F14; F29,Mapped source/design evidence; not automatic application parity
+42,SERVICE_LEDGER,True,visible,A1:Y7242,156427,88408,tService A4:W7242,F07; F08; F09; F29,Mapped source/design evidence; not automatic application parity
+43,IOP_SESSIONS,True,visible,A1:E787,3924,2,tSessions A4:E787,F15,Mapped source/design evidence; not automatic application parity
+44,IOP_GRID,True,visible,A1:AO42,1603,1446,tGrid A4:AO42,F14,Mapped source/design evidence; not automatic application parity
+45,SESSION_ATTENDANCE,True,visible,A1:F6960,41746,2,tSessionAtt A4:F6960,F15,Mapped source/design evidence; not automatic application parity
+46,STAFF_STANDARDS,True,visible,A1:K14,125,22,tLaborRates A4:K14,F17; F18; F29,Mapped source/design evidence; not automatic application parity
+47,STAFF_DETAIL,True,visible,A1:Y3654,83981,47453,tLabor A4:W3654,F17; F19; F29,Mapped source/design evidence; not automatic application parity
+48,STAFF_REPORT,True,visible,A1:K14,125,102,tStaffReport A4:K14,F18; F19,Mapped source/design evidence; not automatic application parity
+49,RECEIPT_ALLOCATIONS,True,visible,A1:N3132,34428,12515,tAlloc A4:L3132,F23; F29,Mapped source/design evidence; not automatic application parity
+50,INVOICES,True,visible,A1:K16,147,62,tInvoices A4:K16,F22,Mapped source/design evidence; not automatic application parity
+51,MANAGEMENT_REPORT,True,visible,A1:N51,676,613,tManagement A4:N51,F25,Mapped source/design evidence; not automatic application parity
+52,PAYER_MIX,True,visible,A1:F142,796,518,tMix A4:F124; tUnknownPayer A130:E142,F11,Mapped source/design evidence; not automatic application parity
+53,STATE_MIX,True,visible,A1:F64,370,242,tStateMix A4:F64,F03,Mapped source/design evidence; not automatic application parity
+54,BENEFIT_REVIEW,True,visible,A1:D64,248,62,tBenefitReview A4:D64,F08,Mapped source/design evidence; not automatic application parity
+55,ASSISTANCE,True,visible,A1:J9,54,32,tAssistance A4:J9,F09,Mapped source/design evidence; not automatic application parity
+56,SOURCE_MAP,True,visible,A1:E70,335,2,tSourceMap A4:E70,F27,Mapped source/design evidence; not automatic application parity
+57,FORMULA_CATALOG,True,visible,A1:D43,164,2,tFormulaCatalog A4:D43,F26,Mapped source/design evidence; not automatic application parity
+58,SOURCE_FORMULAS,True,visible,A1:E47,224,2,tSourceFormulas A4:E47,F27,Mapped source/design evidence; not automatic application parity
+59,DEFINITIONS,True,visible,A1:G51,340,2,tDefinitions A4:G51,F26,Mapped source/design evidence; not automatic application parity
+60,FEATURE_MAP,True,visible,A1:J34,314,2,tFeatures A4:J34,F01; F26; F28,Mapped source/design evidence; not automatic application parity
+61,CORRECTIONS,True,visible,A1:J5,24,2,tCorrections A4:J5,F27; X02; X03,Mapped source/design evidence; not automatic application parity
+62,EXAMPLES,True,visible,A1:H34,250,62,tExamples A4:H34,F28,Mapped source/design evidence; not automatic application parity
