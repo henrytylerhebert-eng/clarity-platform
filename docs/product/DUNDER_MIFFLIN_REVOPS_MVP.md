@@ -12,14 +12,14 @@ The [acceptance record](RESTORED_WORKBOOK_ACCEPTANCE.md) closes the owner accept
 
 | Domain | Accepted functions | Currently available | Remaining implementation |
 | --- | --- | --- | --- |
-| Admissions and inpatient operations | F02–F06 | Aggregate daily census; adjacent encounter foundation | Linked identities and admissions, geography, event/census reconciliation, discharges, ADC, occupancy, LOS. |
-| IOP operations and audit | F13–F16, X04 | Synthetic review preview and separate persisted API | Enrollment/frequency, schedule and attendance, group/session/participant units, meals, independent audit and charge/EMR reconciliation, connected review/close. |
-| Payers, rates and service valuation | F07–F12, F30 | Published workbook reference releases and adjacent benefits/UR contracts | Payer/plan registry, sourced effective rates, payment methods, patient-month allowances, benefit history, assistance and UR reporting. |
-| Staffing and labor costs | F17–F20 | One daily hours measure and approved target comparison | Role hours, staffing budgets, rolling variances, agency/one-to-one costs, training/PTO, productive-hour definitions and wages. |
-| Budgets, invoices and collections | F21–F23 | Versioned approved patient-day budgets | Compatible revenue/labor budgets, ancillary/AP and leases, posted receipts, allocations, refunds/reversals and balances. |
-| Forecast and management reporting | F24–F25 | Existing aggregate comparisons | Independent scenarios, monthly/YTD charts, source drill-through and consolidated reports. |
-| Setup, definitions and quality | F01, F26–F29, X01 | Hospital/unit setup, delegated permissions, custom fields and history | Full navigation, metric/rule definitions, correction/source decisions, parity/regression suite and measured growth. |
-| Import, reconciliation and close | X02–X03 | Bounded count uploads, conflict review, census/staffing close/reopen receipts and exports | Workbook-to-record import, source/version links at all grains, financial and IOP exceptions, consolidated close and reports. |
+| Admissions and inpatient operations | F02–F06 | Loaded synthetic identities/stays, validated corrections, event-derived patient days, admissions/discharges, ADC, occupancy, LOS and census exceptions | New-admission workflows and fully recalculated geographic/detail reports. |
+| IOP operations and audit | F13–F16, X04 | Enrollment, visits, sessions and participant records; editable inputs; live attendance, enrollment averages, meals and service counts | Connected independent documentation/charge audit, persisted review/close UI, new operating-record entry workflows. |
+| Payers, rates and service valuation | F07–F12, F30 | Durable payer/service/effective-contract registries with add/correct; synthetic service valuation; official Louisiana per-diem scenarios; Medicare base-component calculator | Verified hospital binding, complete IPF/FY2027/OPPS/SBH methods and official-rate-to-ledger posting. Benefits/assistance detail remains reference snapshots. |
+| Staffing and labor costs | F17–F20 | Role/program hours and dated standards; recalculated labor, agency, one-to-one, training/PTO, HPPD, budgets and variances | New staffing-day ingestion, full staff-report layouts and consolidated review controls. |
+| Budgets, invoices and collections | F21–F23 | Editable 2026 revenue/labor budgets and ancillary/invoice inputs; recalculated expenses, invoice balance, cash/allocation totals and modeled outstanding | New posted receipts, reversals/reallocations and integrated financial close. Imported signed cash history is immutable. |
+| Forecast and management reporting | F24–F25 | Editable independent forecast assumptions/mix, monthly/annual results, 47 source comparisons and durable report snapshots | Full management-report export/layout parity and consolidated financial closing. |
+| Setup, definitions and quality | F01, F26–F29, X01 | Authenticated domain navigation, 31 source tables, input validation, feed exceptions, accountable edits, tenant/revision tests and 611 golden comparisons | Generalized future-year import/settings and measured large-workspace scaling; full function-level acceptance remains open. |
+| Import, reconciliation and close | X02–X03 | Accepted-source import, preserved formula references, source hash, audit revisions and report snapshots; existing aggregate close/export retained | General workbook ingestion and consolidated financial/IOP close. Saving a report does not close a financial period. |
 
 These rows define the MVP completion target. A missing workflow is remaining work within the MVP; it cannot be omitted merely because the present prototype lacks it. Legacy worksheet layout need not be copied, but operating behavior, examples, formulas, definitions, reports, navigation and reconciliation must be accounted for.
 
@@ -42,7 +42,7 @@ Each calculation must retain the payment method/version, authoritative inputs, s
 - Collections record posted cash, allocations and reversals, with posting dates distinct from service dates.
 - Operational closing receipts document a review and remain distinct from payment receipts.
 
-The baseline year is 2026. Other years remain selectable, including leap years. Payment schedules use their actual effective dates and payment-system date basis, rather than assigning one rate to an entire calendar year.
+The imported operating workspace supports the accepted 2026 year. Existing aggregate census controls retain other reporting years, including leap years. Generalized future-year workbook ingestion remains within the MVP backlog. Payment schedules use their actual effective dates and payment-system date basis, rather than assigning one rate to an entire calendar year.
 
 ## Build order and completion
 
@@ -56,4 +56,4 @@ MVP acceptance requires:
 4. Tenant/facility/program isolation, accountable corrections, duplicate/replay controls and historical close reproduction verified for each new record type.
 5. Forecast, actual activity, approved budget, calculated allowance and posted cash remain separately identifiable in the interface and exports.
 
-Current implementation: the interface shows accepted full scope and coverage, defaults reporting to January 2026, and retains existing authenticated operations. The broader operating modules and rate engines require implementation and their own test evidence. Local development continues with synthetic operational records; source-system connection and production release remain separately scoped work.
+Current implementation: `/rev-ops` opens the working Operations screen after sign-in, with the accepted year loaded into the local database. Input corrections and registry additions persist with server-derived actor identity and revisions. The Rates tab contains sourced calculators, with explicit unsupported methods. See [runtime verification and remaining gaps](../testing/REVOPS_OPERATING_MVP_VERIFICATION.md). Local operating records remain synthetic; source-system connection and production release remain separately scoped work.

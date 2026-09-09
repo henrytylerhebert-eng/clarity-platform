@@ -1,5 +1,19 @@
 # Implementation Status
 
+**2026-09-09: Working operating workbook and payment tools implemented locally.**
+The authenticated RevOps client now opens populated operations, rather than the
+scope-definition banner. It imports 31 accepted-source tables / 28,301 synthetic
+records, recalculates all 47 numeric MONTHLY outputs, persists validated input
+corrections and new payer/service/contract records, and preserves report snapshots.
+The parity suite checks 47 metrics across 12 months plus the year: 611 matches.
+Louisiana Medicaid per-diem scenarios use 1,126 archived official rows; commercial
+scenario methods and the FY2026 Medicare wage-adjusted base component are implemented.
+All-in Medicare pricing, real provider binding, financial close, new receipt/reversal
+commands, remaining report/detail parity and production readiness are not complete.
+See [runtime verification](docs/testing/REVOPS_OPERATING_MVP_VERIFICATION.md) for
+tests, architecture boundaries and exact remaining work. Earlier status entries
+below are historical and are superseded only for the implemented scope here.
+
 **2026-09-09: Restored workbook accepted; full parity and sourced financial-rate implementation authorized.**
 Tyler explicitly accepted **Dunder Mifflin Hospital - Restored Operations 2026**.
 The mapped and currently checked SHA-256 is

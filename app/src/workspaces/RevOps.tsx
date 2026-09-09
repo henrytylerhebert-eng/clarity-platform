@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, type FormEvent } from "react";
+import { useEffect, useState, useRef, lazy, Suspense, type FormEvent } from "react";
 import {
   apiLogin,
   apiLogout,
@@ -29,7 +29,8 @@ import {
 } from "./RevOpsReconciliation";
 
 import { MonthClose, ClosingReceipt } from "./RevOpsMonthClose";
-import { RevOpsScope } from "./RevOpsScope";
+import { WorkbookOperations } from "./OperatingWorkbook";
+const RevOpsPricing = lazy(() => import("./RevOpsPricing"));
 
 type Comparison = {
   revision: number;
@@ -116,7 +117,7 @@ export function RevOps() {
   const [principal, setPrincipal] = useState<VerifiedPrincipal | null>(null);
   const [items, setItems] = useState<RevOpsView[]>([]);
   const [selected, setSelected] = useState("");
-  const [tab, setTab] = useState("Comparison");
+  const [tab, setTab] = useState("Operations");
   const [period, setPeriod] = useState("2026-01");
   const [through, setThrough] = useState("2026-01-07");
   const [comparison, setComparison] = useState<Comparison | null>(null);
@@ -145,7 +146,7 @@ export function RevOps() {
     const rows = await apiRevOps<RevOpsView[]>("/workspaces");
     setItems(rows);
     setSelected((s) =>
-      rows.some((r) => r.id === s) ? s : (rows[0]?.id ?? ""),
+      rows.some((r) => r.id === s) ? s : (rows.find(r => r.name === "Dunder Mifflin Hospital" && r.state.unit === "Hospital operations")?.id ?? rows[0]?.id ?? ""),
     );
   }
   async function run(
@@ -299,7 +300,6 @@ export function RevOps() {
           Synthetic workspace · local development
         </span>
       </header>
-      <RevOpsScope />
       {!principal ? (
         <section className="ro-login">
           <h2>Sign in to your organization</h2>
@@ -387,7 +387,7 @@ export function RevOps() {
                 ))}
               </select>
             </label>
-            <label>
+            {tab !== "Operations" && tab !== "Rates" ? <><label>
               Month
               <input
                 disabled={busy}
@@ -401,8 +401,17 @@ export function RevOps() {
                   setBudgetId("");
                 }}
               />
-            </label>
-            <label>
+            </label></> : null}
+            {admin ? <button disabled={busy} onClick={() => void run(async () => {
+              const existing = items.find(i => i.name === "Dunder Mifflin Hospital" && i.state.unit === "Hospital operations");
+              const row = existing ?? await apiRevOps<RevOpsView>("/workspaces", {
+                name: "Dunder Mifflin Hospital", unit: "Hospital operations", timezone: "America/Chicago",
+                costCenterLabel: "Cost center", costCenterOptions: ["Inpatient", "IOP"],
+              });
+              setSelected(row.id);
+              setTab("Operations");
+            }, "Dunder Mifflin workspace selected.")}>Open Dunder Mifflin 2026</button> : null}
+            {tab !== "Operations" && tab !== "Rates" ? <label>
               Through date
               <input
                 disabled={busy}
@@ -410,7 +419,7 @@ export function RevOps() {
                 value={through}
                 onChange={(e) => setThrough(e.target.value)}
               />
-            </label>
+            </label> : null}
             <button
               className="ro-secondary"
               disabled={busy}
@@ -421,6 +430,8 @@ export function RevOps() {
           </div>
           <nav className="ro-tabs" aria-label="Rev Ops sections">
             {[
+              "Operations",
+              "Rates",
               "Comparison",
               "Staffing",
               "Budgets",
@@ -438,7 +449,7 @@ export function RevOps() {
               </button>
             ))}
           </nav>
-          {current && comparison?.onboarding ? (
+          {current && comparison?.onboarding && tab !== "Operations" && tab !== "Rates" ? (
             <details
               className="ro-onboarding"
               open={!comparison.onboarding.complete && tab === "Setup & access"}
@@ -462,7 +473,7 @@ export function RevOps() {
               </ul>
             </details>
           ) : null}
-          {!current && tab !== "Setup & access" ? (
+          {!current && tab !== "Setup & access" && tab !== "Rates" ? (
             <section>
               <h2>No accessible workspace</h2>
               <p>
@@ -472,6 +483,8 @@ export function RevOps() {
               </p>
             </section>
           ) : null}
+          {current && tab === "Operations" ? <WorkbookOperations key={current.id} workspaceId={current.id} canEdit={Boolean(admin)} onSaved={() => { void refresh().catch(e => setError(e.message)); }} /> : null}
+          {tab === "Rates" ? <Suspense fallback={<p role="status">Loading payment tools…</p>}><RevOpsPricing /></Suspense> : null}
           {tab === "Setup & access" && admin ? (
             <section>
               <h2>Hospital setup</h2>

@@ -2,6 +2,16 @@
 
 ## Current handoff — updated 2026-09-09
 
+Working operating screens now replace the scope banner in `/rev-ops` at local
+port 5175 (API 4316). See the [runtime verification](../testing/REVOPS_OPERATING_MVP_VERIFICATION.md)
+and [structured runtime evidence](../product/evidence/REVOPS_OPERATING_MVP_RUNTIME_2026-09-09.json)
+before resuming. The accepted year is loaded into the Dunder Mifflin / Hospital
+operations workspace. Input corrections, payer/service/contract additions,
+independent monthly/annual summaries and report snapshots persist. The Rates tab
+has sourced scenario calculators with explicit incomplete payment methods.
+The September 8 plan remains historical; do not restart at definitions or
+reopen owner acceptance. Full mapped parity is not yet complete.
+
 Tyler accepted the Dunder Mifflin workbook and authorized MVP/interface updates, full workbook parity, and real financial-rate implementation. The [acceptance record](../product/RESTORED_WORKBOOK_ACCEPTANCE.md) closes the prior baseline gate. Proceed with development; do not request acceptance again.
 
 The [build plan](../roadmap/WORKBOOK_BASELINE_IOP_REVIEW_BUILD_PLAN.md) retains the synthetic persisted IOP review increment and permits parallel official-rate sourcing and calculation implementation. All mapped parity gaps remain in the authorized MVP scope.

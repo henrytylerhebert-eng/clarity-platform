@@ -50,6 +50,7 @@ beforeEach(() => {
   vi.mocked(apiRevOps).mockImplementation(async (path) => {
     if (path === "/workspaces") return structuredClone(rows);
     if (path === "/members") return [];
+    if (path.includes("/operating-workbook")) return { revision: 1, workbook: null, summary: null, history: [], closings: [] };
     if (path.includes("/history"))
       return [
         {
@@ -87,25 +88,21 @@ afterEach(() => {
 async function login() {
   render(<RevOps />);
   fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Comparison" }));
   await screen.findByText("Actual patient days through cutoff");
 }
 
-it("shows accepted workbook scope without promoting unbuilt rate workflows", () => {
+it("opens working operations after sign-in and provides rate tools", async () => {
   render(<RevOps />);
   expect(
     screen.getByText("DUNDER MIFFLIN HOSPITAL · RESTORED OPERATIONS 2026"),
   ).toBeInTheDocument();
-  expect(
-    screen.getByRole("heading", { name: "Accepted workbook scope" }),
-  ).toBeInTheDocument();
-  const details = screen.getByText("View workbook coverage and remaining builds").closest("details")!;
-  expect(details).not.toHaveAttribute("open");
-  fireEvent.click(screen.getByText("View workbook coverage and remaining builds"));
-  expect(details).toHaveAttribute("open");
-  expect(screen.getByRole("heading", { name: "Payers, rates & service valuation" }).closest("article"))
-    .toHaveTextContent("To build");
-  expect(screen.getByRole("heading", { name: "Budgets, invoices & collections" })).toBeVisible();
   expect(apiRevOps).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+  expect(await screen.findByRole("button", { name: "Operations" })).toHaveAttribute("aria-current", "page");
+  await waitFor(() => expect(vi.mocked(apiRevOps).mock.calls.some(([path]) => path.includes("/operating-workbook"))).toBe(true));
+  fireEvent.click(screen.getByRole("button", { name: "Rates" }));
+  expect(await screen.findByRole("heading", { name: "Payment scenarios" })).toBeVisible();
 });
 
 it("opens the accepted 2026 reporting year and retains access to other years", async () => {
