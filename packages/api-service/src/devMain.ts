@@ -1,4 +1,5 @@
 import { PrismaRevOpsGateway } from "../../case-repository/src/revOpsGateway.js";
+import { PrismaOperatingWorkbookGateway } from "../../case-repository/src/operatingWorkbookGateway.js";
 import { PrismaIopReconciliationGateway } from "../../case-repository/src/iopReconciliationGateway.js";
 import {
   assertLocalClarityDevDatabase,
@@ -139,7 +140,7 @@ async function main(): Promise<void> {
   // Phase 3 gateway: prescreen state persists in local clarity_dev and
   // survives a server restart (provider-backed verification stays gated).
   const prescreen = new PrescreenCommandService(new PrismaPrescreenGateway(prisma), PRESCREEN_PRODUCTION_POLICY);
-  const server = createApiServer({ revOps: new PrismaRevOpsGateway(prisma), iopReconciliation: new PrismaIopReconciliationGateway(prisma), auth, caseCommands, prescreen });
+  const server = createApiServer({ revOps: new PrismaRevOpsGateway(prisma), operatingWorkbook: new PrismaOperatingWorkbookGateway(prisma), iopReconciliation: new PrismaIopReconciliationGateway(prisma), auth, caseCommands, prescreen });
 
   const port = Number(process.env.API_PORT ?? 4315);
   server.listen(port, "127.0.0.1", () => {
