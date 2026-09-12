@@ -1,0 +1,94 @@
+# Recovered 2026-09-12: acceptance/gate values record July 30 source decisions.
+# They were not independently revalidated; lifecycle remains paused, with no implementation authority.
+# Scoped state for the operating-assurance product-definition lane only.
+# Canonical Clarity implementation and roadmap status remain in
+# IMPLEMENTATION_STATUS.md and docs/roadmap/IMPLEMENTATION_ROADMAP.md.
+project:
+  id: PROJECT-OA-001
+  name: Operating Assurance Workspace
+  current_stage: product-intelligence
+  lifecycle_status: paused
+product:
+  primary_user: USR-OA-01
+  primary_workflow: WF-OA-01
+  target_outcome: OUT-OA-01
+artifacts:
+  source_pattern_audit:
+    status: accepted
+    version: "0.1.0"
+    path: docs/discovery/SHARED_DRIVE_OPERATING_PATTERN_AUDIT.md
+  canonical_roadmap_parking_lot:
+    status: in_review
+    version: "1.2.0"
+    path: docs/roadmap/IMPLEMENTATION_ROADMAP.md
+  open_decisions:
+    status: in_review
+    version: "1.5.0"
+    path: docs/decisions/OPEN_DECISIONS.md
+  risk_register:
+    status: in_review
+    version: "1.4.0"
+    path: docs/decisions/RISK_REGISTER.md
+  idea_assessment:
+    status: accepted
+    version: "0.3.0"
+    path: docs/discovery/operating-assurance/IDEA_OPPORTUNITY_ASSESSMENT.md
+  stage_manifest:
+    status: accepted
+    version: "1.0"
+    path: docs/discovery/operating-assurance/stage-manifest.yaml
+  change_control:
+    status: in_review
+    version: "0.4.0"
+    path: docs/discovery/operating-assurance/CHANGE_CONTROL.md
+  repository_state:
+    status: accepted
+    version: "0.3.0"
+    path: docs/discovery/operating-assurance/REPOSITORY_STATE.md
+  portfolio_mix_evidence:
+    status: accepted
+    version: "0.2.0"
+    path: docs/discovery/operating-assurance/CONSULTING_PORTFOLIO_EVIDENCE.md
+  platform_intelligence_corpus_strategy:
+    status: in_review
+    version: "0.1.0"
+    path: docs/discovery/operating-assurance/PLATFORM_INTELLIGENCE_CORPUS_STRATEGY.md
+  product_intelligence_brief:
+    status: accepted
+    version: "0.3.0"
+    path: docs/discovery/operating-assurance/PRODUCT_INTELLIGENCE_BRIEF.md
+  first_release_scope:
+    status: accepted
+    version: "0.3.0"
+    path: docs/discovery/operating-assurance/FIRST_RELEASE_SCOPE_PROPOSAL.md
+  product_intelligence_stage_manifest:
+    status: accepted
+    version: "1.0"
+    path: docs/discovery/operating-assurance/product-intelligence-stage-manifest.yaml
+  product_intelligence_handoff:
+    status: accepted
+    version: "0.3.0"
+    path: docs/discovery/operating-assurance/PRODUCT_INTELLIGENCE_HANDOFF.md
+  visit_assurance_analysis_prompt:
+    status: proposed
+    version: "0.1.0"
+    path: docs/discovery/operating-assurance/CHATGPT_PROJECT_PROMPT_VISIT_ASSURANCE_PACKAGE.md
+gates:
+  opportunity_definition: passed
+  product_definition: passed
+  requirement_readiness: not_started
+  execution_readiness: not_started
+  product_acceptance: not_started
+  pilot_readiness: not_started
+active_work:
+  milestone: null
+  epic: null
+  vertical_slice: null
+  work_package: null
+open_decisions:
+  - OD-14
+  - OD-26
+  - OD-27
+blocking_risks: []
+next_allowed_skills:
+  - product-requirements-planning

@@ -56,6 +56,8 @@ The standalone scope register (`RevOpsScope.tsx`) was superseded by the
 populated Operations/Rates tabs described above and removed as unused dead
 code on 2026-09-12; no replacement banner UI was added.
 
+**2026-09-12 documentation recovery (historical proposals):** the [governance recovery record](docs/developer-handoff/GOVERNANCE_DOCUMENT_RECOVERY_2026-09-12.md) preserves July proposals and explains the normal merge of the workbook dependency. DEV-R1 remains unapproved. This documentation slice preserves the accepted workbook evidence and authority above; it adds no runtime implementation, agent launch, deployment, or fresh runtime-test claim. The dated verification records remain scoped to their original work.
+
 **2026-09-06: Rev Ops patient-day slice merged; synthetic verification, not deployed.**
 [PR #49](https://github.com/henrytylerhebert-eng/clarity-platform/pull/49) merged
 as `926b3776ae25df536ad3d2254d51c6d8019aff0a` after latest-head CI passed.
