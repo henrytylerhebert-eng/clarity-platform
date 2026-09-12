@@ -33,3 +33,6 @@ __pycache__/
 
 # Regulatory corpus raw payload cache (public regulatory text; regenerate with npm run regulatory:sync)
 .regulatory-cache/
+
+# Worktree-local generated knowledge graph; see docs/developer-handoff/GRAPHIFY_WORKFLOW.md
+/graphify-out/
