@@ -235,10 +235,25 @@ function prescreenActorFor(principal: AuthenticatedPrincipal) {
   };
 }
 
+/** Malformed percent-encoding is a content-free caller error, not a 500. */
+function decodePathSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    throw new HttpError(400, "invalid_request");
+  }
+}
+
 export function createApiServer(deps: ApiDeps): Server {
   const app = Fastify({
     bodyLimit: MAX_BODY_BYTES,
     logger: false,
+    routerOptions: {
+      // Fastify rejects malformed paths before the route handler can decode them.
+      onBadUrl(_path, _req, res) {
+        sendJson(res, 400, { error: "invalid_request" });
+      },
+    },
     serverFactory(handler) {
       return createServer(async (req, res) => {
         try {
@@ -298,7 +313,7 @@ export function createApiServer(deps: ApiDeps): Server {
         const result = await deps.caseCommands.recordDecisionRationale({
           organizationId: principal.organizationId,
           actor: deps.auth.actorFor(principal),
-          caseKey: decodeURIComponent(rationaleMatch[1]!),
+          caseKey: decodePathSegment(rationaleMatch[1]!),
           reason: body.reason,
           decisionContext: body.decisionContext,
           citedLegalStatusRecordId: body.citedLegalStatusRecordId,
@@ -325,7 +340,7 @@ export function createApiServer(deps: ApiDeps): Server {
 
       const prescreenMatch = PRESCREEN_ACTION_PATH.exec(url);
       if (prescreenMatch) {
-        const encounterId = decodeURIComponent(prescreenMatch[1]!);
+        const encounterId = decodePathSegment(prescreenMatch[1]!);
         const action = prescreenMatch[2]!;
 
         if (method === "GET" && action === "readiness") {

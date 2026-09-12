@@ -294,6 +294,16 @@ describe("production role policy enforced over HTTP (ADR-0014 ruling)", () => {
 });
 
 describe("server-derived envelope fields cannot be smuggled through the body", () => {
+  it.each(["%zz", "%E0%A4%A"])("malformed encounter path %s returns a content-free 400", async (segment) => {
+    const intake = await login(ASSERTIONS.intake);
+    const response = await post(intake, `/api/prescreen/encounters/${segment}/draft`, {
+      draft: draftInput(`syn-ps-api-asv-badpath-${h.runId}`),
+      idempotencyKey: idem("badpath"),
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_request" });
+  });
+
   it("organizationId, actor, occurredAt, and receivingOrganizationId in a body are a 400, never a silent overwrite", async () => {
     const intake = await login(ASSERTIONS.intake);
     const encounterId = await startEncounter(intake);
