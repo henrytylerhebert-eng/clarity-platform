@@ -39,6 +39,22 @@ related_adrs: ADR-0001, ADR-0002
 
 ## Next concrete issue
 
+**2026-09-08 owner-directed priority for the workbook/Rev Ops lane:** accept the
+restored workbook and reconcile it to the platform before connectors. Use the
+[acceptance and reuse packet](../product/RESTORED_WORKBOOK_ACCEPTANCE.md).
+The current workbook fingerprint differs from its saved verification receipt;
+pin and revalidate the review copy first. Then complete the operational walkthrough,
+record accepted definitions/examples and unresolved exceptions, and translate the
+accepted IOP daily handoff into a bounded synthetic parity proof. Select the next
+implementation slice from that proof, reusing existing census, staffing comparison
+and IOP review/close code. Do not restart those foundations or infer workbook parity
+from their existence. Operational acceptance remains pending (OD-18).
+
+Source-adapter decisions, source owners/IDs/cutoffs, program-scoped authorization
+and RLS remain downstream gates before any non-synthetic import. They are not the
+immediate build slice. This changes the workbook lane's sequencing, not unrelated
+platform lanes or production approval requirements.
+
 The inpatient Rev Ops patient-day slice merged in PR #49 with synthetic
 [verification evidence](../testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
 Tyler selected hospital onboarding and additional fields in both setup and data
@@ -50,8 +66,9 @@ verification. The subsequently approved bounded workflow is
 [month-end readiness and accountable close](../product/INPATIENT_REV_OPS_MONTH_CLOSE_BRIEF.md).
 It merged in PR #52 as `c9a00bd` after review; post-merge CI passed. See the
 [evidence record](../testing/REV_OPS_MONTH_CLOSE_VERIFICATION.md).
-The next authorized slice is [operational census receipt review and export](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md),
-now implemented for local synthetic verification and pending review. Future receipts
+The [operational census receipt review and export](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md)
+slice and synthetic IOP reconciliation merged in PR #53 as `35f16eb`.
+That establishes a synthetic implementation baseline, not restored-workbook acceptance. Future receipts
 snapshot the approved Daily Midnight Census Count definition; legacy definitions
 remain unknown. Historical budgets remain selected as recorded. See [OD-15–17](../decisions/OPEN_DECISIONS.md)
 for hospital/production decisions and the [evidence record](../testing/REV_OPS_EXPORT_VERIFICATION.md).

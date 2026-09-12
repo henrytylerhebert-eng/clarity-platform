@@ -1,0 +1,63 @@
+sheet,visibility,formula_count,direct_formula_reads,boundary
+INDEX,visible,62,ANCILLARY; ASSISTANCE; BENEFITS_REFERENCE; BENEFIT_REVIEW; BUDGET; CHECKS; COLLECTIONS; CONTRACT_RATES; CORRECTIONS; COVERAGE; DASHBOARD; DECISIONS; DEFINITIONS; ENCOUNTERS; EXAMPLES; FEATURE_MAP; FORECAST; FORMULA_CATALOG; INDEX; INPATIENT; INVOICES; IOP; IOP_GRID; IOP_ROSTER; IOP_SESSIONS; IOP_VISITS; IPF_FACTORS; LA_IP_JAN_JUN; LA_IP_JUL_DEC; LA_SBH_ADULT_SMI; LA_SBH_CPT; LA_SBH_CRISIS; LA_SBH_CSOC; LA_SBH_HCPCS; LA_SBH_JAN_REFERENCE; LA_SBH_MHR; LA_SBH_MODIFIERS; LA_SBH_PROVIDER; MANAGEMENT_REPORT; MEDICARE_REFERENCE; MONTHLY; PATIENTS; PAYERS; PAYER_ACTIVITY; PAYER_MIX; PRESSURE_TEST; README; RECEIPT_ALLOCATIONS; SERVICES; SERVICE_LEDGER; SESSION_ATTENDANCE; SETUP; SOURCE_FORMULAS; SOURCE_MAP; STAFFING; STAFF_DETAIL; STAFF_REPORT; STAFF_STANDARDS; STATE_MIX; UR_PAYER,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+DASHBOARD,visible,86,BUDGET; CHECKS; COLLECTIONS; ENCOUNTERS; INDEX; MONTHLY; PAYER_MIX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+SETUP,visible,4,INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+PAYERS,visible,201,INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+SERVICES,visible,1,INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+CONTRACT_RATES,visible,242,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+PAYER_ACTIVITY,visible,1082,CHECKS; INDEX; SERVICE_LEDGER,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+INPATIENT,visible,2922,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+IOP,visible,5477,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+STAFFING,visible,6937,CHECKS; INDEX; INPATIENT,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+COVERAGE,visible,61,INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+BUDGET,visible,409,INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+FORECAST,visible,577,INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+ANCILLARY,visible,302,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+Sheet1,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+Sheet2,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+COLLECTIONS,visible,2807,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+MONTHLY,visible,578,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+MEDICARE_REFERENCE,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+IPF_FACTORS,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_IP_JAN_JUN,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_IP_JUL_DEC,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_SBH_CPT,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_SBH_HCPCS,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_SBH_ADULT_SMI,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_SBH_CRISIS,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_SBH_MHR,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_SBH_PROVIDER,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_SBH_CSOC,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_SBH_MODIFIERS,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+LA_SBH_JAN_REFERENCE,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+README,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+DECISIONS,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+CHECKS,visible,88,CHECKS; INDEX; INVOICES; MANAGEMENT_REPORT; SERVICE_LEDGER,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+BENEFITS_REFERENCE,visible,0,,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+UR_PAYER,visible,1302,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+PATIENTS,visible,1,INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+ENCOUNTERS,visible,9102,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+IOP_VISITS,visible,29146,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+PRESSURE_TEST,visible,4,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+IOP_ROSTER,visible,79,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+SERVICE_LEDGER,visible,88408,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+IOP_SESSIONS,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+IOP_GRID,visible,1446,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+SESSION_ATTENDANCE,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+STAFF_STANDARDS,visible,22,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+STAFF_DETAIL,visible,47453,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+STAFF_REPORT,visible,102,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+RECEIPT_ALLOCATIONS,visible,12515,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+INVOICES,visible,62,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+MANAGEMENT_REPORT,visible,613,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+PAYER_MIX,visible,518,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+STATE_MIX,visible,242,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+BENEFIT_REVIEW,visible,62,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+ASSISTANCE,visible,32,CHECKS; INDEX; SETUP,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+SOURCE_MAP,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+FORMULA_CATALOG,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+SOURCE_FORMULAS,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+DEFINITIONS,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+FEATURE_MAP,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+CORRECTIONS,visible,2,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded
+EXAMPLES,visible,62,CHECKS; INDEX,Direct explicit sheet references only; table/named references and manual handoffs not expanded

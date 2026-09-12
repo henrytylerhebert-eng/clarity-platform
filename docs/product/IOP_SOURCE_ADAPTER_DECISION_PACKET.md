@@ -12,13 +12,18 @@ related_artifacts:
 
 ## Decision requested
 
+**Sequencing correction:** this is a downstream decision packet. First complete
+[restored workbook acceptance and platform reconciliation](RESTORED_WORKBOOK_ACCEPTANCE.md),
+including resolution of the review-copy fingerprint mismatch. Use accepted metric
+grains, examples and handoffs to refine this packet before selecting connectors.
+
 Before any non-synthetic import is designed, name the authoritative export for each IOP handoff, approve its source owner, and confirm that its IDs, versions, and cutoff semantics can support reconciliation. A source file alone is not approval to import.
 
 This packet approves no connector, credential, patient data, clinical finding, charge, or billing action.
 
 ## Current baseline
 
-The implemented local path accepts only the `SYNTHETIC_IOP_PROGRAM` integration. It requires stable source record IDs and versions for each represented enrollment, plan, attendance event, note audit, charge line, and EMR billable line. It records authenticated review and close evidence, but it is not approved for real data.
+The implemented gateway resolves an active registered integration within the authenticated organization; it does not hard-code the `SYNTHETIC_IOP_PROGRAM` key. The contract remains synthetic-only. It requires stable source record IDs and versions for each represented enrollment, plan, attendance event, note audit, charge line, and EMR billable line. The server records authenticated review and close evidence; the current IOP screen separately uses an in-memory preview/close contract and is not wired to that persistence route. Neither surface is approved for real data.
 
 ## Source authority decisions
 

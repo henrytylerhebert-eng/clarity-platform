@@ -2,6 +2,14 @@
 
 Review draft · 2026-09-08 · Documentation only
 
+**Restoration addendum:** the [restored workbook acceptance and reconciliation packet](RESTORED_WORKBOOK_ACCEPTANCE.md)
+maps F01–F30 to current code and supersedes this document's next-slice recommendation.
+The 44-sheet inventory below remains evidence about the legacy workbook, not the
+restored candidate. W03/W04's absence claims predate synthetic IOP contracts and
+review/close persistence; use R08 in the addendum for the current bounded surface.
+W08/W09's staffing gaps must be read alongside the existing aggregate
+`staffingComparison` implementation (R09); role-level costing parity remains open.
+
 ## Purpose and evidence boundary
 
 Translate the full operating workbook into connected, reusable tools before selecting another implementation slice. This is the product baseline for subsequent market research. It does not claim functional parity or authorize additional APIs, production use, or integrations.

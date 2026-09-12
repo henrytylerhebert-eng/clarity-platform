@@ -18,6 +18,7 @@ the bounded synthetic implementation from unresolved hospital/production decisio
 
 | # | Decision needed | Owner type | Blocking |
 |---|---|---|---|
+| OD-18 | Accept an exact restored workbook version and its workflow/rule dispositions. Current candidate hash differs from saved PASS evidence; pin/revalidate it, complete F01–F30 review and approve bounded platform golden cases. See [acceptance packet](../product/RESTORED_WORKBOOK_ACCEPTANCE.md). | Tyler + census/IOP/staffing/finance owners; technical reviewer identities pending | Workbook parity claims and selection of the next workbook-derived implementation slice; connectors deferred |
 | OD-1 | Obtain the full master package v0.2.0 (72 files missing); re-run comparison for 12 summary-graded domains | Product owner | Canonical status of agent/API/UI/eval/commercial domains |
 | OD-2 | Louisiana statutory wording, official forms, trigger/duration language | Counsel | Any legal-clock or instrument enforcement |
 | OD-3 | Clinical criteria licensing (InterQual/MCG or payer-specific) and clinician governance of assessment content | Clinical + legal | Medical-necessity criteria mapping |

@@ -1,5 +1,21 @@
 # Implementation Status
 
+**2026-09-08: Workbook acceptance is the next Rev Ops gate; documentation only.**
+PR #53 merged as `35f16eb63ae0953b15802edb62fdfeb6f8795bfa`, including census
+receipt export and synthetic IOP reconciliation/persistence. Current source inspection
+confirms reusable aggregate census/staffing comparison and IOP source-link review/close
+code. The IOP screen still uses an in-memory preview contract rather than the persisted
+authenticated route. This is not full workbook parity or production readiness.
+
+The [restored workbook acceptance packet](docs/product/RESTORED_WORKBOOK_ACCEPTANCE.md)
+maps all 30 restoration features to reuse and gaps. The candidate has 62 sheets and
+a hash different from the saved workbook verification receipt. Previously reported
+43 checks, 30 examples and 32 mutation assertions are historical evidence, not a
+current-file PASS. Pin/revalidate the review copy, obtain operational dispositions,
+then establish synthetic workbook-to-platform golden cases before connectors.
+No runtime tests were rerun for this documentation change; operational acceptance,
+program-scoped authorization/RLS and real-source approval remain open.
+
 **2026-09-06: Rev Ops patient-day slice merged; synthetic verification, not deployed.**
 [PR #49](https://github.com/henrytylerhebert-eng/clarity-platform/pull/49) merged
 as `926b3776ae25df536ad3d2254d51c6d8019aff0a` after latest-head CI passed.
