@@ -16,6 +16,12 @@ related_adrs: ADR-0001, ADR-0002
 Rev Ops export implementation was authorized September 8, 2026. OD-15–17 distinguish
 the bounded synthetic implementation from unresolved hospital/production decisions.
 
+On September 9, Tyler accepted the Dunder Mifflin restored workbook and authorized
+full workbook parity, MVP/interface updates, and real financial-rate implementation.
+The [acceptance record](../product/RESTORED_WORKBOOK_ACCEPTANCE.md) closes OD-18.
+This development authority supersedes the earlier requirement to seek workbook
+acceptance again; production and real patient-data decisions remain separate.
+
 | # | Decision needed | Owner type | Blocking |
 |---|---|---|---|
 | OD-1 | Obtain the full master package v0.2.0 (72 files missing); re-run comparison for 12 summary-graded domains | Product owner | Canonical status of agent/API/UI/eval/commercial domains |
@@ -35,3 +41,5 @@ the bounded synthetic implementation from unresolved hospital/production decisio
 | OD-15 | Rev Ops metric v1 approved: Daily Midnight Census Count, prior-calendar-day midnight; future receipts snapshot it, legacy receipts disclose definition not recorded. Hospital inclusion rules and their independent version/effective date remain unknown. See [export brief](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md). | Product + census/finance owners | Hospital validation and any patient-day equivalence; synthetic export implementation authorized |
 | OD-16 | Rev Ops budget: retain existing approved-budget selection for this export slice. Predecessor inheritance, separately accountable baseline changes and independent approval remain undecided. See [export brief](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md). | Product + finance owner | Changes to closing/budget policy; export must preserve the historically selected budget |
 | OD-17 | Rev Ops export: explicit delegated permission, safe projection, legacy disclosure, bounded synchronous generation and durable fail-closed audit implemented for synthetic testing. Production audit retention/tamper controls, distributed limits and real-data field policy remain unresolved. See [export brief](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md). | Product + technical/security reviewers | Production/pilot use; review implementation before merge, no production or real-data authority |
+| OD-18 — CLOSED 2026-09-09 | Tyler accepted Dunder Mifflin Hospital - Restored Operations 2026 at mapped SHA-256 `6e81bd61950c244e607ed03f8b0f13e1a4d0bea366ee7ad7cc54c053ef90de26`; current file hash matches. Full parity and real financial-rate implementation authorized. See [acceptance](../product/RESTORED_WORKBOOK_ACCEPTANCE.md). | Tyler / product owner | No remaining workbook-acceptance block. Native mutation rerun is unverified; it is verification work, not a reopened acceptance decision. |
+| OD-19 | Selected Louisiana hospital payment profile: provider identifier pending from Tyler. Verify applicable facility classification/factors, official rate version/effective date, and any private commercial contract terms before presenting facility-specific calculations. | Product + finance/RCM | Only calculations requiring those missing inputs. Shared source/rate registry, payment-method implementation, synthetic verification, and other parity work are authorized to proceed. |
