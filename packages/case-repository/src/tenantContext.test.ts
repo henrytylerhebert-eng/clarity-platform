@@ -5,13 +5,18 @@ import { withTenantContext } from "./tenantContext.js";
 type TransactionOptions = { maxWait?: number; timeout?: number };
 
 /**
- * Confirms the fix for a real CI failure: a Prisma interactive transaction
- * writing a large JSONB state blob (the operating workbook, ~28k records)
- * exceeded Prisma's default 5000ms interactive-transaction timeout under
- * CI's shared-runner contention (P2028 "Transaction already closed... The
- * timeout for this transaction was 5000 ms, however 5101 ms passed").
- * withTenantContext must request a timeout with real headroom above that
- * default for every gateway that shares it, not just the operating workbook.
+ * A configuration assertion against a mocked PrismaClient, not a reproduction
+ * of the real database timeout. It only proves withTenantContext passes an
+ * explicit timeout option to $transaction; it does not exercise a real
+ * Prisma connection, a real slow query, or the P2028 failure path itself.
+ *
+ * Motivation (observed in CI, not reproduced here): a Prisma interactive
+ * transaction writing a large JSONB state blob (the operating workbook,
+ * ~28k records) exceeded Prisma's default 5000ms interactive-transaction
+ * timeout under CI's shared-runner contention (P2028 "Transaction already
+ * closed... The timeout for this transaction was 5000 ms, however 5101 ms
+ * passed"). withTenantContext is shared by every gateway built on it, not
+ * just the operating workbook, so the fix and this test apply there too.
  */
 describe("withTenantContext", () => {
   it("requests an interactive-transaction timeout well above Prisma's 5000ms default", async () => {
