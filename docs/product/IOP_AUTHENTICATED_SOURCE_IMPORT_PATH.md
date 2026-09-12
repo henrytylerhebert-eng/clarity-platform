@@ -4,6 +4,7 @@ owner: Product owner + technical lead + security/privacy reviewer + IOP operatio
 data_boundary: synthetic-only until security/privacy approval records a different boundary
 related_artifacts:
   - docs/product/IOP_SOURCE_INVENTORY_AND_PERMISSION_MATRIX.md
+  - docs/product/IOP_SOURCE_ADAPTER_DECISION_PACKET.md
   - packages/domain-contracts/src/iopReconciliation.ts
   - packages/domain-contracts/src/iopReconciliationImport.ts
   - packages/api-service/src/revOpsRoutes.ts
@@ -18,7 +19,7 @@ related_artifacts:
 
 Define one tenant-scoped import path that accepts a source-owned IOP reconciliation snapshot, preserves stable source identifiers and cutoff evidence, requires a verified human reviewer to close it, and keeps every unmatched event visible until reviewed.
 
-This is an implementation specification. No authenticated IOP route, source credential, database model, or production integration exists today.
+The authenticated route and persistence model exist for synthetic local use. No real source credential, source-system connector, or production integration is approved.
 
 ## Source-of-truth boundary
 
