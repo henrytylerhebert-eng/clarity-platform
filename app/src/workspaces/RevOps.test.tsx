@@ -115,6 +115,16 @@ it("opens the accepted 2026 reporting year and retains access to other years", a
     path.includes("period=2028-02&through=2028-02-01"))).toBe(true));
 });
 
+it.each(["Hospital / unit", "Approved baseline"])("preserves the loaded comparison when the current %s is selected again", async (label) => {
+  await login();
+  const selection = screen.getByLabelText(label) as HTMLSelectElement;
+  fireEvent.change(selection, {
+    target: { value: selection.value },
+  });
+  expect(screen.getByText("Actual patient days through cutoff")).toBeVisible();
+  expect(screen.queryByText(/Comparison unavailable/)).not.toBeInTheDocument();
+});
+
 it("resets unsaved actuals and field defaults when switching hospitals", async () => {
   await login();
   fireEvent.click(screen.getByRole("button", { name: "Daily actuals" }));

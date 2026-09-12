@@ -375,6 +375,7 @@ export function RevOps() {
                 disabled={busy}
                 value={selected}
                 onChange={(e) => {
+                  if (e.target.value === selected) return;
                   setComparison(null);
                   setSelected(e.target.value);
                 }}
@@ -661,6 +662,7 @@ export function RevOps() {
                 <select
                   value={budgetId}
                   onChange={(e) => {
+                    if (e.target.value === budgetId) return;
                     setComparison(null);
                     setBudgetId(e.target.value);
                   }}
