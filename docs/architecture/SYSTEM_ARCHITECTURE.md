@@ -3,6 +3,7 @@ status: Integrated draft
 owner: TBD
 version: 1.0.0
 last_integrated: 2026-07-10
+last_scoped_reconciliation: 2026-09-12
 source_artifacts:
   - reference/source-packages/clarity-ai-master-architecture-v0.2.0-partial/MASTER_ARCHITECTURE.md (§5–9, §19–21)
   - reference/source-packages/clarity-ai-master-architecture-v0.2.0-partial/REPOSITORY_STRUCTURE.md
@@ -43,8 +44,8 @@ Each case maintains an overall status plus independent statuses for clinical, le
 ## Current implementation state (honest)
 
 - **Implemented prototype (`app/`):** localStorage-backed guided intake, medical-necessity and legal drafts, evidence review, benefits/authorization views, packet/routing, custody ledger, bedboard, training, Mock Admit Lab, and read-only synthetic Product Studio.
-- **Implemented service foundations (`packages/*-service`):** tenant-scoped case, document, evidence, benefits, authorization, and authentication services plus Prisma adapters and tests. These are local foundations, not deployed products.
-- **Implemented API spike (`packages/api-service`):** authenticated `node:http` vertical slice for session routes and one case decision-rationale command. ADR-0012 remains Proposed and recommends a different Fastify package shape, so the production API decision is open.
+- **Implemented service foundations (`packages/*-service`):** case, document, evidence, benefits, authorization, authentication, prescreen, and synthetic Rev Ops workflows have service/repository code. `packages/api-service/src/devMain.ts` wires Prisma authentication, case, prescreen, Rev Ops, and IOP reconciliation adapters. These are local foundations, not evidence of production deployment.
+- **Implemented API (`packages/api-service`):** `src/server.ts` uses Fastify and retains a `node:http` server factory for the bounded session/case/prescreen routes; it also registers synthetic Rev Ops and IOP reconciliation routes. Source inspection at `35f16eb` corrects the older session-only spike description. OD-5 retains production-boundary, hosting, and deployment decisions; no runtime test was rerun for this prose correction.
 - **Schema and local persistence:** `prisma/schema.prisma` is valid and migrations/adapters are exercised by integration tests. Production database hosting and RLS strategy remain open.
 - **Documented only or open:** model gateway, retrieval, product agents, production hosting, managed identity, production storage, observability, external integrations, and controlled release.
 
@@ -54,4 +55,4 @@ The package's target monorepo (`REPOSITORY_STRUCTURE.md`: pnpm+Turborepo, ~30 do
 
 ## Agent architecture (target)
 
-Eighteen specialized agents are cataloged in `MASTER_ARCHITECTURE.md` §19 (classification, extraction, contradiction, timeline, summaries, necessity, screening, legal, verification prep, payer memory, authorization prep, education, matching, packet, drafting, audit review, retrospective review). Each requires a contract: allowlisted tools, output schema, source requirements, prohibited actions, validation, human-review rule. **The contract files (`07-agent-architecture/`) are missing from the local package copy** — only the 13 Jul 8 prompt files exist as concrete artifacts (`reference/source-packages/clarity-mh-architecture/prompts/`). No agent runs in the current codebase.
+Eighteen specialized agents are cataloged in `MASTER_ARCHITECTURE.md` §19 (classification, extraction, contradiction, timeline, summaries, necessity, screening, legal, verification prep, payer memory, authorization prep, education, matching, packet, drafting, audit review, retrospective review). Each requires a contract: allowlisted tools, output schema, source requirements, prohibited actions, validation, human-review rule. **The contract files (`07-agent-architecture/`) are missing from the local package copy** — only the 13 Jul 8 prompt files exist as concrete artifacts (`reference/source-packages/clarity-mh-architecture/prompts/`). This target describes product/runtime agents; development-tooling roles are separately governed by accepted ADR-0017. No product/runtime agent implementation is established by this target description.

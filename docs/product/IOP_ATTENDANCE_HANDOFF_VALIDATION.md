@@ -121,7 +121,7 @@ The companion unit test removes one reviewed exception and verifies that the sam
 
 [`IOP_ATTENDANCE_RECONCILIATION_SYNTHETIC_IMPORT.json`](evidence/IOP_ATTENDANCE_RECONCILIATION_SYNTHETIC_IMPORT.json) supplies the first adapter envelope: a source-system label, source file name, export time, and immutable source cutoff alongside the reconciliation sample. The adapter’s close receipt records that cutoff, the human reviewer token, review timestamp, issue count, and reviewed-exception count.
 
-The proposed authenticated, source-owned production path is defined in [IOP authenticated source import path](IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md). It is documented-only and must not be represented as a live integration or production API.
+The synthetic authenticated path is defined in [IOP authenticated source import path](IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md). The required real-adapter approvals are tracked in [IOP source-adapter decision packet](IOP_SOURCE_ADAPTER_DECISION_PACKET.md).
 
 ## Product implication
 

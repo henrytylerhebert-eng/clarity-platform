@@ -1,0 +1,56 @@
+{
+  "asOf": "2026-09-09",
+  "source": {
+    "name": "Dunder Mifflin Hospital - Restored Operations 2026.xlsx",
+    "sha256": "6e81bd61950c244e607ed03f8b0f13e1a4d0bea366ee7ad7cc54c053ef90de26",
+    "ownerAccepted": true,
+    "operatingData": "synthetic"
+  },
+  "runtime": {
+    "route": "/rev-ops",
+    "localUrl": "http://127.0.0.1:5175/rev-ops",
+    "apiPort": 4316,
+    "workspacePersistence": "RevOpsWorkspace.state.operatingWorkbook",
+    "auditPersistence": "RevOpsChange",
+    "sourceTables": 31,
+    "sourceRecords": 28301,
+    "correctableInputTables": 20,
+    "immutableReceiptTables": 2,
+    "referenceReportTables": 9,
+    "registryAdditions": ["payers", "services", "contractRates"],
+    "reportSnapshots": "implemented, preserving summary and issues; not financial close",
+    "fullMvpParity": "incomplete",
+    "productionDeployment": "not performed"
+  },
+  "calculationEvidence": {
+    "numericMonthlyMetrics": 47,
+    "reportingPeriods": 13,
+    "matchedSourceComparisons": 611,
+    "operatingUnitTests": 34,
+    "pricingUnitTests": 18,
+    "databaseIntegrationTests": 3,
+    "frontendTests": 94,
+    "revOpsBrowserJourneys": 10,
+    "sourceReference": "docs/testing/REVOPS_OPERATING_MVP_VERIFICATION.md"
+  },
+  "officialPricing": {
+    "louisianaActiveRows": 1126,
+    "releaseRows": { "2025-07-01": 566, "2026-07-01": 560 },
+    "allRowsVerifiedAgainstArchivedWorkbooks": true,
+    "medicaidMethod": "exact-provider and rate-type per eligible day with date release split",
+    "medicareMethod": "FY2026 wage-adjusted federal base component only",
+    "privateContractTerms": "not supplied; synthetic terms only",
+    "facilityProfile": "awaiting owner-supplied provider identifiers",
+    "officialRateLedgerPosting": "not implemented"
+  },
+  "remaining": [
+    "Complete IPF, FY2027, OPPS/IOP and SBH methods with facility applicability",
+    "Verified payment-profile binding and official calculation application to service records",
+    "New operating-record entry and general workbook ingestion",
+    "Signed receipt posting, reversals, reallocations and consolidated financial close",
+    "Independent IOP audit and persisted review UI integration",
+    "Full benefit, assistance, geography, detailed reports and export parity",
+    "Generalized future-year operating imports",
+    "Production-scale storage, indexing, concurrency and performance verification"
+  ]
+}
