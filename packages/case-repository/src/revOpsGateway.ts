@@ -195,7 +195,9 @@ export class PrismaRevOpsGateway {
     },
     actor: AuthenticatedPrincipal,
   ) {
-    const state = row.state as unknown as RevOpsState;
+    const state = { ...(row.state as unknown as RevOpsState & { operatingWorkbook?: unknown }) };
+    // Large synthetic operating records are fetched only through the authenticated workbook route.
+    delete state.operatingWorkbook;
     return {
       id: row.id,
       name: row.facility.name,
