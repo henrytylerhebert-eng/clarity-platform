@@ -7,7 +7,7 @@ source_artifacts:
   - packages/case-service/ (implementation)
   - packages/case-repository/src/caseCommandGateway.ts (approved Prisma adapter)
   - prisma/migrations/20260711133547_case_version_and_command_idempotency
-unresolved_conflicts: "MEDICAL_TRANSFER_REQUIRED status vocabulary gap (OD-8); actor roles trusted from caller until auth exists"
+unresolved_conflicts: "Historical July snapshot; ADR-0018 supplies MEDICAL_TRANSFER_REQUIRED; OD-24 retains medical-diversion role authority"
 related_requirements: REQ-001…REQ-004
 related_adrs: ADR-0003 (decision record), ADR-0001, ADR-0002
 ---
@@ -15,6 +15,12 @@ related_adrs: ADR-0003 (decision record), ADR-0001, ADR-0002
 # Case Command Service
 
 The application boundary for every case action. Architecture and decisions: **ADR-0003**. This document covers usage and test coverage.
+
+**2026-09-12 source reconciliation:** the verification counts below describe
+July 11, not a fresh run. `packages/api-service/src/server.ts` now derives the
+principal through `AuthenticationService` before invoking the exposed case
+command. Direct service callers still supply an actor. ADR-0018 adds the
+medical-transfer state; OD-24 retains qualified role-policy review.
 
 ## Command flow
 
@@ -60,7 +66,7 @@ Suite totals this run: **52 integration tests** (2 command-service files: 22; pr
 
 ## Known limitations
 
-1. Actor roles are trusted from the caller — no authentication layer exists yet; the service is the authorization point only.
+1. Direct service callers supply actor roles; the exposed HTTP path now authenticates and derives the actor. The service remains the authorization point. This does not establish managed identity or production authentication readiness.
 2. ~~`AssignCase` checks the assignee's organization just before the transaction (small TOCTOU window)~~ **Closed 2026-07-11 (ADR-0005):** assignee validation (same organization + `ACTIVE` status) now runs inside the command transaction and is re-asserted as a predicate on the conditional UPDATE itself; a mid-transaction membership change rolls the whole command back. Verified by `tests/integration/case-assignment-atomicity.test.ts`.
 3. `RecordDecisionRationale` is audit-only (no `DecisionRecord` table in the foundation schema — expanded-draft model, OD-8).
 4. Idempotency records are never expired; a retention policy is future work.

@@ -106,3 +106,9 @@ For the repository-specific fit assessment, read
 The first inference-complete synthetic session is
 [DISC-20260719-PC-001](sessions/DISC-20260719-PC-001/README.md). It remains
 `OWNER_REVIEW` and is not an executable or operational fixture.
+
+## Recovered operating-assurance package
+
+The [operating-assurance recovery index](operating-assurance/README.md) preserves
+July discovery and product-definition records. The lane is paused and does not
+authorize implementation, corpus use, or a product-home decision.

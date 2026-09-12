@@ -1,5 +1,12 @@
 import ExcelJS from "exceljs";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function signInForLegacyFebruaryScenario(page: Page) {
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("button", { name: "Comparison", exact: true }).click();
+  await page.getByLabel("Month", { exact: true }).fill("2028-02");
+  await page.getByLabel("Through date", { exact: true }).fill("2028-02-07");
+}
 
 test("month close requires every leap-year date and preserves original and revised receipts", async ({
   page,
@@ -64,7 +71,7 @@ test("month close requires every leap-year date and preserves original and revis
   await page
     .getByLabel("Development assertion")
     .fill("syn-assert-revops-census-dev");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await signInForLegacyFebruaryScenario(page);
   await page
     .getByLabel("Hospital / unit")
     .selectOption({ label: `${name} / Geriatric` });
@@ -262,7 +269,7 @@ test("month close requires every leap-year date and preserves original and revis
   await page
     .getByLabel("Development assertion")
     .fill("syn-assert-revops-census-dev");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await signInForLegacyFebruaryScenario(page);
   await page
     .getByLabel("Hospital / unit")
     .selectOption({ label: `${name} / Geriatric` });
@@ -384,7 +391,7 @@ test("census reconciliation reviews conflicts, rejects stale decisions and prese
   await page
     .getByLabel("Development assertion")
     .fill("syn-assert-revops-census-dev");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await signInForLegacyFebruaryScenario(page);
   await page
     .getByLabel("Hospital / unit")
     .selectOption({ label: `${name} / Geriatric` });
@@ -492,7 +499,7 @@ test("census reconciliation reviews conflicts, rejects stale decisions and prese
   await page
     .getByLabel("Development assertion")
     .fill("syn-assert-revops-census-dev");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await signInForLegacyFebruaryScenario(page);
   await page
     .getByLabel("Hospital / unit")
     .selectOption({ label: `${name} / Geriatric` });
@@ -578,7 +585,7 @@ test("delegated census entry respects correction and revoked-access boundaries",
   await page
     .getByLabel("Development assertion")
     .fill("syn-assert-revops-census-dev");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await signInForLegacyFebruaryScenario(page);
   await page
     .getByLabel("Hospital / unit")
     .selectOption({ label: `${name} / Adult` });
@@ -639,7 +646,7 @@ test("hospital setup, budget upload/approval, actuals, correction and period acc
 }, testInfo) => {
   const name = `Synthetic Rev Ops ${testInfo.project.name} ${Date.now()}`;
   await page.goto("/rev-ops");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await signInForLegacyFebruaryScenario(page);
   await page
     .getByRole("button", { name: "Setup & access", exact: true })
     .click();
@@ -753,7 +760,7 @@ test("hospital setup, budget upload/approval, actuals, correction and period acc
     ),
   ).toBe(true);
   await page.reload();
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await signInForLegacyFebruaryScenario(page);
   await page
     .getByLabel("Hospital / unit")
     .selectOption({ label: `${name} / Adult` });
@@ -777,7 +784,7 @@ test("resumable onboarding and custom fields preserve corrections, mappings and 
       .fill(
         staff ? "syn-assert-revops-census-dev" : "syn-assert-revops-admin-dev",
       );
-    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await signInForLegacyFebruaryScenario(page);
     if (select)
       await page
         .getByLabel("Hospital / unit")
