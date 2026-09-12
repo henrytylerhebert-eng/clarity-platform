@@ -116,3 +116,12 @@ Use:
 
 - Use [docs/AGENTS_TEMPLATE.md](docs/AGENTS_TEMPLATE.md) for standard lanes.
 - Use [docs/AGENTS_TEMPLATE.quickfill.md](docs/AGENTS_TEMPLATE.quickfill.md) for urgent lanes that need fast scoping.
+
+## Recovered development-agent proposals
+
+- Accepted ADR-0017 and `docs/governance/AI_OPERATING_MODEL_PLAN.md` remain
+  the development-agent authority.
+- [Governance document recovery](docs/developer-handoff/GOVERNANCE_DOCUMENT_RECOVERY_2026-09-12.md)
+  explains the historical preparation packet and proposed DEV-R1 charter.
+  Its approval is Pending; recovery of the documents grants no role-launch
+  authority and does not enact their proposed gates.
