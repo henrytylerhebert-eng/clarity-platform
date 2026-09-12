@@ -161,6 +161,20 @@ describe("authentication over HTTP", () => {
 });
 
 describe("RecordDecisionRationale end to end", () => {
+  it.each(["%zz", "%E0%A4%A"])("malformed case path %s returns a content-free 400", async (segment) => {
+    const token = await login(ASSERTIONS.physician);
+    const response = await fetch(`${baseUrl}/api/cases/${segment}/decision-rationale`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        reason: "Synthetic malformed-path check.",
+        decisionContext: "api_slice_bad_path",
+      }),
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_request" });
+  });
+
   it("a physician records a rationale citing a legal-status record; the audit event carries the citation and the DB-derived actor", async () => {
     const legalRecord = await h.prisma.legalStatusRecord.create({
       data: {

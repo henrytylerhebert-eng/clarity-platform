@@ -16,6 +16,7 @@
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
     "migration:recovery:local": "tsx scripts/verify-local-migration-recovery.ts",
+    "test:ephemeral": "tsx scripts/with-ephemeral-database.ts",
     "api:dev": "tsx packages/api-service/src/devMain.ts",
     "bridge:doctor": "agents/bridge/agent-bridge doctor",
     "bridge:status": "agents/bridge/agent-bridge status",
@@ -35,7 +36,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.63.0",
-    "vitest": "^3.2.6",
+    "vitest": "^5.0.0",
     "zod": "^3.24.1"
   },
   "prisma": {

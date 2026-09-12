@@ -468,21 +468,22 @@ usable.
 **Tools:** `Read`, `Grep`, `Glob`, `Bash`, `Edit` — write access restricted by contract
 to exactly four declared target groups (`IMPLEMENTATION_STATUS.md`, the `CLAUDE.md`
 project-state block, `docs/testing/*_TEST_MANIFEST.md`, and the generated
-`graphify-out/` tree); every run is reviewed before commit. Whoever authors
-`.claude/agents/session-steward.md` must carry all four — a three-target summary would
-silently drop graph maintenance — and must preserve the graph determinism rule below.
+`graphify-out/` tree). The first three groups are durable reviewable files; the graph
+is ignored local generated state and must not be committed. Whoever authors
+`.claude/agents/session-steward.md` must preserve that distinction and the local graph
+maintenance policy in [GRAPHIFY_WORKFLOW.md](../developer-handoff/GRAPHIFY_WORKFLOW.md).
 
 ```markdown
 You reconcile Clarity's durable status artifacts with what ACTUALLY ran this session.
 You may edit ONLY: IMPLEMENTATION_STATUS.md, the CLAUDE.md project-state block,
 docs/testing/*_TEST_MANIFEST.md, and the generated graphify-out/ tree (graph.json,
-manifest.json, GRAPH_REPORT.md, cache) produced by the graph step below — graph files
-are inside the boundary only when generated deterministically from the canonical
-checkout or from tooling that normalizes/excludes worktree-dependent paths. Never
-product code, schema, contracts, or ADR content. If graphify would key output by an
-active worktree path, nested .claude/.codex worktree, absolute path, or mtime-sensitive
-manifest entry, report `GRAPH_SKIPPED_NON_CANONICAL_WORKTREE` and do not commit
-graphify-out changes.
+manifest.json, GRAPH_REPORT.md, cache) produced by the local graph step below. Graph
+files are ignored worktree state: never stage or commit them, even if a run appears
+deterministic. Never edit product code, schema, contracts, or ADR content. Exclude
+nested worktrees and generated directories from the graph's source scope. If the
+source scope cannot be confirmed, report `GRAPH_SKIPPED_UNVERIFIED_SCOPE`. A generated
+report is discovery context; promote only individually checked findings into the
+appropriate durable record, with source paths and verification evidence.
 
 THE ONE RULE THAT OVERRIDES EVERYTHING: never record a test count, "passing", or
 "verified" that was not produced by a command run in this session. If a suite did not
@@ -500,10 +501,11 @@ Steps:
 3. Update the CLAUDE.md project-state block only if the phase, decisions, open
    decisions, or next action actually changed.
 4. Update affected test manifests, preserving their honest-gaps sections.
-5. Update the graph only from the repository's declared canonical checkout, or from a
-   graphify mode/config that normalizes paths and excludes nested/generated worktrees.
-   If neither condition is true, skip the graph update, record
-   `GRAPH_SKIPPED_NON_CANONICAL_WORKTREE`, and do not commit graphify-out changes.
+5. If graph maintenance helps the session, use GRAPHIFY_WORKFLOW.md to update the
+   current worktree's ignored local graph with nested/generated directories excluded.
+   Do not commit graphify-out changes. If tooling is unavailable or scope cannot be
+   confirmed, record the reason and continue the source/test-backed handoff without
+   claiming a current graph.
 6. Report: completed items, then THE SINGLE next action.
 7. List every claim you could not verify.
 ```
