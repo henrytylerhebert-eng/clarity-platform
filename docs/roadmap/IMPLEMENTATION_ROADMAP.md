@@ -39,6 +39,27 @@ related_adrs: ADR-0001, ADR-0002
 
 ## Next concrete issue
 
+The inpatient Rev Ops patient-day slice merged in PR #49 with synthetic
+[verification evidence](../testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
+Tyler selected hospital onboarding and additional fields in both setup and data
+entry; that slice merged in PR #50 after review and synthetic verification.
+See its [brief](../product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md)
+and [evidence](../testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md).
+Census-upload reconciliation merged in PR #51 after scoped review and synthetic
+verification. The subsequently approved bounded workflow is
+[month-end readiness and accountable close](../product/INPATIENT_REV_OPS_MONTH_CLOSE_BRIEF.md).
+It merged in PR #52 as `c9a00bd` after review; post-merge CI passed. See the
+[evidence record](../testing/REV_OPS_MONTH_CLOSE_VERIFICATION.md).
+The next authorized slice is [operational census receipt review and export](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md),
+now implemented for local synthetic verification and pending review. Future receipts
+snapshot the approved Daily Midnight Census Count definition; legacy definitions
+remain unknown. Historical budgets remain selected as recorded. See [OD-15–17](../decisions/OPEN_DECISIONS.md)
+for hospital/production decisions and the [evidence record](../testing/REV_OPS_EXPORT_VERIFICATION.md).
+Merge, deployment and a real-hospital pilot remain separate decisions.
+The [detailed execution plan](INPATIENT_REV_OPS_IMPLEMENTATION_PLAN.md)
+remains grounded in the established workbook workflow. This lane does not change
+the platform priority below or establish production readiness.
+
 Reconcile ADR-0012 with the implemented `packages/api-service` spike and decide hosting/tenancy (OD-5/OD-6). Then implement one authorized read-only Product Studio server projection before any mutation or release-control surface.
 
 ## Intake-to-admission lane (added 2026-07-17)

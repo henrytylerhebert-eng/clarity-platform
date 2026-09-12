@@ -32,8 +32,22 @@ export class ApiError extends Error {
 
 let bearerToken: string | null = null;
 
+export async function apiRevOps<T>(path: string, body?: unknown): Promise<T> {
+  const response = await request(`/api/rev-ops${path}`, {
+    token: true,
+    ...(body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }),
+  });
+  return response.json() as Promise<T>;
+}
+
+export async function apiRevOpsExport(path: string, body: {workspaceRevision:number; receiptHash:string}): Promise<Blob> {
+  const response=await request(`/api/rev-ops${path}`,{token:true,method:"POST",body:JSON.stringify(body)});
+  if(!response.headers.get("content-type")?.includes("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) throw new ApiError(502,"invalid_export_response");
+  return response.blob();
+}
+
 async function request(path: string, init?: RequestInit & { token?: boolean }): Promise<Response> {
-  const headers: Record<string, string> = { "content-type": "application/json" };
+  const headers: Record<string, string> = init?.body === undefined ? {} : { "content-type": "application/json" };
   if (init?.token) {
     if (!bearerToken) throw new ApiError(401, "authentication_failed");
     headers.authorization = `Bearer ${bearerToken}`;

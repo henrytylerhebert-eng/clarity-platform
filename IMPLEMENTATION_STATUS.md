@@ -1,5 +1,109 @@
 # Implementation Status
 
+**2026-09-06: Rev Ops patient-day slice merged; synthetic verification, not deployed.**
+[PR #49](https://github.com/henrytylerhebert-eng/clarity-platform/pull/49) merged
+as `926b3776ae25df536ad3d2254d51c6d8019aff0a` after latest-head CI passed.
+The synthetic `/rev-ops` workflow now covers
+hospital/unit setup, delegated access, configurable cost center, budget
+upload/manual draft and approval, actuals upload/manual entry, accountable
+correction, period close/reopen and full/phased comparisons. Persistence,
+source history, optimistic concurrency and server-enforced tenant isolation
+are implemented. Forecast, collections and event-level stay counting remain deferred.
+
+Tyler completed the owner walkthrough and authorized a test/debug pass. Current
+verification: 480 root tests, 67 app tests and four Rev Ops browser journeys passed
+after review fixes; all 20 legacy browser checks passed in the preceding debug pass.
+Typecheck, full source lint, app build, Prisma
+validation and diff checks passed. A real API restart preserved the full workspace
+and all audit revisions. Debugging fixed import validation/provenance, stale UI
+state, budget amendment handling, setup ambiguity and server logout; an additional
+migration protects history from application-role updates/deletes. Stale legacy
+selectors and an intermittent prescreen fixture collision were corrected.
+The subsequent review reproduced and fixed a ZIP entry-count validation bypass
+and cascading audit-reference rewrites. Complete ZIP directory validation and a
+fourth forward migration now protect those paths; both regressions pass.
+The final import fix replaces full workbook-model loading with a bounded,
+namespace-aware scalar reader, covering unused-sheet expansion and the original
+sample's namespace compatibility failure. The original workbook now passes upload,
+approval, correction, replay and reload without modification. Authorization and
+migrations were unchanged in this final fix.
+See [verification and remaining gates](docs/testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).
+This is local synthetic proof, not production readiness or whole-product completion.
+
+**2026-09-07: Onboarding and additional fields — merged with synthetic verification.**
+[PR #50](https://github.com/henrytylerhebert-eng/clarity-platform/pull/50) merged
+as `c5e41132aabdf0d13f984400015cc1ca19082e03`. Administrators can save/resume setup and
+define bounded text/select fields for setup, budgets and actuals. Manual entry
+and imports share validation; values retain definition snapshots, metadata-only
+corrections are audited, and renamed/archived fields preserve history. The UI
+shows onboarding progress from saved state and retains the preview revision at
+import confirmation. Existing tenant transactions and JSON storage are reused;
+no schema, migration, dependency or new service was added.
+
+Verification after PR #50 review: 493 root tests, 68 app tests, six desktop/mobile journeys, lint,
+typecheck, build, Prisma validation and dependency audit passed. API restart
+preserved two field-enabled workspaces and the original PR #49 sample, with
+identical saves remaining no-ops after PostgreSQL JSONB round-trips. The original
+unmodified XLSX still passes upload/correction/replay. See the
+[verification record](docs/testing/REV_OPS_ONBOARDING_FIELDS_VERIFICATION.md) and
+[scope brief](docs/product/INPATIENT_REV_OPS_ONBOARDING_FIELDS_BRIEF.md).
+The review fixed an import mapping-mode replay collision and a client-test build
+failure; CI's existing typecheck now includes app code. The verification record corrects the
+earlier build claim. The owner authorized merge after the agent walkthrough/review;
+[post-merge CI passed](https://github.com/henrytylerhebert-eng/clarity-platform/actions/runs/34152431610).
+This is not a production Rev Ops deployment. Sensitive-field
+permissions and organization-wide field sharing remain deferred. Budget, actual
+activity, forecast and collections remain separate.
+
+**2026-09-07: Census-upload reconciliation — merged with synthetic verification.**
+Tyler approved the [bounded workflow](docs/product/INPATIENT_REV_OPS_IMPORT_RECONCILIATION_BRIEF.md).
+PR #51 merged with owner authorization as `dc43505`;
+[post-merge CI passed](https://github.com/henrytylerhebert-eng/clarity-platform/actions/runs/34155541255).
+Reviewers can compare saved/incoming rows, choose keep/use with reasons, commit
+atomically and inspect a durable receipt. Entry-only users cannot commit conflicts,
+including all-keep batches. The server binds decisions to reparsed input and current
+workspace revision; repeat accepted imports return the original receipt without
+replacing later corrections. Existing transactions, journal and import keys are
+preserved; no schema, migration or dependency changes.
+
+Local verification: 502 root tests after review regressions, 71 app tests, eight desktop/mobile journeys,
+lint, root/app typecheck, app build, Prisma validation and dependency audit passed.
+The synthetic receipt is 1 inserted / 2 corrected / 4 unchanged / 1 kept, for +5
+patient days. API restart preserved both workspaces, complete histories and original
+receipts; subsequent replay remained a no-op. The original unmodified XLSX also
+passed upload/correction/replay. See the
+[verification record](docs/testing/REV_OPS_RECONCILIATION_VERIFICATION.md).
+The scoped review found no blocking defect. Added failure injection proves a receipt
+write failure after the workspace update rolls back the entire transaction; forged
+authority fields and legacy-path conflict bypass are rejected. Production gates remain separate; forecast and collections are outside this slice.
+
+**2026-09-07: Month-end readiness and accountable close — merged in PR #52 (`c9a00bd`), synthetically verified.**
+The [approved slice](docs/product/INPATIENT_REV_OPS_MONTH_CLOSE_BRIEF.md) requires
+all calendar dates and an approved budget before closing. Leap years use the existing
+calendar rules. Closing saves a fixed budget/actual/source receipt in the existing
+transaction and journal; reopening preserves it, and the next close creates a new
+version. Legacy closed months remain readable without fabricated receipts.
+
+Verification: 512 root tests, 76 app tests, ten desktop/mobile journeys, lint,
+typecheck, build, Prisma validation and dependency audit passed. Receipt-failure
+injection rolls back the entire close. Two complete workspaces and histories
+survived API restart; four repeat closes remained no-ops. No schema, migration or
+dependency change. See the [evidence record](docs/testing/REV_OPS_MONTH_CLOSE_VERIFICATION.md).
+Production readiness, forecasts, collections and further expansion remain outside
+this bounded proof.
+
+**2026-09-08: Operational census receipt export — implemented locally; pending review, not merged or deployed.**
+Tyler authorized the [bounded export workflow](docs/product/INPATIENT_REV_OPS_EXPORT_BRIEF.md)
+and Daily Midnight Census Count definition v1. Future receipts snapshot the metric
+and historical hospital identity; legacy definitions stay unrecorded. Explicitly
+delegated users can review/download selected original or revised receipts, with
+fresh server authorization, source hashes, bounded values-only workbooks and
+separate durable export events. Existing budget selection remains unchanged.
+Hospital-specific inclusion rules, production retention/limits and real-data use
+remain unverified. No schema, migration, dependency or MiroFish changes.
+See the [verification record](docs/testing/REV_OPS_EXPORT_VERIFICATION.md) for exact
+checks and remaining gates. This is synthetic implementation evidence, not a pilot.
+
 **As of 2026-08-23 (AI operating model merge and PR #43 reconciliation)**
 on branch `docs/session-close-2026-07-29` after merging current `origin/main`.
 

@@ -11,6 +11,8 @@ export default tseslint.config(
   {
     ignores: [
       "**/node_modules/**",
+      // Installed Python dependencies are not repository JavaScript source.
+      "**/.venv/**",
       "app/dist/**",
       "app/playwright-report/**",
       "app/test-results/**",

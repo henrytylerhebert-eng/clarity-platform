@@ -2,6 +2,10 @@
 
 - **Status:** Proposed (clean replacement PR from current `main`)
 - **Date:** 2026-08-23
+- **Branch refresh:** 2026-09-12; merged `origin/main` at
+  `35f16eb63ae0953b15802edb62fdfeb6f8795bfa` into the existing draft branch.
+  The merge required no conflict resolution and did not change the kernel's
+  contracts, fixtures, tests or contract-only scope.
 - **Supersedes:** the contract-only portion of PR #29 and the domain-contract
   portion of PR #30
 - **Does not supersede:** PR #30 service, API, migration, UI, bridge, tooling,

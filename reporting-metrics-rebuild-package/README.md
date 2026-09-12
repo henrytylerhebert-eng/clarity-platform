@@ -6,6 +6,8 @@ This package reverse-engineers the uploaded workbook at a structural level and t
 
 ## Files
 
+- [Inpatient Rev Ops product definition](../docs/product/INPATIENT_REV_OPS_PRODUCT_DEFINITION.md) — product scope grounded in Tyler's ten-year operating experience, shared architecture, user workflows and the first complete software replacement slice.
+- `INPATIENT_REV_OPS_CANDIDATE_REQUIREMENTS.md` — candidate synthesis of the operational workbook and FY22 sample budget: separate budget, actual activity, forecast and collections; hospital onboarding, custom fields, ownership and acceptance checks. Documentation only, not implementation authorization.
 - `REPORTING_METRICS_REVERSE_ENGINEERING.md` — what the workbook currently does, where the logic lives, and what breaks.
 - `SUSTAINABLE_MODEL_ARCHITECTURE.md` — target architecture, data model, metric layer, and dashboard modules.
 - `CODEX_REBUILD_PROMPT.md` — paste this into Codex when you are ready to implement.
