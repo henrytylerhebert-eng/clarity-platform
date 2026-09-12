@@ -3,6 +3,15 @@
 **Date:** 2026-07-19 · **ADR:** ADR-0013 · **Package:** `packages/prescreen-service`
 **Approved scope:** controlled prescreen command service and in-memory gateway only.
 
+## Historical scope and later implementation
+
+The scope and test results below describe the July 19 Phase 2 slice. Phase 3
+subsequently merged in PR #32; current `packages/api-service/src/devMain.ts`
+wires `PrismaPrescreenGateway`. See the [persistence test manifest](../testing/PRESCREEN_PERSISTENCE_TEST_MANIFEST.md)
+for its dated evidence. Phase 2's in-memory/no-API statements are historical
+slice boundaries, not a description of the current platform. This recovery
+reran no prescreen tests.
+
 ## What was built
 
 | File | Responsibility |
