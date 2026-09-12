@@ -1,4 +1,4 @@
-# Clarity Inpatient Operations and Revenue Intelligence
+# Clarity Operations & Revenue Intelligence
 
 Product definition v0.1 — owner review draft
 
@@ -13,6 +13,21 @@ governed by [IMPLEMENTATION_STATUS.md](../../IMPLEMENTATION_STATUS.md).
 Provide hospital organizations with a configurable inpatient operations and
 revenue workspace that connects daily activity, approved budgets, revenue
 forecasts and separately sourced collections across their facilities.
+
+### At a glance
+
+| Question | Definition |
+|---|---|
+| Who is it for? | Hospital administrators, census owners, finance/revenue-cycle teams, staffing coordinators, UR, case management, and regional leadership. |
+| What problem does it solve? | It replaces fragile workbook coordination with source-aware operating workflows that make imports, corrections, versions, comparisons, and close history explainable. |
+| How does it work? | Configure authorized facilities and fields; approve a budget; enter or reconcile observed activity; preserve corrections and provenance; compare compatible measures; then close/export a reviewable receipt. |
+| What must stay separate? | Budget, actual activity, forecast, and posted collections. A derived estimate is not accounting revenue or cash. |
+| What is implemented now? | A synthetic patient-day operations slice: setup/access, custom fields, budget approval, actuals, reconciliation, correction, close/reopen, staffing comparison, and receipt export. |
+| What remains staged? | Full workbook parity, event-level stay counting, forecast, collections, financial revenue models, staffing-cost detail, IOP/PHP workflow coverage, and live integrations. |
+
+This product follows Clarity Access when an organization needs operational evidence
+after referral and care-transition work. It shares trust controls with Access but is
+not a clinical record, an accounting ledger, or an authorization-decision system.
 
 Tyler reports using the underlying workbook-based operating system for ten
 years. That experience is the functional baseline for modernization. This
