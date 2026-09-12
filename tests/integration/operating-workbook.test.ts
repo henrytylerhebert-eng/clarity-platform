@@ -30,6 +30,17 @@ async function request(token: string, path: string, body?: unknown): Promise<{ s
   return { status: response.status, cache: response.headers.get("cache-control"), body: await response.json() };
 }
 const route = () => `/workspaces/${workspaceId}/operating-workbook`;
+// Each test's own valid setup: loads the accepted sample if a prior test's
+// load didn't run or failed, so a failed initialization surfaces as its own
+// clear "loadSample did not return 200" failure here, never as an unrelated
+// "Cannot read properties of null" crash in a later, otherwise-passing test.
+async function ensureLoaded(): Promise<View> {
+  const current = await request(tokenA, route());
+  if (current.body.workbook) return current.body as View;
+  const loaded = await request(tokenA, route(), { action: "loadSample" });
+  expect(loaded.status).toBe(200);
+  return loaded.body as View;
+}
 
 beforeAll(async () => {
   h = await createHarness();
@@ -95,6 +106,7 @@ it("persists the accepted year, recalculates corrections and preserves report ev
 }, 30000);
 
 it("enforces authenticated tenancy, delegated view and admin correction authority", async () => {
+  await ensureLoaded();
   expect((await request("", route())).status).toBe(401);
   expect((await request(tokenB, route())).status).toBe(404);
   expect((await request(tokenReader, route())).status).toBe(403);
@@ -117,7 +129,7 @@ it("enforces authenticated tenancy, delegated view and admin correction authorit
 }, 20000);
 
 it("adds durable payer and contract versions without modifying source records", async () => {
-  const before = (await request(tokenA, route())).body as View;
+  const before = await ensureLoaded();
   const source = before.workbook.tables.find(t => t.key === "payers")!.rows[0]!;
   const payerValues = Object.fromEntries(Object.entries(source.values).filter(([key]) => !source.formulaKeys?.includes(key)));
   payerValues.payerId = "SYN-NEW-PPO";
