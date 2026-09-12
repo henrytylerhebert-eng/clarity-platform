@@ -66,7 +66,7 @@ worth an ADR.
 
 ## The risks that need owner rulings, not engineering judgment
 
-### R1 — Cross-tenant leakage through shared retrieval (highest severity)
+### Concern A — Cross-tenant leakage through shared retrieval (highest severity)
 
 "AI-native index" implies embeddings and vector retrieval. A shared vector
 store is the classic route to a cross-tenant disclosure, and it defeats the
@@ -76,7 +76,7 @@ design must state whether the index is physically partitioned per tenant, and
 how that is proven by test. **This is the single decision most likely to make
 the feature unsafe.**
 
-### R2 — Policy-as-reference versus policy-as-authority
+### Concern B — Policy-as-reference versus policy-as-authority
 
 There is a large difference between:
 
@@ -90,7 +90,7 @@ decisions** (prescreen possible-pathways, readiness with no aggregate score).
 The owner should rule which of these Phase 2 is, because the second changes
 the platform's regulatory character.
 
-### R3 — Clinical decision support and FDA scope
+### Concern C — Clinical decision support and FDA scope
 
 If the index begins telling clinicians what their organization's policy
 requires for a specific patient's placement, that may implicate FDA clinical
@@ -100,7 +100,7 @@ recommendation is transparent and whether the clinician can independently
 review it). This needs research and counsel input before design, not after.
 It is a genuine scope question, not a hypothetical.
 
-### R4 — Whose interpretation, and who is accountable
+### Concern D — Whose interpretation, and who is accountable
 
 Phase 1's output classifies requirements as BINDING-INTERPRETIVE or
 ORG-DISCRETION and enumerates what each organization must decide for itself.
@@ -109,7 +109,7 @@ compliance policy — which the repository's honesty rules currently forbid
 claiming. If it ships no default, every tenant faces a blank page. The owner
 should rule where on that spectrum this lands.
 
-### R5 — Staleness
+### Concern E — Staleness
 
 Policies are revised; regulations change. An index that confidently returns a
 superseded policy version is worse than no index. Any design must state how
@@ -133,7 +133,7 @@ These are recorded for a future decision, deliberately unranked:
    interpretation map as a documentation artifact, and stop. No runtime, no
    ingestion. This is the natural next step and does not disturb the build
    sequence.
-3. **Design-only spike** — an ADR that answers R1–R5 with no code, so the
+3. **Design-only spike** — an ADR that answers Concerns A–E with no code, so the
    architecture is settled before the sequence reaches it.
 4. **Retrieval-as-reference MVP** after the UI step — verbatim excerpt lookup
    with version binding and per-tenant partitioning, explicitly no
@@ -147,6 +147,6 @@ sequence, and it is what the Phase 1 prompt was written for.
 No design, schema, migration, vector-store selection, model selection, or
 implementation plan. No claim that a per-tenant policy index is feasible under
 the current architecture, that retrieval can be made tenant-safe, that the
-feature would be free of FDA CDS implications, or that any of R1–R5 has been
+feature would be free of FDA CDS implications, or that any of Concerns A–E has been
 resolved. No production readiness, HIPAA compliance, or approved clinical or
 legal rule content.
