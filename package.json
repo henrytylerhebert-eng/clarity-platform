@@ -16,6 +16,7 @@
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
     "migration:recovery:local": "tsx scripts/verify-local-migration-recovery.ts",
+    "test:ephemeral": "tsx scripts/with-ephemeral-database.ts",
     "api:dev": "tsx packages/api-service/src/devMain.ts",
     "bridge:doctor": "agents/bridge/agent-bridge doctor",
     "bridge:status": "agents/bridge/agent-bridge status",

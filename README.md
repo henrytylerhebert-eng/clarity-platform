@@ -126,6 +126,26 @@ npm run smoke
 npm audit --omit=dev
 ```
 
+For isolated synthetic database verification on macOS or Linux, install dependencies
+inside the worktree with `npm ci`, put PostgreSQL's `initdb`, `pg_ctl`, and `createdb`
+on `PATH`, then run:
+
+```bash
+npm run test:ephemeral
+npm run test:ephemeral -- node node_modules/vitest/vitest.mjs run tests/integration
+```
+
+This opt-in runner creates a separate loopback PostgreSQL instance for each run,
+generates the worktree's Prisma client, applies its migrations, and passes the fresh
+`clarity_dev` URL to the command. It rejects Prisma/Vitest CLI files, workspace links,
+or generated-client paths that resolve outside the worktree. Keep the checkout/schema
+stable while a run is active. Success, command failure, SIGINT, and SIGTERM stop the owned server and remove
+its temporary directories; cancellation during startup waits up to ten seconds for
+startup to finish. If PostgreSQL shutdown fails, the command reports failure and
+retains the printed data directory for recovery. The developer's existing database
+is outside this runner's scope. A short port-allocation race remains possible; a
+startup collision fails and cleans up so the command can be retried.
+
 ## Ground rules
 
 - **Synthetic data only.** No real PHI/PII anywhere, ever, until formal security review (`SECURITY.md`).
