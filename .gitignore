@@ -36,3 +36,6 @@ __pycache__/
 
 # Worktree-local generated knowledge graph; see docs/developer-handoff/GRAPHIFY_WORKFLOW.md
 /graphify-out/
+
+# Separate local visualizer repository; not a configured Clarity submodule
+/clarity-platform-visualizer/

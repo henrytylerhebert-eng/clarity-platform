@@ -83,3 +83,44 @@ Checks run on 2026-09-12:
   application/database checks are left to the PR's CI and reported separately.
 - The installed CLI warns that its skill is version 0.2.2 while its package is
   0.8.16. No global skill/package installation was changed by this housekeeping.
+
+## Separate local visualizer repository
+
+The same local-artifact housekeeping pass removes the orphan
+`clarity-platform-visualizer` gitlink from Clarity tracking and ignores that local
+directory. Issue #40 remains the primary Graphify change; this additional tracking
+fix addresses the CI checkout-cleanup error `No url found for submodule path
+'clarity-platform-visualizer' in .gitmodules`.
+
+The removed entry was mode `160000`, commit
+`bbc7c3eac00dc4c89d9607f3a041ea11d0e2d1ec`. Clarity has no `.gitmodules` entry or
+tracked application, service, script, test or CI consumer for that path. Existing
+ESLint configuration already excludes it as a separate nested repository. No
+remote or submodule configuration is inferred or added.
+
+Before untracking, the original local visualizer repository was verified clean at
+that exact detached HEAD. Its existing `main` and `origin/main` refs point to
+`9b3fff4cd89cdab96f531c130337137cd537ed15`. Both named refs and detached HEAD were
+saved in a verified independent Git bundle. A separate archive and SHA-256 manifest
+preserve 81 local source/artifact files, including ignored output files. The
+archive excludes generated `node_modules` and `.git` metadata; both remain in the
+original directory, and Git history/refs are independently retained in the bundle.
+
+The local recovery set is
+`clarity-recovery/20260912T203908Z/visualizer-preservation/` under the owner's
+Documents directory: `visualizer-all-refs.bundle`,
+`visualizer-local-source-and-artifacts.tar.gz`, and `preservation.json`.
+These are local recovery files and are not uploaded by this PR.
+
+Only `git rm --cached clarity-platform-visualizer` is used. The original nested
+repository, its dependencies and outputs stay in place; the housekeeping worktree's
+empty placeholder directory is also retained. As with graph outputs, preserve local
+work before adopting a tracking-removal commit in another checkout. The prior
+gitlink is still recorded in Clarity history at `35f16eb`.
+
+Focused verification: before the fix, `git submodule foreach --recursive true`
+failed with exit 128 and the missing-URL error. After untracking it succeeds;
+`git ls-files clarity-platform-visualizer` prints no paths, the directory is ignored,
+the original 81 file hashes still match the archive, and nested HEAD/refs/status
+remain unchanged. No application, reference package or source-system behavior is
+changed. The complete PR still requires successful CI on its new published head.
