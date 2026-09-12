@@ -1,6 +1,8 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import Fastify from "fastify";
 import { registerRevOpsRoutes } from "./revOpsRoutes.js";
+import { registerOperatingWorkbookRoutes } from "./operatingWorkbookRoutes.js";
+import type { PrismaOperatingWorkbookGateway } from "../../case-repository/src/operatingWorkbookGateway.js";
 import type { PrismaRevOpsGateway } from "../../case-repository/src/revOpsGateway.js";
 import { registerIopReconciliationRoutes } from "./iopReconciliationRoutes.js";
 import type { PrismaIopReconciliationGateway } from "../../case-repository/src/iopReconciliationGateway.js";
@@ -151,6 +153,7 @@ export interface ApiDeps {
   caseCommands: CaseCommandService;
   prescreen: PrescreenCommandService;
   revOps?: PrismaRevOpsGateway;
+  operatingWorkbook?: PrismaOperatingWorkbookGateway;
   iopReconciliation?: PrismaIopReconciliationGateway;
 }
 
@@ -279,6 +282,7 @@ export function createApiServer(deps: ApiDeps): Server {
     void reply.code(http.status).send({ error: http.code });
   });
   if (deps.revOps) registerRevOpsRoutes(app, deps.auth, deps.revOps);
+  if (deps.operatingWorkbook) registerOperatingWorkbookRoutes(app, deps.auth, deps.operatingWorkbook);
   if (deps.iopReconciliation)
     registerIopReconciliationRoutes(app, deps.auth, deps.iopReconciliation);
   app.all("/*", async (request, reply) => {

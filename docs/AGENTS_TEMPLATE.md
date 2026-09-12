@@ -146,3 +146,9 @@ When reporting completion, use:
 - Unknowns / blockers:
 - Open decisions:
 - Stakeholder validation needed:
+
+## Proposed historical evaluation supplement
+
+For review of the unapproved DEV-R1 experiment, the optional execution-contract
+fields are in [the quick-fill template](AGENTS_TEMPLATE.quickfill.md#10-proposed-dev-r1-evaluation-contract).
+Completing a template does not approve the experiment or amend ADR-0017.

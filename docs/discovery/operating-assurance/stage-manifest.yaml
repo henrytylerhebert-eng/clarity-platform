@@ -1,0 +1,45 @@
+# Recovered historical proposed stage contract; no workflow execution or new approval.
+skill:
+  id: idea-opportunity-assessment
+  version: "1.0"
+  purpose: Turn the parked operating-assurance idea into a defined opportunity, assumption register, and smallest learning plan.
+entry_conditions:
+  required_artifacts:
+    - source_pattern_audit
+    - canonical_roadmap_parking_lot
+    - open_decisions
+    - risk_register
+  required_gates: []
+  prohibited_states:
+    - implementation_in_progress
+outputs:
+  - idea_restatement
+  - problem_hypothesis
+  - value_hypothesis
+  - user_and_stakeholder_map
+  - current_alternatives
+  - assumption_register
+  - opportunity_classification
+  - smallest_learning_plan
+  - repository_state_snapshot
+exit_verdicts:
+  - ready_for_product_intelligence
+  - discovery_required
+  - service_or_workflow_opportunity
+  - insufficiently_defined
+  - stop
+next_skills:
+  ready_for_product_intelligence:
+    - product-intelligence
+  discovery_required:
+    - idea-opportunity-assessment
+  service_or_workflow_opportunity:
+    - product-intelligence
+  insufficiently_defined:
+    - idea-opportunity-assessment
+  stop: []
+return_conditions:
+  product_intelligence:
+    - primary_user_or_workflow_invalidated
+    - value_hypothesis_not_supported
+    - authority_or_data_boundary_invalidated
