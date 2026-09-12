@@ -1,12 +1,14 @@
 ---
 status: Integrated draft — reconciles C-2
 owner: TBD
-version: 1.0.0
+version: 1.2.0
 last_integrated: 2026-07-10
+last_scoped_reconciliation: 2026-09-12
 source_artifacts:
   - MASTER_ARCHITECTURE.md §25, FIRST_25_GITHUB_ISSUES.md, REQUIREMENTS_TRACEABILITY sprint column (partial package)
   - docs/04-build-roadmap.md (crisis generation)
   - INTEGRATION_PLAN.md sprint mapping (database artifact)
+  - docs/discovery/operating-assurance/README.md
 unresolved_conflicts: "15-roadmap-and-sprints/ROADMAP.md missing from package"
 related_requirements: all
 related_adrs: ADR-0001, ADR-0002
@@ -80,3 +82,16 @@ Explicitly deprioritized by the product owner — do not schedule; revisit when 
 | Item | Added | Why parked | Where specified |
 |---|---|---|---|
 | Facility policies/procedures/SOP ingestion pipeline (to auto-inform documentation configuration and the CIA runtime) | 2026-07-17 | Appropriate for the roadmap but not a high priority now, per product owner | `docs/workflows/INTAKE_TO_ADMISSION_WORKFLOW.md` R8 |
+| Organization policy control record and index skeleton | 2026-07-29 | OD-14 has no accepted design; tenant partitioning, policy-as-reference boundary, privacy, and qualified review remain open | `docs/discovery/SHARED_DRIVE_OPERATING_PATTERN_AUDIT.md` SD-01 |
+| Regulatory-change impact review packet | 2026-07-29 | The regulatory corpus can detect source changes, but applicability and policy impact remain human decisions | `docs/discovery/SHARED_DRIVE_OPERATING_PATTERN_AUDIT.md` SD-02 |
+| Survey-readiness evidence matrix / tracer | 2026-07-29 | Useful evidence structure, but it must not make an automatic compliance determination | `docs/discovery/SHARED_DRIVE_OPERATING_PATTERN_AUDIT.md` SD-03 |
+| Program assurance cycle (risk -> plan -> measure -> committee -> corrective action) | 2026-07-29 | Requires accepted metric definitions, operational ownership, and a corrective-action boundary | `docs/discovery/SHARED_DRIVE_OPERATING_PATTERN_AUDIT.md` SD-04 |
+| SOP authoring, committee-action, and role-competency template kit | 2026-07-29 | Valuable for SME handoff and training, but source authority, approval, renewal, and evidence rules are not yet governed | `docs/discovery/SHARED_DRIVE_OPERATING_PATTERN_AUDIT.md` SD-05, SD-06, SD-08 |
+| Compliance calendar and organization-onboarding readiness checklist | 2026-07-29 | Organization applicability, licensing interpretation, tenancy, and production onboarding are unresolved | `docs/discovery/SHARED_DRIVE_OPERATING_PATTERN_AUDIT.md` SD-07, SD-09 |
+| Closeout and after-action review packet | 2026-07-29 | A useful corrective-action pattern, but client findings must remain excluded and closure needs governed evidence and review | `docs/discovery/SHARED_DRIVE_OPERATING_PATTERN_AUDIT.md` SD-10 |
+
+The operating-assurance rows above recover the July 29 parking lot. They remain
+parked; the [recovery index](../discovery/operating-assurance/README.md) records
+historical definition-stage acceptance separately from unstarted requirements,
+architecture, implementation, and pilot work. Product/repository home and
+corpus-use decisions remain OD-24 and OD-25.

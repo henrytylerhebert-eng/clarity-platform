@@ -1,12 +1,13 @@
 ---
 status: Living document
 owner: TBD
-version: 1.0.0
+version: 1.5.0
 last_integrated: 2026-07-10
 last_scoped_reconciliation: 2026-09-12
 source_artifacts:
   - docs/06-architecture-review.md (Jul 8 findings + unknowns)
   - docs/repository-audit/03_CONFLICT_REGISTER.md, 03_GAP_ANALYSIS.md
+  - docs/discovery/operating-assurance/README.md
 unresolved_conflicts: "Package 18-open-decisions-and-risks/OPEN_DECISIONS.md missing — this file re-seeds it"
 related_requirements: —
 related_adrs: ADR-0001, ADR-0002
@@ -41,6 +42,9 @@ the bounded synthetic implementation from unresolved hospital/production decisio
 | OD-20 | `RETURNED_FOR_MORE_INFORMATION` remains the exact Prisma-only `KNOWN_DESYNC.CaseStatus` value in the enum-sync test. Decide its semantics, removal, or formal continued tolerance. | Product + technical/database owners | Shared returned-packet status changes and removal of the recorded tolerance |
 | OD-21 | The canonical model is already selected by accepted ADR-0017/merged PR #33. Decide whether to adopt any recovered DEV-R1 evaluation safeguards as an explicit amendment; until then the recovered proposal is historical and Pending. | Product + technical owner | Adoption or launch of this candidate; documentation recovery does not supersede the accepted model |
 | OD-22 | Decide qualified role authority for entering `MEDICAL_TRANSFER_REQUIRED`. `TransitionCase` still permits `INTAKE_COORDINATOR` and `ORGANIZATION_ADMIN`; ADR-0018 does not establish clinical approval. | Product + qualified clinical + technical/security owners | Medical-diversion role-policy changes and production reliance |
+| OD-23 | The July source packet records operating-assurance Product Intelligence acceptance for a client-operated, consultant-supervised reviewed answer or explicit gap. Retained as historical provenance; the lane remains paused and implementation is not authorized. | Product + operational/compliance owners | Direct workflow/software-value validation; no pilot or runtime authority from recovery |
+| OD-24 | Operating-assurance product/repository home remains undecided: Clarity module, adjacent product with selective pattern reuse, or separate product. The historical recommendation is adjacent; no option is adopted here. | Product + technical/security owners | Architecture, repository selection, contracts, and implementation |
+| OD-25 | Determine permitted uses of historical consulting artifacts: firm-owned patterns, tenant-private retrieval, permissioned derived examples, evaluation-only, shared training, or prohibited. No corpus-use approval is supplied by recovery. | Product + legal/contracts + privacy/security + operational/compliance owners | Content-level ingestion, retrieval, derived examples, embeddings, evaluation, or training using historical material |
 
 ## Recovered agent-readiness decisions — 2026-09-12
 
@@ -95,3 +99,150 @@ whether target-specific roles, a distinct approval, the existing policy with
 rationale, or disabled entry is appropriate. This recovery selects none of
 those outcomes; allowed/denied role, audit, and non-revealing failure evidence
 would belong to a separately authorized implementation.
+
+## Operating-assurance decision provenance
+
+The detail below preserves the July 29–30 source decision record with migrated
+IDs. Its resolution/acceptance labels describe that historical source; the
+current rows above and [recovery index](../discovery/operating-assurance/README.md)
+state the paused scope. No acceptance, product-home selection, or corpus-use
+permission is added by the documentation recovery.
+
+## OD-23 detail - operating-assurance discovery focus
+
+- **Decision ID:** `OD-23`
+- **Question:** Which one bounded operating-assurance job, user/context, and
+  target outcome should be tested first, and may it enter Product Intelligence
+  after discovery?
+- **Why it matters:** The source-pattern audit supports a plausible connected
+  workflow, but it does not establish the primary user, frequency, severity,
+  product fit, measurable value, or preferred alternative.
+- **Options:**
+  1. Leave all candidates parked and run no discovery.
+  2. Run the documentation-only SD-01 + SD-03 synthetic policy-review
+     walkthrough described by EXP-OA-01.
+  3. Select a different single candidate only after direct user evidence shows
+     it is a better first learning target.
+- **Evidence:** The shared-drive operating-pattern audit and current repository
+  fit are documented. Direct user validation and baseline/outcome measurements
+  are absent. `No measurements found`.
+- **Historical recommendation, superseded for the Product Intelligence route
+  on 2026-07-30:** Option 2, only after a named policy/process owner, SOP user,
+  and independent evidence reviewer are confirmed. The current resolution
+  below permits bounded product definition while preserving the experiment as
+  a prerequisite for pilot, adoption, usability, or measurable-value claims.
+- **Confidence:** Medium for discovery sequencing; low for product value until
+  the walkthrough runs.
+- **Owner:** Tyler Hebert/product owner with an operational/compliance owner.
+- **Required by:** Resolved through Product Intelligence. Direct participant
+  evidence remains required before a pilot or client-operated software
+  value/status claim for SD-01 through SD-10.
+- **Blocking status:** Does not block Product Requirements Planning. It
+  continues to block pilot and validated software-value claims; it does not
+  block current Clarity roadmap work.
+- **Downstream impact:** The operating-assurance idea assessment, any future
+  Product Intelligence brief, and OD-14 if SD-01 later reaches organization-
+  policy retrieval or indexing.
+
+### OD-23 resolution - 2026-07-30
+
+- **Selected user/context:** Client-side compliance, quality, or program owner
+  operating one organization/facility workspace, with an assigned consultant
+  providing configuration, oversight, review, and approval.
+- **Selected job:** Answer one survey-readiness or operating-assurance question
+  by tracing exact authority/version to current policy, SOP, one evidence
+  response, human review, and an explicit answer or gap.
+- **Target outcome:** A source-linked, human-reviewed answer or explicit
+  `Unknown`/gap. Corrective-action and closure management remain part of the
+  longer product thesis, not the minimum first-release outcome.
+- **Authority posture:** Reference and provenance support only. Qualified
+  humans decide applicability, interpretation, compliance, clinical, and legal
+  conclusions.
+- **Required reviewers:** Product owner and operational/compliance reviewer;
+  security/privacy and technical reviewers before any real-data or runtime
+  design; counsel or clinical review when content requires it.
+- **Success criteria:** Exact lineage is visible; missing evidence remains
+  explicit; consultant review is preserved; both an answer and an explicit-gap
+  branch are valid completion; no cross-tenant or false-compliance output is
+  required.
+- **Stop criteria:** The workflow requires unlicensed/protected material,
+  autonomous compliance interpretation, cross-tenant access, or maintenance
+  burden that participants judge greater than the coordination value.
+- **Evidence limit:** EXP-OA-01 was not run and no baseline exists. This
+  resolution authorizes Product Intelligence and a proposed release boundary,
+  not pilot, implementation, or product-value claims.
+- **Longitudinal evidence update:** The owner reports that the tools,
+  workflows, evidence methods, and plans of correction have been used since
+  2020 while building the business. The dated recurring corpus corroborates
+  method adoption and practical service value. It does not prove
+  client-operated software adoption, software ROI, or permission to use every
+  historical artifact for shared training.
+- **Status:** Resolved through Product Intelligence; product definition passed
+  for Product Requirements Planning.
+
+## OD-24 detail - operating-assurance product home
+
+- **Decision ID:** `OD-24`
+- **Question:** Should the operating-assurance product be implemented as a
+  Clarity module, an adjacent product sharing selected primitives, or a fully
+  separate product and repository?
+- **Why it matters:** Clarity's governing object is a patient/referral case.
+  Operating assurance governs organization/facility authority, policies, SOPs,
+  evidence, actions, and multi-client consultant oversight.
+- **Options:**
+  1. Extend Clarity directly.
+  2. Create a separate adjacent product and selectively reuse proven patterns.
+  3. Create a fully independent product with no planned reuse.
+- **Evidence:** The workflows, users, buyer, tenancy structure, and governing
+  records differ. Clarity's document and evidence contracts are case-oriented,
+  though its versioning, evidence review, audit, and fail-closed patterns may
+  be useful.
+- **Recommendation:** Option 2. Keep product identity and domain contracts
+  separate; evaluate reuse during Execution Architecture.
+- **Confidence:** High for product separation; medium for future technical
+  reuse.
+- **Owner:** Tyler Hebert with technical and security owners.
+- **Required by:** Before Execution Architecture.
+- **Blocking status:** Does not block product definition or first-release
+  scoping. Blocks repository, schema, service, integration, and implementation
+  decisions.
+- **Downstream impact:** Product Intelligence brief, first-release scope,
+  repository selection, tenancy design, contract catalog, and any future ADR.
+
+## OD-25 detail - historical consulting corpus use
+
+- **Decision ID:** `OD-25`
+- **Question:** Which historical consulting artifacts may be used for
+  firm-wide product logic, tenant-private retrieval, de-identified expert
+  demonstrations, held-out evaluation, shared model training, or no use?
+- **Why it matters:** The longitudinal collection is a valuable record of
+  evidence workflows, findings, plans of correction, human review, closure,
+  and change. It also mixes firm-owned methods, client-confidential records,
+  licensed sources, personal information, stale versions, and outputs whose
+  correctness or outcome is not established.
+- **Options:**
+  1. Use only generic field and workflow patterns; no historical content.
+  2. Create a governed tiered corpus with purpose-specific rights,
+     tenant-private boundaries, de-identified/permissioned examples, and a
+     held-out human-reviewed evaluation set.
+  3. Treat the full historical collection as shared training data.
+- **Evidence:** Owner-reported use since 2020; dated 2019-2026 artifacts;
+  recurring delivery structures; 3,121 operating assets; 1,476 delivery
+  assets; and the source audit's provenance, privacy, licensing, and
+  currentness warnings.
+- **Recommendation:** Option 2. Use the corpus first for ontology, workflow
+  logic, templates, synthetic cases, and evaluation. Permit tenant-private
+  retrieval or shared training only after the relevant content tier passes
+  rights, privacy, licensing, provenance, and safety review.
+- **Confidence:** High that a tiered model is required; unknown which
+  individual artifacts qualify until a content-level eligibility audit.
+- **Owner:** Tyler Hebert with legal/contract, privacy/security, and
+  operational/compliance reviewers.
+- **Required by:** Before live corpus ingestion, tenant retrieval,
+  de-identification, shared examples, embeddings, training, fine-tuning, or
+  model evaluation using historical content.
+- **Blocking status:** Does not block Product Requirements Planning. Blocks
+  corpus architecture, content processing, model work, and implementation.
+- **Downstream impact:** Corpus manifest, data classification, tenancy,
+  retention/deletion, model/evaluation strategy, source contracts, acceptance
+  criteria, and incident/correction procedures.
