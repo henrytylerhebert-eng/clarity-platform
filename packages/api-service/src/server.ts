@@ -231,7 +231,8 @@ function prescreenActorFor(principal: AuthenticatedPrincipal) {
   return {
     actorId: principal.userId,
     actorType: "USER" as const,
-    roleCodes: [...principal.roles],
+    // The same verified roles must produce the same idempotency fingerprint.
+    roleCodes: [...principal.roles].sort(),
   };
 }
 
