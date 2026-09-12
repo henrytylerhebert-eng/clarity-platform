@@ -69,6 +69,10 @@ artifacts:
     status: accepted
     version: "0.3.0"
     path: docs/discovery/operating-assurance/PRODUCT_INTELLIGENCE_HANDOFF.md
+  visit_assurance_analysis_prompt:
+    status: proposed
+    version: "0.1.0"
+    path: docs/discovery/operating-assurance/CHATGPT_PROJECT_PROMPT_VISIT_ASSURANCE_PACKAGE.md
 gates:
   opportunity_definition: passed
   product_definition: passed

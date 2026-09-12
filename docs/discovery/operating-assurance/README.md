@@ -57,3 +57,11 @@ file versions reflect the recovered versions, not a new product-stage approval.
 The newer Rev Ops roadmap section and decisions are preserved. Canonical
 roadmap additions remain parked. The next allowed action is review of this
 recovered package; any later product work needs a separately bounded request.
+
+## Standalone analysis prompt
+
+[Visit assurance analysis prompt](CHATGPT_PROJECT_PROMPT_VISIT_ASSURANCE_PACKAGE.md)
+is recovered separately from the accepted-as-recorded July definition package.
+It is Proposed and not executed. It asks a future source review to test the
+visit-package hypothesis; its presence establishes no findings, authority,
+implementation, or permission to process otherwise restricted source material.

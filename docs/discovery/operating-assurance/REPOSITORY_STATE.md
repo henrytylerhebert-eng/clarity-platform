@@ -138,3 +138,12 @@ The Product Intelligence gate is passed, but Product Requirements Planning has
 not started. No live corpus ingestion, extraction, retrieval, model training,
 architecture, implementation, pilot, deployment, commit, push, or pull request
 was performed.
+
+## Recovery supplement — 2026-09-12
+
+The Git table and changed-path inventory above remain the July source snapshot.
+The current [recovery index](README.md) records the later ID reconciliation and
+paused scope. The recovered [visit-assurance prompt](CHATGPT_PROJECT_PROMPT_VISIT_ASSURANCE_PACKAGE.md)
+is separately registered as Proposed and not executed; it is not part of the
+July accepted product-definition or verification claims. The original
+worktree and its historical inventory remain unchanged.
