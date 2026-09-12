@@ -1,0 +1,173 @@
+{
+  "recovery_bundle_sha256": "e2630f1212863ba7ef7c5e9fd6f4b4e08c37de4b7c533b67de2d99d7325afe50",
+  "refs": [
+    {
+      "ref": "refs/heads/chore/case-foundation-hardening-and-documents",
+      "oid": "94736d30ac2edb27cad5b8a23baddfc2f423cfcd",
+      "batch": 1
+    },
+    {
+      "ref": "refs/heads/chore/ci-workflow",
+      "oid": "58b0d24ba64d93736b3695ae144c495f3526b727",
+      "batch": 1
+    },
+    {
+      "ref": "refs/heads/chore/clarity-master-package-integration",
+      "oid": "f39e8cb61350aa84d98ee49da55b8c018451098b",
+      "batch": 1
+    },
+    {
+      "ref": "refs/heads/chore/claude-operating-manual",
+      "oid": "9ee44eeb645e5cdf4f34b7d43150f68289dc48b9",
+      "batch": 1
+    },
+    {
+      "ref": "refs/heads/chore/security-dependency-updates",
+      "oid": "293a98460f17689e2274fbe757a9b38e58f4c247",
+      "batch": 2
+    },
+    {
+      "ref": "refs/heads/claude/ai-native-agent-assessment-fdb5d7",
+      "oid": "8399eddad4cb8575d94f9b31db27eb00f73e4bcf",
+      "batch": 2
+    },
+    {
+      "ref": "refs/heads/claude/h1-h2-audit-infrastructure-49906f",
+      "oid": "1a7a67fd6a5ae442e60b7071fdfffc44f8726a3b",
+      "batch": 2
+    },
+    {
+      "ref": "refs/heads/claude/opus-availability-69f09e",
+      "oid": "e296e5d53bbacce0ca4495423b4b83783edbf6a5",
+      "batch": 2
+    },
+    {
+      "ref": "refs/heads/claude/project-progress-update-2df83e",
+      "oid": "8399eddad4cb8575d94f9b31db27eb00f73e4bcf",
+      "batch": 3
+    },
+    {
+      "ref": "refs/heads/claude/recent-platform-update-f4c35a",
+      "oid": "889e0c82b28cd0b8f3eafd731985d81bee378dda",
+      "batch": 3
+    },
+    {
+      "ref": "refs/heads/claude/review-pull-push-requests-8d60aa",
+      "oid": "12c12b960f6a35b5228d07fda88d3c2df5220ba7",
+      "batch": 3
+    },
+    {
+      "ref": "refs/heads/claude/youthful-cannon-037192",
+      "oid": "8399eddad4cb8575d94f9b31db27eb00f73e4bcf",
+      "batch": 3
+    },
+    {
+      "ref": "refs/heads/codex/om/prescreen-contract-hardening",
+      "oid": "1385f8fba5f6477e5f590203d7534c84111527f4",
+      "batch": 4
+    },
+    {
+      "ref": "refs/heads/codex/om/rev-ops-export-brief",
+      "oid": "aa7ed60930aa0929832eb7e8967281cc539cf0e4",
+      "batch": 4
+    },
+    {
+      "ref": "refs/heads/codex/om/rev-ops-import-reconciliation",
+      "oid": "251ef93a61986ab76ab8fb74cb68362636372bf7",
+      "batch": 4
+    },
+    {
+      "ref": "refs/heads/codex/om/rev-ops-month-close",
+      "oid": "ca763431f749c595a440730ee32ad16086cf8b85",
+      "batch": 4
+    },
+    {
+      "ref": "refs/heads/codex/om/rev-ops-onboarding-fields",
+      "oid": "c3ee20b12b99ccd23e1cee21c65d18b04a4b39c2",
+      "batch": 5
+    },
+    {
+      "ref": "refs/heads/codex/om/rev-ops-patient-days",
+      "oid": "90ac28f2eb9a33317bc6317e9cd7ca673781285f",
+      "batch": 5
+    },
+    {
+      "ref": "refs/heads/docs/mvp-roadmap",
+      "oid": "5be4677d2ebb34d9a26fc8152419b322fe3b1391",
+      "batch": 5
+    },
+    {
+      "ref": "refs/heads/docs/session-close-status",
+      "oid": "32bb9177b39b01fed2ea650d632738b36aa883fb",
+      "batch": 5
+    },
+    {
+      "ref": "refs/heads/feat/authorization-readiness",
+      "oid": "3178cefb8cb3ccca1783e3e4b6221640f0e596ba",
+      "batch": 6
+    },
+    {
+      "ref": "refs/heads/feat/case-command-service",
+      "oid": "4b457fd59dfb491637a7708d98115c622ea50250",
+      "batch": 6
+    },
+    {
+      "ref": "refs/heads/feat/evidence-repository",
+      "oid": "528450aa1f0cc72b561e1c259b35abfaec469157",
+      "batch": 6
+    },
+    {
+      "ref": "refs/heads/feat/insurance-benefits",
+      "oid": "ddd4fc3c4c2003860ffc29c391bdfc377f076c20",
+      "batch": 6
+    },
+    {
+      "ref": "refs/heads/feat/prescreen-command-service",
+      "oid": "ad1b7e9cbcc3d271dcdbba6f9874f0bd72e8c774",
+      "batch": 7
+    },
+    {
+      "ref": "refs/heads/feat/prescreen-contracts",
+      "oid": "a1ba4c8770535a6c0e500b4c14599a21d6620ef2",
+      "batch": 7
+    },
+    {
+      "ref": "refs/heads/feat/prescreen-source-package",
+      "oid": "a1ac43cf16f40473f38f665f09161eda6a085cef",
+      "batch": 7
+    },
+    {
+      "ref": "refs/heads/feat/tenant-scoped-case-repository",
+      "oid": "da9802af15d6ad743bcabb899e1e271045398af6",
+      "batch": 7
+    },
+    {
+      "ref": "refs/heads/fix/prescreen-assessment-key",
+      "oid": "1470e002e8007066a1cecf2727cb6fdb48273170",
+      "batch": 8
+    },
+    {
+      "ref": "refs/heads/fix/prescreen-review-findings",
+      "oid": "346ee8557256a64ede866d4e4d176f1def6aef9f",
+      "batch": 8
+    },
+    {
+      "ref": "refs/heads/harden-pr21",
+      "oid": "67ee876e4c0276b0bb7d6520800655be5b922ae7",
+      "batch": 8
+    },
+    {
+      "ref": "refs/heads/review-snapshot",
+      "oid": "ebb8ec5249b5aac9fa60f219fc7c4b340cc4d231",
+      "batch": 8
+    },
+    {
+      "ref": "refs/heads/verify-pr20",
+      "oid": "098b6b9aede0d4cafef112fe4b04f8fdb9905aa0",
+      "batch": 9
+    }
+  ],
+  "restoration": "Fetch the desired original ref from the verified local all-local-branches.bundle into a new recovery branch. Do not reset an active checkout.",
+  "original_worktrees": "retained",
+  "remote_branches": "unchanged"
+}
