@@ -37,23 +37,24 @@ the bounded synthetic implementation from unresolved hospital/production decisio
 | OD-15 | Rev Ops metric v1 approved: Daily Midnight Census Count, prior-calendar-day midnight; future receipts snapshot it, legacy receipts disclose definition not recorded. Hospital inclusion rules and their independent version/effective date remain unknown. See [export brief](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md). | Product + census/finance owners | Hospital validation and any patient-day equivalence; synthetic export implementation authorized |
 | OD-16 | Rev Ops budget: retain existing approved-budget selection for this export slice. Predecessor inheritance, separately accountable baseline changes and independent approval remain undecided. See [export brief](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md). | Product + finance owner | Changes to closing/budget policy; export must preserve the historically selected budget |
 | OD-17 | Rev Ops export: explicit delegated permission, safe projection, legacy disclosure, bounded synchronous generation and durable fail-closed audit implemented for synthetic testing. Production audit retention/tamper controls, distributed limits and real-data field policy remain unresolved. See [export brief](../product/INPATIENT_REV_OPS_EXPORT_BRIEF.md). | Product + technical/security reviewers | Production/pilot use; review implementation before merge, no production or real-data authority |
-| OD-18 | Proposed DEV-R1 historical evaluation: approve, revise, or reject the exact charter, sealed corpus, enforced runner boundary, owners, and scoring rules. Approval remains Pending. | Product + technical + security/evaluation owners | DEV-R1 historical experiment only; no live trial or product/runtime authority |
-| OD-19 | Bridge retirement is accepted by ADR-0017; complete or explicitly disposition the held physical quarantine and script/link cleanup while preserving message history and the separate PR #30 hold. | Product + technical owner | Retirement execution; no dispatch or relocation authorized here |
-| OD-20 | `RETURNED_FOR_MORE_INFORMATION` remains the exact Prisma-only `KNOWN_DESYNC.CaseStatus` value in the enum-sync test. Decide its semantics, removal, or formal continued tolerance. | Product + technical/database owners | Shared returned-packet status changes and removal of the recorded tolerance |
-| OD-21 | The canonical model is already selected by accepted ADR-0017/merged PR #33. Decide whether to adopt any recovered DEV-R1 evaluation safeguards as an explicit amendment; until then the recovered proposal is historical and Pending. | Product + technical owner | Adoption or launch of this candidate; documentation recovery does not supersede the accepted model |
-| OD-22 | Decide qualified role authority for entering `MEDICAL_TRANSFER_REQUIRED`. `TransitionCase` still permits `INTAKE_COORDINATOR` and `ORGANIZATION_ADMIN`; ADR-0018 does not establish clinical approval. | Product + qualified clinical + technical/security owners | Medical-diversion role-policy changes and production reliance |
-| OD-23 | The July source packet records operating-assurance Product Intelligence acceptance for a client-operated, consultant-supervised reviewed answer or explicit gap. Retained as historical provenance; the lane remains paused and implementation is not authorized. | Product + operational/compliance owners | Direct workflow/software-value validation; no pilot or runtime authority from recovery |
-| OD-24 | Operating-assurance product/repository home remains undecided: Clarity module, adjacent product with selective pattern reuse, or separate product. The historical recommendation is adjacent; no option is adopted here. | Product + technical/security owners | Architecture, repository selection, contracts, and implementation |
-| OD-25 | Determine permitted uses of historical consulting artifacts: firm-owned patterns, tenant-private retrieval, permissioned derived examples, evaluation-only, shared training, or prohibited. No corpus-use approval is supplied by recovery. | Product + legal/contracts + privacy/security + operational/compliance owners | Content-level ingestion, retrieval, derived examples, embeddings, evaluation, or training using historical material |
+| OD-20 | Proposed DEV-R1 historical evaluation: approve, revise, or reject the exact charter, sealed corpus, enforced runner boundary, owners, and scoring rules. Approval remains Pending. | Product + technical + security/evaluation owners | DEV-R1 historical experiment only; no live trial or product/runtime authority |
+| OD-21 | Bridge retirement is accepted by ADR-0017; complete or explicitly disposition the held physical quarantine and script/link cleanup while preserving message history and the separate PR #30 hold. | Product + technical owner | Retirement execution; no dispatch or relocation authorized here |
+| OD-22 | `RETURNED_FOR_MORE_INFORMATION` remains the exact Prisma-only `KNOWN_DESYNC.CaseStatus` value in the enum-sync test. Decide its semantics, removal, or formal continued tolerance. | Product + technical/database owners | Shared returned-packet status changes and removal of the recorded tolerance |
+| OD-23 | The canonical model is already selected by accepted ADR-0017/merged PR #33. Decide whether to adopt any recovered DEV-R1 evaluation safeguards as an explicit amendment; until then the recovered proposal is historical and Pending. | Product + technical owner | Adoption or launch of this candidate; documentation recovery does not supersede the accepted model |
+| OD-24 | Decide qualified role authority for entering `MEDICAL_TRANSFER_REQUIRED`. `TransitionCase` still permits `INTAKE_COORDINATOR` and `ORGANIZATION_ADMIN`; ADR-0018 does not establish clinical approval. | Product + qualified clinical + technical/security owners | Medical-diversion role-policy changes and production reliance |
+| OD-25 | The July source packet records operating-assurance Product Intelligence acceptance for a client-operated, consultant-supervised reviewed answer or explicit gap. Retained as historical provenance; the lane remains paused and implementation is not authorized. | Product + operational/compliance owners | Direct workflow/software-value validation; no pilot or runtime authority from recovery |
+| OD-26 | Operating-assurance product/repository home remains undecided: Clarity module, adjacent product with selective pattern reuse, or separate product. The historical recommendation is adjacent; no option is adopted here. | Product + technical/security owners | Architecture, repository selection, contracts, and implementation |
+| OD-27 | Determine permitted uses of historical consulting artifacts: firm-owned patterns, tenant-private retrieval, permissioned derived examples, evaluation-only, shared training, or prohibited. No corpus-use approval is supplied by recovery. | Product + legal/contracts + privacy/security + operational/compliance owners | Content-level ingestion, retrieval, derived examples, embeddings, evaluation, or training using historical material |
 
 ## Recovered agent-readiness decisions — 2026-09-12
 
 [Recovery disposition](../developer-handoff/GOVERNANCE_DOCUMENT_RECOVERY_2026-09-12.md)
 records the July-to-current ID mapping and superseded source-era claims.
-OD-18 through OD-22 replace this proposal's old branch-local OD-15 through
-OD-19 references. Canonical Rev Ops OD-15 through OD-17 are unchanged.
+OD-20 through OD-24 replace this proposal's old branch-local OD-15 through
+OD-19 references. Canonical Rev Ops OD-15 through OD-17 and workbook
+OD-18/OD-19 are preserved after reconciliation with the workbook branch.
 
-### OD-18 — historical DEV-R1 experiment
+### OD-20 — historical DEV-R1 experiment
 
 Status: Open. The [charter](../agents/PRESCREEN_INVARIANT_VERIFIER_CHARTER.md)
 is Proposed and the [approval record](../../governance/prompt-approvals/DEV_R1_PRESCREEN_INVARIANT_VERIFIER_APPROVAL.md)
@@ -65,7 +66,7 @@ outside the reviewer's readable scope; and demonstrated write/network denial.
 No owner, hash, score, launch, or acceptance is supplied by this recovery.
 A live trial would need separate approval after historical eligibility.
 
-### OD-19 — execute the accepted bridge disposition
+### OD-21 — execute the accepted bridge disposition
 
 Retirement as an operating model is already accepted in ADR-0017. The current
 plan records physical quarantine as held. The remaining decision concerns a
@@ -73,7 +74,7 @@ bounded migration: ledger/message preservation, all inbound scripts/links,
 and the disposition of overlapping PR #30 work. This entry does not reopen
 retirement, infer authenticated transport, or authorize a replacement channel.
 
-### OD-20 — remaining CaseStatus tolerance
+### OD-22 — remaining CaseStatus tolerance
 
 Source inspection at `35f16eb` confirms the enum-sync test's exact
 `RETURNED_FOR_MORE_INFORMATION` tolerance and issue #35 reference. Choose
@@ -81,7 +82,7 @@ compatible removal, approved domain behavior, or explicit retention only after
 sender/receipt semantics, migration impact, and producer/consumer review.
 A fresh hermetic test is required for an implementation change; none ran here.
 
-### OD-21 — candidate amendment to the accepted model
+### OD-23 — candidate amendment to the accepted model
 
 PR #33 merged on August 23. The July proposal's instruction to choose between
 two unmerged governance lanes is superseded. Accepted ADR-0017 and its plan
@@ -90,7 +91,7 @@ benchmark design as an amendment, revise it, or leave it parked. No additional
 agent topology or blanket role gate becomes effective through this recovery.
 PR #30 remains a separately held open lane.
 
-### OD-22 — medical-diversion role authority
+### OD-24 — medical-diversion role authority
 
 ADR-0018 accepts state topology but leaves role appropriateness unresolved.
 `packages/case-service/src/permissions.ts` still supplies the two command roles.
@@ -108,9 +109,9 @@ current rows above and [recovery index](../discovery/operating-assurance/README.
 state the paused scope. No acceptance, product-home selection, or corpus-use
 permission is added by the documentation recovery.
 
-## OD-23 detail - operating-assurance discovery focus
+## OD-25 detail - operating-assurance discovery focus
 
-- **Decision ID:** `OD-23`
+- **Decision ID:** `OD-25`
 - **Question:** Which one bounded operating-assurance job, user/context, and
   target outcome should be tested first, and may it enter Product Intelligence
   after discovery?
@@ -144,7 +145,7 @@ permission is added by the documentation recovery.
   Product Intelligence brief, and OD-14 if SD-01 later reaches organization-
   policy retrieval or indexing.
 
-### OD-23 resolution - 2026-07-30
+### OD-25 resolution - 2026-07-30
 
 - **Selected user/context:** Client-side compliance, quality, or program owner
   operating one organization/facility workspace, with an assigned consultant
@@ -180,9 +181,9 @@ permission is added by the documentation recovery.
 - **Status:** Resolved through Product Intelligence; product definition passed
   for Product Requirements Planning.
 
-## OD-24 detail - operating-assurance product home
+## OD-26 detail - operating-assurance product home
 
-- **Decision ID:** `OD-24`
+- **Decision ID:** `OD-26`
 - **Question:** Should the operating-assurance product be implemented as a
   Clarity module, an adjacent product sharing selected primitives, or a fully
   separate product and repository?
@@ -209,9 +210,9 @@ permission is added by the documentation recovery.
 - **Downstream impact:** Product Intelligence brief, first-release scope,
   repository selection, tenancy design, contract catalog, and any future ADR.
 
-## OD-25 detail - historical consulting corpus use
+## OD-27 detail - historical consulting corpus use
 
-- **Decision ID:** `OD-25`
+- **Decision ID:** `OD-27`
 - **Question:** Which historical consulting artifacts may be used for
   firm-wide product logic, tenant-private retrieval, de-identified expert
   demonstrations, held-out evaluation, shared model training, or no use?

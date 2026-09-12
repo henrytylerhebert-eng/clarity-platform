@@ -35,7 +35,7 @@ source_artifacts:
 | Output | Result |
 |---|---|
 | Current stage | `product-intelligence` |
-| Entry gate | Passed - the bounded opportunity definition and OD-23 owner decision exist |
+| Entry gate | Passed - the bounded opportunity definition and OD-25 owner decision exist |
 | Selected skill | `02-product-intelligence` |
 | Supporting governance | Evidence classification, artifact validation, traceability, decision and risk registers, change control, repository-state inspection, quality gate, handoff |
 | Prohibited actions | Execution architecture, contracts, schemas, work packages, implementation, live ingestion/retrieval, pilot, deployment, or compliance determination |
@@ -457,7 +457,7 @@ product. Reuse Clarity patterns only after explicit contract and tenancy
 review. The current Clarity worktree is a temporary discovery/governance
 location, not an implementation decision.
 
-OD-24 remains open and blocks Execution Architecture.
+OD-26 remains open and blocks Execution Architecture.
 
 ## Success model
 
@@ -497,7 +497,7 @@ time-savings, compliance, survey-pass, or outcome claim is supported.
 | Client-operated software adoption | Not started | No software product or client-interface walkthrough exists |
 | Market differentiation | Partially understood | Bounded official-source scan; no vendor demos or buyer interviews |
 | Requirements | Not started | First-release scope is a proposal, not a PRD |
-| Architecture | Not started | OD-24 open |
+| Architecture | Not started | OD-26 open |
 | Runtime product | Not started | No implementation exists |
 | Security/tenancy and corpus governance | Conceptual only | R-25, R-30, R-31, and R-32 open |
 | Pilot evidence | Not started | No pilot authorized |
@@ -609,7 +609,7 @@ effectiveness.
 
 Keep the product separate from Clarity's crisis-access case domain. Evaluate
 reuse of versioning, evidence review, audit, and tenancy patterns later through
-OD-24 and Execution Architecture.
+OD-26 and Execution Architecture.
 
 ## Proposed first-release boundary
 

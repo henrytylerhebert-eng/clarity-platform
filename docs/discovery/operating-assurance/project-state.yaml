@@ -87,8 +87,8 @@ active_work:
   work_package: null
 open_decisions:
   - OD-14
-  - OD-24
-  - OD-25
+  - OD-26
+  - OD-27
 blocking_risks: []
 next_allowed_skills:
   - product-requirements-planning

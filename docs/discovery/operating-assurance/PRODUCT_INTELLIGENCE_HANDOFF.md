@@ -102,11 +102,11 @@ source_stage: product-intelligence
   consultant/client operating model.
 - Which available, authorized design partner and healthcare setting should
   supply the first segment-neutral administrative walkthrough.
-- Repository and architecture home under OD-24.
+- Repository and architecture home under OD-26.
 
 ### Blocked
 
-- Execution Architecture is blocked by OD-14, OD-24, accepted requirements,
+- Execution Architecture is blocked by OD-14, OD-26, accepted requirements,
   tenancy/source decisions, and named technical/security reviewers.
 - Implementation is prohibited by the current lifecycle state.
 
@@ -114,7 +114,7 @@ source_stage: product-intelligence
 
 ### Made
 
-- OD-23 is resolved for Product Intelligence: client compliance/quality/program
+- OD-25 is resolved for Product Intelligence: client compliance/quality/program
   owner is the primary user; assigned consultant is the oversight user; the
   minimum job is one reviewed assurance answer or explicit gap.
 - The owner accepts the underlying consulting method and value as established
@@ -144,7 +144,7 @@ source_stage: product-intelligence
 - Selection of an available, authorized design-partner context.
 - A role-based walkthrough, adversarial replay, and incumbent/current-tool
   comparison defined as validation gates before pilot or value claims.
-- OD-24 product/repository home before architecture.
+- OD-26 product/repository home before architecture.
 - OD-14 authority, source-rights, applicability, and retrieval boundary before
   any knowledge implementation.
 
@@ -170,7 +170,7 @@ source_stage: product-intelligence
 - **Workflow:** WF-OA-01.
 - **Outcome:** OUT-OA-01.
 - **Risks:** R-25 through R-32.
-- **Decisions:** OD-14 and OD-23 through OD-25.
+- **Decisions:** OD-14 and OD-25 through OD-27.
 - **Requirements/contracts/work packages:** None accepted or authorized.
 
 ## Completion

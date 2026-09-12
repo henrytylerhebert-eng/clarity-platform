@@ -1,7 +1,7 @@
 ---
 status: Recovered historical proposal - not authorized
 verdict: Preparation required
-owner: Tyler Hebert (product authority); technical, evaluation, and security owners pending OD-18
+owner: Tyler Hebert (product authority); technical, evaluation, and security owners pending OD-20
 version: 0.2.0
 created: 2026-07-29
 assessed_base_snapshot: 8399eddad4cb8575d94f9b31db27eb00f73e4bcf
@@ -15,7 +15,8 @@ source_assessment: Claude session 91be0743-5eb0-44dd-b716-69dc8c26f834, complete
 # AI-Native Domain Agent Repository Preparation
 
 > **Historical assessment, 2026-07-29.** Recovered on 2026-09-12 with
-> decision references migrated to OD-18 through OD-22. Every source-era
+> decision references migrated from July OD-15 through OD-19 to current
+> OD-20 through OD-24. Every source-era
 > "current", "open PR", test result, readiness verdict, and recommended gate
 > below describes the July assessment, not present implementation or authority.
 > Read [the current recovery disposition](GOVERNANCE_DOCUMENT_RECOVERY_2026-09-12.md)
@@ -58,7 +59,7 @@ Current reasons for the verdict:
   canonical OD-13/OD-14 product decisions. No assessed prescreen
   source/contract changed, but PR #38 changed shared case contracts and command
   behavior. This preparation worktree is intentionally still based on
-  `8399edd` and is five commits behind; the selected OD-21 lane must integrate
+  `8399edd` and is five commits behind; the selected OD-23 lane must integrate
   all five commits and revalidate before merge.
 - Open prescreen Phase 3 PR #32 changes the exact contracts, service, API,
   Prisma schema, migrations, and tests the candidate reviewer would inspect.
@@ -66,7 +67,7 @@ Current reasons for the verdict:
   plan with different role topology and bridge disposition. At final refresh
   it was open at `b2a6152`, had integrated `main` only through PR #37, and was
   behind current `main`. Its PR description still says one proposed file while
-  its three-file diff contains an accepted-on-branch ADR and plan. OD-21 must
+  its three-file diff contains an accepted-on-branch ADR and plan. OD-23 must
   select one canonical model before either governance lane is merged or
   launched.
 - Current-main PR #39 is accepted status evidence and modifies `CLAUDE.md` and
@@ -77,8 +78,9 @@ Current reasons for the verdict:
   0.1-0.3 remain held, and PR #33 carries unresolved review findings.
 - Current-main PR #41 is accepted decision evidence and modifies this branch's
   canonical `OPEN_DECISIONS.md`. It assigns OD-13 and OD-14 to CMS research
-  and an organization policy index. This package was atomically renumbered to
-  OD-18 through OD-22 after an all-ref check; held PR #30 still independently
+  and an organization policy index. The July source package was atomically renumbered to
+  OD-15 through OD-19 after its source-era all-ref check (references in this
+  recovered copy now use OD-20 through OD-24); held PR #30 still independently
   claims OD-13 for network enrichment and remains a collision to disposition.
 - A current prescreen idempotency tuple can alias across tenant/actor
   components, and an invalid resubmission can fall through the API mapper to a
@@ -87,7 +89,7 @@ Current reasons for the verdict:
   `MEDICAL_TRANSFER_REQUIRED`, but the guard deliberately tolerates the one
   remaining Prisma-only `RETURNED_FOR_MORE_INFORMATION` value under
   `KNOWN_DESYNC` and issue #35. The current guard was not rerun in this
-  dependency-free worktree. OD-20 remains partially open, and OD-22 records
+  dependency-free worktree. OD-22 remains partially open, and OD-24 records
   the unresolved role authority for entering the medical-diversion state.
 - Required human, technical, evaluation, and security ownership is not fully
   named.
@@ -124,7 +126,7 @@ Evidence labels used below: `Verified`, `Documented`, `Inferred`, `Proposed`,
    local toolchain to run the gates.
 2. **The bridge is not proven abandoned.** Its listener is not detected and
    authentication is unknown, but the path remains wired into repository
-   scripts and governance with unclosed records. Moving it requires OD-19.
+   scripts and governance with unclosed records. Moving it requires OD-21.
 3. **Prescreen is moving.** PR #32 is open and touches 41 files across the
    candidate boundary. A reviewer can use a frozen historical corpus; a
    code-modifying agent may not target a floating branch.
@@ -133,7 +135,7 @@ Evidence labels used below: `Verified`, `Documented`, `Inferred`, `Proposed`,
    `main` now has the PR #36 guard and PR #38 owner ruling:
    `MEDICAL_TRANSFER_REQUIRED` is mirrored as a diversion, while
    `RETURNED_FOR_MORE_INFORMATION` remains the exact `KNOWN_DESYNC` under issue
-   #35. OD-20 must resolve that remaining value; OD-22 must rule who is
+   #35. OD-22 must resolve that remaining value; OD-24 must rule who is
    authorized to enter the clinically flavored diversion state.
 5. **The existing quick-fill template already supplies most work-package
    structure.** It was extended with the agent-contract fields rather than
@@ -142,7 +144,7 @@ Evidence labels used below: `Verified`, `Documented`, `Inferred`, `Proposed`,
    is open and unmerged, but its branch records an approved R1/R2/T1 plan and
    bridge changes. Its current three-file diff and accepted-on-branch ADR also
    contradict its stale PR description ("one new file" and "Proposed").
-   Neither lane should merge until OD-21 selects one canonical model and
+   Neither lane should merge until OD-23 selects one canonical model and
    explicitly supersedes the other.
 7. **The source evaluation threshold did not bound historical false
    positives and mixed historical eligibility with live acceptance.** The
@@ -156,13 +158,14 @@ Evidence labels used below: `Verified`, `Documented`, `Inferred`, `Proposed`,
    merged current-main context into `CLAUDE.md` and `IMPLEMENTATION_STATUS.md`.
    It records [PR #30](https://github.com/henrytylerhebert-eng/clarity-platform/pull/30)
    as held for owner review and Stage 0.1-0.3 as held. PR #30's 2,483-file diff
-   includes both status files and `agent_bridge`; OD-21 must preserve the
+   includes both status files and `agent_bridge`; OD-23 must preserve the
    accepted hold while resolving the bridge/governance model.
 10. **Decision IDs must be allocated across all refs, not only `main`.** PR #41
     assigns current-main OD-13/OD-14 to product/regulatory work, while held PR
-    #30 independently claims OD-13. An all-ref search found OD-18 through OD-22
-    free, so this package uses those IDs for verifier, bridge, remaining enum,
-    governance, and medical-role decisions respectively.
+    #30 independently claims OD-13. The July all-ref search found OD-15 through OD-19
+    free for verifier, bridge, remaining enum, governance, and medical-role
+    decisions respectively. Recovery remaps those source IDs to OD-20 through
+    OD-24 because later Rev Ops/workbook work allocated the original numbers.
 
 ## 2. Repository readiness scorecard
 
@@ -198,7 +201,7 @@ canonical records remain authoritative.
 | KA-04 Domain authority | Define what is accepted versus proposed | Phase 2 decisions, roles, non-scope, error/tenancy rules | Accepted ADRs and code | Product + technical owner | ADR-0013, ADR-0014 | Contract or authority change | Diff against code/tests | Medium | Yes |
 | KA-05 Work package | Freeze each run | Base/head, source/context/evaluation-manifest hashes, model/runtime/config identity, prompt/tool hashes, files, tools, owners, output, acceptance, stop/escalation | Approved task record | Integration owner | `docs/AGENTS_TEMPLATE.quickfill.md` | Every governed role run | Completeness check; no blank or `[TODO]` execution-contract fields | High | Yes |
 | KA-06 Test map | Explain what tests prove and omit | Domain/service/API cases, honest gaps, current commands | Tests first, manifests second | Technical + evaluation owner | Prescreen test files and manifests | Behavior/test change | Run focused suites; inspect assertions | Medium | Yes |
-| KA-07 Decisions and risks | Keep authority gaps visible | Current-main OD-13/14, agent-readiness OD-9/18/19/20/21/22, existing product gates, R-13 through R-24 | Canonical registers | Named human owners | `docs/decisions/OPEN_DECISIONS.md`, `RISK_REGISTER.md` | New blocker/ruling/accepted risk | Owner ruling plus all-ref ID/source check | High | Yes |
+| KA-07 Decisions and risks | Keep authority gaps visible | Current-main OD-13/14, agent-readiness OD-9/20/21/22/23/24, existing product gates, R-13 through R-24 | Canonical registers | Named human owners | `docs/decisions/OPEN_DECISIONS.md`, `RISK_REGISTER.md` | New blocker/ruling/accepted risk | Owner ruling plus all-ref ID/source check | High | Yes |
 | KA-08 Gold set and score sheet | Measure value without leaking answers | Frozen Corpus A/B/holdout archives, mandatory labels, severity, scoring, duplicates, false positives, canary, triage time, and one sealed manifest hashing every archive/key/canary/sheet | Independent verifier's sealed record | Independent verifier | Verifier-controlled storage outside DEV-R1's readable filesystem; only manifest ID/hash and a blank template may be exposed | Benchmark or threshold change | Manifest/hash verification, blind replay, runner containment proof, owner audit | High | Yes; missing |
 | KA-09 Repository/path map | Reconstruct direct dependencies | Candidate paths, shared kernel, producers/consumers | Code/imports; architecture is index | Technical owner | `ARCHITECTURE.md` plus current source | Structural change | Import/path search at frozen HEAD | Medium | Yes |
 | KA-10 Production checklist | Prevent code-complete overclaim | Security, migration, hosting, observability, release, rollback, approvals | Existing security/release records | Human release/security owners | Existing governance/security docs | Release-boundary change | Independent readiness review | Medium | No; later |
@@ -318,7 +321,7 @@ Must be resolved before write ownership:
 | C-05 Idempotency identity | Makes retries replay and changed intent conflict | Commands/gateway -> callers, audit | `packages/prescreen-service/src/canonical.ts`, `packages/prescreen-service/src/inMemoryPrescreenGateway.ts` | Unsafe for agent modification | Full tuple must be collision-free; same intent replays; changed body conflicts | Encoding changes require regression tests and compatibility decision for persisted keys | Nested-body and occurredAt tests; tuple test missing | Technical + security owner |
 | C-06 HTTP/error contract | Maps authenticated requests and domain failures to content-free statuses | API -> client/tests | `packages/api-service/src/server.ts` | Unsafe for agent modification | 400/401/403/404/409; expected domain errors must not become 500 | Route/schema/error changes require all callers/tests and ADR when boundary changes | 9 historical API tests; resubmit mapping gap can produce 500 | API/technical + security owner |
 | C-07 Audit/outbox vocabulary | Preserves why without sensitive narrative | Service/gateway -> audit/event consumers | `packages/domain-contracts/src/prescreen.ts`, `packages/prescreen-service/src/inMemoryPrescreenGateway.ts` | Stable with tests needed | IDs, states, hashes only; append-only; no PHI/source text | New event requires named consumer and vocabulary approval | Payload/redaction/lockstep tests | Technical + security + consumer owner |
-| C-08 Schema/domain enum mirrors | Keeps persisted and typed vocabulary aligned | Prisma -> domain contracts -> all services | `prisma/schema.prisma`, contract arrays | Unclear | Exact membership expectations must be explicit; mismatch can break authorization/state | PR #36's guard asserts set membership; PR #38 narrows exact tolerated drift to `RETURNED_FOR_MORE_INFORMATION`; OD-20 remains | `tests/unit/contract-schema-enum-sync.test.ts` exists on current `main`, not this assessed-base worktree, and was not rerun here | Product + technical/database owner |
+| C-08 Schema/domain enum mirrors | Keeps persisted and typed vocabulary aligned | Prisma -> domain contracts -> all services | `prisma/schema.prisma`, contract arrays | Unclear | Exact membership expectations must be explicit; mismatch can break authorization/state | PR #36's guard asserts set membership; PR #38 narrows exact tolerated drift to `RETURNED_FOR_MORE_INFORMATION`; OD-22 remains | `tests/unit/contract-schema-enum-sync.test.ts` exists on current `main`, not this assessed-base worktree, and was not rerun here | Product + technical/database owner |
 | C-09 Worktree/toolchain resolution | Ensures checks inspect the target checkout | Workspace config -> compiler/tests/CI | package manifests, lockfile, tsconfig, Vitest, runner | Unsafe for agent modification | Every resolved package/client/config must be inside frozen worktree; DB ledger must match checkout | Tooling changes require isolated-worktree acceptance | Same-commit focused tests passed in the existing worktree; typecheck/root gate exposed leakage; fresh worktree has no local tools | Technical/build owner |
 | C-10 Medical-diversion transition authority | Controls who may enter a clinically flavored case diversion state | Case state machine + `TransitionCase` policy -> case service/API/users | Current-main `packages/domain-contracts/src/caseStateMachine.ts`, `packages/case-service/src/commands.ts`, ADR-0018 | Unclear | PR #38 allows the state but inherits `INTAKE_COORDINATOR`/`ORGANIZATION_ADMIN`; neither is a clinical role | Target-status permission changes require product, qualified clinical, security, API, and compatibility review | PR #38 transition tests cover state behavior; approved role-semantics test is missing | Product + qualified clinical + technical/security owner |
 
@@ -333,12 +336,12 @@ Must be resolved before write ownership:
 | TP-05 | Invalid resubmission receives intentional content-free client error | `Verified`: no service/API regression exists | Service/API regressions in `tests/unit/prescreen-service.test.ts` and `tests/integration/prescreen-api.test.ts` | Blocks API write agent | API/technical owner | Second submit never falls through to 500; approved status/code asserted |
 | TP-06 | Isolated worktree typecheck uses only local packages/generated types | `Verified` existing worktree resolves outside itself; fresh worktree has no compiler | Proposed tooling acceptance under OD-9, with record in `docs/testing/` and runner/config path named by owner | Blocks live and write agents | Build owner + independent verifier | Resolution trace stays within target worktree; typecheck passes |
 | TP-07 | Database-backed suite sees only target migrations and leaves zero residue | `Verified` current failure: shared ledger contains four foreign migrations | Existing `tests/integration/migration-integrity.test.ts` plus owner-approved disposable-DB harness | Blocks DB-backed work | Database/build owner | Ledger equals frozen checkout, tests pass, cleanup proven |
-| TP-08 | Prisma/domain enum mirrors stay aligned | `Verified` current `main` PR #36 adds a broad guard and PR #38 narrows `KNOWN_DESYNC` to the one Prisma-only `RETURNED_FOR_MORE_INFORMATION` value under issue #35; the current test is absent at this worktree's assessed base and was not rerun here | Existing current-main `tests/unit/contract-schema-enum-sync.test.ts`; integrate after OD-21 and update after OD-20 | Blocks shared enum changes | Product + technical owner | OD-20 resolves or formally approves the remaining tolerance; fresh hermetic run passes; deliberate new drift fails |
+| TP-08 | Prisma/domain enum mirrors stay aligned | `Verified` current `main` PR #36 adds a broad guard and PR #38 narrows `KNOWN_DESYNC` to the one Prisma-only `RETURNED_FOR_MORE_INFORMATION` value under issue #35; the current test is absent at this worktree's assessed base and was not rerun here | Existing current-main `tests/unit/contract-schema-enum-sync.test.ts`; integrate after OD-23 and update after OD-22 | Blocks shared enum changes | Product + technical owner | OD-22 resolves or formally approves the remaining tolerance; fresh hermetic run passes; deliberate new drift fails |
 | TP-09 | DEV-R1 detects known semantic defects without answer leakage | `Blocked`: no approved benchmark or runner | Verifier-controlled external harness; accepted run record under `governance/prompt-approvals/runs/` | Blocks DEV-R1 Stage 1 pass | Independent verifier | Charter Stage 1 thresholds pass; runner containment proven |
 | TP-10 | New session reconstructs the same scope/authority | `Blocked`: not run | Historical dry run from hashed sanitized bundle plus approved charter/work package/approval; live dry run may use current repository records | Blocks DEV-R1 launch | Integration owner + verifier | Same permitted base, contracts, owners, commands, and stop rules recovered without denied sources |
 | TP-11 | Phase 3 does not silently replace main-branch assumptions | `Blocked`: PR #32 open; no accepted integration result | PR #32 diff/CI/independent review/product acceptance record | Blocks prescreen write agent | Integration owner | Owner disposition recorded; target base re-frozen; relevant suites rerun |
 | TP-12 | Encounter start cannot bind a case reference outside the actor's organization | `Verified` no case-ownership check exists in the in-memory start path | Characterization/contract test in `tests/unit/prescreen-service.test.ts`; persistence/API coverage if applicable | Blocks persistence or write authority | Product + technical/security owner | Approved case-reference contract; same-org succeeds; cross-org/nonexistent case is non-revealing and leaves zero residue |
-| TP-13 | Only approved roles may enter `MEDICAL_TRANSFER_REQUIRED` | `Documented` ADR-0018 limitation: current `TransitionCase` roles are nonclinical and no target-specific role mechanism exists | Characterization then owner-approved permission/service/API tests on current main after OD-22 | Blocks agent modification of medical-diversion permissions and production reliance on that state | Product + qualified clinical + technical/security owner | OD-22 approved; allowed/denied roles, non-revealing failure, audit, and zero-residue behavior pass |
+| TP-13 | Only approved roles may enter `MEDICAL_TRANSFER_REQUIRED` | `Documented` ADR-0018 limitation: current `TransitionCase` roles are nonclinical and no target-specific role mechanism exists | Characterization then owner-approved permission/service/API tests on current main after OD-24 | Blocks agent modification of medical-diversion permissions and production reliance on that state | Product + qualified clinical + technical/security owner | OD-24 approved; allowed/denied roles, non-revealing failure, audit, and zero-residue behavior pass |
 
 Persistence behavior and migrations on `main` are not prescreen capabilities.
 Phase 3 evidence cannot be imported from an open PR as accepted behavior.
@@ -348,7 +351,7 @@ Phase 3 evidence cannot be imported from an open PR as accepted behavior.
 | Area | Primary owner | Supporting owner | Shared contract | Human authority | Agent modification allowed |
 |---|---|---|---|---|---|
 | Product outcome and prescreen scope | Tyler/product owner | Operations, clinical, legal reviewers | Workflow and non-scope | Product owner plus qualified reviewers | No |
-| DEV-R1 experiment | Unnamed integration owner (OD-18) | Independent verifier plus evaluation/security reviewers | Charter, gold set, work package, approval record | All required signatories authorize launch; Tyler may stop or finally accept | Read-only only after approval |
+| DEV-R1 experiment | Unnamed integration owner (OD-20) | Independent verifier plus evaluation/security reviewers | Charter, gold set, work package, approval record | All required signatories authorize launch; Tyler may stop or finally accept | Read-only only after approval |
 | Prescreen service/domain contracts | Unnamed technical owner | Security/domain reviewers | Commands, states, roles, errors | Product + technical/domain authority | No while PR #32 and blockers remain |
 | API/auth/tenancy | Unnamed API/security owner | Technical verifier | Principal, role, error, tenant contracts | Security + technical authority | No |
 | Prisma/migrations/database | Unnamed database owner | Security/operations | Canonical schema and migration ledger | Product + technical/security authority | No autonomous modification |
@@ -387,7 +390,7 @@ surfaces are prohibited for the first experiment.
 8. **Tests:** assertions first, manifests second, current authorized runs.
 9. **Recent accepted changes:** `git log -15`, exact base/head, open PR overlap.
 10. **Risks/decisions:** current status, current-main OD-13/14,
-    agent-readiness OD-9/18/19/20/21/22, and R-13 through R-24.
+    agent-readiness OD-9/20/21/22/23/24, and R-13 through R-24.
 
 ### Historical Stage 1 loading order
 
@@ -455,17 +458,17 @@ delay consequence, and explicit non-authorization are canonical only in
 
 Current-main OD-13 (CMS research) and OD-14 (organization policy index) are
 separate product/runtime decisions from PR #41. They do not authorize DEV-R1.
-The five preparation decisions below use the all-ref free range OD-18 through
-OD-22.
+The five preparation decisions below use recovered IDs OD-20 through
+OD-24. The July source used OD-15 through OD-19; see the recovery mapping.
 
 | Decision | This package depends on |
 |---|---|
 | OD-9 | Hermetic dependency/database evidence before live or write work |
-| OD-18 | Historical-only DEV-R1 staffing, corpus, thresholds, stop rule, and signed prompt approval |
-| OD-19 | Freeze/no-dispatch bridge default until a human disposition |
-| OD-20 | Current enum guard's exact `KNOWN_DESYNC` tolerance and any shared status edit require a semantic ruling |
-| OD-21 | One canonical governance/status model; preserve current-main PR #39 status, PR #41 decisions, and the PR #30 hold while reconciling PR #33 with this package |
-| OD-22 | Medical-diversion target-role authority requires product, clinical, technical, and security ruling |
+| OD-20 | Historical-only DEV-R1 staffing, corpus, thresholds, stop rule, and signed prompt approval |
+| OD-21 | Freeze/no-dispatch bridge default until a human disposition |
+| OD-22 | Current enum guard's exact `KNOWN_DESYNC` tolerance and any shared status edit require a semantic ruling |
+| OD-23 | One canonical governance/status model; preserve current-main PR #39 status, PR #41 decisions, and the PR #30 hold while reconciling PR #33 with this package |
+| OD-24 | Medical-diversion target-role authority requires product, clinical, technical, and security ruling |
 
 Existing prescreen product decisions (PR #32, cross-organization behavior,
 role scope, persistence, and clinical/legal content) remain separate from DEV-R1.
@@ -483,10 +486,10 @@ role scope, persistence, and clinical/legal content) remain separate from DEV-R1
   decisions/risks in the canonical registers.
 - `Prepared in this unmerged branch`: add the pending KA-11 historical-only
   approval record; it is not an approval.
-- `Human decision required`: resolve OD-21 and choose one canonical governance
+- `Human decision required`: resolve OD-23 and choose one canonical governance
   plan that preserves current-main PR #39 status, PR #41 decisions, and the
   owner hold on PR #30 before this lane merges or any proposed role launches.
-- `Human decision required`: approve OD-18 and name owners.
+- `Human decision required`: approve OD-20 and name owners.
 - `Required`: complete a run-specific KA-05 work package using synthetic
   base/head identifiers, then record its content hash in KA-11; the verifier
   retains the source-commit mapping externally.
@@ -514,9 +517,9 @@ role scope, persistence, and clinical/legal content) remain separate from DEV-R1
 - Assign and separately authorize TP-04 and TP-05 product fixes/tests.
 - Assign and separately authorize TP-12 before persistence or write authority.
 - Integrate current `main`'s PR #36 enum-sync test, inspect and rerun it
-  together with PR #38 hermetically, then resolve OD-20 before removing or
+  together with PR #38 hermetically, then resolve OD-22 before removing or
   formalizing the remaining exact `KNOWN_DESYNC` tolerance.
-- Resolve OD-22 before an agent modifies or production evidence relies on
+- Resolve OD-24 before an agent modifies or production evidence relies on
   medical-diversion role permissions.
 - Rerun all touched focused suites plus lint, typecheck, root tests, Prisma
   validation, and database cleanup evidence from the frozen worktree.
@@ -525,7 +528,7 @@ role scope, persistence, and clinical/legal content) remain separate from DEV-R1
 
 - Name package/API/database/build/security/evaluation owners in existing
   records or a lightweight ownership file.
-- After OD-20, remove or formally document the approved `KNOWN_DESYNC`
+- After OD-22, remove or formally document the approved `KNOWN_DESYNC`
   treatment and prove the current-main enum-sync guard in the frozen worktree.
 - Add call-site tenant/permission coverage where helper-only tests can create
   false assurance.
@@ -542,7 +545,7 @@ role scope, persistence, and clinical/legal content) remain separate from DEV-R1
 - Persistent domain/feature/workflow agents.
 - Agent registry, orchestrator, inter-agent messaging, or integration-owner
   agent.
-- Bridge relocation or "abandoned" labeling without OD-19.
+- Bridge relocation or "abandoned" labeling without OD-21.
 - Broad repository restructuring.
 - Product feature, product AI, deployment, external integration, or production
   scope inside this preparation package.
@@ -554,12 +557,12 @@ evidenced.
 
 ### Historical DEV-R1 evaluation entry
 
-- [ ] OD-18 approved with named human owner, integration owner, and independent
+- [ ] OD-20 approved with named human owner, integration owner, and independent
       verifier.
-- [ ] OD-21 resolved with one canonical governance/evaluation model.
+- [ ] OD-23 resolved with one canonical governance/evaluation model.
 - [ ] Current `main` through PR #41 is integrated; PR #39's accepted status
       evidence and owner hold on PR #30, plus PR #41's canonical OD-13/OD-14
-      entries, are preserved in the selected OD-21 lane.
+      entries, are preserved in the selected OD-23 lane.
 - [ ] Product owner accepts the bounded repository-review outcome and the
       exact historical prescreen domain/non-scope boundary.
 - [ ] The completed work package identifies the repository scope, all shared
@@ -571,7 +574,7 @@ evidenced.
       evaluation manifest. Only a category proven out of scope may be `Not
       checked`, with reason and named-owner acceptance; an in-scope `Not
       checked` blocks entry.
-- [ ] OD-18 and the signed KA-11 record approve the exact acceptance,
+- [ ] OD-20 and the signed KA-11 record approve the exact acceptance,
       revision, and stop bands.
 - [ ] The pending KA-11 record is signed and contains exact charter,
       work-package, source/context/evaluation-manifest, runner/config, and
@@ -597,7 +600,7 @@ evidenced.
 - [ ] Stage 1 historical eligibility passed.
 - [ ] A separate live-trial approval record is signed.
 - [ ] OD-9 hermetic verification accepted.
-- [ ] OD-21 remains resolved against the live target.
+- [ ] OD-23 remains resolved against the live target.
 - [ ] PR #32 overlap reconciled and live base/head frozen.
 - [ ] Required focused tests and root gates pass from the target worktree.
 - [ ] Current risks and product defect owners recorded.
@@ -641,11 +644,11 @@ Not included:
 
 The repository-preparation draft package is complete when its documentation
 checks pass. That does not make the experiment ready: Stage 1 entry still
-requires OD-21 and OD-18 decisions, a signed KA-11 record, sealed KA-08
+requires OD-23 and OD-20 decisions, a signed KA-11 record, sealed KA-08
 materials, the standalone runner, and a passing TP-10 reconstruction.
 
 ## Immediate next step
 
 **Owner: reconcile PR #33 and held PR #30 with this package against
 current-main PR #41, then select one canonical agent/bridge/evaluation/status
-model under OD-21.**
+model under OD-23.**

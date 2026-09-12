@@ -30,22 +30,24 @@ create a second current decision register.
 
 | July operating-assurance ID | Current canonical ID | Meaning |
 |---|---|---|
-| OD-15 | OD-23 | Historical Product Intelligence focus/acceptance record |
-| OD-16 | OD-24 | Undecided product/repository home |
-| OD-17 | OD-25 | Undecided historical-corpus permitted-use model |
+| OD-15 | OD-25 | Historical Product Intelligence focus/acceptance record |
+| OD-16 | OD-26 | Undecided product/repository home |
+| OD-17 | OD-27 | Undecided historical-corpus permitted-use model |
 | R-13 through R-20 | R-25 through R-32 | Operating-assurance source, authority, product, and corpus risks |
 
 OD-14 retains its existing organization-policy-index meaning. Clarity Rev Ops
-OD-15 through OD-17 and recovered governance OD-18 through OD-22 are separate.
+OD-15 through OD-17, workbook OD-18/OD-19, and recovered governance
+OD-20 through OD-24 are separate. The closed workbook acceptance is preserved;
+this package does not reopen it.
 All operating-assurance document references use the new IDs; the dated source
 worktree retains the original mapping. Registry references to shared canonical
 file versions reflect the recovered versions, not a new product-stage approval.
 
 ## What remains held
 
-- The product home remains undecided under OD-24. The recommendation of an
+- The product home remains undecided under OD-26. The recommendation of an
   adjacent product is a recommendation, not a repository or architecture choice.
-- OD-25 retains rights/privacy/licensing review before content ingestion,
+- OD-27 retains rights/privacy/licensing review before content ingestion,
   retrieval, shared examples, embeddings, or training. Anonymized portfolio
   summaries do not establish eligibility for any underlying artifact.
 - Requirements planning, architecture, implementation, pilot readiness, and

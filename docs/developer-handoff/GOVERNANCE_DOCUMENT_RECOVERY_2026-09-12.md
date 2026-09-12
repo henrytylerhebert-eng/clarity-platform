@@ -23,25 +23,27 @@ contract is available for review, not enacted as a new global gate.
 | Subject | Evidence inspected on 2026-09-12 | Recovery consequence |
 |---|---|---|
 | Canonical development-agent model | Accepted [ADR-0017](../architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md) and [AI operating plan](../governance/AI_OPERATING_MODEL_PLAN.md); PR #33 merged August 23 | Preserve the accepted model. DEV-R1 is an optional proposed amendment, not a competing accepted topology. |
-| Bridge retirement | ADR-0017 accepts retirement; operating-plan frontmatter records physical quarantine as held | Do not reactivate, relocate, delete, or dispatch through the bridge in this recovery. OD-19 tracks the remaining execution disposition. |
+| Bridge retirement | ADR-0017 accepts retirement; operating-plan frontmatter records physical quarantine as held | Do not reactivate, relocate, delete, or dispatch through the bridge in this recovery. OD-21 tracks the remaining execution disposition. |
 | Prescreen Phase 3 | PR #32 merged August 10; `packages/api-service/src/devMain.ts` wires `PrismaPrescreenGateway` | Historical claims that the current API uses only an in-memory gateway are superseded. The in-memory adapter remains a separate test/source surface. |
 | Large older lane | PR #30 remains open; its broad scope and conflicts are held for separate disposition | No merge, closure, or acceptance of that lane is implied. |
-| Shared CaseStatus vocabulary | `tests/unit/contract-schema-enum-sync.test.ts` still lists exactly `RETURNED_FOR_MORE_INFORMATION` in `KNOWN_DESYNC.CaseStatus` | Retain OD-20; no enum, schema, or migration changes. This inspection does not claim a fresh test pass. |
-| Medical-diversion authority | ADR-0018 and `packages/case-service/src/permissions.ts` retain the existing command roles | Retain OD-22 for qualified role-policy review; no clinical approval is inferred. |
+| Shared CaseStatus vocabulary | `tests/unit/contract-schema-enum-sync.test.ts` still lists exactly `RETURNED_FOR_MORE_INFORMATION` in `KNOWN_DESYNC.CaseStatus` | Retain OD-22; no enum, schema, or migration changes. This inspection does not claim a fresh test pass. |
+| Medical-diversion authority | ADR-0018 and `packages/case-service/src/permissions.ts` retain the existing command roles | Retain OD-24 for qualified role-policy review; no clinical approval is inferred. |
 | Local runtime versus production | `server.ts` uses Fastify; `devMain.ts` wires authentication, case, prescreen, Rev Ops, and IOP reconciliation adapters | Correct obsolete no-backend/API/auth prose. Production deployment, managed identity, and PHI readiness are not established by this inspection. |
 | CI and remote | Git origin is configured; `.github/workflows/ci.yml` has a `verify` job with Node 24, ephemeral Postgres, lint, typecheck, tests, and audit | Correct obsolete no-remote/no-CI claims. Presence of the workflow is not a passing current run. |
 
 ## Decision and risk migration
 
-Canonical Rev Ops OD-15, OD-16, and OD-17 retain their existing meanings.
+Canonical Rev Ops OD-15 through OD-17 and workbook OD-18/OD-19 retain
+their existing meanings. Workbook acceptance under OD-18 remains closed;
+OD-19 holds only the provider-specific inputs identified by that lane.
 
 | July preparation ID | Recovered canonical ID | Current question |
 |---|---|---|
-| OD-15 | OD-18 | Whether to approve the exact historical DEV-R1 evaluation |
-| OD-16 | OD-19 | Complete the already-decided bridge retirement safely |
-| OD-17 | OD-20 | Resolve or formally retain the remaining CaseStatus tolerance |
-| OD-18 | OD-21 | Whether the accepted model should adopt any DEV-R1 proposal |
-| OD-19 | OD-22 | Medical-diversion target-role authority |
+| OD-15 | OD-20 | Whether to approve the exact historical DEV-R1 evaluation |
+| OD-16 | OD-21 | Complete the already-decided bridge retirement safely |
+| OD-17 | OD-22 | Resolve or formally retain the remaining CaseStatus tolerance |
+| OD-18 | OD-23 | Whether the accepted model should adopt any DEV-R1 proposal |
+| OD-19 | OD-24 | Medical-diversion target-role authority |
 
 The recovered preparation risks retain R-13 through R-24. Their canonical
 mitigation wording is reconciled to current source evidence; historical
@@ -74,3 +76,18 @@ not independently revalidated. No measurements found for DEV-R1 effectiveness.
 
 The next action is review of this recovered documentation. Product, clinical,
 security, and agent-launch decisions remain with their named human owners.
+
+## Workbook dependency and cross-branch reconciliation
+
+Cross-branch review found that workbook PR #58 already owns OD-18 and OD-19.
+The first pushed recovery draft collided with those IDs. Its new decisions
+are now assigned governance OD-20 through OD-24 and operating assurance
+OD-25 through OD-27; risk IDs are unchanged. Historical mapping tables retain
+the original July IDs instead of rewriting the source history.
+
+PR #59 is stacked on `codex/om/workbook-platform-map` (PR #58). Its review diff
+is the documentation recovery only. Workbook code/evidence enters branch
+history through a normal local merge of that dependency, not new product work
+in this slice. Review/merge authority for either PR remains separate. After
+PR #58 is accepted and merged, retarget PR #59 to `main` and verify its diff
+and exact-head checks again; neither PR is merged by this reconciliation.

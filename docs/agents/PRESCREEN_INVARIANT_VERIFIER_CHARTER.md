@@ -1,18 +1,18 @@
 ---
 status: Proposed - not authorized
-owner: Tyler Hebert (product authority); technical and evaluation owners pending OD-18
+owner: Tyler Hebert (product authority); technical and evaluation owners pending OD-20
 version: 0.2.0
 created: 2026-07-29
 scope: Read-only repository review tooling; not a Clarity product AI agent
-related_decisions: OD-9, OD-18, OD-19, OD-20, OD-21, OD-22
+related_decisions: OD-9, OD-20, OD-21, OD-22, OD-23, OD-24
 related_adrs: ADR-0013, ADR-0014
 ---
 
 # Prescreen Invariant Verifier Charter
 
 > Recovered proposal, 2026-09-12. The accepted ADR-0017 operating model
-> remains authoritative. DEV-R1 is a candidate amendment requiring OD-18 and
-> OD-21 disposition; this recovery grants no execution authority. See
+> remains authoritative. DEV-R1 is a candidate amendment requiring OD-20 and
+> OD-23 disposition; this recovery grants no execution authority. See
 > [recovery disposition](../developer-handoff/GOVERNANCE_DOCUMENT_RECOVERY_2026-09-12.md).
 
 ## Authority and classification
@@ -27,7 +27,7 @@ path. It may inspect a frozen diff and report evidence. It may not edit, fix,
 commit, merge, dispatch other agents, or make a product, clinical, legal,
 security, release, or risk-acceptance decision.
 
-This charter does not authorize execution. OD-18 and
+This charter does not authorize execution. OD-20 and
 [`DEV_R1_PRESCREEN_INVARIANT_VERIFIER_APPROVAL.md`](../../governance/prompt-approvals/DEV_R1_PRESCREEN_INVARIANT_VERIFIER_APPROVAL.md)
 must name the integration and independent acceptance owners and approve the
 historical evaluation, sealed corpus, thresholds, and stop rule. A later live
@@ -127,7 +127,7 @@ For a live review, load in this order and stop on contradiction:
    remain inside the target worktree.
 2. Read `README.md`, `AGENTS.md`, `CLAUDE.md`, and the product-evidence protocol.
 3. Read this approved charter and the completed work-package contract.
-4. Read ADR-0013 and ADR-0014, then OD-9, OD-18, OD-19, OD-20, OD-21, OD-22,
+4. Read ADR-0013 and ADR-0014, then OD-9, OD-20, OD-21, OD-22, OD-23, OD-24,
    and relevant risks.
 5. Inspect the exact base/head diff and `git log -15`; do not substitute a
    branch name for a frozen commit.
@@ -328,14 +328,14 @@ runner records that:
 
 ### Stage 2 - live trial
 
-Only after Stage 1 passes, OD-9 hermetic verification is accepted, OD-21 is
+Only after Stage 1 passes, OD-9 hermetic verification is accepted, OD-23 is
 resolved, and a separate live-trial approval record is signed may DEV-R1 inspect
 one frozen live PR before owner self-review. It remains read-only and cannot
 replace CI, external review, or product acceptance.
 
 ## Evaluation stages, scoring, and stop rules
 
-These rules are proposed and require OD-18 approval.
+These rules are proposed and require OD-20 approval.
 
 Before scoring, the independent verifier collapses findings with the same root
 cause and materially identical failure scenario. A gold finding is recovered
@@ -411,8 +411,8 @@ review burden. Those metrics begin only after an approved live trial.
 
 **Historical eligibility:**
 
-- OD-18 has not approved or staffed the evaluation.
-- OD-21 has not selected one canonical governance/evaluation model.
+- OD-20 has not approved or staffed the evaluation.
+- OD-23 has not adopted this proposed DEV-R1 evaluation amendment; accepted ADR-0017 remains authoritative.
 - The standalone historical runner, sanitized context, sealed gold/holdout,
   prompt-injection canary, and hashed runner evidence do not exist.
 - The exact model/runtime identity, model configuration, prompt-bundle hash,
@@ -432,8 +432,8 @@ review burden. Those metrics begin only after an approved live trial.
 - Current prescreen product defects require separately approved product work.
 - Current `main` adds a comprehensive enum-sync guard in PR #36 and narrows its
   `KNOWN_DESYNC.CaseStatus` tolerance to `RETURNED_FOR_MORE_INFORMATION` in PR
-  #38. Remaining semantics are blocked on OD-20, medical-diversion role
-  authority is blocked on OD-22, and neither current-main change has been
+  #38. Remaining semantics are blocked on OD-22, medical-diversion role
+  authority is blocked on OD-24, and neither current-main change has been
   rerun in this assessed-base worktree.
 
 ## Handoff and human review

@@ -27,7 +27,7 @@ Development-tooling roles remain governed by accepted ADR-0017 and the
 [AI operating plan](AI_OPERATING_MODEL_PLAN.md). The recovered
 [DEV-R1 charter](../agents/PRESCREEN_INVARIANT_VERIFIER_CHARTER.md) is a proposed
 historical-evaluation amendment. Its [approval record](../../governance/prompt-approvals/DEV_R1_PRESCREEN_INVARIANT_VERIFIER_APPROVAL.md)
-remains Pending under OD-18/OD-21. Recovery does not authorize execution,
+remains Pending under OD-20/OD-23. Recovery does not authorize execution,
 product AI, case-data access, or a new agent topology.
 
 ## Versioning and audit

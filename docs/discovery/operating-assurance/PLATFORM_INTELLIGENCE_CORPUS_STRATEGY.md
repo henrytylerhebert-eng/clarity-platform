@@ -302,7 +302,7 @@ above, without leaking one client's content into another's workspace.
 
 ## Decisions required before corpus implementation
 
-- Resolve OD-25's permitted-use model.
+- Resolve OD-27's permitted-use model.
 - Confirm ownership and contractual reuse rights by artifact class.
 - Define client-private, firm-owned, derived, evaluation-only, and prohibited
   corpus tiers.

@@ -94,4 +94,4 @@ The operating-assurance rows above recover the July 29 parking lot. They remain
 parked; the [recovery index](../discovery/operating-assurance/README.md) records
 historical definition-stage acceptance separately from unstarted requirements,
 architecture, implementation, and pilot work. Product/repository home and
-corpus-use decisions remain OD-24 and OD-25.
+corpus-use decisions remain OD-26 and OD-27.

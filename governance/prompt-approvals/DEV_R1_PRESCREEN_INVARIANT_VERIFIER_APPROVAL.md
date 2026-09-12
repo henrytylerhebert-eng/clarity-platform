@@ -25,8 +25,8 @@ decision: Not decided
 # DEV-R1 Prescreen Invariant Verifier Approval
 
 > Recovered proposal, 2026-09-12. The accepted ADR-0017 operating model
-> remains authoritative. DEV-R1 is a candidate amendment requiring OD-18 and
-> OD-21 disposition; this recovery grants no execution authority. See
+> remains authoritative. DEV-R1 is a candidate amendment requiring OD-20 and
+> OD-23 disposition; this recovery grants no execution authority. See
 > [recovery disposition](../../docs/developer-handoff/GOVERNANCE_DOCUMENT_RECOVERY_2026-09-12.md).
 
 This is the required governance record for the proposed DEV-R1 charter. `Pending`
@@ -88,8 +88,8 @@ Approval does not cover:
 
 ## Evidence required before status may become Approved
 
-- [ ] OD-18 records the decision and all owners above.
-- [ ] OD-21 selects one canonical governance and evaluation model.
+- [ ] OD-20 records the decision and all owners above.
+- [ ] OD-23 explicitly dispositions the proposed DEV-R1 evaluation amendment to accepted ADR-0017.
 - [ ] The charter and work package contain no unresolved authority fields.
 - [ ] The independent verifier has sealed the gold labels outside DEV-R1's
       readable paths.

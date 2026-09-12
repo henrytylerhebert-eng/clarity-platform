@@ -45,7 +45,7 @@ discovery run. It does not change the canonical roadmap disposition.
   before OD-14 and security review.
 - **Operational impact:** Requires a named policy/process owner, SOP user, and
   evidence reviewer before the learning plan can run.
-- **Dependency impact:** Adds OD-23 as the decision that gates this opportunity
+- **Dependency impact:** Adds OD-25 as the decision that gates this opportunity
   from discovery to Product Intelligence. OD-14 remains scoped to the future
   organization-policy index.
 - **Recommendation:** Accept the documentation-only opportunity assessment and
@@ -57,7 +57,7 @@ discovery run. It does not change the canonical roadmap disposition.
 - **Blocking status:** Does not block this assessment; blocks every later
   lifecycle transition.
 - **Artifacts to update:** This scoped project state, the opportunity
-  assessment, OD-23, and R-25 through R-27. No new roadmap item is required.
+  assessment, OD-25, and R-25 through R-27. No new roadmap item is required.
 
 ## CHG-OA-02 - Preserve the canonical risk namespace
 
@@ -114,7 +114,7 @@ discovery run. It does not change the canonical roadmap disposition.
   real client-content ingestion.
 - **Operational impact:** Converts the consulting delivery model into the
   product operating model: client execution with consultant supervision.
-- **Dependency impact:** Resolves OD-23 for Product Intelligence. OD-14 and the
+- **Dependency impact:** Resolves OD-25 for Product Intelligence. OD-14 and the
   product-home decision still block retrieval design and implementation.
 - **Recommendation:** Accept the opportunity handoff, run a bounded Product
   Intelligence pass, and present one proposed first-release vertical slice for
@@ -124,7 +124,7 @@ discovery run. It does not change the canonical roadmap disposition.
   and longitudinal-use decision.
 - **Blocking status:** No longer blocks Product Requirements Planning.
   Architecture and implementation remain separately blocked.
-- **Artifacts to update:** Opportunity assessment, project state, OD-23,
+- **Artifacts to update:** Opportunity assessment, project state, OD-25,
   Product Intelligence brief, first-release scope proposal, and stage handoff.
 
 ## CHG-OA-04 - Keep the proposed product separate from Clarity implementation
@@ -152,7 +152,7 @@ discovery run. It does not change the canonical roadmap disposition.
   review before any implementation.
 - **Operational impact:** Preserves the consulting firm's multi-client control
   plane as a first-class product need.
-- **Dependency impact:** Creates OD-24, which blocks Execution Architecture but
+- **Dependency impact:** Creates OD-26, which blocks Execution Architecture but
   not product definition or first-release scoping.
 - **Recommendation:** Treat the present Clarity worktree as a temporary
   discovery and governance location only.
@@ -238,7 +238,7 @@ discovery run. It does not change the canonical roadmap disposition.
   consulting method has practical value. Later validation must test transfer
   into client-operated software and consultant leverage.
 - **Dependency impact:** `product_definition` passes and
-  `product-requirements-planning` becomes the next legal skill. OD-14 and OD-24
+  `product-requirements-planning` becomes the next legal skill. OD-14 and OD-26
   continue to block retrieval architecture and implementation.
 - **Recommendation:** Accept the Product Intelligence handoff and define the
   reviewed-answer-or-explicit-gap release plus corpus governance and evaluation

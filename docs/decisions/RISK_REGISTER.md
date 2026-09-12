@@ -31,16 +31,16 @@ related_adrs: ADR-0001
 | R-12 | Knowledge concentration and stale handoffs | Delivery | Medium | `.github/workflows/ci.yml` supplies a verify job; current run status and independent review remain separate evidence, with reproducibility tracked in OD-9 |
 | R-13 | A worktree validates another checkout or shared database ledger | Build/integrity | High | July source reports this failure; current run status remains unverified. Record actual dependency paths and migration ledger for each relevant run under OD-9. |
 | R-14 | Delimiter-joined composite keys alias across tenants or actors | Security/tenancy | Critical | The in-memory prescreen adapter still joins the idempotency tuple with `:` at source `35f16eb`; inspect allowed inputs and regression evidence in a separate implementation slice. Do not infer the Prisma adapter shares this key representation. |
-| R-15 | Existing bridge artifacts are mistaken for authenticated operating authority | Governance | High | ADR-0017 retires the model; OD-19 covers held physical quarantine. Files remaining on disk do not authorize dispatch. |
+| R-15 | Existing bridge artifacts are mistaken for authenticated operating authority | Governance | High | ADR-0017 retires the model; OD-21 covers held physical quarantine. Files remaining on disk do not authorize dispatch. |
 | R-16 | Parallel work reviews changing contracts against different baselines | Coordination | High | PR #32 has merged; the old open-PR claim is historical. Freeze actual base/head and review shared-surface overlap for any new slice. |
-| R-17 | Recovered governance proposals are mistaken for current accepted policy | Governance/coordination | Critical | ADR-0017/merged PR #33 govern; OD-21 holds proposed DEV-R1 amendments. Keep historical source status distinct from approval. |
+| R-17 | Recovered governance proposals are mistaken for current accepted policy | Governance/coordination | Critical | ADR-0017/merged PR #33 govern; OD-23 holds proposed DEV-R1 amendments. Keep historical source status distinct from approval. |
 | R-18 | Expected prescreen transition errors receive unintended HTTP status | API/compatibility | High | Retain the July issue as a review target; current service/API tests and error mapping need a scoped rerun before claiming either an open defect or its resolution. |
 | R-19 | A blind replay sees later fixes, gold labels, or answer-bearing metadata | Evaluation integrity | Critical | Proposed DEV-R1 runner must isolate synthetic history, deny network/writes, hash sanitized context, and keep scoring keys outside readable scope before approval. |
 | R-20 | Case-reference ownership differs between prescreen adapters | Security/tenancy | Critical | Phase 3 persistence is now wired; assess in-memory and Prisma paths separately. July findings do not by themselves establish current runtime exposure or resolution. |
-| R-21 | Medical-diversion topology is read as clinically approved role policy | Clinical/authorization | High | OD-22 retains qualified role authority; current command roles and ADR-0018 do not establish clinical approval. |
+| R-21 | Medical-diversion topology is read as clinically approved role policy | Clinical/authorization | High | OD-24 retains qualified role authority; current command roles and ADR-0018 do not establish clinical approval. |
 | R-22 | Recovery of an old worktree overwrites newer accepted status or decisions | Documentation/coordination | High | Recover on current main, preserve dated records, append reconciled content, and verify Rev Ops OD-15–17 plus newer roadmap evidence survive. |
 | R-23 | Broad older PR #30 work is merged as routine housekeeping | Scope/coordination | Critical | The lane remains open and held; split/disposition its product, bridge, and status scope separately. No acceptance is implied by documentation recovery. |
-| R-24 | Decision IDs refer to different questions across historical branches | Governance/traceability | Critical | The recovery mapping assigns governance OD-18–22 while preserving current Rev Ops OD-15–17; migrate cross-references atomically and retain original branch provenance. |
+| R-24 | Decision IDs refer to different questions across historical branches | Governance/traceability | Critical | The recovery mapping assigns governance OD-20–24 while preserving current Rev Ops OD-15–17 and workbook OD-18/OD-19; migrate cross-references atomically and retain original branch provenance. |
 | R-25 | Policy, consulting, evidence, or source material crosses a tenant or source-handling boundary through import, storage, retrieval, logs, or outputs | Privacy/security | Critical | Current opportunity is documentation-only and synthetic; any future corpus requires tenant-unreachable partitioning, source controls, and negative isolation tests before build |
 | R-26 | Superseded, inapplicable, unlicensed, template, or organization-specific material is treated as current authoritative policy or regulation | Compliance/legal | High | Require exact provenance/version/currentness/reuse rights, qualified applicability review, and a fail-closed `Unknown` state |
 | R-27 | A checklist, evidence state, template, score, training record, or closure artifact is represented as compliance, competency, certification, or control effectiveness | Product/compliance | High | Preserve separate evidence states, prohibit aggregate compliance scores, and require qualified approval and closure evidence |
@@ -163,7 +163,7 @@ user, or market evidence exists.
 - **Owner:** Product owner and commercial owner.
 - **Related requirements:** Not applicable until Product Requirements
   Planning.
-- **Related decisions/candidates:** OD-24, SD-01, SD-03, SD-06, SD-10.
+- **Related decisions/candidates:** OD-26, SD-01, SD-03, SD-06, SD-10.
 - **Related work packages:** Not applicable.
 
 ### R-29 - Consultant oversight bottleneck
@@ -186,7 +186,7 @@ user, or market evidence exists.
 - **Owner:** Consulting operations owner and product owner.
 - **Related requirements:** Not applicable until Product Requirements
   Planning.
-- **Related decisions/candidates:** OD-23, OD-24.
+- **Related decisions/candidates:** OD-25, OD-26.
 - **Related work packages:** Not applicable.
 
 ### R-30 - Unsafe or falsely authoritative knowledge answer
@@ -212,7 +212,7 @@ user, or market evidence exists.
 - **Owner:** Product owner, operational/compliance owner, and security owner.
 - **Related requirements:** Not applicable until Product Requirements
   Planning.
-- **Related decisions/candidates:** OD-14, OD-23, OD-24, SD-01 through SD-03.
+- **Related decisions/candidates:** OD-14, OD-25, OD-26, SD-01 through SD-03.
 - **Related work packages:** Not applicable.
 
 ### R-31 - Unauthorized corpus reuse
@@ -241,7 +241,7 @@ user, or market evidence exists.
 - **Owner:** Product owner, security/privacy owner, and legal/contract owner.
 - **Related requirements:** Not applicable until Product Requirements
   Planning.
-- **Related decisions/candidates:** OD-14, OD-24, OD-25, SD-01 through SD-10.
+- **Related decisions/candidates:** OD-14, OD-26, OD-27, SD-01 through SD-10.
 - **Related work packages:** Not applicable.
 
 ### R-32 - Historical examples learned as universal truth
@@ -274,6 +274,6 @@ user, or market evidence exists.
   owner.
 - **Related requirements:** Not applicable until Product Requirements
   Planning.
-- **Related decisions/candidates:** OD-13, OD-14, OD-23, OD-25, SD-01 through
+- **Related decisions/candidates:** OD-13, OD-14, OD-25, OD-27, SD-01 through
   SD-10.
 - **Related work packages:** Not applicable.

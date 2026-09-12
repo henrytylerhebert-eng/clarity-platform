@@ -72,7 +72,7 @@ Use this when you need a fast start; fill missing items with `[TODO]`.
 
 These fields recover a proposed contract for the historical DEV-R1 experiment.
 They do not authorize it or impose a new gate on ordinary user-directed work.
-Use them if an owner selects that experiment under OD-18 and OD-21; accepted
+Use them if an owner selects that experiment under OD-20 and OD-23; accepted
 ADR-0017 and its operating plan continue to govern development-tooling roles.
 The exact completed contract and pending approval record must be reviewed
 before the proposed experiment can run.

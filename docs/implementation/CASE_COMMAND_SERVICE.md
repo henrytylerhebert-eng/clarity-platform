@@ -7,7 +7,7 @@ source_artifacts:
   - packages/case-service/ (implementation)
   - packages/case-repository/src/caseCommandGateway.ts (approved Prisma adapter)
   - prisma/migrations/20260711133547_case_version_and_command_idempotency
-unresolved_conflicts: "Historical July snapshot; ADR-0018 supplies MEDICAL_TRANSFER_REQUIRED; OD-22 retains medical-diversion role authority"
+unresolved_conflicts: "Historical July snapshot; ADR-0018 supplies MEDICAL_TRANSFER_REQUIRED; OD-24 retains medical-diversion role authority"
 related_requirements: REQ-001…REQ-004
 related_adrs: ADR-0003 (decision record), ADR-0001, ADR-0002
 ---
@@ -20,7 +20,7 @@ The application boundary for every case action. Architecture and decisions: **AD
 July 11, not a fresh run. `packages/api-service/src/server.ts` now derives the
 principal through `AuthenticationService` before invoking the exposed case
 command. Direct service callers still supply an actor. ADR-0018 adds the
-medical-transfer state; OD-22 retains qualified role-policy review.
+medical-transfer state; OD-24 retains qualified role-policy review.
 
 ## Command flow
 

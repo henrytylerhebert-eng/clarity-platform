@@ -36,7 +36,7 @@ source_artifacts:
 | Current stage | Product Intelligence completed; `product-requirements-planning` is the next legal stage |
 | Gate result | `PASSED` - the owner selected a bounded user, workflow, outcome, and authority posture on 2026-07-30 |
 | Missing artifacts | Direct end-user walkthrough evidence and baseline measurements remain absent; they constrain value and pilot claims but do not block bounded product definition |
-| Blocking decisions | OD-23 is resolved for Product Intelligence. OD-14 and the product-home decision block retrieval design and execution architecture |
+| Blocking decisions | OD-25 is resolved for Product Intelligence. OD-14 and the product-home decision block retrieval design and execution architecture |
 | Selected primary skill | `02-product-intelligence` - completed after this Stage 01 handoff |
 | Supporting governance skills | Evidence classifier, traceability manager, decision register, risk register, change control, repository-state inspector, artifact validator, quality gate |
 | Required inputs | Source-pattern audit, portfolio-mix evidence, repository state, owner direction, current alternatives, and open risks |
@@ -190,7 +190,7 @@ and SD-09 depend on an accepted SOP and competency model.
 
 ## User and stakeholder map
 
-Stage 01 originally had no accepted primary user. The OD-23 resolution now
+Stage 01 originally had no accepted primary user. The OD-25 resolution now
 accepts `USR-OA-01` as the primary user for bounded Product Intelligence.
 Direct user validation remains absent.
 
@@ -281,7 +281,7 @@ regulated interpretation appears.
   economics and outcome measurements remain **[Unknown]**.
 - **Gate verdict:** `Ready for product intelligence`.
 
-OD-23 now has an owner decision. EXP-OA-01 remains unperformed and therefore
+OD-25 now has an owner decision. EXP-OA-01 remains unperformed and therefore
 continues to constrain client-operated software adoption, usability, leverage,
 and ROI claims, not the established use of the consulting method.
 
@@ -347,7 +347,7 @@ There is no pre-existing baseline. **No measurements found.**
 
 ### Outcome rules
 
-These were the original experiment-routing rules. CHG-OA-03 and the OD-23
+These were the original experiment-routing rules. CHG-OA-03 and the OD-25
 owner resolution supersede the `Advance to Product Intelligence` condition for
 the bounded definition pass only. EXP-OA-01 remains required before pilot,
 adoption, usability, or measurable-value claims.
@@ -377,7 +377,7 @@ them is an observation or assumption, not expanded scope.
 | PROB-OA-01 | WF-OA-01 operating-assurance loop | Proposed workflow |
 | WF-OA-01 | VAL-OA-01 through VAL-OA-03 | Proposed value; no outcome evidence |
 | ASM-OA-01 through ASM-OA-10 | EXP-OA-01 | Smallest falsification plan |
-| EXP-OA-01 | OD-23 | Owner resolved the Product Intelligence route; the experiment remains required before pilot/value validation |
+| EXP-OA-01 | OD-25 | Owner resolved the Product Intelligence route; the experiment remains required before pilot/value validation |
 | IDEA-OA-01 | R-25 through R-27 | Canonical risks constrain discovery and every later stage |
 | SD-01 through SD-10 | Canonical roadmap | Parked; no status change |
 
@@ -392,7 +392,7 @@ does not create shadow decision or risk registers.
 
 - OD-14 governs the future per-organization policy index and remains narrower
   than this operating-assurance opportunity.
-- OD-23 selects one bounded learning target, user/context, authority posture,
+- OD-25 selects one bounded learning target, user/context, authority posture,
   reviewers, and outcome before Product Intelligence.
 - R-25 covers cross-tenant or source-boundary disclosure.
 - R-26 covers stale, inapplicable, unlicensed, or template content treated as
@@ -409,7 +409,7 @@ Canonical details live in `docs/decisions/OPEN_DECISIONS.md` and
 |---|---|
 | Prior source-pattern artifact exists and is current for this branch | Passed |
 | Canonical roadmap contains SD-01 through SD-10 | Passed |
-| Stage-relevant OD-23 and R-25 through R-27 are current | Passed; legacy register rows were not revalidated |
+| Stage-relevant OD-25 and R-25 through R-27 are current | Passed; legacy register rows were not revalidated |
 | Repository state and applicable product boundaries inspected | Passed; see `REPOSITORY_STATE.md` |
 | Required idea-assessment output sections present | Passed |
 | Primary user, workflow, and target outcome accepted | Passed - owner-directed for Product Intelligence |
