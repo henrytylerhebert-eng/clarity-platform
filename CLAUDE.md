@@ -60,3 +60,22 @@ Deliverables: PR #32 merged and reverified: root 435/435 (40 files, includes enu
 Open items needing owner input: disposition of PR #30 (held for owner review — 2,483 files, stale CI, expands the agent_bridge tree ADR-0017 retires; closing it as superseded is what unblocks Stage 0.1–0.3 and therefore Stage 1); whether MEDICAL_TRANSFER_REQUIRED should be clinician-gated (TransitionCase permits only INTAKE_COORDINATOR/ORGANIZATION_ADMIN — no per-target-status role mechanism exists); whether to execute the CMS research (OD-13); issue #40 / graph determinism (`graphify-out` worktree-path churn); PRs #29 and #18 remain untriaged
 Next action: rule on PR #30's disposition — it is the single blocker for AI-operating-model Stage 0.1–0.3 and Stage 1. Alternatives: provide GCP access (gcloud auth login + intended project) for the provider-backed Cloud SQL/RLS gate, or decide prescreen UI scope / cross-org packet. No Studio mutation/publication/feature-flag/worker/deployment controls before server authorization and audit boundaries exist — this explicitly includes scheduling the regulatory corpus tool.
 ```
+
+## Skill routing
+
+When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
+
+Key routing rules:
+- Product ideas/brainstorming → invoke /office-hours
+- Strategy/scope → invoke /plan-ceo-review
+- Architecture → invoke /plan-eng-review
+- Design system/plan review → invoke /design-consultation or /plan-design-review
+- Full review pipeline → invoke /autoplan
+- Bugs/errors → invoke /investigate
+- QA/testing site behavior → invoke /qa or /qa-only
+- Code review/diff check → invoke /review
+- Visual polish → invoke /design-review
+- Ship/deploy/PR → invoke /ship or /land-and-deploy
+- Save progress → invoke /context-save
+- Resume context → invoke /context-restore
+- Author a backlog-ready spec/issue → invoke /spec
