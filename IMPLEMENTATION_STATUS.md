@@ -42,15 +42,19 @@ parity, rate calculations, or production readiness to verified. Patient/operatin
 data remain synthetic; official financial reference data and calculation development
 are in scope.
 
-**Implemented interface correction — 2026-09-09:**
-[RevOps scope](app/src/workspaces/RevOpsScope.tsx) now identifies the accepted
-full MVP and displays coverage by operating domain. The
+**Implemented interface correction — 2026-09-09 (superseded 2026-09-12):**
+An expandable RevOps scope register identified the accepted full MVP and
+displayed coverage by operating domain. The
 [RevOps client](app/src/workspaces/RevOps.tsx) defaults to January 2026 while
 retaining other reporting years. Seven focused RevOps tests, scoped ESLint,
 and the app build passed. Authenticated desktop/mobile checks verified the
-defaults, expandable scope, and layout. These results verify the interface
-change; they do not verify financial-rate engines or full workbook parity.
-See the [verification record](docs/testing/REVOPS_ACCEPTED_SCOPE_VERIFICATION.md).
+defaults, expandable scope, and layout at the time. These results verify the
+interface change as it stood then; they do not verify financial-rate engines
+or full workbook parity. See the historical
+[verification record](docs/testing/REVOPS_ACCEPTED_SCOPE_VERIFICATION.md).
+The standalone scope register (`RevOpsScope.tsx`) was superseded by the
+populated Operations/Rates tabs described above and removed as unused dead
+code on 2026-09-12; no replacement banner UI was added.
 
 **2026-09-06: Rev Ops patient-day slice merged; synthetic verification, not deployed.**
 [PR #49](https://github.com/henrytylerhebert-eng/clarity-platform/pull/49) merged

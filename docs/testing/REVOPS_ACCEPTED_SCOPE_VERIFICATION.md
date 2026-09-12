@@ -2,6 +2,15 @@
 
 Date: September 9, 2026. Source baseline: `eb8be0831daed8cce84bbc81bb3cd727a11e3669`, with the acceptance/scope correction in this change.
 
+**Superseded 2026-09-12:** the standalone scope-register component this record
+verified (`RevOpsScope.tsx`) was replaced by the populated Operations and
+Rates tabs on the current `/rev-ops` interface (see
+`docs/testing/REVOPS_OPERATING_MVP_VERIFICATION.md` and
+`docs/testing/WORKBOOK_PLATFORM_HOUSEKEEPING_2026-09-12.md`) and removed as
+unused dead code; no replacement banner UI was added. The checks below are
+retained as historical evidence for what ran on 2026-09-09 and reference a
+file that no longer exists.
+
 ## Delivered
 
 - Recorded Tyler's workbook acceptance and authorization for complete parity and financial-rate implementation; the accepted hash was checked and matches the mapped artifact.
