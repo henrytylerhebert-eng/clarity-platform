@@ -3,6 +3,7 @@ status: Integrated draft
 owner: TBD (requires compliance review)
 version: 0.9.0
 last_integrated: 2026-07-10
+last_scoped_reconciliation: 2026-09-12
 source_artifacts:
   - MASTER_ARCHITECTURE.md §19–20, §24 (partial package)
   - reference/source-packages/clarity-ai-database-artifact/docs/AUDIT_RULES.md
@@ -20,7 +21,14 @@ Source before summary; structured evidence before narrative; deterministic rules
 
 ## Agent contracts
 
-Every agent must ship with: contract, allowlisted tools, output schema, source requirements, prohibited actions, validation, and human-review rule. **No agent may run without a contract.** The package's contract files are missing locally; the 13 Jul 8 prompt files under `reference/source-packages/clarity-mh-architecture/prompts/` are the only concrete prompt artifacts and move through `governance/prompt-approvals/` before production use. Currently **zero agents are implemented or running**.
+Every product/runtime agent must ship with: contract, allowlisted tools, output schema, source requirements, prohibited actions, validation, and human-review rule. **No product/runtime agent may run without a contract.** The package's product/runtime contract files are missing locally; the 13 Jul 8 prompt files under `reference/source-packages/clarity-mh-architecture/prompts/` are source artifacts requiring approval before production use. This document does not establish any implemented or running product/runtime agent.
+
+Development-tooling roles remain governed by accepted ADR-0017 and the
+[AI operating plan](AI_OPERATING_MODEL_PLAN.md). The recovered
+[DEV-R1 charter](../agents/PRESCREEN_INVARIANT_VERIFIER_CHARTER.md) is a proposed
+historical-evaluation amendment. Its [approval record](../../governance/prompt-approvals/DEV_R1_PRESCREEN_INVARIANT_VERIFIER_APPROVAL.md)
+remains Pending under OD-20/OD-23. Recovery does not authorize execution,
+product AI, case-data access, or a new agent topology.
 
 ## Versioning and audit
 

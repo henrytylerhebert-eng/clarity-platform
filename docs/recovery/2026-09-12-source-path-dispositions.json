@@ -1,0 +1,445 @@
+{
+  "scope": "48 non-generated paths from the original local recovery manifest. Every original remains unchanged; reconciled or recovered does not mean copied byte-for-byte or merged.",
+  "recovery_manifest": "~/Documents/clarity-recovery/20260912T203908Z/manifest.json",
+  "counts": {
+    "reconciled": 32,
+    "held": 10,
+    "recovered": 4,
+    "omitted": 1,
+    "superseded": 1
+  },
+  "paths": [
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "AGENTS.md",
+      "original_sha256": "6867b35d96204f1c59ab9f0ad57004b28efb6ecacd57de476dadf724a4087c7f",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "ARCHITECTURE.md",
+      "original_sha256": "75ec804b668bd1075e7fd46724a8319ae636a33464fc2602ddfa42198a85f94a",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "CLAUDE.md",
+      "original_sha256": "bf926838d81b59f1b7f48519249fea35114f64f15e5808b22ee59d61fbbcfece",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Proposed policy replacement or stale package descriptions/comments retained as source; not missing runtime. Current Graphify policy is handled narrowly in PR57."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "IMPLEMENTATION_STATUS.md",
+      "original_sha256": "413377f2e3aeb93146b5d9700ec92b6df7fdec191d64ef185d18e5109402b45c",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "README.md",
+      "original_sha256": "295c7ecac945ea60a16d1e6c91dc21e97612ffa8dfe90b53bb458207afc6fab4",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/AGENTS_TEMPLATE.md",
+      "original_sha256": "ab7bdac60ab7f9d1644bff611f375ae68a5194be3fb22223f9220a0d39b6485e",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/AGENTS_TEMPLATE.quickfill.md",
+      "original_sha256": "94f035f315355750d00ca6da4619620d7d4910345558862fc4cf27a36435d6e3",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/architecture/SYSTEM_ARCHITECTURE.md",
+      "original_sha256": "e457573a4126bad688725ba62725c379b3a18b6fd9a829b9c910e232d1246321",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/decisions/OPEN_DECISIONS.md",
+      "original_sha256": "d1640e57752f0c9972ececb7e34ba9e5b039a9a236932e0725f33b00095fbb1e",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/decisions/RISK_REGISTER.md",
+      "original_sha256": "f41d8344085c08376a2f0ec37f433845a06828771b7f04de32fbc7b9869f2a6c",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/governance/AI_GOVERNANCE.md",
+      "original_sha256": "4fd8c26bd4ba307e418407bc78422bc3b74d43e0f4719d590b392f15be8b531b",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/implementation/CASE_COMMAND_SERVICE.md",
+      "original_sha256": "8c1244b318a16f959ca6c0c72741d6a7ff497550f56fd6ee9883bbe986649d7c",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/implementation/PRESCREEN_PHASE2_IMPLEMENTATION.md",
+      "original_sha256": "029708a0ae6a85c9ec6c08747fddcf6b436037ec2e3c78e240179a989d231f84",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "packages/api-service/package.json",
+      "original_sha256": "5bf74feb2cc3e2b1ae6a39ae743c5d6b21ea624c19c8967e8c5496a32b28bbf0",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Proposed policy replacement or stale package descriptions/comments retained as source; not missing runtime. Current Graphify policy is handled narrowly in PR57."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "packages/prescreen-service/package.json",
+      "original_sha256": "6fa220c5c4e728afb8c6c5731e1eecaa126d7c84a78d44c2c33454d4eef7e9c5",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Proposed policy replacement or stale package descriptions/comments retained as source; not missing runtime. Current Graphify policy is handled narrowly in PR57."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "packages/prescreen-service/src/commands.ts",
+      "original_sha256": "0beea7d1a6f1ead05c508632c9404acf7e3c0117be4ef7e50c6d39ece4b13aa8",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Proposed policy replacement or stale package descriptions/comments retained as source; not missing runtime. Current Graphify policy is handled narrowly in PR57."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/agents/PRESCREEN_INVARIANT_VERIFIER_CHARTER.md",
+      "original_sha256": "ef4e56e9639935730792c4d398e8fea7d3e83be1730e2a3bad7c58b7d547b6ad",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "docs/developer-handoff/AI_NATIVE_DOMAIN_AGENT_REPOSITORY_PREPARATION.md",
+      "original_sha256": "a1f347f09542dc43b14e3dc42773710c7bac959334ded454493eefd4c212b678",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-ai-agent-readiness",
+      "source_branch": "refs/heads/codex/ai-agent-readiness",
+      "path": "governance/prompt-approvals/DEV_R1_PRESCREEN_INVARIANT_VERIFIER_APPROVAL.md",
+      "original_sha256": "5dd2c5aef8dab36d38d8e62296b8f3045601090385239cfebd4474676104feb5",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Relevant content recovered against current truth and decision IDs; pending policy proposals are not enacted."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/decisions/OPEN_DECISIONS.md",
+      "original_sha256": "be42a7bd4547f4f301fd361d84f0602d701bf9c509b91986b2fa1bd5a5315071",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/decisions/ORG_POLICY_INDEX_DECISION_PACKET.md",
+      "original_sha256": "85a0cd6b642090f16fe9df450dce598519f77b9278febcadd4c24384c393fa9b",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/decisions/RISK_REGISTER.md",
+      "original_sha256": "d5cca0f16135f5bdb55154b46bb2a9fa070a21bcb76c82146e2f26cbfdfdf59d",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/roadmap/IMPLEMENTATION_ROADMAP.md",
+      "original_sha256": "92965b16389d288abde35b73d2472d01970e9eacc77b04d7e873612841b7afa3",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/SHARED_DRIVE_OPERATING_PATTERN_AUDIT.md",
+      "original_sha256": "ec4403c8cd3a65211c47823334a7c0662838159ec5339d8250e9479041f43415",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/CHANGE_CONTROL.md",
+      "original_sha256": "5fc5f4f2df7153ecbf36e71efcb409b9f4cd5674c3c60dda7f930ed089828a1c",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/CHATGPT_PROJECT_PROMPT_VISIT_ASSURANCE_PACKAGE.md",
+      "original_sha256": "0e76c90db1cb5d79ee1ccab78dd6c42438b920e1f17c516117e83de1f76d0d3c",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/CONSULTING_PORTFOLIO_EVIDENCE.md",
+      "original_sha256": "2fa1dfb7523c84305d23591d430c9055f4bb6afad571ee40e8fd1df7c4966c79",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/FIRST_RELEASE_SCOPE_PROPOSAL.md",
+      "original_sha256": "d1adca6fa8e4b4bc66316720513facac7156da67285786747fde8803b44add2f",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/IDEA_OPPORTUNITY_ASSESSMENT.md",
+      "original_sha256": "75f8864d844058685bfc86d18fae2bfb23f516f620f4844cec59931fc1d4dff1",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/PLATFORM_INTELLIGENCE_CORPUS_STRATEGY.md",
+      "original_sha256": "1801d36f5917606af331766d61cf81b9667d354175b3273511ca0f46f1dd4229",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/PRODUCT_INTELLIGENCE_BRIEF.md",
+      "original_sha256": "a7f6e3ef29d8c8ef8ecf9372362740dcae068495d8b4d4b895387fdfb2ee5da1",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/PRODUCT_INTELLIGENCE_HANDOFF.md",
+      "original_sha256": "d95ea2f969b0eb8ac6ea1377cdb9d4a72063a36614c25a2ecf6982d5981504c9",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/REPOSITORY_STATE.md",
+      "original_sha256": "d7913cad4d755165f1f2b4b21771192497bde13803fd2a3e38d6ade68bb078ae",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/product-intelligence-stage-manifest.yaml",
+      "original_sha256": "222cd31189812a52edcf3de2eaf03a701cddd135c6cbd0d552268583b65dfb85",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/project-state.yaml",
+      "original_sha256": "a406da386ef6ecb33db03d1859192d1f270ac9fa943a77d4af3e4f78f6dd1276",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-drive-pattern-parking-lot",
+      "source_branch": "refs/heads/codex/drive-pattern-parking-lot",
+      "path": "docs/discovery/operating-assurance/stage-manifest.yaml",
+      "original_sha256": "70d339ee2929c883fd4402df96c3ef8cd9351f2b85f41102e310047b51da28d5",
+      "disposition": "reconciled",
+      "draft_pr": 59,
+      "reason": "Recovered with current decision IDs and dated provenance; proposals, pending approvals and paused work retain those states."
+    },
+    {
+      "source_worktree": "clarity-build-to-goal-operating-doc-011dc7",
+      "source_branch": "refs/heads/claude/repo-product-intelligence-a4a509",
+      "path": "package.json",
+      "original_sha256": "17cd632059be5c5f9b355b727f93458bbceb169c71e1bf3522927f80245379dc",
+      "disposition": "recovered",
+      "draft_pr": 60,
+      "reason": "Isolated runner and package entrypoint repaired and tested; original bytes retained in recovery."
+    },
+    {
+      "source_worktree": "clarity-build-to-goal-operating-doc-011dc7",
+      "source_branch": "refs/heads/claude/repo-product-intelligence-a4a509",
+      "path": "tsconfig.json",
+      "original_sha256": "f7323300bb373e615ae691caa6c940a8ace224670a0c612cd5c41daee198ad8a",
+      "disposition": "omitted",
+      "draft_pr": null,
+      "reason": "Source alias unnecessary after verified worktree-local dependency installation and compiler resolution: 176 source files, zero foreign files."
+    },
+    {
+      "source_worktree": "clarity-build-to-goal-operating-doc-011dc7",
+      "source_branch": "refs/heads/claude/repo-product-intelligence-a4a509",
+      "path": "docs/developer-handoff/CLAUDE_TO_CODEX_FULL_CONTEXT_HANDOFF_2026-07-29.md",
+      "original_sha256": "1546ee9e1306e4e10b36729ee0d5cda9752bbebf4bd82161927cfc90c00f18e0",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Historical or proposed WP10-11 handoff, acceptance or planning material; not bulk-imported or promoted as current requirements."
+    },
+    {
+      "source_worktree": "clarity-build-to-goal-operating-doc-011dc7",
+      "source_branch": "refs/heads/claude/repo-product-intelligence-a4a509",
+      "path": "docs/developer-handoff/WP-10-11_IMPLEMENTATION_HANDOFF.md",
+      "original_sha256": "b1f91a4c34177ae75b82775c03a2f2a8d2d1790b6dc25cf20d9f4e6671b7b089",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Historical or proposed WP10-11 handoff, acceptance or planning material; not bulk-imported or promoted as current requirements."
+    },
+    {
+      "source_worktree": "clarity-build-to-goal-operating-doc-011dc7",
+      "source_branch": "refs/heads/claude/repo-product-intelligence-a4a509",
+      "path": "docs/developer-handoff/WP-10-11_INDEPENDENT_ACCEPTANCE_REPORT_2026-07-29.md",
+      "original_sha256": "4e66cdd1439a5b9cae8bc4f4ac3d5c3fc7a7540018cf790ef0c884e433774a1d",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Historical or proposed WP10-11 handoff, acceptance or planning material; not bulk-imported or promoted as current requirements."
+    },
+    {
+      "source_worktree": "clarity-build-to-goal-operating-doc-011dc7",
+      "source_branch": "refs/heads/claude/repo-product-intelligence-a4a509",
+      "path": "docs/product/EXECUTION_ARCHITECTURE.md",
+      "original_sha256": "4bae0555f99fd267a5ed90c35a7fdcba8ef890159027f73448dc2601f4b7dbe5",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Historical or proposed WP10-11 handoff, acceptance or planning material; not bulk-imported or promoted as current requirements."
+    },
+    {
+      "source_worktree": "clarity-build-to-goal-operating-doc-011dc7",
+      "source_branch": "refs/heads/claude/repo-product-intelligence-a4a509",
+      "path": "docs/product/PRODUCT_BUILD_PLAN_AND_REQUIREMENTS.md",
+      "original_sha256": "70a23d7ab65891834e34da0de7404a7962dca71b8be1a5546fe380e2a3949bba",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Historical or proposed WP10-11 handoff, acceptance or planning material; not bulk-imported or promoted as current requirements."
+    },
+    {
+      "source_worktree": "clarity-build-to-goal-operating-doc-011dc7",
+      "source_branch": "refs/heads/claude/repo-product-intelligence-a4a509",
+      "path": "docs/product/REPOSITORY_PRODUCT_INTELLIGENCE_BRIEF.md",
+      "original_sha256": "03e3257f96b3daa2a57b6ff6ec335310f7318d6b8418d1795f16a122a50e19d8",
+      "disposition": "held",
+      "draft_pr": null,
+      "reason": "Historical or proposed WP10-11 handoff, acceptance or planning material; not bulk-imported or promoted as current requirements."
+    },
+    {
+      "source_worktree": "clarity-build-to-goal-operating-doc-011dc7",
+      "source_branch": "refs/heads/claude/repo-product-intelligence-a4a509",
+      "path": "scripts/with-ephemeral-database.ts",
+      "original_sha256": "9982e8949caed6b961366da994816e984f960d89917150ac748e55877e00a9d4",
+      "disposition": "recovered",
+      "draft_pr": 60,
+      "reason": "Isolated runner and package entrypoint repaired and tested; original bytes retained in recovery."
+    },
+    {
+      "source_worktree": "clarity-opening-cfcdc5",
+      "source_branch": "refs/heads/claude/clarity-opening-cfcdc5",
+      "path": "packages/api-service/src/server.ts",
+      "original_sha256": "b9097a3cb36618302f28ad73f966541c32852b881eee8773e2cdc4918bd3081f",
+      "disposition": "recovered",
+      "draft_pr": 56,
+      "reason": "Malformed-path validation and stable role-order replay recovered with failing-before/passing-after API regressions."
+    },
+    {
+      "source_worktree": "clarity-opening-cfcdc5",
+      "source_branch": "refs/heads/claude/clarity-opening-cfcdc5",
+      "path": "tests/integration/prescreen-api.test.ts",
+      "original_sha256": "fa8d571c2864b7e2df5ece31961d57cbd5f44d6ccbc3cd88549de27ac1647879",
+      "disposition": "recovered",
+      "draft_pr": 56,
+      "reason": "Malformed-path validation and stable role-order replay recovered with failing-before/passing-after API regressions."
+    },
+    {
+      "source_worktree": "h1-h2-audit-infrastructure-49906f",
+      "source_branch": "refs/heads/claude/prescreen-phase3-persistence",
+      "path": "packages/case-repository/src/prescreenGateway.ts",
+      "original_sha256": "83fad12087ecd56a302a870ea2e0126196a94b3c58b750dc6670a7b605de1017",
+      "disposition": "superseded",
+      "draft_pr": null,
+      "reason": "Current main already handles unique violations after rollback with regression coverage; old stricter classification not ported."
+    }
+  ]
+}

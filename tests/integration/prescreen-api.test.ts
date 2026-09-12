@@ -7,6 +7,7 @@ import {
   PRESCREEN_PRODUCTION_POLICY,
   PrescreenCommandService,
   type AssessmentDraftInput,
+  type PrescreenCommandResult,
 } from "@clarity/prescreen-service";
 import { createApiServer } from "@clarity/api-service";
 import type { UserRole } from "@clarity/domain-contracts";
@@ -35,6 +36,7 @@ const ASSERTIONS = {
   physician: "syn-assert-ps-api-doc-001",
   sysadmin: "syn-assert-ps-api-admin-01",
   intakeB: "syn-assert-ps-api-intakeb1",
+  multipleRoles: "syn-assert-ps-api-multirole1",
 };
 
 const T_ANSWER = {
@@ -135,6 +137,10 @@ beforeAll(async () => {
   provider.register(ASSERTIONS.physician, await createRoleUser("doc", h.tenantA, ["PHYSICIAN_REVIEWER"]));
   provider.register(ASSERTIONS.sysadmin, await createRoleUser("admin", h.tenantA, ["SYSTEM_ADMIN"]));
   provider.register(ASSERTIONS.intakeB, await createRoleUser("intake-b", h.tenantB, ["INTAKE_COORDINATOR"]));
+  provider.register(
+    ASSERTIONS.multipleRoles,
+    await createRoleUser("multiple-roles", h.tenantA, ["PHYSICIAN_REVIEWER", "INTAKE_COORDINATOR"]),
+  );
 
   // Phase 3: the encounter's caseId is a real tenant-checked linkage, so the
   // synthetic case rows the flows cite must actually exist in tenant A.
@@ -234,6 +240,31 @@ describe("same-organization prescreen flow over HTTP (production policy)", () =>
     expect(conflict.status).toBe(409);
     expect(await conflict.json()).toEqual({ error: "idempotency_key_reused" });
   });
+
+  it("replays the same intent when the database returns the same roles in a different order", async () => {
+    const token = await login(ASSERTIONS.multipleRoles);
+    const body = {
+      caseId: `syn-ps-api-case-${h.runId}`,
+      currentLocation: "Synthetic ED",
+      presentingConcern: "Synthetic role-order replay check",
+      idempotencyKey: idem("role-order"),
+    };
+    const first = await post(token, "/api/prescreen/encounters", body);
+    expect(first.status).toBe(200);
+    const original = (await first.json()) as PrescreenCommandResult;
+    expect(original.replayed).toBe(false);
+
+    await h.prisma.user.update({
+      where: { id: `synthetic-user-ps-api-multiple-roles-${h.runId}` },
+      data: { roles: ["INTAKE_COORDINATOR", "PHYSICIAN_REVIEWER"] },
+    });
+    const replay = await post(token, "/api/prescreen/encounters", body);
+    expect(replay.status).toBe(200);
+    expect(await replay.json()).toEqual({ ...original, replayed: true });
+    expect(await h.prisma.prescreenEncounter.count({
+      where: { organizationId: h.tenantA.organizationId, presentingConcern: body.presentingConcern },
+    })).toBe(1);
+  });
 });
 
 describe("production role policy enforced over HTTP (ADR-0014 ruling)", () => {
@@ -294,6 +325,16 @@ describe("production role policy enforced over HTTP (ADR-0014 ruling)", () => {
 });
 
 describe("server-derived envelope fields cannot be smuggled through the body", () => {
+  it.each(["%zz", "%E0%A4%A"])("malformed encounter path %s returns a content-free 400", async (segment) => {
+    const intake = await login(ASSERTIONS.intake);
+    const response = await post(intake, `/api/prescreen/encounters/${segment}/draft`, {
+      draft: draftInput(`syn-ps-api-asv-badpath-${h.runId}`),
+      idempotencyKey: idem("badpath"),
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_request" });
+  });
+
   it("organizationId, actor, occurredAt, and receivingOrganizationId in a body are a 400, never a silent overwrite", async () => {
     const intake = await login(ASSERTIONS.intake);
     const encounterId = await startEncounter(intake);

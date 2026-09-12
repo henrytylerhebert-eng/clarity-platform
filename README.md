@@ -71,7 +71,8 @@ Where no measurement exists, the project says `No measurements found`. Where a c
 |---|---|
 | `app/` | Working prototype (Vite + React + TS): guided intake, medical-necessity/legal drafts, command center, stakeholder feature map, hash-chained custody ledger, packet builder, simulated routing, bedboard, Training & SOPs. `cd app && npm run dev` |
 | `packages/domain-contracts/` | Domain types, Zod schemas, state machines, audit helper, feature flags — contracts only |
-| `packages/*-service/` | Backend service foundations for case, document, evidence, benefits, authorization, and authentication workflows |
+| `packages/*-service/` | Backend service foundations for case, document, evidence, benefits, authorization, authentication, prescreen, and synthetic Rev Ops workflows |
+| `packages/api-service/` | Local Fastify API with authenticated session/case/prescreen routes plus synthetic Rev Ops and IOP reconciliation; see `src/server.ts` and `src/devMain.ts` |
 | `prisma/` | Canonical foundation schema (validated; initial migration generated) — ADR-0002 |
 | `data/synthetic-cases/` | Validated synthetic fixtures (3 of a planned 10) |
 | `data/mock-use-cohorts/` | Separated mock-use training cohorts; not canonical app seed data |
@@ -96,7 +97,8 @@ For potential customers or POC reviewers:
 
 For developers:
 
-- For human-supervised multi-agent work, start with agents/bridge/PROJECT_CONFIGURATION.md and agents/bridge/PROTOCOL.md.
+- For development-tooling roles, start with accepted [ADR-0017](docs/architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md) and the [AI operating plan](docs/governance/AI_OPERATING_MODEL_PLAN.md). Bridge files remain historical evidence; their presence does not authorize dispatch.
+- The [recovered governance proposal](docs/developer-handoff/GOVERNANCE_DOCUMENT_RECOVERY_2026-09-12.md) is a separate Pending DEV-R1 candidate, not new operating authority.
 - For a new workflow or requirements-acquisition session, start with [docs/discovery/README.md](docs/discovery/README.md); it is documentation-only and does not authorize implementation.
 - Read `IMPLEMENTATION_STATUS.md` for what is complete, scaffolded, documented-only, blocked, and next.
 - Read `docs/roadmap/IMPLEMENTATION_ROADMAP.md` for the platform sequence.
@@ -124,6 +126,26 @@ npm run smoke
 npm audit --omit=dev
 ```
 
+For isolated synthetic database verification on macOS or Linux, install dependencies
+inside the worktree with `npm ci`, put PostgreSQL's `initdb`, `pg_ctl`, and `createdb`
+on `PATH`, then run:
+
+```bash
+npm run test:ephemeral
+npm run test:ephemeral -- node node_modules/vitest/vitest.mjs run tests/integration
+```
+
+This opt-in runner creates a separate loopback PostgreSQL instance for each run,
+generates the worktree's Prisma client, applies its migrations, and passes the fresh
+`clarity_dev` URL to the command. It rejects Prisma/Vitest CLI files, workspace links,
+or generated-client paths that resolve outside the worktree. Keep the checkout/schema
+stable while a run is active. Success, command failure, SIGINT, and SIGTERM stop the owned server and remove
+its temporary directories; cancellation during startup waits up to ten seconds for
+startup to finish. If PostgreSQL shutdown fails, the command reports failure and
+retains the printed data directory for recovery. The developer's existing database
+is outside this runner's scope. A short port-allocation race remains possible; a
+startup collision fails and cleans up so the command can be retried.
+
 ## Ground rules
 
 - **Synthetic data only.** No real PHI/PII anywhere, ever, until formal security review (`SECURITY.md`).
@@ -137,7 +159,7 @@ npm audit --omit=dev
 Current prototype status:
 
 - Local app: guided intake, command center, role scoping, Training & SOPs, packet generation, simulated routing, custody ledger, and bedboard are implemented with synthetic data.
-- Backend foundations: case, document, evidence, benefits, authorization, and authentication services are in place as repository/service layers, not as a deployed API product.
+- Backend foundations include authentication, case, prescreen, and synthetic Rev Ops/IOP routes with Prisma adapters wired by `packages/api-service/src/devMain.ts`. This is local implementation, not evidence of a deployed or PHI-ready API product.
 - Production deployment: not started.
 - Live integrations: not started.
 - Clinical/legal/payer validation: required before any real-world use.
