@@ -224,7 +224,6 @@ function toHttpError(error: unknown): HttpError {
   // Never logs request bodies, workbook contents, row values, or credentials.
   if (process.env.PR64_DIAGNOSTIC_LOG_UNMAPPED_ERRORS === "1") {
     const e = error as { name?: string; code?: string; message?: string; clientVersion?: string };
-    // eslint-disable-next-line no-console
     console.error("[pr64-diagnostic] unmapped error in toHttpError", {
       constructorName: (error as { constructor?: { name?: string } })?.constructor?.name,
       name: e?.name,

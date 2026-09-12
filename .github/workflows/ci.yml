@@ -25,11 +25,7 @@ jobs:
     env:
       # Integration tests refuse to run against anything but local clarity_dev
       # (assertLocalClarityDevDatabase); the service container satisfies that.
-      # connection_limit raises Prisma's default pool (2 * CPUs + 1, very small
-      # on a shared runner) so the full suite's concurrent interactive
-      # transactions don't intermittently fail to acquire a client and surface
-      # as unmapped 500s (observed in tests/integration/operating-workbook.test.ts).
-      DATABASE_URL: postgresql://clarity:clarity@localhost:5432/clarity_dev?schema=public&connection_limit=20&pool_timeout=20
+      DATABASE_URL: postgresql://clarity:clarity@localhost:5432/clarity_dev?schema=public
       # TEMPORARY (PR #64 diagnostic, remove before merge): surfaces the
       # shape of any unmapped error server-side; the public response stays
       # a content-free 500 regardless. See toHttpError in server.ts.
