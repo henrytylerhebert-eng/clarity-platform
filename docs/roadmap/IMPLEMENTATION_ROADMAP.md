@@ -16,6 +16,29 @@ related_adrs: ADR-0001, ADR-0002
 
 # Implementation Roadmap
 
+## Current RevOps authorization — 2026-09-09
+
+Tyler accepted **Dunder Mifflin Hospital - Restored Operations 2026** and authorized
+the MVP/interface update, full workbook parity, and real financial-rate
+implementation. [Workbook acceptance](../product/RESTORED_WORKBOOK_ACCEPTANCE.md)
+is complete; previous acceptance-first restrictions are superseded. Remaining
+gaps describe undelivered work, not excluded MVP scope.
+
+Follow the [workbook function map](../product/WORKBOOK_TO_PLATFORM_WORKFLOW_MAP.md)
+for the dependency sequence: P0 accepted baseline/technical setup; P1 IP activity;
+P2 IOP operations/review; P3 payer/rate and financial calculations; P4 role staffing
+and costs; P5 invoices/collections; P6 forecasting/management reports; P7 controlled
+source pilot. The [initial IOP build plan](WORKBOOK_BASELINE_IOP_REVIEW_BUILD_PLAN.md)
+remains a useful first increment. P3 official-source/version/standalone calculation
+work can run alongside it; financial integration follows the activity it needs.
+
+The selected Louisiana hospital provider identifier is pending; that affects only
+facility-specific rates requiring it. Verify official methods/effective dates and
+required facility/contract inputs, with synthetic activity for tests. Owner scope
+acceptance does not verify payment results, complete parity, or approve production
+and real patient data. Current delivery evidence remains in
+[implementation status](../../IMPLEMENTATION_STATUS.md).
+
 ## Where we actually are
 
 - **Done (prototype):** Jul 8 roadmap v0.1 (intake spine) and v0.2 (command center, routing, role UX) are implemented in `app/` as a frontend demo.
@@ -39,7 +62,7 @@ related_adrs: ADR-0001, ADR-0002
 | 14. Hardening | Security controls, evaluation suites | Open |
 | 15. Controlled pilot | Requires clinical/legal/security sign-offs | Open |
 
-## Next concrete issue
+## Earlier RevOps delivery sequence — retained as history
 
 The inpatient Rev Ops patient-day slice merged in PR #49 with synthetic
 [verification evidence](../testing/REV_OPS_PATIENT_DAY_VERIFICATION.md).

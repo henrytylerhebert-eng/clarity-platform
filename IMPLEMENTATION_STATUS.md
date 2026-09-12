@@ -1,7 +1,58 @@
 # Implementation Status
 
-**2026-09-12 documentation recovery:** the [governance recovery record](docs/developer-handoff/GOVERNANCE_DOCUMENT_RECOVERY_2026-09-12.md) preserves July proposals and reconciles them to `35f16eb`. DEV-R1 remains unapproved. No runtime tests, agent evaluation, deployment, or product-status promotion occurred in this documentation slice; the dated verification records below are preserved.
+**2026-09-09: Working operating workbook and payment tools implemented locally.**
+The authenticated RevOps client now opens populated operations, rather than the
+scope-definition banner. It imports 31 accepted-source tables / 28,301 synthetic
+records, recalculates all 47 numeric MONTHLY outputs, persists validated input
+corrections and new payer/service/contract records, and preserves report snapshots.
+The parity suite checks 47 metrics across 12 months plus the year: 611 matches.
+Louisiana Medicaid per-diem scenarios use 1,126 archived official rows; commercial
+scenario methods and the FY2026 Medicare wage-adjusted base component are implemented.
+All-in Medicare pricing, real provider binding, financial close, new receipt/reversal
+commands, remaining report/detail parity and production readiness are not complete.
+See [runtime verification](docs/testing/REVOPS_OPERATING_MVP_VERIFICATION.md) for
+tests, architecture boundaries and exact remaining work. Earlier status entries
+below are historical and are superseded only for the implemented scope here.
 
+**2026-09-09: Restored workbook accepted; full parity and sourced financial-rate implementation authorized.**
+Tyler explicitly accepted **Dunder Mifflin Hospital - Restored Operations 2026**.
+The mapped and currently checked SHA-256 is
+`6e81bd61950c244e607ed03f8b0f13e1a4d0bea366ee7ad7cc54c053ef90de26`.
+See the [acceptance record](docs/product/RESTORED_WORKBOOK_ACCEPTANCE.md).
+The prior owner-acceptance gate is closed. MVP/interface updates, every mapped
+workbook parity gap, and official financial-rate implementation are authorized.
+
+**Implementation status:** the existing census/budget/staffing/close/export work
+below remains a reusable partial implementation. Full IP/IOP activity, effective
+payer/contract pricing, role costs, invoices, collections, forecasts, and complete
+reporting parity remain undelivered unless supported by a subsequent scoped
+implementation and verification entry. The existing UI definition is not proof
+that the full accepted MVP has been delivered.
+
+**Next work:** retain IOP review as one increment and start the financial source,
+rate-version, payer-distinction, and calculation lane in parallel. The Louisiana
+hospital provider identifier is pending only for its facility-specific calculations
+([OD-19](docs/decisions/OPEN_DECISIONS.md)). Budget, actual activity, modeled
+reimbursement, billed amounts, forecasts, and posted collections stay distinct.
+
+**Evidence limits:** this acceptance record includes a current file-hash check;
+native workbook mutation tests were not rerun. Historical native tests concern
+another byte version. Owner acceptance does not promote those results, application
+parity, rate calculations, or production readiness to verified. Patient/operating
+data remain synthetic; official financial reference data and calculation development
+are in scope.
+
+**Implemented interface correction — 2026-09-09:**
+[RevOps scope](app/src/workspaces/RevOpsScope.tsx) now identifies the accepted
+full MVP and displays coverage by operating domain. The
+[RevOps client](app/src/workspaces/RevOps.tsx) defaults to January 2026 while
+retaining other reporting years. Seven focused RevOps tests, scoped ESLint,
+and the app build passed. Authenticated desktop/mobile checks verified the
+defaults, expandable scope, and layout. These results verify the interface
+change; they do not verify financial-rate engines or full workbook parity.
+See the [verification record](docs/testing/REVOPS_ACCEPTED_SCOPE_VERIFICATION.md).
+
+**2026-09-12 documentation recovery (historical proposals):** the [governance recovery record](docs/developer-handoff/GOVERNANCE_DOCUMENT_RECOVERY_2026-09-12.md) preserves July proposals and explains the normal merge of the workbook dependency. DEV-R1 remains unapproved. This documentation slice preserves the accepted workbook evidence and authority above; it adds no runtime implementation, agent launch, deployment, or fresh runtime-test claim. The dated verification records remain scoped to their original work.
 
 **2026-09-06: Rev Ops patient-day slice merged; synthetic verification, not deployed.**
 [PR #49](https://github.com/henrytylerhebert-eng/clarity-platform/pull/49) merged
