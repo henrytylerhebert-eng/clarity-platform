@@ -26,10 +26,6 @@ jobs:
       # Integration tests refuse to run against anything but local clarity_dev
       # (assertLocalClarityDevDatabase); the service container satisfies that.
       DATABASE_URL: postgresql://clarity:clarity@localhost:5432/clarity_dev?schema=public
-      # TEMPORARY (PR #64 diagnostic, remove before merge): surfaces the
-      # shape of any unmapped error server-side; the public response stays
-      # a content-free 500 regardless. See toHttpError in server.ts.
-      PR64_DIAGNOSTIC_LOG_UNMAPPED_ERRORS: "1"
     steps:
       - uses: actions/checkout@v4
 

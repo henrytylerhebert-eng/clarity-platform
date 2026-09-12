@@ -218,20 +218,6 @@ function toHttpError(error: unknown): HttpError {
     return new HttpError(500, "internal_error");
   }
   if (error instanceof ZodError) return new HttpError(400, "invalid_request");
-  // TEMPORARY (PR #64 diagnostic, remove before merge): the public response
-  // stays a content-free 500 below; this only logs the error's shape server
-  // side — constructor name, any stable error/Prisma code, and message text.
-  // Never logs request bodies, workbook contents, row values, or credentials.
-  if (process.env.PR64_DIAGNOSTIC_LOG_UNMAPPED_ERRORS === "1") {
-    const e = error as { name?: string; code?: string; message?: string; clientVersion?: string };
-    console.error("[pr64-diagnostic] unmapped error in toHttpError", {
-      constructorName: (error as { constructor?: { name?: string } })?.constructor?.name,
-      name: e?.name,
-      code: e?.code,
-      clientVersion: e?.clientVersion,
-      message: e?.message,
-    });
-  }
   return new HttpError(500, "internal_error");
 }
 
