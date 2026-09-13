@@ -1,0 +1,212 @@
+model SurveillanceRound {
+  id                String                   @id @default(cuid())
+  organizationId    String
+  roundKey          String
+  facilityProfileId String
+  roundType         String                   @default("SURVEILLANCE")
+  status            SurveillanceRoundStatus  @default(IN_PROGRESS)
+  startedBy         String
+  startedAt         DateTime                 @default(now())
+  completedAt       DateTime?
+  version           Int                      @default(1)
+  scenes            SurveillanceSceneInstance[]
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@unique([organizationId, roundKey], map: "sr02_uq_010")
+  @@index([organizationId, facilityProfileId, startedAt], map: "sr02_ix_008")
+}
+
+model SurveillanceSceneInstance {
+  id                    String                          @id @default(cuid())
+  organizationId        String
+  roundId               String
+  round                  SurveillanceRound               @relation(fields: [roundId], references: [id], onDelete: Cascade, map: "sr02_fk_014")
+  blueprintVersionId    String
+  blueprintVersion      SurveillanceBlueprintVersion     @relation(fields: [blueprintVersionId], references: [id], map: "sr02_fk_015")
+  sceneVariantId        String?
+  sceneVariant          SurveillanceSceneVariant?        @relation(fields: [sceneVariantId], references: [id], map: "sr02_fk_016")
+  sceneFamily           String
+  locationCode          String
+  facts                 Json
+  status                SurveillanceSceneStatus          @default(PENDING_RESOLUTION)
+  version               Int                             @default(1)
+  applicability         SurveillanceApplicabilityResolution?
+  criterionRuntimes     SurveillanceCriterionRuntime[]
+  evidenceRequests      SurveillanceEvidenceRequest[]
+  evidenceArtifacts     SurveillanceEvidenceArtifact[]
+  observations          SurveillanceObservation[]
+  assessments           SurveillanceEvidenceAssessment[]
+  candidates            SurveillanceCandidateVariance[]
+  trendOccurrences      SurveillanceTrendOccurrence[]
+  createdAt             DateTime                        @default(now())
+  updatedAt             DateTime                        @updatedAt
+
+  @@index([organizationId, roundId], map: "sr02_ix_009")
+}
+
+model SurveillanceApplicabilityResolution {
+  id                    String                          @id @default(cuid())
+  organizationId        String
+  sceneInstanceId       String                          @unique(map: "sr02_uqf_003")
+  sceneInstance         SurveillanceSceneInstance       @relation(fields: [sceneInstanceId], references: [id], onDelete: Cascade, map: "sr02_fk_017")
+  applicabilityProfileId String
+  applicabilityProfile  SurveillanceApplicabilityProfile @relation(fields: [applicabilityProfileId], references: [id], map: "sr02_fk_018")
+  result                String
+  reason                String
+  basisSnapshot         Json
+  resolvedBy            String?
+  resolvedAt            DateTime                        @default(now())
+
+  @@index([organizationId, result], map: "sr02_ix_010")
+}
+
+model SurveillanceCriterionRuntime {
+  id                String                        @id @default(cuid())
+  organizationId    String
+  sceneInstanceId   String
+  sceneInstance     SurveillanceSceneInstance     @relation(fields: [sceneInstanceId], references: [id], onDelete: Cascade, map: "sr02_fk_019")
+  criterionId       String
+  criterion         SurveillanceCriterion         @relation(fields: [criterionId], references: [id], map: "sr02_fk_020")
+  activationStatus  SurveillanceActivationStatus
+  activationReason  String
+  evidenceRequests  SurveillanceEvidenceRequest[]
+  createdAt         DateTime                      @default(now())
+
+  @@unique([organizationId, sceneInstanceId, criterionId], map: "sr02_uq_011")
+}
+
+model SurveillanceEvidenceRequest {
+  id                    String                            @id @default(cuid())
+  organizationId        String
+  sceneInstanceId       String
+  sceneInstance         SurveillanceSceneInstance         @relation(fields: [sceneInstanceId], references: [id], onDelete: Cascade, map: "sr02_fk_021")
+  criterionRuntimeId    String
+  criterionRuntime      SurveillanceCriterionRuntime      @relation(fields: [criterionRuntimeId], references: [id], onDelete: Cascade, map: "sr02_fk_022")
+  evidenceRequirementId String
+  evidenceRequirement   SurveillanceEvidenceRequirement  @relation(fields: [evidenceRequirementId], references: [id], map: "sr02_fk_023")
+  status                SurveillanceEvidenceRequestStatus @default(REQUIRED_PENDING)
+  reason                String
+  artifacts             SurveillanceEvidenceArtifact[]
+  createdAt             DateTime                         @default(now())
+  updatedAt             DateTime                         @updatedAt
+
+  @@unique([organizationId, sceneInstanceId, evidenceRequirementId], map: "sr02_uq_012")
+}
+
+model SurveillanceEvidenceArtifact {
+  id                String                     @id @default(cuid())
+  organizationId    String
+  sceneInstanceId   String
+  sceneInstance     SurveillanceSceneInstance  @relation(fields: [sceneInstanceId], references: [id], onDelete: Cascade, map: "sr02_fk_024")
+  evidenceRequestId String?
+  evidenceRequest   SurveillanceEvidenceRequest? @relation(fields: [evidenceRequestId], references: [id], map: "sr02_fk_025")
+  evidenceType      SurveillanceEvidenceType
+  status            SurveillanceEvidenceStatus @default(AVAILABLE)
+  payload           Json
+  contentHash       String
+  sourceSystem      String
+  sourceIdentifier  String?
+  submittedBy       String
+  submittedAt       DateTime                   @default(now())
+  correctionEvidence SurveillanceActionEvidence[]
+  parentDerivations SurveillanceEvidenceDerivation[] @relation("SurveillanceEvidenceDerivationParent")
+  derivedDerivations SurveillanceEvidenceDerivation[] @relation("SurveillanceEvidenceDerivationDerived")
+  createdAt         DateTime                   @default(now())
+
+  @@index([organizationId, sceneInstanceId, evidenceType], map: "sr02_ix_011")
+}
+
+model SurveillanceEvidenceDerivation {
+  id                String                       @id @default(cuid())
+  organizationId    String
+  parentEvidenceId  String
+  parentEvidence    SurveillanceEvidenceArtifact @relation("SurveillanceEvidenceDerivationParent", fields: [parentEvidenceId], references: [id], onDelete: Cascade, map: "sr02_fk_026")
+  derivedEvidenceId String
+  derivedEvidence   SurveillanceEvidenceArtifact @relation("SurveillanceEvidenceDerivationDerived", fields: [derivedEvidenceId], references: [id], onDelete: Cascade, map: "sr02_fk_027")
+  transformationType String
+  createdBy         String
+  createdAt         DateTime                     @default(now())
+
+  @@unique([organizationId, parentEvidenceId, derivedEvidenceId], map: "sr02_uq_013")
+  @@index([organizationId, parentEvidenceId], map: "sr02_ix_012")
+  @@index([organizationId, derivedEvidenceId], map: "sr02_ix_013")
+}
+
+model SurveillanceObservation {
+  id                   String                       @id @default(cuid())
+  organizationId       String
+  sceneInstanceId      String
+  sceneInstance        SurveillanceSceneInstance    @relation(fields: [sceneInstanceId], references: [id], onDelete: Cascade, map: "sr02_fk_028")
+  criterionId          String
+  criterion            SurveillanceCriterion        @relation(fields: [criterionId], references: [id], map: "sr02_fk_029")
+  source               SurveillanceObservationSource
+  objectiveDescription String
+  createdBy            String
+  createdAt            DateTime                     @default(now())
+  descriptors          SurveillanceInterpretationDescriptor[]
+  candidates           SurveillanceCandidateVariance[]
+
+  @@index([organizationId, sceneInstanceId, criterionId], map: "sr02_ix_014")
+}
+
+model SurveillanceInterpretationDescriptor {
+  id                       String                  @id @default(cuid())
+  organizationId           String
+  observationId            String
+  observation              SurveillanceObservation @relation(fields: [observationId], references: [id], onDelete: Cascade, map: "sr02_fk_030")
+  structuredFeatures       Json
+  detectionConfidence      Float
+  interpretationConfidence Float
+  impactConfidence         Float
+  abstentionReason         String?
+  modelMetadata            Json?
+  createdAt                DateTime                @default(now())
+
+  @@index([organizationId, observationId], map: "sr02_ix_015")
+}
+
+model SurveillanceEvidenceAssessment {
+  id                      String                     @id @default(cuid())
+  organizationId          String
+  sceneInstanceId         String
+  sceneInstance           SurveillanceSceneInstance  @relation(fields: [sceneInstanceId], references: [id], onDelete: Cascade, map: "sr02_fk_031")
+  criterionId             String
+  criterion               SurveillanceCriterion      @relation(fields: [criterionId], references: [id], map: "sr02_fk_032")
+  result                  AssuranceEvaluationResult
+  reasonCodes             String[]
+  missingRequirementCodes String[]
+  assessorType            String
+  assessorId              String
+  supersedesAssessmentId  String?
+  createdAt               DateTime                   @default(now())
+  candidates              SurveillanceCandidateVariance[]
+
+  @@index([organizationId, sceneInstanceId, criterionId, createdAt], map: "sr02_ix_016")
+}
+
+model SurveillanceCandidateVariance {
+  id                   String                        @id @default(cuid())
+  organizationId       String
+  sceneInstanceId      String
+  sceneInstance        SurveillanceSceneInstance     @relation(fields: [sceneInstanceId], references: [id], onDelete: Cascade, map: "sr02_fk_033")
+  criterionId          String
+  criterion            SurveillanceCriterion         @relation(fields: [criterionId], references: [id], map: "sr02_fk_034")
+  observationId        String
+  observation          SurveillanceObservation       @relation(fields: [observationId], references: [id], map: "sr02_fk_035")
+  evidenceAssessmentId String
+  evidenceAssessment   SurveillanceEvidenceAssessment @relation(fields: [evidenceAssessmentId], references: [id], map: "sr02_fk_036")
+  candidateDescription String
+  createdByType        String
+  createdById          String
+  status               SurveillanceCandidateStatus   @default(CANDIDATE)
+  reviewPackets        SurveillanceReviewPacket[]
+  decisions            SurveillanceDecisionRecord[]
+  finding              SurveillanceReviewedFinding?
+  immediateCorrections SurveillanceImmediateCorrection[]
+  trendOccurrences     SurveillanceTrendOccurrence[]
+  createdAt            DateTime                      @default(now())
+  updatedAt            DateTime                      @updatedAt
+
+  @@index([organizationId, sceneInstanceId, status], map: "sr02_ix_017")
+}
