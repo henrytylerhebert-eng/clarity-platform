@@ -168,7 +168,7 @@ npm audit --audit-level=high
 Optional bounded local integration re-run with disposable PostgreSQL:
 
 ```bash
-npm run test:ephemeral -- npx vitest run \
+npm run test:ephemeral -- node node_modules/vitest/vitest.mjs run \
   tests/integration/assurance-gateway.test.ts \
   tests/integration/assurance-tenant-isolation.test.ts \
   tests/integration/assurance-command-service.test.ts \
