@@ -10,6 +10,12 @@ const contributor = ASSURANCE_DEV_USERS[0];
 const reviewer = ASSURANCE_DEV_USERS[1];
 const systemAdmin = ASSURANCE_DEV_USERS[2];
 
+function historyPanel(page: Page) {
+  return page.locator("section.panel").filter({
+    has: page.getByRole("heading", { name: "Assurance history" }),
+  });
+}
+
 async function openAssuranceCase(page: Page, assertion: string) {
   await page.goto("/");
   await page.getByRole("button", { name: "Operating Assurance" }).click();
@@ -71,7 +77,7 @@ test("accepted OA case replays stale source without rewriting prior history", as
   await expect(page.getByRole("status")).toContainText("Qualified human review recorded.");
   await expect(trust.getByText("Accept", { exact: true })).toBeVisible();
 
-  const history = page.getByRole("heading", { name: "Assurance history" }).locator("..").locator("..");
+  const history = historyPanel(page);
   await expect(history.getByText("Evidence", { exact: true })).toBeVisible();
   await expect(history.getByText("Evaluation", { exact: true })).toBeVisible();
   await expect(history.getByText("Review", { exact: true })).toBeVisible();
@@ -107,7 +113,7 @@ test("unresolved source conflict replays fail-closed while preserving earlier ev
   await expect(page.getByText("An unresolved source conflict is recorded.", { exact: false })).toBeVisible();
   await expect(page.getByText("This is a fail-closed state.", { exact: false })).toBeVisible();
 
-  const history = page.getByRole("heading", { name: "Assurance history" }).locator("..").locator("..");
+  const history = historyPanel(page);
   await expect(history.getByText("Supported", { exact: true })).toBeVisible();
   await expect(history.getByText("Conflict", { exact: true })).toBeVisible();
   await expect(history.getByText("Submitted", { exact: true })).toBeVisible();
