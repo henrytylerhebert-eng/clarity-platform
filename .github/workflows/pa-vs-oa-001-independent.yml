@@ -1,0 +1,62 @@
+name: VS-OA-001 Independent Product Acceptance
+
+on:
+  push:
+    branches:
+      - pa-vs-oa-001-independent-review
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: clarity
+          POSTGRES_PASSWORD: clarity
+          POSTGRES_DB: clarity_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clarity -d clarity_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://clarity:clarity@localhost:5432/clarity_dev?schema=public
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate and generate Prisma client
+        run: |
+          npx prisma validate
+          npx prisma generate
+
+      - name: Apply candidate migrations
+        run: npx prisma migrate deploy
+
+      - name: Independent VS-OA-001 acceptance fixtures
+        run: npx vitest run tests/acceptance/operating-assurance-product-acceptance.test.ts
+
+      - name: Full root regression including acceptance suite
+        run: npm test
+
+      - name: App regression
+        run: npm run test:app
+
+      - name: App build
+        run: npm --workspace app run build
+
+      - name: OA desktop/mobile E2E
+        run: npm run test:oa-e2e
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high
