@@ -16,6 +16,10 @@ function historyPanel(page: Page) {
   });
 }
 
+function capabilityRow(page: Page, label: string) {
+  return page.getByText(label, { exact: true }).locator("..");
+}
+
 async function openAssuranceCase(page: Page, assertion: string) {
   await page.goto("/");
   await page.getByRole("button", { name: "Operating Assurance" }).click();
@@ -39,8 +43,7 @@ async function runSupportedEvaluation(page: Page) {
   await page.getByRole("button", { name: "Run governed evaluation" }).click();
   await expect(page.getByRole("status")).toContainText("Machine assistance refreshed. Human review is still required.");
   await expect(page.getByText("Supported", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Human review required:", { exact: true })).toBeVisible();
-  await expect(page.getByText("Yes", { exact: true }).first()).toBeVisible();
+  await expect(capabilityRow(page, "Human review required:")).toContainText("Yes");
 }
 
 async function signOutAndIn(page: Page, assertion: string) {
@@ -72,7 +75,7 @@ test("accepted OA case replays stale source without rewriting prior history", as
   await runSupportedEvaluation(page);
 
   await signOutAndIn(page, reviewer.assertion);
-  await expect(page.getByText("Both required grants are present", { exact: true })).toBeVisible();
+  await expect(capabilityRow(page, "Final review:")).toContainText("Both required grants are present");
   await page.getByRole("button", { name: "Record qualified review" }).click();
   await expect(page.getByRole("status")).toContainText("Qualified human review recorded.");
   await expect(trust.getByText("Accept", { exact: true })).toBeVisible();
@@ -123,7 +126,7 @@ test("unresolved source conflict replays fail-closed while preserving earlier ev
 
 test("SYSTEM_ADMIN cannot acquire qualified reviewer authority through the workspace or API", async ({ page }) => {
   await openAssuranceCase(page, systemAdmin.assertion);
-  await expect(page.getByText("Both required grants are not present", { exact: true })).toBeVisible();
+  await expect(capabilityRow(page, "Final review:")).toContainText("Both required grants are not present");
   await expect(page.getByText("SYSTEM_ADMIN alone is not sufficient.", { exact: false })).toBeVisible();
 
   await page.getByRole("button", { name: "Run governed evaluation" }).click();
