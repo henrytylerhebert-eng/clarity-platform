@@ -2,93 +2,19 @@
 
 ## Current State
 
-**As of 2026-09-13, branch `main` at `82aa1388e3bc028b788a42c1501772da774828f1`.**
+**As of 2026-09-13, branch `main` at `4002fc8` (merge commit for PR #80).**
 
-Since the housekeeping pass below, three more PRs merged directly into `main`:
-[#70](https://github.com/henrytylerhebert-eng/clarity-platform/pull/70) (Operating
-Assurance commands, queries, and scoped review authority),
-[#71](https://github.com/henrytylerhebert-eng/clarity-platform/pull/71) (Operating
-Assurance authenticated Fastify API), and
-[#72](https://github.com/henrytylerhebert-eng/clarity-platform/pull/72) (Operating
-Assurance one-case workspace) — merged 2026-09-13 02:36–03:23 UTC.
+Earlier the same day: three PRs merged directly ([#70](https://github.com/henrytylerhebert-eng/clarity-platform/pull/70)/[#71](https://github.com/henrytylerhebert-eng/clarity-platform/pull/71)/[#72](https://github.com/henrytylerhebert-eng/clarity-platform/pull/72), Operating Assurance commands/API/workspace), [PR #75](https://github.com/henrytylerhebert-eng/clarity-platform/pull/75) merged (finished the ADR-0012 native-Fastify migration + Zod-validated Operating Assurance commands), and a docs-only commit (`82aa138`) landed the VS-OA-001 Product Acceptance handoff — see the historical entries below for the detail on each. **That handoff's status is unchanged: VS-OA-001's lifecycle is Product Acceptance, but no independent reviewer has run the AC-OA-001…014 checklist yet**, and per the handoff's own §12 the implementing session cannot do this itself.
 
-A separate whole-platform-tree-and-architecture-audit session produced nine audit
-documents plus
-[ADR-0020](docs/architecture/ADR-0020-operating-assurance-retroactive-ratification.md)
-on [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73) —
-**still open and untriaged** (opened 2026-09-13 03:48 UTC, docs-only). A later
-session implemented two of that PR's own backlog items directly against `main` and
-opened [PR #75](https://github.com/henrytylerhebert-eng/clarity-platform/pull/75):
-**P0-2** (finished the ADR-0012 native-Fastify migration — the original four routes
-and all seven prescreen routes moved off the `app.all("/*", ...)` catch-all into
-native Fastify registration; ADR-0012 updated from "Accepted in part" to "Accepted"
-for the routing decision specifically, hosting/tenancy/RLS/operational readiness
-still separately gated) and **P0-3** (added strict Zod validation to Operating
-Assurance's command envelopes, matching every other command service's "parse →
-policy → gateway" discipline). **Verified in that session:** full root suite
-**759/759** (73 files, +4 tests from new schema-rejection coverage), app suite
-**140/140** (21 files, unchanged), lint clean, typecheck clean, `prisma validate`
-clean. PR #75 carried a documented self-review comment per §3a of the
-solo-maintainer policy. **PR #75 merged 2026-09-13 19:39 UTC** (confirmed via
-`gh pr view 75`) — the paragraph this replaced was stale in describing it as still
-open with CI pending.
+**Three more PRs merged just now, in dependency order** (all three carried a documented self-review per §3a; each had its own `verify` check pass before merging):
 
-**Immediately after that merge, a docs-only commit landed directly on `main`**
-(`82aa138`, "docs: hand off VS-OA-001 to Product Acceptance", 3 files added, all
-under `docs/`, no runtime/schema/test change — confirmed by diff): TWP-OA-007, the
-VS-OA-001 Product Acceptance handoff package —
-[implementation record](docs/implementation/OPERATING_ASSURANCE_VS_OA_001.md),
-[test manifest](docs/testing/OPERATING_ASSURANCE_TEST_MANIFEST.md), and the
-[acceptance handoff](docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md)
-itself (10 accepted fixtures FIX-OA-001…010, 14 acceptance criteria
-AC-OA-001…014). Per the handoff's own §12, this transitions VS-OA-001's lifecycle
-state from **Controlled Implementation to Product Acceptance** — but that only
-*authorizes* an independent acceptance review; **no independent reviewer has run it
-yet**, and the handoff explicitly bars the implementing session from pre-writing the
-verdict. The test counts cited inside the handoff (root 73 files/758 tests, app 21
-files/140 tests, OA workspace 8/8, desktop/mobile Playwright 6/6, migrations 24/24,
-lint/typecheck/audit clean — from protected CI run #181) are labeled there as
-historical implementation evidence, not acceptance evidence.
+- [PR #78](https://github.com/henrytylerhebert-eng/clarity-platform/pull/78) — corrected this file's own prior staleness (it had described #75 as still open and hadn't recorded the handoff commit at all).
+- [PR #79](https://github.com/henrytylerhebert-eng/clarity-platform/pull/79) — P1-1's first frontend-wiring slice from PR #73's implementation plan: `IopReconciliation` now calls the already-built, already-tested backend (`packages/api-service/src/iopReconciliationRoutes.ts`) instead of computing everything in-browser against a bundled fixture. See [docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md](docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md)'s "Frontend wiring" section for exactly what changed and the honest gaps (no facility/program picker, no way to browse/reopen a prior import by ID). Verified pre-merge: app suite 141/141 (21 files, +1), root suite 762/762 (74 files, unaffected), lint/typecheck/`prisma validate` clean.
+- [PR #80](https://github.com/henrytylerhebert-eng/clarity-platform/pull/80) — implements R1 from [docs/product/REVOPS_FINANCIAL_RATE_IMPLEMENTATION.md](docs/product/REVOPS_FINANCIAL_RATE_IMPLEMENTATION.md) for the Louisiana Medicaid release family (ADR-0021): a new `RevOpsRateRelease` table — deliberately the first in this schema with no `organizationId`, since it holds public government-published reference data identical for every organization, not a tenant-owned fact — replaces the bundled JSON as `RevOpsPricing.tsx`'s runtime source, with correction/supersession support live through `POST /api/rev-ops/rate-releases`. See [docs/implementation/REV_OPS_RATE_RELEASE_REGISTRY.md](docs/implementation/REV_OPS_RATE_RELEASE_REGISTRY.md) for exactly what changed, what deliberately did NOT (the CMS IPF base component and the commercial contract-rate scenario tool — the latter sits on the still-OD-19-blocked R2 side of the line), and honest gaps (no UI yet to record/correct a release through the app; only one release family persisted). Verified pre-merge: app suite 145/145 (22 files, +4), root suite 771/771 (76 files, +9), lint/typecheck/`prisma validate` clean, zero residue confirmed by an explicit re-run (this table's rows aren't reachable by the shared test harness's tenant-scoped cleanup, so its integration test cleans up its own rows by name).
 
-Also untriaged: [PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63)
-(draft, opened 2026-09-12) — public product-portfolio documentation (README +
-`docs/product/PRODUCT_VISION.md` + the RevOps product definition), no runtime
-change, still in draft state.
+**Post-merge CI on `main` for #79/#80 was still running as of this write-up** (each PR's own pre-merge `verify` check had already passed, which is the actual required branch-protection gate) — not yet re-confirmed after the merge commits themselves.
 
-**Not yet on `main`, two stacked PRs from this worktree:**
-
-- [PR #79](https://github.com/henrytylerhebert-eng/clarity-platform/pull/79) —
-  P1-1's first frontend-wiring slice from PR #73's implementation plan:
-  `IopReconciliation` now calls the already-built, already-tested backend
-  (`packages/api-service/src/iopReconciliationRoutes.ts`) instead of computing
-  everything in-browser against the bundled fixture. See
-  [docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md](docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md)'s
-  "Frontend wiring" section for exactly what changed and the honest gaps (no
-  facility/program picker, no way to browse/reopen a prior import by ID).
-  Verified: app suite 141/141 (21 files, +1), root suite 762/762 (74 files,
-  unaffected), lint/typecheck/`prisma validate` clean. Self-review posted per
-  §3a; CI `verify` passed.
-- A second branch, stacked on PR #79, implements R1 from
-  [docs/product/REVOPS_FINANCIAL_RATE_IMPLEMENTATION.md](docs/product/REVOPS_FINANCIAL_RATE_IMPLEMENTATION.md)
-  for the Louisiana Medicaid release family (ADR-0021): a new
-  `RevOpsRateRelease` table — deliberately the first in this schema with no
-  `organizationId`, since it holds public government-published reference data
-  identical for every organization, not a tenant-owned fact — replaces the
-  bundled JSON as `RevOpsPricing.tsx`'s runtime source, with correction/
-  supersession support live through a new
-  `POST /api/rev-ops/rate-releases`. See
-  [docs/implementation/REV_OPS_RATE_RELEASE_REGISTRY.md](docs/implementation/REV_OPS_RATE_RELEASE_REGISTRY.md)
-  for exactly what changed, what deliberately did NOT (the CMS IPF base
-  component and the commercial contract-rate scenario tool are both
-  untouched — the latter sits on the still-OD-19-blocked R2 side of the line),
-  and honest gaps (no UI yet to actually record/correct a release; only one
-  release family persisted). Verified: app suite 145/145 (22 files, +4), root
-  suite 771/771 (76 files, +9), lint/typecheck/`prisma validate` clean, zero
-  residue confirmed by an explicit re-run (this table's rows aren't reachable
-  by the shared test harness's tenant-scoped cleanup, so the new integration
-  test cleans up its own rows by name — documented in the implementation
-  record's test manifest). Not yet pushed or opened as a PR as of this
-  write-up.
+Still open and untriaged, unaffected by the above: [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73) (whole-platform architecture audit, docs-only, open since 2026-09-13 03:48 UTC) and [PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63) (draft, public product-portfolio documentation). Also open, independent of everything above: [PR #81](https://github.com/henrytylerhebert-eng/clarity-platform/pull/81) — a Gemini deep-research prompt for Louisiana psychiatrist/PMHNP scope of practice (docs only, `verify` passed, not yet merged).
 
 **Not claimed:** production readiness, HIPAA compliance, malware protection, working
 external integrations, approved clinical/legal rules, or Product Acceptance of
@@ -631,24 +557,30 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 
 ## Next recommended action
 
-~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011). ~~Check PR #75's CI and merge it~~ **done** — merged 2026-09-13 19:39 UTC.
+~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011). ~~Merge PR #78→#79→#80~~ **done** — merged 2026-09-13, in that order, `main` now at `4002fc8`.
 
-**Current action (updated 2026-09-13; the paragraph this replaced was stale — it still described PR #75 as open with CI pending after it had already merged):** VS-OA-001's lifecycle state is now **Product Acceptance** (TWP-OA-007 handoff merged directly to `main` as `82aa138`, docs-only, no runtime change). The single next action is **an independent Product Acceptance review of VS-OA-001** against the handoff's AC-OA-001…014 criteria and FIX-OA-001…010 fixtures
+**Current action (updated 2026-09-13 after the #78/#79/#80 merges):** VS-OA-001's lifecycle state remains **Product Acceptance** (unchanged by today's merges). The single next action is still **an independent Product Acceptance review of VS-OA-001** against the handoff's AC-OA-001…014 criteria and FIX-OA-001…010 fixtures
 ([docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md](docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md)) —
 this must not be performed or pre-verdicted by the implementing session. In
-parallel: (1) [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73)
-(the whole-platform architecture audit, docs-only) is still open and untriaged — its
-own implementation plan's P1-1 first slice (wire the IOP Reconciliation frontend
-workspace to its already-built backend API) is **done on this branch, not yet on
-`main`** (see Current State above); the plan's own next-named slice is **Evidence
-Review** (evidence-service is the most mature, most-tested backend among the 11
-remaining `localStorage`-only workspaces — do not attempt more than one at a time),
-and the smaller P1-3…P1-6 redundancy-cleanup items remain separately scoped; (2)
+parallel: (1) PR #73's own implementation plan's next-named P1-1 slice after IOP
+Reconciliation (now merged) is **Evidence Review** (evidence-service is the most
+mature, most-tested backend among the remaining `localStorage`-only workspaces — do
+not attempt more than one at a time), not yet scoped; the smaller P1-3…P1-6
+redundancy-cleanup items remain separately scoped and un-started; (2)
+[PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73) itself
+(whole-platform architecture audit, docs-only) and
 [PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63) (draft
-product-portfolio documentation) needs an owner look before it can leave draft; (3)
-provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate —
-still blocked on owner GCP access (`gcloud auth login` + intended project); (4)
-OD-13 (execute CMS regulatory research) and OD-14 (per-org AI-native policy index)
-remain open owner decisions. Do not add Studio mutation, publication, feature-flag,
-worker, or deployment controls before server authorization and audit boundaries
-exist.
+product-portfolio documentation) remain open/untriaged — owner calls, not
+engineering; (3) [PR #81](https://github.com/henrytylerhebert-eng/clarity-platform/pull/81)
+(Gemini LA psychiatrist/PMHNP research prompt, docs-only, `verify` passed) is open
+and independent, mergeable whenever; (4) PR #80's own honest gap — no UI to
+record/correct a rate release through `RevOpsPricing.tsx`, only via a direct API
+call — is a small, bounded, unscoped follow-up; (5) provider-backed Cloud SQL/RLS
+verification remains the separate, non-waived gate — still blocked on owner GCP
+access (`gcloud auth login` + intended project); (6) OD-19 (Louisiana hospital
+provider identifiers, still pending from the owner) continues to block R2 (real
+provider/contract binding) specifically — R1 (the rate-release registry) proceeded
+without it, per the owner's own 2026-09-09 authorization; (7) OD-13 (execute CMS
+regulatory research) and OD-14 (per-org AI-native policy index) remain open owner
+decisions. Do not add Studio mutation, publication, feature-flag, worker, or
+deployment controls before server authorization and audit boundaries exist.
