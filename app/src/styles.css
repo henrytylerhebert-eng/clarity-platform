@@ -1569,3 +1569,39 @@ textarea {
 @media (max-width: 560px) {
   .studio-status-strip { grid-template-columns: 1fr; }
 }
+
+/* Phase 2A global shell (docs/ux/CLARITY_GLOBAL_SHELL_SPEC.md). Minimal by
+   design: sits above each area's own existing chrome, does not restyle it. */
+.clarity-shell-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 16px;
+  background: #13202b;
+  color: #eff6f7;
+  font-size: 12.5px;
+}
+.clarity-shell-mark {
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+.clarity-shell-areas { display: flex; gap: 4px; }
+.clarity-shell-area {
+  color: #b7c6cc;
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+.clarity-shell-area:hover { background: rgba(255, 255, 255, 0.08); color: #eff6f7; }
+.clarity-shell-area.active { background: rgba(255, 255, 255, 0.14); color: #eff6f7; font-weight: 700; }
+.clarity-shell-identity {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #b7c6cc;
+}
+.clarity-shell-identity small { display: block; color: #8ca0a8; }
+.clarity-shell-signout, .clarity-shell-signed-out { background: none; border: none; color: inherit; font: inherit; }
+.clarity-shell-signout { cursor: pointer; text-decoration: underline; padding: 0; }

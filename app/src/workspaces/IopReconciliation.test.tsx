@@ -1,7 +1,16 @@
 import { fireEvent, render, screen, waitFor, cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { IopReconciliation } from "./IopReconciliation";
+import { AuthProvider } from "../domain/AuthContext";
 import { apiIopReconciliation } from "../domain/api";
+
+function Subject() {
+  return (
+    <AuthProvider>
+      <IopReconciliation />
+    </AuthProvider>
+  );
+}
 
 vi.mock("../domain/api", async () => {
   const actual = await vi.importActual<typeof import("../domain/api")>("../domain/api");
@@ -82,7 +91,7 @@ const ISSUE_KEYS = [
 ];
 
 it("requires a verified session before it will submit the loaded candidate", () => {
-  render(<IopReconciliation />);
+  render(<Subject />);
   fireEvent.click(screen.getByRole("button", { name: "Load synthetic source import" }));
   expect(screen.getByText("IOP_IMPORT_001")).toBeVisible();
   expect(screen.getByText("5 will need review after import")).toBeVisible();
@@ -91,7 +100,7 @@ it("requires a verified session before it will submit the loaded candidate", () 
 });
 
 it("imports through the real API, requires an authenticated review of every derived exception, then closes", async () => {
-  render(<IopReconciliation />);
+  render(<Subject />);
 
   fireEvent.click(screen.getByRole("button", { name: "Load synthetic source import" }));
 
