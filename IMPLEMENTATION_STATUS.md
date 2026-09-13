@@ -2,46 +2,38 @@
 
 ## Current State
 
-**As of 2026-09-12, branch `main` at `5348202f8b90ba55b32a8aee811bc6c4e6633995`.**
+**As of 2026-09-13, branch `main` at `92bdbe6f81d6b0229f64706d00332141be28cbef`.**
 
-Today's housekeeping pass merged twelve PRs and closed one. Merged: #58 (workbook
-operating slice + payment scenarios; cleaned of a dead, unused `RevOpsScope.tsx`),
-#59 (governance/operating-assurance documentation recovery), #48 (network-enrichment
-contract kernel, verified contract-only — no Prisma imports, no server/runtime code),
-#64 (root-caused and fixed a real intermittent CI failure: Prisma's 5000ms
-interactive-transaction default was exceeded writing the operating workbook's ~28k-
-record state blob under CI's shared-runner contention, error P2028; raised to 15s in
-the shared `withTenantContext` helper used by every gateway), #65 (corrected that
-fix's test docstring to describe a configuration assertion, not a timeout
-reproduction), #54 and #55 (csv-parse and vitest dependency bumps), #56 (API path
-validation plus a stable prescreen-actor role-order idempotency fingerprint), #57
-(Graphify local-artifact retention policy, resolves issue #40), #60 (opt-in
-ephemeral-PostgreSQL verification runner, independent of the shared local
-`clarity_dev`), #61 (this pass's own preservation and disposition record), #62
-(gstack skill-routing addition to this file's own house rules). Closed: **PR #30**
-(held network-enrichment runtime slice, 2,483 changed files) as superseded — its
-contract-only portion already landed via #48; the runtime portion (service,
-persistence/outbox, API routes, UI, the `agent_bridge` tree) was never reviewed and
-remains unimplemented, preserved in the local recovery bundle and the closed
-branch's history if it is wanted later.
+Since the housekeeping pass below, three more PRs merged directly into `main`:
+[#70](https://github.com/henrytylerhebert-eng/clarity-platform/pull/70) (Operating
+Assurance commands, queries, and scoped review authority),
+[#71](https://github.com/henrytylerhebert-eng/clarity-platform/pull/71) (Operating
+Assurance authenticated Fastify API), and
+[#72](https://github.com/henrytylerhebert-eng/clarity-platform/pull/72) (Operating
+Assurance one-case workspace) — merged 2026-09-13 02:36–03:23 UTC.
 
-**Bridge: retired**, as of this same pass (PR #66). PR #30's closure unblocked
-AI_OPERATING_MODEL_PLAN.md's Stage 0.1–0.3: `agents/bridge/` and the root
-`agent_bridge/` notification mirror both moved, byte-identical, to
-`docs/experiments/2026-07-agent-bridge/` per
-[ADR-0017](docs/architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md);
-no live listener, dispatch script, or `npm run bridge:*` entry point exists. The
-"Bridge:" bullet in the Verification history below is the dated observation from
-the session that made it (`listener=running`) and is kept verbatim, not updated —
-this paragraph is where current truth about the bridge belongs.
-
-**Verified this session** (PR #64, after the fix, three consecutive full CI passes
-on the same revision): full root suite **617/617** (58 files), app suite **96/96**,
-lint clean, typecheck clean, `prisma validate` clean, `npm audit --audit-level=high`
-clean (the 3 moderate advisories it had flagged, in `vitest`/`@vitest/mocker` and
-`csv-parse`, are resolved by #54/#55). Every merge above has its own passing required
-`verify` CI check on its exact merged revision, and `main`'s own post-merge CI
-passed after each one.
+A separate whole-platform-tree-and-architecture-audit session produced nine audit
+documents plus
+[ADR-0020](docs/architecture/ADR-0020-operating-assurance-retroactive-ratification.md)
+on a still-open, docs-only branch/PR
+([#73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73), not yet
+merged). A later session implemented two of that PR's own backlog items directly
+against `main` and opened
+[PR #75](https://github.com/henrytylerhebert-eng/clarity-platform/pull/75) — **open,
+CI pending** as of this write-up, not yet merged: **P0-2** (finished the ADR-0012
+native-Fastify migration — the original four routes and all seven prescreen routes
+moved off the `app.all("/*", ...)` catch-all into native Fastify registration;
+ADR-0012 updated from "Accepted in part" to "Accepted" for the routing decision
+specifically, hosting/tenancy/RLS/operational readiness still separately gated) and
+**P0-3** (added strict Zod validation to Operating Assurance's command envelopes,
+matching every other command service's "parse → policy → gateway" discipline).
+**Verified in that session:** full root suite **759/759** (73 files, +4 tests from
+new schema-rejection coverage), app suite **140/140** (21 files, unchanged), lint
+clean, typecheck clean, `prisma validate` clean. PR #75 carries a documented
+self-review comment per §3a of the solo-maintainer policy. **Not yet done: PR #75's
+CI has not been confirmed green and it has not been merged** — check its status
+(Auto-fix monitoring is armed on it) before building further on top of it, and note
+PR #73 is still unmerged/untriaged as well.
 
 **Not claimed:** production readiness, HIPAA compliance, malware protection, working
 external integrations, or approved clinical/legal rules — for any capability
@@ -54,6 +46,40 @@ Blocked / Not started buckets further down remain the authority for
 capability-by-capability status and are unchanged by this reorganization.
 
 ## Verification history (historical — not current)
+
+**2026-09-12: Twelve-PR housekeeping pass and bridge retirement.** Merged: #58
+(workbook operating slice + payment scenarios; cleaned of a dead, unused
+`RevOpsScope.tsx`), #59 (governance/operating-assurance documentation recovery),
+#48 (network-enrichment contract kernel, verified contract-only — no Prisma
+imports, no server/runtime code), #64 (root-caused and fixed a real intermittent
+CI failure: Prisma's 5000ms interactive-transaction default was exceeded writing
+the operating workbook's ~28k-record state blob under CI's shared-runner
+contention, error P2028; raised to 15s in the shared `withTenantContext` helper
+used by every gateway), #65 (corrected that fix's test docstring to describe a
+configuration assertion, not a timeout reproduction), #54 and #55 (csv-parse and
+vitest dependency bumps), #56 (API path validation plus a stable prescreen-actor
+role-order idempotency fingerprint), #57 (Graphify local-artifact retention
+policy, resolves issue #40), #60 (opt-in ephemeral-PostgreSQL verification
+runner, independent of the shared local `clarity_dev`), #61 (this pass's own
+preservation and disposition record), #62 (gstack skill-routing addition to this
+file's own house rules). Closed: **PR #30** (held network-enrichment runtime
+slice, 2,483 changed files) as superseded — its contract-only portion already
+landed via #48; the runtime portion (service, persistence/outbox, API routes,
+UI, the `agent_bridge` tree) was never reviewed and remains unimplemented,
+preserved in the local recovery bundle and the closed branch's history if it is
+wanted later. **Bridge: retired** as of this same pass (PR #66) — PR #30's
+closure unblocked AI_OPERATING_MODEL_PLAN.md's Stage 0.1–0.3: `agents/bridge/`
+and the root `agent_bridge/` notification mirror both moved, byte-identical, to
+`docs/experiments/2026-07-agent-bridge/` per
+[ADR-0017](docs/architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md);
+no live listener, dispatch script, or `npm run bridge:*` entry point exists.
+Verified that session (PR #64, after the fix, three consecutive full CI passes on
+the same revision): full root suite **617/617** (58 files), app suite **96/96**,
+lint clean, typecheck clean, `prisma validate` clean, `npm audit
+--audit-level=high` clean (the 3 moderate advisories it had flagged, in
+`vitest`/`@vitest/mocker` and `csv-parse`, are resolved by #54/#55). Every merge
+above has its own passing required `verify` CI check on its exact merged
+revision, and `main`'s own post-merge CI passed after each one.
 
 **2026-09-09: Working operating workbook and payment tools implemented locally.**
 The authenticated RevOps client now opens populated operations, rather than the
@@ -551,4 +577,4 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 
 ~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011).
 
-**Current action:** The owner-approved prescreen chain now runs durable end-to-end locally: package onboarded (PR #17), Phase 1 contracts (PR #19/#27), Phase 2 command service (ADR-0013), same-org HTTP slice + role ruling (ADR-0014, PR #28), and **Phase 3 local persistence (ADR-0016, branch `claude/prescreen-phase3-persistence` — PR pending)**. Next: (1) merge order for the parallel network-enrichment branch (PRs #29/#30) — it must renumber its ADR off the already-assigned 0014 (0015 left free) and reconcile the shared-ledger contention (issue #31) before or at merge; (2) provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate — still blocked on owner GCP access (`gcloud auth login` + intended project); (3) the cross-organization submission/receipt model is the successor decision packet before any field-originated prescreen or external-actor work; (4) a prescreen UI slice needs an owner scope decision; (5) prior H1/H2/H3, event-vocabulary, OD-6, migration-recovery, and outbox acceptances stand unchanged. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
+**Current action (updated 2026-09-13; the paragraph this replaced was stale — see git history if the old prescreen-onboarding narrative is wanted):** The single next action is to **check [PR #75](https://github.com/henrytylerhebert-eng/clarity-platform/pull/75)'s CI (`verify`) and merge it once green** — it finishes the ADR-0012 native-Fastify migration (P0-2) and adds Zod validation to Operating Assurance's commands (P0-3), both fully verified locally (see Current State above) but unconfirmed on CI as of this write-up; Auto-fix monitoring is armed on it. After that: (1) [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73) (the whole-platform architecture audit, docs-only) is still open and untriaged — its own implementation plan's remaining items are P1-1 (wire the IOP Reconciliation frontend workspace to its already-built backend API, then Evidence Review) and the smaller P1-3…P1-6 redundancy-cleanup items; (2) provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate — still blocked on owner GCP access (`gcloud auth login` + intended project); (3) OD-13 (execute CMS regulatory research) and OD-14 (per-org AI-native policy index) remain open owner decisions. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
