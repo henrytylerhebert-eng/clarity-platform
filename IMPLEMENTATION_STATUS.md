@@ -25,6 +25,16 @@ persistence/outbox, API routes, UI, the `agent_bridge` tree) was never reviewed 
 remains unimplemented, preserved in the local recovery bundle and the closed
 branch's history if it is wanted later.
 
+**Bridge: retired**, as of this same pass (PR #66). PR #30's closure unblocked
+AI_OPERATING_MODEL_PLAN.md's Stage 0.1–0.3: `agents/bridge/` and the root
+`agent_bridge/` notification mirror both moved, byte-identical, to
+`docs/experiments/2026-07-agent-bridge/` per
+[ADR-0017](docs/architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md);
+no live listener, dispatch script, or `npm run bridge:*` entry point exists. The
+"Bridge:" bullet in the Verification history below is the dated observation from
+the session that made it (`listener=running`) and is kept verbatim, not updated —
+this paragraph is where current truth about the bridge belongs.
+
 **Verified this session** (PR #64, after the fix, three consecutive full CI passes
 on the same revision): full root suite **617/617** (58 files), app suite **96/96**,
 lint clean, typecheck clean, `prisma validate` clean, `npm audit --audit-level=high`
@@ -465,7 +475,7 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 - **Synthetic outbox runtime:** a tenant-scoped dispatcher and in-process consumer are verified for the accepted three event types, retry preservation, and concurrent row locking; `Bayside Hospital Clarity Intake Receiver` is named as the first consumer contract, but external consumer/runtime delivery remains gated.
 - **H2 governance:** the RLS tenant-enforcement, migration promotion/recovery, and outbox ownership records now contain bounded recommended operating designs. Local fresh migration replay/restore and synthetic outbox delivery are verified; provider-backed or production RLS, production migration promotion, external workers/consumers, APIs, and deployment remain unauthorized.
 - **Workflow Discovery Protocol:** documentation-only requirements-acquisition package and inference-complete synthetic protective-custody session are committed under `docs/discovery/`. They preserve source, assumption, derived, review, and implementation boundaries; they do not add runtime behavior or promote inferred facts to verified domain truth.
-- **Bridge:** retired. The three-agent orchestrator/executor/reviewer bridge (active 2026-07-16 → 2026-07-19, dormant since) is quarantined as evidence under `docs/experiments/2026-07-agent-bridge/` per [ADR-0017](docs/architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md) — see that directory's `README.md` for why. No live listener, dispatch script, or `npm run bridge:*` entry point exists.
+- **Bridge:** the active repository-relative Antigravity file-mirror watcher is detected as `listener=running`; direct Antigravity CLI and agent consumption remain unverified.
 - **Repository promotion and governance (2026-07-19 session):** the verified slice was promoted to protected `main` via PR #13 (reviewed, merged 7345dd8). PR #14 cleared all Dependabot alerts (vitest ^3.2.6, vite ^6.4.3, @playwright/test ^1.55.1; `npm audit` clean) and carried the H1/H3 replay-classification fix. Redundant PRs #6/#10/#11/#12 were closed as superseded; docs PRs #8 (operating manual + session rules) and #9 (MVP roadmap) were merged. PR #15 added the CI `verify` workflow (lint, typecheck, root + app tests against an ephemeral `clarity_dev` Postgres 16 service, Prisma validate/generate/migrate deploy, high-severity npm audit) and it passed on its own PR before merge. The §3a solo-maintainer protection is now live: PR-only, 0 required approvals with documented self-review, required `verify` status check (strict), conversation resolution, admin enforcement. CI closes the former OD-9 toolchain gap; hosting/backup portions of Phase 6 remain open.
 
 ## Prescreen product slice (2026-07-19 session)
