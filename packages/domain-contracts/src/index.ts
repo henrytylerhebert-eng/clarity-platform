@@ -24,3 +24,4 @@ export * from "./analytics.js";
 export * from "./networkEnrichment.js";
 export * from "./learningPractice.js";
 export * from "./assurance.js";
+export * from "./surveillance.js";
