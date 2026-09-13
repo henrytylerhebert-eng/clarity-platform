@@ -1,8 +1,17 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { App } from "./App";
+import { MemoryRouter } from "react-router-dom";
+import { CrisisOpsRoute } from "./App";
 import { resetAppState } from "./domain/storage";
+
+function App() {
+  return (
+    <MemoryRouter>
+      <CrisisOpsRoute />
+    </MemoryRouter>
+  );
+}
 
 describe("App smoke", () => {
   beforeEach(async () => {

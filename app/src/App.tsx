@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { App as CrisisOpsApp } from "./CrisisOpsApp";
 import { StatusBadge } from "./components/StatusBadge";
@@ -10,8 +11,31 @@ import {
 } from "./domain/api";
 import { OperatingAssurance } from "./workspaces/OperatingAssurance";
 
-export function App() {
-  const [module, setModule] = useState<"crisis-ops" | "operating-assurance">("crisis-ops");
+/**
+ * Router-addressable now (Phase 2A, commit 1): "/" and "/assurance" used to
+ * be one component's local `module` toggle. Splitting them into two route
+ * components makes the boundary a real URL — auth still local here; that
+ * migrates in a later commit.
+ */
+export function CrisisOpsRoute() {
+  const navigate = useNavigate();
+  return (
+    <>
+      <button
+        className="secondary-button"
+        type="button"
+        onClick={() => navigate("/assurance")}
+        style={{ position: "fixed", right: 18, top: 14, zIndex: 50, display: "inline-flex", gap: 7, alignItems: "center" }}
+      >
+        <ShieldCheck size={16} /> Operating Assurance
+      </button>
+      <CrisisOpsApp />
+    </>
+  );
+}
+
+export function AssuranceRoute() {
+  const navigate = useNavigate();
   const [principal, setPrincipal] = useState<VerifiedPrincipal | null>(null);
   const [assertion, setAssertion] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -35,22 +59,6 @@ export function App() {
     }
   }
 
-  if (module === "crisis-ops") {
-    return (
-      <>
-        <button
-          className="secondary-button"
-          type="button"
-          onClick={() => setModule("operating-assurance")}
-          style={{ position: "fixed", right: 18, top: 14, zIndex: 50, display: "inline-flex", gap: 7, alignItems: "center" }}
-        >
-          <ShieldCheck size={16} /> Operating Assurance
-        </button>
-        <CrisisOpsApp />
-      </>
-    );
-  }
-
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -62,7 +70,7 @@ export function App() {
           </div>
         </div>
 
-        <button className="secondary-button" type="button" onClick={() => setModule("crisis-ops")}>
+        <button className="secondary-button" type="button" onClick={() => navigate("/")}>
           <ArrowLeft size={16} /> Crisis Ops
         </button>
 
