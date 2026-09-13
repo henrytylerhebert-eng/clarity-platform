@@ -1,0 +1,346 @@
+enum SurveillanceBlueprintStatus {
+  DRAFT
+  UNDER_REVIEW
+  APPROVED
+  ACTIVE
+  UNDER_RE_REVIEW
+  SUPERSEDED
+  RETIRED
+}
+
+enum SurveillanceRoundStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum SurveillanceSceneStatus {
+  PENDING_RESOLUTION
+  AWAITING_EVIDENCE
+  REVIEW_READY
+  UNDER_REVIEW
+  COMPLETED
+  BLOCKED
+}
+
+enum SurveillanceActivationStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum SurveillanceEvidenceRequestStatus {
+  REQUIRED_PENDING
+  SUBMITTED
+  ACCEPTED_FOR_ASSESSMENT
+  REJECTED_QUALITY
+  WAIVED
+  NOT_APPLICABLE
+}
+
+enum SurveillanceEvidenceType {
+  CONTEXT_PHOTO
+  DETAIL_PHOTO
+  FUNCTIONAL_OBSERVATION
+  POLICY_DOCUMENT
+  SPATIAL_CONTEXT
+  ITEM_CLASSIFICATION
+}
+
+enum SurveillanceVerificationMode {
+  VISUAL
+  FUNCTIONAL
+  DOCUMENTARY
+  MEASUREMENT
+  BEHAVIORAL
+  COMBINED
+}
+
+enum SurveillanceRequirementLevel {
+  REQUIRED
+  CONDITIONAL
+  SUPPORTING
+  OPTIONAL
+}
+
+enum SurveillanceEvidenceStatus {
+  AVAILABLE
+  ACCEPTED
+  REJECTED_QUALITY
+  SUPERSEDED
+}
+
+enum SurveillanceObservationSource {
+  HUMAN
+  AI
+}
+
+enum SurveillanceCandidateStatus {
+  CANDIDATE
+  NEEDS_MORE_EVIDENCE
+  SUBMITTED_FOR_REVIEW
+  ACCEPTED_FOR_FINDING
+  REJECTED
+}
+
+enum SurveillanceDecisionType {
+  OBSERVATION_ACCEPTANCE
+  FINDING_DISPOSITION
+  CITATION_APPROVAL
+  SCOPE
+  EXCEPTION
+  CLOSURE
+  REOPEN
+  EVIDENCE_WAIVER
+}
+
+enum SurveillanceFindingStatus {
+  OPEN
+  ACTION_IN_PROGRESS
+  COMPLETION_SUBMITTED
+  CLOSED
+  REOPENED
+}
+
+enum SurveillanceActionStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETION_SUBMITTED
+  ACCEPTED_COMPLETE
+}
+
+enum SurveillanceTrendOutcome {
+  UNRESOLVED
+  CORRECTED_DURING_ROUND
+  CORRECTED_AFTER_ACTION
+  ACCEPTED_CLOSED
+  NO_FINDING
+}
+
+model SurveillanceBlueprint {
+  id                  String                         @id @default(cuid())
+  organizationId      String
+  code                String
+  canonicalName       String
+  description         String
+  purpose             String
+  domain              String
+  sceneFamily         String
+  ownerRole           String
+  status              SurveillanceBlueprintStatus    @default(DRAFT)
+  activeVersionId     String?                        @unique(map: "sr02_uqf_001")
+  activeVersion       SurveillanceBlueprintVersion?  @relation("ActiveSurveillanceBlueprintVersion", fields: [activeVersionId], references: [id], map: "sr02_fk_001")
+  versions            SurveillanceBlueprintVersion[] @relation("SurveillanceBlueprintVersions")
+  createdBy           String
+  createdAt           DateTime                       @default(now())
+  updatedAt           DateTime                       @updatedAt
+
+  @@unique([organizationId, code], map: "sr02_uq_001")
+  @@index([organizationId, sceneFamily, status], map: "sr02_ix_001")
+}
+
+model SurveillanceBlueprintVersion {
+  id                    String                          @id @default(cuid())
+  organizationId        String
+  blueprintId           String
+  blueprint             SurveillanceBlueprint           @relation("SurveillanceBlueprintVersions", fields: [blueprintId], references: [id], onDelete: Cascade, map: "sr02_fk_002")
+  activeForBlueprint    SurveillanceBlueprint?          @relation("ActiveSurveillanceBlueprintVersion")
+  versionLabel          String
+  effectiveFrom         DateTime
+  effectiveTo           DateTime?
+  status                SurveillanceBlueprintStatus     @default(DRAFT)
+  changeReason          String
+  approvedBy            String?
+  approvedAt            DateTime?
+  applicabilityProfiles SurveillanceApplicabilityProfile[]
+  variants              SurveillanceSceneVariant[]
+  criteria              SurveillanceCriterion[]
+  reviewerPolicies      SurveillanceReviewerPolicy[]
+  captureSteps          SurveillanceCaptureStep[]
+  rounds                SurveillanceSceneInstance[]
+  createdAt             DateTime                        @default(now())
+
+  @@unique([organizationId, blueprintId, versionLabel], map: "sr02_uq_002")
+  @@index([organizationId, status, effectiveFrom], map: "sr02_ix_002")
+}
+
+model SurveillanceApplicabilityProfile {
+  id                String                       @id @default(cuid())
+  organizationId    String
+  blueprintVersionId String
+  blueprintVersion  SurveillanceBlueprintVersion @relation(fields: [blueprintVersionId], references: [id], onDelete: Cascade, map: "sr02_fk_003")
+  name              String
+  rule              Json
+  status            String
+  approvedBy        String?
+  approvedAt        DateTime?
+  resolutions       SurveillanceApplicabilityResolution[]
+  createdAt         DateTime                     @default(now())
+
+  @@index([organizationId, blueprintVersionId], map: "sr02_ix_003")
+}
+
+model SurveillanceSceneVariant {
+  id                String                       @id @default(cuid())
+  organizationId    String
+  blueprintVersionId String
+  blueprintVersion  SurveillanceBlueprintVersion @relation(fields: [blueprintVersionId], references: [id], onDelete: Cascade, map: "sr02_fk_004")
+  code              String
+  name              String
+  selectionRule     Json
+  status            String                       @default("ACTIVE")
+  scenes            SurveillanceSceneInstance[]
+  createdAt         DateTime                     @default(now())
+
+  @@unique([organizationId, blueprintVersionId, code], map: "sr02_uq_003")
+}
+
+model SurveillanceReviewerPolicy {
+  id                String                       @id @default(cuid())
+  organizationId    String
+  blueprintVersionId String
+  blueprintVersion  SurveillanceBlueprintVersion @relation(fields: [blueprintVersionId], references: [id], onDelete: Cascade, map: "sr02_fk_005")
+  code              String
+  minimumRole       String
+  qualificationRule String
+  reservedDecisions String[]
+  criteria          SurveillanceCriterion[]
+  createdAt         DateTime                     @default(now())
+
+  @@unique([organizationId, blueprintVersionId, code], map: "sr02_uq_004")
+}
+
+model SurveillanceReviewerAssignment {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  authorityBasis String
+  active         Boolean  @default(true)
+  grantedBy      String
+  grantedAt      DateTime @default(now())
+
+  @@unique([organizationId, userId], map: "sr02_uq_005")
+  @@index([organizationId, active], map: "sr02_ix_004")
+}
+
+model SurveillanceCriterion {
+  id                       String                           @id @default(cuid())
+  organizationId           String
+  blueprintVersionId       String
+  blueprintVersion         SurveillanceBlueprintVersion     @relation(fields: [blueprintVersionId], references: [id], onDelete: Cascade, map: "sr02_fk_006")
+  code                     String
+  canonicalQuestion        String
+  plainLanguageExpectation String
+  criterionType            String
+  materiality              String
+  activationRule           Json
+  reviewerPolicyId         String
+  reviewerPolicy           SurveillanceReviewerPolicy       @relation(fields: [reviewerPolicyId], references: [id], map: "sr02_fk_007")
+  expectedStates           SurveillanceExpectedStateRule[]
+  evidenceRequirements     SurveillanceEvidenceRequirement[]
+  authorityBindings        SurveillanceAuthorityBinding[]
+  organizationRules        SurveillanceOrganizationRuleBinding[]
+  trendIdentity            SurveillanceTrendIdentity?
+  runtimeCriteria          SurveillanceCriterionRuntime[]
+  observations             SurveillanceObservation[]
+  assessments              SurveillanceEvidenceAssessment[]
+  candidates               SurveillanceCandidateVariance[]
+  trendOccurrences         SurveillanceTrendOccurrence[]
+  createdAt                DateTime                         @default(now())
+
+  @@unique([organizationId, blueprintVersionId, code], map: "sr02_uq_006")
+}
+
+model SurveillanceExpectedStateRule {
+  id             String                @id @default(cuid())
+  organizationId String
+  criterionId    String
+  criterion      SurveillanceCriterion @relation(fields: [criterionId], references: [id], onDelete: Cascade, map: "sr02_fk_008")
+  code           String
+  statement      String
+  ruleType       String
+  basisStrength  String
+  createdAt      DateTime              @default(now())
+
+  @@unique([organizationId, criterionId, code], map: "sr02_uq_007")
+}
+
+model SurveillanceEvidenceRequirement {
+  id              String                         @id @default(cuid())
+  organizationId  String
+  criterionId     String
+  criterion       SurveillanceCriterion           @relation(fields: [criterionId], references: [id], onDelete: Cascade, map: "sr02_fk_009")
+  code            String
+  evidenceType    SurveillanceEvidenceType
+  requirementLevel SurveillanceRequirementLevel
+  verificationMode SurveillanceVerificationMode
+  acceptanceRule  String
+  conditionalRule Json?
+  requests        SurveillanceEvidenceRequest[]
+  createdAt       DateTime                       @default(now())
+
+  @@unique([organizationId, criterionId, code], map: "sr02_uq_008")
+}
+
+model SurveillanceCaptureStep {
+  id                String                       @id @default(cuid())
+  organizationId    String
+  blueprintVersionId String
+  blueprintVersion  SurveillanceBlueprintVersion @relation(fields: [blueprintVersionId], references: [id], onDelete: Cascade, map: "sr02_fk_010")
+  criterionCode     String?
+  sequence          Int
+  evidenceType      SurveillanceEvidenceType
+  instruction       String
+  required          Boolean                      @default(true)
+  viewGeometry      String?
+  createdAt         DateTime                     @default(now())
+
+  @@unique([organizationId, blueprintVersionId, sequence], map: "sr02_uq_009")
+}
+
+model SurveillanceAuthorityBinding {
+  id               String                        @id @default(cuid())
+  organizationId   String
+  criterionId      String
+  criterion        SurveillanceCriterion          @relation(fields: [criterionId], references: [id], onDelete: Cascade, map: "sr02_fk_011")
+  sourceFamilyKey  String
+  versionLabel     String
+  title            String
+  citation         String
+  sourceRole       String
+  relationshipType String
+  currentness      AssuranceSourceCurrentness
+  rightsStatus     AssuranceSourceRightsStatus
+  citations        SurveillanceFindingCitation[]
+  createdAt        DateTime                      @default(now())
+
+  @@index([organizationId, criterionId], map: "sr02_ix_005")
+}
+
+model SurveillanceOrganizationRuleBinding {
+  id             String                @id @default(cuid())
+  organizationId String
+  criterionId    String
+  criterion      SurveillanceCriterion @relation(fields: [criterionId], references: [id], onDelete: Cascade, map: "sr02_fk_012")
+  title          String
+  versionLabel   String
+  statement      String
+  createdAt      DateTime              @default(now())
+
+  @@index([organizationId, criterionId], map: "sr02_ix_006")
+}
+
+model SurveillanceTrendIdentity {
+  id             String                       @id @default(cuid())
+  organizationId String
+  criterionId    String                       @unique(map: "sr02_uqf_002")
+  criterion      SurveillanceCriterion         @relation(fields: [criterionId], references: [id], onDelete: Cascade, map: "sr02_fk_013")
+  canonicalKey   String
+  matchScope     String
+  rollupLevel    String
+  occurrences    SurveillanceTrendOccurrence[]
+  createdAt      DateTime                     @default(now())
+
+  @@index([organizationId, canonicalKey], map: "sr02_ix_007")
+}
