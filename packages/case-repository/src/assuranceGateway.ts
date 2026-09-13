@@ -774,6 +774,10 @@ export class PrismaAssuranceGateway {
         where: { organizationId, assuranceCaseId, expectationId },
         orderBy: { version: "desc" },
       });
+      const evaluationEvidence =
+        evidence && (evidence.status === "SUBMITTED" || evidence.status === "ACCEPTED")
+          ? evidence
+          : undefined;
 
       const evaluationInput: AssuranceEvaluationInput = {
         applicability: applicability
@@ -790,11 +794,11 @@ export class PrismaAssuranceGateway {
           status: conflict.status,
         })),
         expectation: { requiredKeys: [...expectation.requiredKeys] },
-        ...(evidence
+        ...(evaluationEvidence
           ? {
               submission: {
-                submissionId: evidence.id,
-                payload: jsonRecord(evidence.payload),
+                submissionId: evaluationEvidence.id,
+                payload: jsonRecord(evaluationEvidence.payload),
               },
             }
           : {}),
@@ -810,7 +814,7 @@ export class PrismaAssuranceGateway {
           organizationId,
           assuranceCaseId,
           applicabilityDecisionId: applicability?.id ?? null,
-          evidenceSubmissionId: evidence?.id ?? null,
+          evidenceSubmissionId: evaluationEvidence?.id ?? null,
           result: output.result,
           reasonCodes: [...output.reasonCodes],
           sourceStateSnapshot: {
@@ -820,7 +824,7 @@ export class PrismaAssuranceGateway {
           evidenceStateSnapshot: {
             expectationId: expectation.id,
             requiredKeys: expectation.requiredKeys,
-            evidenceSubmissionId: evidence?.id ?? null,
+            evidenceSubmissionId: evaluationEvidence?.id ?? null,
             evidenceStatus: evidence?.status ?? null,
             evidenceVersion: evidence?.version ?? null,
           } as Prisma.InputJsonValue,
@@ -958,7 +962,7 @@ export class PrismaAssuranceGateway {
         if (evidence.status === "SUPERSEDED" || evidence.supersededById) {
           throw new AssuranceStateError("review_requires_current_evidence");
         }
-        if (evidence.status !== "SUBMITTED") {
+        if (nextEvidenceStatus && evidence.status !== "SUBMITTED") {
           throw new AssuranceStateError("review_requires_submitted_evidence");
         }
         evidenceBefore = evidence.status;
