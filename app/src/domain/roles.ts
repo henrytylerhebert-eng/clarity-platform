@@ -16,8 +16,7 @@ export type WorkspaceId =
   | "training"
   | "mock-admits"
   | "studio"
-  | "iop-reconciliation"
-  | "operating-assurance";
+  | "iop-reconciliation";
 
 export const allWorkspaceIds: WorkspaceId[] = [
   "queue",
@@ -38,7 +37,6 @@ export const allWorkspaceIds: WorkspaceId[] = [
   "mock-admits",
   "studio",
   "iop-reconciliation",
-  "operating-assurance",
 ];
 
 export type RoleId =
@@ -126,7 +124,7 @@ export const roles: RoleDefinition[] = [
     label: "Compliance / legal officer",
     description: "Watches custody integrity, counsel-validation queue, and clock breaches.",
     mission: "Prove the chain of custody; flag anything counsel has not validated.",
-    workspaces: ["command", "queue", "evidence", "legal", "ledger", "training", "mock-admits", "operating-assurance"],
+    workspaces: ["command", "queue", "evidence", "legal", "ledger", "training", "mock-admits"],
     defaultWorkspace: "ledger",
   },
   {
@@ -134,7 +132,7 @@ export const roles: RoleDefinition[] = [
     label: "Executive / program director",
     description: "Read-focused pipeline oversight. Full metrics dashboard arrives in v0.3.",
     mission: "See throughput and risk at a glance; measure before claiming improvement.",
-    workspaces: ["command", "queue", "ledger", "training", "mock-admits", "studio", "iop-reconciliation", "operating-assurance"],
+    workspaces: ["command", "queue", "ledger", "training", "mock-admits", "studio", "iop-reconciliation"],
     defaultWorkspace: "command",
   },
 ];
