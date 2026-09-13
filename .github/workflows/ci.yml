@@ -57,6 +57,9 @@ jobs:
       - name: App tests
         run: npm run test:app
 
+      - name: App build
+        run: npm --workspace app run build
+
       - name: Operating Assurance replay E2E
         run: npm run test:oa-e2e
 
