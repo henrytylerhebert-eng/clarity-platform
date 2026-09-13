@@ -4,6 +4,14 @@ Status: authorized scope; implementation requirements documented. Rate ingestion
 
 Updated: 2026-09-09. Official sources below were checked on this date.
 
+**2026-09-13 update:** R1's Louisiana Medicaid release registry is implemented
+(ADR-0021) — see the Build sequence table below and
+[docs/implementation/REV_OPS_RATE_RELEASE_REGISTRY.md](../implementation/REV_OPS_RATE_RELEASE_REGISTRY.md)
+for what changed and its honest gaps. The CMS IPF FY2026 base-component source
+was deliberately NOT converted to this registry (see that doc's Context
+section for why). R2–R5 remain exactly as documented below — unstarted, and
+R2 specifically remains blocked on the still-missing hospital identifiers.
+
 ## Accepted scope and selected profile
 
 Tyler accepted **Dunder Mifflin Hospital - Restored Operations 2026** as the workbook baseline and authorized MVP definition, interface updates, workbook parity, and real financial-rate implementation. Workbook acceptance is complete as a product decision. It does not turn a public base rate, fictional workbook contract, or computed allowance into an actual payment.
@@ -45,7 +53,7 @@ For Louisiana inpatient ingestion, the index links the [current XLSX](https://ww
 
 | Phase | Deliverable | Required evidence before advancing |
 |---|---|---|
-| R1 — release registry | Import immutable published releases with publisher, document/version, source URL, retrieval time, effective interval, checksum and source row/page; retain corrections and supersession | Row counts, key-field checks, sampled dollar/unit comparisons to originals; no inferred rates |
+| R1 — release registry | **Louisiana Medicaid inpatient per-diem: implemented (ADR-0021), 2026-09-13** — persisted, tenant-attributed-but-not-tenant-scoped registry with correction/supersession support, replacing the bundled JSON as the runtime source. CMS IPF FY2026 base-component source remains a code constant, deliberately not converted (single value, no row-level correction shape). | Row counts, key-field checks, sampled dollar/unit comparisons to originals; no inferred rates — see the implementation doc's test manifest for what actually ran |
 | R2 — provider and contract applicability | Bind the supplied real Louisiana profile and explicit payer/product/network/contract scope to supported methods; use synthetic patient activity | Exact identifier match, setting/method match, effective dates and missing-input reasons; no automatic nearest-hospital fallback |
 | R3 — separate calculators | Implement and test IPF FY2026/FY2027, applicable CY2026 hospital IOP/OPPS, Louisiana inpatient and SBH, then supplied commercial methods | Method-specific golden cases and boundary tests; independent expected values; transparent calculation trace |
 | R4 — operational integration | Apply reviewed rules to eligible synthetic activity; show rate release, provider profile, basis, exceptions and modeled allowance in RevOps | Drill-through from result to activity and source/version; operational counts survive missing rates; no hidden zero substitution |

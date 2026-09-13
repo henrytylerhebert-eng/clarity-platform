@@ -1,6 +1,8 @@
 import { PrismaRevOpsGateway } from "../../case-repository/src/revOpsGateway.js";
 import { PrismaOperatingWorkbookGateway } from "../../case-repository/src/operatingWorkbookGateway.js";
 import { PrismaIopReconciliationGateway } from "../../case-repository/src/iopReconciliationGateway.js";
+import { PrismaRevOpsRateReleaseGateway } from "../../case-repository/src/revOpsRateReleaseGateway.js";
+import { LA_INPATIENT_RELEASES } from "../../rev-ops-service/src/pricing.js";
 import {
   assertLocalClarityDevDatabase,
   createPrismaClient,
@@ -148,6 +150,34 @@ async function main(): Promise<void> {
     update: { active: true, label: "Synthetic IOP program source" },
     create: { organizationId: ORG_ID, integrationKey: "SYNTHETIC_IOP_PROGRAM", label: "Synthetic IOP program source" },
   });
+  // ADR-0021 (R1): seed the two checked-in, source-hashed LA Medicaid
+  // releases as the initial ACTIVE rows. Public reference data, not a
+  // tenant-owned fact — recordedByOrganizationId/recordedBy here just
+  // attribute this bootstrap, distinct from a real "record release" API call.
+  for (const release of LA_INPATIENT_RELEASES) {
+    await prisma.revOpsRateRelease.upsert({
+      where: { releaseId: release.releaseId },
+      update: {},
+      create: {
+        programMethod: "LA_MEDICAID_INPATIENT_PER_DIEM",
+        releaseId: release.releaseId,
+        publisher: release.publisher,
+        sourceUrl: release.sourceUrl,
+        sha256: release.sha256,
+        retrievedAt: new Date(release.retrievedAt),
+        effectiveFrom: new Date(`${release.scenarioCoverageFrom}T00:00:00.000Z`),
+        effectiveThrough: new Date(`${release.scenarioCoverageThrough}T00:00:00.000Z`),
+        payload: JSON.parse(JSON.stringify({
+          sheet: release.sheet,
+          rowCount: release.rowCount,
+          rows: release.rows,
+        })),
+        recordedByOrganizationId: ORG_ID,
+        recordedBy: "system-dev-seed",
+      },
+    });
+  }
+
   const caseCommands = new CaseCommandService(new PrismaCaseCommandGateway(prisma));
   // Phase 3 gateway: prescreen state persists in local clarity_dev and
   // survives a server restart (provider-backed verification stays gated).
@@ -166,6 +196,7 @@ async function main(): Promise<void> {
     revOps: new PrismaRevOpsGateway(prisma),
     operatingWorkbook: new PrismaOperatingWorkbookGateway(prisma),
     iopReconciliation: new PrismaIopReconciliationGateway(prisma),
+    revOpsRateReleases: new PrismaRevOpsRateReleaseGateway(prisma),
     auth,
     caseCommands,
     prescreen,
