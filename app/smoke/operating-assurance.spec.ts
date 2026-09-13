@@ -91,7 +91,7 @@ test("accepted OA case replays stale source without rewriting prior history", as
   await mutateAssuranceFixtureForE2E("STALE");
   await page.getByRole("button", { name: "Run governed evaluation" }).click();
   await expect(page.getByRole("status")).toContainText("Machine assistance refreshed. Human review is still required.");
-  await expect(page.getAllByText("Stale Source", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Stale Source", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("This is a fail-closed state.", { exact: false })).toBeVisible();
   await expect(trust.getByText("Stale", { exact: true })).toBeVisible();
   await expect(trust.getByText("Review Required", { exact: true }).last()).toBeVisible();
@@ -112,7 +112,7 @@ test("unresolved source conflict replays fail-closed while preserving earlier ev
   await mutateAssuranceFixtureForE2E("CONFLICT");
   await page.getByRole("button", { name: "Run governed evaluation" }).click();
   await expect(page.getByRole("status")).toContainText("Machine assistance refreshed. Human review is still required.");
-  await expect(page.getAllByText("Conflict", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Conflict", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("An unresolved source conflict is recorded.", { exact: false })).toBeVisible();
   await expect(page.getByText("This is a fail-closed state.", { exact: false })).toBeVisible();
 
