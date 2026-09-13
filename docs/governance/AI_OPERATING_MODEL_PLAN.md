@@ -1,9 +1,9 @@
 ---
 status: Approved (owner approval 2026-07-29)
 owner: Tyler Hebert
-version: 1.1.0
+version: 1.2.0
 created: 2026-07-29
-last_amended: 2026-07-29
+last_amended: 2026-09-12
 scope: development tooling only — NOT product AI agents
 related_adrs: ADR-0017 (accepted, agent operating model and bridge retirement)
 related_docs:
@@ -12,9 +12,8 @@ related_docs:
   - docs/governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md
   - docs/developer-handoff/CLAUDE_OPERATING_MANUAL.md
 supersedes: agents/bridge/PROTOCOL.md — decision accepted (ADR-0017); the physical
-  quarantine is Stage 0.2 and is HELD pending PR #30, so bridge files and their
-  README/package-script entry points are still present on disk. Treat the bridge as
-  retired guidance, but do not assume its paths are gone yet.
+  quarantine (Stage 0.2) completed 2026-09-12 after PR #30 closed. The bridge tree
+  now lives at docs/experiments/2026-07-agent-bridge/; no live entry point remains.
 ---
 
 # AI Operating Model Plan
@@ -171,8 +170,11 @@ no cross-referencing.
 
 **ADR:** not needed — presentation of existing facts, no decision.
 
-**Status: HELD.** PR #30 adds ~50 lines to this file. Restructuring it now guarantees a
-conflict. Start after #30 merges or closes.
+**Status: DONE (2026-09-12).** PR #30 closed as superseded; `IMPLEMENTATION_STATUS.md`
+now opens with a `## Current State` block (branch, HEAD, today's merges, verified
+counts) followed by `## Verification history (historical — not current)` holding
+every prior dated entry verbatim. The Completed/Scaffolded/Documented-only/Blocked/Not-started
+buckets are unchanged in content and position.
 
 ### 0.2 Quarantine `agents/bridge/`
 
@@ -225,9 +227,17 @@ explicitly historical record.
 (written 2026-07-29). Not 0015: ADR-0015 and ADR-0016 were already allocated on unmerged
 branches. See [Amendment 1](#amendment-1--2026-07-29).
 
-**Status: HELD.** PR #30 (`codex/om/sync-main`, 42 commits) modifies
-`agents/bridge/LEDGER.md`, so moving the directory now is a move/edit conflict against
-that work. Start after #30 merges or closes.
+**Status: DONE (2026-09-12).** PR #30 closed as superseded. `agents/bridge/` and the
+root `agent_bridge/` notification mirror both moved to
+`docs/experiments/2026-07-agent-bridge/`, byte-identical, with a status-header
+`README.md` added there. `package.json`'s `bridge:doctor`/`bridge:status`/`bridge:test`
+scripts, `README.md`'s Quick Start references, `IMPLEMENTATION_STATUS.md`'s Bridge
+bullet, `.gitignore`'s dead bridge-runtime-state entries, and the one literal
+`agents/bridge` path reference in `docs/agents/PRESCREEN_INVARIANT_VERIFIER_CHARTER.md`
+were all updated. The acceptance grep (`agents/bridge|bridge:doctor|bridge:status|bridge:test`,
+excluding `docs/experiments`) returns only accepted ADRs, dated historical
+developer-handoff records, this plan's own specification text, and immutable
+`reference/`/vendored-snapshot copies — no live reference and no broken path.
 
 ### 0.3 Add a work-package template
 
@@ -255,9 +265,8 @@ Open questions / blocked on: <list>
 
 **ADR:** not needed.
 
-**Status: partially HELD.** The new file is conflict-free, but the `CLAUDE.md` reference
-is not — PR #30 edits that file. Land the template with #30's `CLAUDE.md` change, or
-after it.
+**Status: DONE (2026-09-12).** `docs/governance/WORK_PACKAGE_TEMPLATE.md` added;
+`CLAUDE.md`'s Workflow section now references it.
 
 ### 0.4 Add the enum-sync test (recommended)
 

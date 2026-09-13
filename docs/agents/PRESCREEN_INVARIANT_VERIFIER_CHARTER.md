@@ -190,7 +190,7 @@ The runner must not expose:
 - Database migration, seed, cleanup, reset, or production connection.
 - Secrets, environment-file contents, credentials, PHI/PII, or live case data.
 - Browser/account actions, external messages, deployment, publication, or
-  `agents/bridge` dispatch.
+  dispatch through the retired agent-bridge model (ADR-0017).
 - Subagent creation or an inter-agent coordination channel.
 
 Database-backed tests are always prohibited for DEV-R1. A separate authorized

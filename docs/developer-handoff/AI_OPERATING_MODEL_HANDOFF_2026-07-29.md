@@ -1,16 +1,28 @@
 ---
-status: Handoff — read before continuing this thread of work
+status: Historical — Stage 0 completed 2026-09-12 (PR #66). Superseded for
+  anything about Stage 0's status; the "traps that cost time" and Stage 1
+  replay sections below remain current, unrelated advice.
 owner: Tyler Hebert
 version: 1.0.0
 created: 2026-07-29
 related_docs:
   - docs/governance/AI_OPERATING_MODEL_PLAN.md
   - docs/architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md
-related_prs: "#33, #36"
+related_prs: "#33, #36, #66"
 related_issues: "#34, #35"
 ---
 
 # Handoff: AI operating model plan — Stage 0 in progress
+
+**Superseded 2026-09-12.** PR #30 (the blocker this handoff describes) closed
+as superseded on 2026-09-12, and Stage 0.1–0.3 landed the same day via
+[PR #66](https://github.com/henrytylerhebert-eng/clarity-platform/pull/66) —
+see `AI_OPERATING_MODEL_PLAN.md`'s own per-task Status lines (now DONE) for the
+authoritative record. Everything below describing 0.1–0.3 as HELD, or
+instructing a reader to check whether PR #30 has closed before starting them,
+is preserved as the dated snapshot it was — do not act on it as current
+guidance. The "traps that cost time" section and the Stage 1 replay
+instructions further down are unaffected by this and remain useful.
 
 Read this first if you're picking up the AI-native operating-model work. It
 tells you what already happened, what's open, and the traps that cost time
