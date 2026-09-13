@@ -2,9 +2,54 @@
 
 ## Current State
 
-**As of 2026-09-12, branch `main` at `5348202f8b90ba55b32a8aee811bc6c4e6633995`.**
+**As of 2026-09-12, branch `main` at `15a094ddc352030ee392f1d4f9b31c8ae49a2973`.**
 
-Today's housekeeping pass merged twelve PRs and closed one. Merged: #58 (workbook
+**A full architecture audit was performed this session.** For component-by-component
+status with evidence, see
+[docs/architecture/CLARITY_ARCHITECTURE_LEDGER.md](docs/architecture/CLARITY_ARCHITECTURE_LEDGER.md);
+for the drift/contradictions found, see
+[docs/architecture/ARCHITECTURE_DRIFT_REGISTER.md](docs/architecture/ARCHITECTURE_DRIFT_REGISTER.md);
+for production-readiness by area, see
+[docs/architecture/PRODUCTION_READINESS_MATRIX.md](docs/architecture/PRODUCTION_READINESS_MATRIX.md).
+The single most consequential finding: most of `app/`'s experience-layer surfaces (12 of
+15 audited) are `localStorage`-only prototypes disconnected from their matching, tested
+backend packages — "Completed" in this file's capability sections below means the
+backend and its tests exist, not that the product experience uses it (see
+ARCHITECTURE_DRIFT_REGISTER.md DRIFT-11).
+
+**Since the last full status pass** (`5348202`, 14 commits): AI-operating-model Stage
+0.1–0.3 landed (PR #66) — `IMPLEMENTATION_STATUS.md` collapsed to one current-state
+block, the retired `agent_bridge/` experiment quarantined, a work-package template
+added. The **CLPR-0→3 synthetic vertical slice** merged (PR #68): a new
+`packages/learning-practice-service` (evaluator, gateway, practice lab, recognition)
+plus `app/src/components/learning-practice/`, implementing the Central Intake
+learning-pathway → contradiction-practice → Notice & Acknowledge → contest/review →
+CompetencyEvidence flow described in
+[docs/implementation/CLPR_SYNTHETIC_VERTICAL_SLICE.md](docs/implementation/CLPR_SYNTHETIC_VERTICAL_SLICE.md);
+it attaches to intake/evidence and learning only and does not change Episode,
+clinical, placement, legal, or financial decision authority. **Operating Assurance
+(OA) landed in full** (TWP-OA-002/003/004): trust contracts and a deterministic
+evaluator (`packages/domain-contracts/src/assurance.ts`), tenant-scoped persistence
+with immutable evidence/evaluation/review history (`case-repository/src/assuranceGateway.ts`,
+a multi-file `prisma/assurance.prisma`), commands/queries with scoped
+contributor/reviewer authority (`packages/assurance-service`), and an authenticated
+Fastify API (`api-service/src/assuranceRoutes.ts`) — see
+[docs/implementation/OPERATING_ASSURANCE_TWP_OA_002.md](docs/implementation/OPERATING_ASSURANCE_TWP_OA_002.md).
+**Known tension, not yet resolved by this pass:** OA's own product-definition
+discovery lane (`docs/discovery/operating-assurance/project-state.yaml`) recorded
+`lifecycle_status: paused` from July 30 source decisions before this implementation
+work happened; see [ADR-0020](docs/architecture/ADR-0020-operating-assurance-retroactive-ratification.md)
+for the owner's retroactive ratification of that gap. Separately, `packages/legal-hold-forms`
+(Louisiana OBH-1/1A/2/19/20 involuntary-commitment form schemas, deadline
+calculators, and fillable-PDF rendering — predates this pin but was never recorded
+here) is also now reflected below. A new whole-platform navigation map,
+[docs/product/CLARITY_PLATFORM_FULL_TREE.md](docs/product/CLARITY_PLATFORM_FULL_TREE.md),
+indexes all of the above alongside the existing RevOps-scoped
+[WORKBOOK_PLATFORM_FULL_TREE.md](docs/product/WORKBOOK_PLATFORM_FULL_TREE.md); it
+restates no test counts and settles no open decision on its own.
+
+Today's housekeeping pass (the same day, on the prior `5348202` revision) merged
+twelve PRs and closed one. Merged: #58 (workbook
 operating slice + payment scenarios; cleaned of a dead, unused `RevOpsScope.tsx`),
 #59 (governance/operating-assurance documentation recovery), #48 (network-enrichment
 contract kernel, verified contract-only — no Prisma imports, no server/runtime code),
@@ -488,9 +533,26 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 - **Not claimed for the prescreen slice:** provider-backed Cloud SQL/RLS evidence (separate, non-waived gate), runtime-role deployment for the app connection (local dev connection is superuser and bypasses RLS; the proof used a NOBYPASSRLS role), outbox dispatch/delivery for prescreen events, UI, cross-organization collaboration, roles beyond the two ruled equivalences, PMHNP scope configuration, clinical/legal approval of any rule content, production readiness.
 - **Open decision packets:** the cross-organization submission/receipt model (successor to the resolved role-mapping packet — blocks field-originated prescreens and any external-actor work); consent-rule specificity ordering and fractional-age representation remain domain-review follow-ups in ADR-0013 (until an ordering policy is approved, overlapping consent rules fail closed).
 
+## Operating Assurance (OA) product slice (2026-09-12 session)
+
+- **Trust contracts and deterministic evaluator (TWP-OA-001/002):** `packages/domain-contracts/src/assurance.ts` — applicability status, authority class, source currentness/rights, evidence status, evaluation result, and review decision enums, plus a deterministic evaluator over configured rules.
+- **Tenant-scoped persistence (TWP-OA-002):** `packages/case-repository/src/assuranceGateway.ts` behind a multi-file Prisma schema (`prisma/assurance.prisma`, additive migrations) — immutable evidence/evaluation/review history, metadata-only audit writes. See `docs/implementation/OPERATING_ASSURANCE_TWP_OA_002.md` ("Status: implementation branch under review"; does not itself claim Product Acceptance).
+- **Commands, queries, and scoped review authority (TWP-OA-003):** `packages/assurance-service` — participant-scoped contributor/reviewer authority, deterministic evaluation orchestration, tenant-safe queries, atomic review side effects, reviewed-evidence replay safety.
+- **Authenticated Fastify API (TWP-OA-004):** `packages/api-service/src/assuranceRoutes.ts` — strict request schemas, server-derived tenancy/authority, bounded same-tenant review resolution, content-free error mapping.
+- **Known tension, ratified this session:** this implementation ran ahead of OA's own product-definition discovery lane, whose `project-state.yaml`/`stage-manifest.yaml` recorded `lifecycle_status: paused` and prohibited `implementation_in_progress` as an entry state from July 30 source decisions. The owner ratified the implementation retroactively rather than rolling it back; see [ADR-0020](docs/architecture/ADR-0020-operating-assurance-retroactive-ratification.md).
+- **Not claimed:** product acceptance for the OA workspace as a whole, provider-backed Cloud SQL/RLS evidence, production readiness.
+
+## CLPR — Central Intake learning and practice slice (2026-09-12 session, PR #68)
+
+- **CLPR-0→3 synthetic vertical slice:** `packages/learning-practice-service` (evaluator, gateway, practice lab, recognition) plus `app/src/components/learning-practice/`, implementing Central Intake learning pathway → contradiction practice → synthetic workflow events → deterministic `PracticeObservation` → Notice & Acknowledge → context/contest/review → confirmed synthetic `CompetencyEvidence` → My Path. Entirely synthetic; in-memory gateway (no Prisma, no tenant context, no audit writer — it is not a persistence-service package).
+- Attaches to the intake/evidence and learning parts of the case spine; does **not** change Episode, clinical, placement, legal, or financial decision authority. See `docs/implementation/CLPR_SYNTHETIC_VERTICAL_SLICE.md` and `docs/planning/clpr/CLPR_INTEGRATION_RESOLUTION.md`.
+- **Review acceptance:** recorded this session — see the CLPR review entry below.
+
 ## Completed (verified working)
 
-- **API vertical slice** (`packages/api-service`, pre-decision ADR-0012 spike): the first HTTP entry point uses `node:http` and exposes login/logout/session plus `POST /api/cases/{caseKey}/decision-rationale`. Tenant and actor roles are derived exclusively from the verified principal (`AuthenticationService.authenticate` -> `actorFor`); there is no request field through which a caller can supply either, and unknown body fields are rejected (400). The slice proves one authenticated path from the prototype UI to the command service and Postgres audit trail. It does **not** resolve ADR-0012, which still proposes Fastify and requires owner approval. Verified: 8 API integration tests within the current 258-test root suite; app suite 64/64.
+- **API vertical slice** (`packages/api-service`, ADR-0012 — accepted in part): the server runs on Fastify and exposes login/logout/session, `POST /api/cases/{caseKey}/decision-rationale`, RevOps/operating-workbook, IOP reconciliation, prescreen, and Operating Assurance routes. RevOps/IOP/Assurance routes use native Fastify route registration; the original four routes plus all prescreen routes still run through a manual `app.all("/*", ...)` catch-all with `reply.hijack()` — a node:http-style dispatch pattern living inside the Fastify shell, not yet migrated. Tenant and actor roles are derived exclusively from the verified principal (`AuthenticationService.authenticate` -> `actorFor`); there is no request field through which a caller can supply either, and unknown body fields are rejected (400). ADR-0012 remains accepted in part pending that migration. Verified: see the per-package integration suites listed throughout this file; app suite 64/64.
+
+- **Legal-hold forms** (`packages/legal-hold-forms`): structured field schemas, advisory deadline calculators, advisory structural validators, and fillable-PDF rendering for the five official Louisiana OBH involuntary-commitment forms (OBH-1, OBH-1A, OBH-2, OBH-19, OBH-20). Statutory triggers/durations/form requirements are configuration, not enforced truth, per `docs/legal/LEGAL_STATUS_ARCHITECTURE.md` — nothing here auto-blocks or auto-releases. No Prisma; no case-repository dependency. Predates this file's current-state pin but was not previously recorded in this section.
 
 - **Authentication** (`packages/auth-service` + `PrismaAuthGateway`, ADR-0011 — MVP_ROADMAP Phase 3): server-side sessions over the existing `User`/roles model — opaque 32-byte bearer tokens stored only as SHA-256 hashes (returned exactly once, never audited), 8h default expiry, audited timestamp revocation (`SESSION_ISSUED`/`SESSION_REVOKED`, the first organization-level audit events with null caseId); `IdentityProvider` port (managed-IdP/OIDC adapter is deployment-phase work; dev provider is local-only, no passwords stored anywhere); the `principalToActor` bridge sources roles FROM THE DATABASE, retiring the trusted-caller-roles assumption at the authentication boundary (fully dead when the API layer is the sole entry — ADR-0012 Proposed); deactivating a user kills live sessions on the next request; all authentication failures are one indistinguishable error. Permission suites re-run against real session-derived principals. Migration `auth_sessions`. Verified: 8 integration tests, full suite **185/185**, app 37/37, zero residue.
 
