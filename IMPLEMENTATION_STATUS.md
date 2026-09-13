@@ -2,7 +2,7 @@
 
 ## Current State
 
-**As of 2026-09-13, branch `main` at `92bdbe6f81d6b0229f64706d00332141be28cbef`.**
+**As of 2026-09-13, branch `main` at `82aa1388e3bc028b788a42c1501772da774828f1`.**
 
 Since the housekeeping pass below, three more PRs merged directly into `main`:
 [#70](https://github.com/henrytylerhebert-eng/clarity-platform/pull/70) (Operating
@@ -15,29 +15,50 @@ Assurance one-case workspace) — merged 2026-09-13 02:36–03:23 UTC.
 A separate whole-platform-tree-and-architecture-audit session produced nine audit
 documents plus
 [ADR-0020](docs/architecture/ADR-0020-operating-assurance-retroactive-ratification.md)
-on a still-open, docs-only branch/PR
-([#73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73), not yet
-merged). A later session implemented two of that PR's own backlog items directly
-against `main` and opened
-[PR #75](https://github.com/henrytylerhebert-eng/clarity-platform/pull/75) — **open,
-CI pending** as of this write-up, not yet merged: **P0-2** (finished the ADR-0012
-native-Fastify migration — the original four routes and all seven prescreen routes
-moved off the `app.all("/*", ...)` catch-all into native Fastify registration;
-ADR-0012 updated from "Accepted in part" to "Accepted" for the routing decision
-specifically, hosting/tenancy/RLS/operational readiness still separately gated) and
-**P0-3** (added strict Zod validation to Operating Assurance's command envelopes,
-matching every other command service's "parse → policy → gateway" discipline).
-**Verified in that session:** full root suite **759/759** (73 files, +4 tests from
-new schema-rejection coverage), app suite **140/140** (21 files, unchanged), lint
-clean, typecheck clean, `prisma validate` clean. PR #75 carries a documented
-self-review comment per §3a of the solo-maintainer policy. **Not yet done: PR #75's
-CI has not been confirmed green and it has not been merged** — check its status
-(Auto-fix monitoring is armed on it) before building further on top of it, and note
-PR #73 is still unmerged/untriaged as well.
+on [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73) —
+**still open and untriaged** (opened 2026-09-13 03:48 UTC, docs-only). A later
+session implemented two of that PR's own backlog items directly against `main` and
+opened [PR #75](https://github.com/henrytylerhebert-eng/clarity-platform/pull/75):
+**P0-2** (finished the ADR-0012 native-Fastify migration — the original four routes
+and all seven prescreen routes moved off the `app.all("/*", ...)` catch-all into
+native Fastify registration; ADR-0012 updated from "Accepted in part" to "Accepted"
+for the routing decision specifically, hosting/tenancy/RLS/operational readiness
+still separately gated) and **P0-3** (added strict Zod validation to Operating
+Assurance's command envelopes, matching every other command service's "parse →
+policy → gateway" discipline). **Verified in that session:** full root suite
+**759/759** (73 files, +4 tests from new schema-rejection coverage), app suite
+**140/140** (21 files, unchanged), lint clean, typecheck clean, `prisma validate`
+clean. PR #75 carried a documented self-review comment per §3a of the
+solo-maintainer policy. **PR #75 merged 2026-09-13 19:39 UTC** (confirmed via
+`gh pr view 75`) — the paragraph this replaced was stale in describing it as still
+open with CI pending.
+
+**Immediately after that merge, a docs-only commit landed directly on `main`**
+(`82aa138`, "docs: hand off VS-OA-001 to Product Acceptance", 3 files added, all
+under `docs/`, no runtime/schema/test change — confirmed by diff): TWP-OA-007, the
+VS-OA-001 Product Acceptance handoff package —
+[implementation record](docs/implementation/OPERATING_ASSURANCE_VS_OA_001.md),
+[test manifest](docs/testing/OPERATING_ASSURANCE_TEST_MANIFEST.md), and the
+[acceptance handoff](docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md)
+itself (10 accepted fixtures FIX-OA-001…010, 14 acceptance criteria
+AC-OA-001…014). Per the handoff's own §12, this transitions VS-OA-001's lifecycle
+state from **Controlled Implementation to Product Acceptance** — but that only
+*authorizes* an independent acceptance review; **no independent reviewer has run it
+yet**, and the handoff explicitly bars the implementing session from pre-writing the
+verdict. The test counts cited inside the handoff (root 73 files/758 tests, app 21
+files/140 tests, OA workspace 8/8, desktop/mobile Playwright 6/6, migrations 24/24,
+lint/typecheck/audit clean — from protected CI run #181) are labeled there as
+historical implementation evidence, not acceptance evidence.
+
+Also untriaged: [PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63)
+(draft, opened 2026-09-12) — public product-portfolio documentation (README +
+`docs/product/PRODUCT_VISION.md` + the RevOps product definition), no runtime
+change, still in draft state.
 
 **Not claimed:** production readiness, HIPAA compliance, malware protection, working
-external integrations, or approved clinical/legal rules — for any capability
-described anywhere in this file. Synthetic data only, throughout.
+external integrations, approved clinical/legal rules, or Product Acceptance of
+VS-OA-001 — for any capability described anywhere in this file. Synthetic data
+only, throughout.
 
 The narrative log below (every prior dated session entry, verbatim, unmoved in
 substance) is historical color for how each capability arrived; it is not where a
@@ -575,6 +596,21 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 
 ## Next recommended action
 
-~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011).
+~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011). ~~Check PR #75's CI and merge it~~ **done** — merged 2026-09-13 19:39 UTC.
 
-**Current action (updated 2026-09-13; the paragraph this replaced was stale — see git history if the old prescreen-onboarding narrative is wanted):** The single next action is to **check [PR #75](https://github.com/henrytylerhebert-eng/clarity-platform/pull/75)'s CI (`verify`) and merge it once green** — it finishes the ADR-0012 native-Fastify migration (P0-2) and adds Zod validation to Operating Assurance's commands (P0-3), both fully verified locally (see Current State above) but unconfirmed on CI as of this write-up; Auto-fix monitoring is armed on it. After that: (1) [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73) (the whole-platform architecture audit, docs-only) is still open and untriaged — its own implementation plan's remaining items are P1-1 (wire the IOP Reconciliation frontend workspace to its already-built backend API, then Evidence Review) and the smaller P1-3…P1-6 redundancy-cleanup items; (2) provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate — still blocked on owner GCP access (`gcloud auth login` + intended project); (3) OD-13 (execute CMS regulatory research) and OD-14 (per-org AI-native policy index) remain open owner decisions. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
+**Current action (updated 2026-09-13; the paragraph this replaced was stale — it still described PR #75 as open with CI pending after it had already merged):** VS-OA-001's lifecycle state is now **Product Acceptance** (TWP-OA-007 handoff merged directly to `main` as `82aa138`, docs-only, no runtime change). The single next action is **an independent Product Acceptance review of VS-OA-001** against the handoff's AC-OA-001…014 criteria and FIX-OA-001…010 fixtures
+([docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md](docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md)) —
+this must not be performed or pre-verdicted by the implementing session. In
+parallel: (1) [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73)
+(the whole-platform architecture audit, docs-only) is still open and untriaged —
+its own implementation plan's remaining items are P1-1 (wire the IOP
+Reconciliation frontend workspace to its already-built backend API, then Evidence
+Review) and the smaller P1-3…P1-6 redundancy-cleanup items; (2)
+[PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63) (draft
+product-portfolio documentation) needs an owner look before it can leave draft; (3)
+provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate —
+still blocked on owner GCP access (`gcloud auth login` + intended project); (4)
+OD-13 (execute CMS regulatory research) and OD-14 (per-org AI-native policy index)
+remain open owner decisions. Do not add Studio mutation, publication, feature-flag,
+worker, or deployment controls before server authorization and audit boundaries
+exist.
