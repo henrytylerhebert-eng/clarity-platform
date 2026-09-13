@@ -19,11 +19,15 @@ import {
   requireEvidenceContributor,
   requireQualifiedReviewer,
 } from "./permissions.js";
-import type {
-  EvaluateAssuranceCommand,
-  ReviseAssuranceEvidenceCommand,
-  ReviewAssuranceEvaluationCommand,
-  SubmitAssuranceEvidenceCommand,
+import {
+  EvaluateAssuranceCommandSchema,
+  ReviseAssuranceEvidenceCommandSchema,
+  ReviewAssuranceEvaluationCommandSchema,
+  SubmitAssuranceEvidenceCommandSchema,
+  type EvaluateAssuranceCommand,
+  type ReviseAssuranceEvidenceCommand,
+  type ReviewAssuranceEvaluationCommand,
+  type SubmitAssuranceEvidenceCommand,
 } from "./commands.js";
 
 const RATIONALE_REQUIRED = new Set<AssuranceReviewDecision>([
@@ -55,7 +59,8 @@ async function requireCase(
 export class AssuranceCommandService {
   constructor(private readonly gateway: PrismaAssuranceGateway) {}
 
-  async submitEvidence(principal: AuthenticatedPrincipal, command: SubmitAssuranceEvidenceCommand) {
+  async submitEvidence(principal: AuthenticatedPrincipal, input: SubmitAssuranceEvidenceCommand) {
+    const command = SubmitAssuranceEvidenceCommandSchema.parse(input);
     const assuranceCase = await requireCase(this.gateway, principal, command.caseKey);
     await requireEvidenceContributor(this.gateway, principal, assuranceCase.id);
     try {
@@ -73,7 +78,8 @@ export class AssuranceCommandService {
     }
   }
 
-  async reviseEvidence(principal: AuthenticatedPrincipal, command: ReviseAssuranceEvidenceCommand) {
+  async reviseEvidence(principal: AuthenticatedPrincipal, input: ReviseAssuranceEvidenceCommand) {
+    const command = ReviseAssuranceEvidenceCommandSchema.parse(input);
     const assuranceCase = await requireCase(this.gateway, principal, command.caseKey);
     await requireEvidenceContributor(this.gateway, principal, assuranceCase.id);
     try {
@@ -96,7 +102,8 @@ export class AssuranceCommandService {
     }
   }
 
-  async evaluate(principal: AuthenticatedPrincipal, command: EvaluateAssuranceCommand) {
+  async evaluate(principal: AuthenticatedPrincipal, input: EvaluateAssuranceCommand) {
+    const command = EvaluateAssuranceCommandSchema.parse(input);
     const assuranceCase = await requireCase(this.gateway, principal, command.caseKey);
     await requireAssignedParticipant(this.gateway, principal, assuranceCase.id);
     try {
@@ -112,7 +119,8 @@ export class AssuranceCommandService {
     }
   }
 
-  async review(principal: AuthenticatedPrincipal, command: ReviewAssuranceEvaluationCommand) {
+  async review(principal: AuthenticatedPrincipal, input: ReviewAssuranceEvaluationCommand) {
+    const command = ReviewAssuranceEvaluationCommandSchema.parse(input);
     const assuranceCase = await requireCase(this.gateway, principal, command.caseKey);
     await requireQualifiedReviewer(this.gateway, principal, assuranceCase.id);
 
