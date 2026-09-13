@@ -121,8 +121,10 @@ export interface AssuranceEvidenceSubmissionSnapshot {
 
 export interface AssuranceEvaluationInput {
   readonly applicability: AssuranceApplicabilitySnapshot;
-  readonly sources: readonly AssuranceEvaluationSourceSnapshot[];
-  readonly conflicts: readonly AssuranceConflictSnapshot[];
+  /** Mutable container for persistence/serialization compatibility; snapshot members remain readonly. */
+  readonly sources: AssuranceEvaluationSourceSnapshot[];
+  /** Mutable container for persistence/serialization compatibility; snapshot members remain readonly. */
+  readonly conflicts: AssuranceConflictSnapshot[];
   readonly expectation: AssuranceEvidenceExpectationSnapshot;
   readonly submission?: AssuranceEvidenceSubmissionSnapshot;
 }
