@@ -1,0 +1,271 @@
+// Operating Assurance VS-OA-001 persistence contract.
+// Loaded with the existing prisma/schema.prisma through Prisma's GA multi-file schema support.
+
+// Enum values mirror packages/domain-contracts/src/assurance.ts — keep in sync.
+enum AssuranceParticipantRole {
+  OWNER
+  EVIDENCE_CONTRIBUTOR
+  QUALIFIED_REVIEWER
+}
+
+enum AssuranceApplicabilityStatus {
+  PENDING
+  APPROVED
+  NOT_APPLICABLE
+  CONDITIONAL
+}
+
+enum AssuranceAuthorityClass {
+  FEDERAL_REGULATION
+  CMS_CERTIFICATION
+  CMS_GUIDANCE
+  STATE_LICENSING
+  ACCREDITATION
+  INCORPORATED_STANDARD
+  PUBLIC_HEALTH_GUIDANCE
+  OTHER_EXTERNAL_AUTHORITY
+}
+
+enum AssuranceSourceCurrentness {
+  CURRENT
+  STALE
+  SUPERSEDED
+  UNKNOWN
+}
+
+enum AssuranceSourceRightsStatus {
+  PERMITTED
+  RESTRICTED
+  UNKNOWN
+}
+
+enum AssuranceReferenceKind {
+  POLICY
+  SOP
+}
+
+enum AssuranceEvidenceStatus {
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+  NEEDS_CLARIFICATION
+  SUPERSEDED
+}
+
+enum AssuranceEvaluationResult {
+  SUPPORTED
+  PARTIALLY_SUPPORTED
+  MISSING_EVIDENCE
+  CONFLICT
+  STALE_SOURCE
+  APPLICABILITY_PENDING
+  RIGHTS_RESTRICTED
+  REVIEW_REQUIRED
+  UNKNOWN
+}
+
+enum AssuranceReviewDecisionType {
+  ACCEPT
+  REJECT
+  REQUEST_MORE_EVIDENCE
+  REVIEW_REQUIRED
+}
+
+enum AssuranceConflictStatus {
+  OPEN
+  RESOLVED
+}
+
+model AssuranceCase {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  facilityProfileId  String
+  caseKey             String
+  title               String
+  assuranceStatement  String
+  createdBy           String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  version             Int      @default(1)
+  participants        AssuranceParticipantAssignment[]
+  applicability       AssuranceApplicabilityDecision[]
+  sources             AssuranceSourceReference[]
+  documentReferences  AssuranceDocumentReference[]
+  evidenceExpectations AssuranceEvidenceExpectation[]
+  evidenceSubmissions AssuranceEvidenceSubmission[]
+  sourceConflicts     AssuranceSourceConflict[]
+  evaluations         AssuranceEvaluation[]
+  reviewDecisions     AssuranceReviewDecision[]
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, caseKey])
+  @@index([organizationId, facilityProfileId])
+}
+
+model AssuranceParticipantAssignment {
+  id              String                   @id @default(cuid())
+  organizationId  String
+  assuranceCaseId String
+  assuranceCase   AssuranceCase            @relation(fields: [organizationId, assuranceCaseId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  userId           String
+  role             AssuranceParticipantRole
+  authorityBasis   String?
+  active           Boolean                  @default(true)
+  grantedBy        String
+  grantedAt        DateTime                 @default(now())
+  revokedAt        DateTime?
+
+  @@unique([assuranceCaseId, userId, role])
+  @@index([organizationId, assuranceCaseId, active])
+}
+
+model AssuranceApplicabilityDecision {
+  id              String                       @id @default(cuid())
+  organizationId  String
+  assuranceCaseId String
+  assuranceCase   AssuranceCase                @relation(fields: [organizationId, assuranceCaseId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  status          AssuranceApplicabilityStatus
+  rationale       String
+  approvedBy      String?
+  approvedAt      DateTime?
+  version         Int
+  createdAt       DateTime                     @default(now())
+
+  @@unique([organizationId, id])
+  @@unique([assuranceCaseId, version])
+  @@index([organizationId, assuranceCaseId])
+}
+
+model AssuranceSourceReference {
+  id                   String                     @id @default(cuid())
+  organizationId       String
+  assuranceCaseId      String
+  assuranceCase        AssuranceCase              @relation(fields: [organizationId, assuranceCaseId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  sourceFamilyKey      String
+  versionLabel         String
+  title                String
+  authorityClass       AssuranceAuthorityClass
+  citation             String
+  sourceUri            String?
+  effectiveAt          DateTime?
+  currentness          AssuranceSourceCurrentness
+  rightsStatus         AssuranceSourceRightsStatus
+  supersededBySourceId String?
+  version              Int                        @default(1)
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+
+  @@unique([organizationId, id])
+  @@unique([assuranceCaseId, sourceFamilyKey, versionLabel])
+  @@index([organizationId, assuranceCaseId, currentness])
+}
+
+model AssuranceDocumentReference {
+  id              String                 @id @default(cuid())
+  organizationId  String
+  assuranceCaseId String
+  assuranceCase   AssuranceCase          @relation(fields: [organizationId, assuranceCaseId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  kind            AssuranceReferenceKind
+  referenceKey    String
+  title           String
+  versionLabel    String
+  locator         String?
+  createdAt       DateTime               @default(now())
+
+  @@unique([assuranceCaseId, kind, referenceKey, versionLabel])
+  @@index([organizationId, assuranceCaseId])
+}
+
+model AssuranceEvidenceExpectation {
+  id              String                      @id @default(cuid())
+  organizationId  String
+  assuranceCaseId String
+  assuranceCase   AssuranceCase               @relation(fields: [organizationId, assuranceCaseId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  code            String
+  prompt          String
+  requiredKeys    String[]
+  createdAt       DateTime                    @default(now())
+  submissions     AssuranceEvidenceSubmission[]
+
+  @@unique([organizationId, id])
+  @@unique([assuranceCaseId, code])
+  @@index([organizationId, assuranceCaseId])
+}
+
+model AssuranceEvidenceSubmission {
+  id              String                  @id @default(cuid())
+  organizationId  String
+  assuranceCaseId String
+  assuranceCase   AssuranceCase           @relation(fields: [organizationId, assuranceCaseId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  expectationId   String
+  expectation     AssuranceEvidenceExpectation @relation(fields: [organizationId, expectationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict)
+  payload         Json
+  status          AssuranceEvidenceStatus @default(SUBMITTED)
+  version         Int
+  submittedBy     String
+  submittedAt     DateTime
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  supersededById  String?
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, expectationId, version])
+  @@index([organizationId, assuranceCaseId])
+  @@index([expectationId, version])
+}
+
+model AssuranceSourceConflict {
+  id              String                  @id @default(cuid())
+  organizationId  String
+  assuranceCaseId String
+  assuranceCase   AssuranceCase           @relation(fields: [organizationId, assuranceCaseId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  leftSourceId    String
+  rightSourceId   String
+  status          AssuranceConflictStatus @default(OPEN)
+  note            String?
+  createdBy       String
+  createdAt       DateTime                @default(now())
+  resolvedBy      String?
+  resolvedAt      DateTime?
+
+  @@index([organizationId, assuranceCaseId, status])
+}
+
+model AssuranceEvaluation {
+  id                       String                    @id @default(cuid())
+  organizationId           String
+  assuranceCaseId          String
+  assuranceCase            AssuranceCase             @relation(fields: [organizationId, assuranceCaseId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  applicabilityDecisionId  String?
+  evidenceSubmissionId     String?
+  result                   AssuranceEvaluationResult
+  reasonCodes              String[]
+  sourceStateSnapshot      Json
+  evidenceStateSnapshot    Json?
+  requiresHumanReview      Boolean                   @default(true)
+  createdByActorType       AuditActorType
+  createdByActorId         String
+  createdAt                DateTime                  @default(now())
+  revision                 Int
+  reviewDecisions          AssuranceReviewDecision[]
+
+  @@unique([organizationId, id])
+  @@unique([assuranceCaseId, revision])
+  @@index([organizationId, assuranceCaseId])
+}
+
+model AssuranceReviewDecision {
+  id              String                      @id @default(cuid())
+  organizationId  String
+  assuranceCaseId String
+  assuranceCase   AssuranceCase               @relation(fields: [organizationId, assuranceCaseId], references: [organizationId, id], onDelete: Cascade, onUpdate: Restrict)
+  evaluationId    String
+  evaluation      AssuranceEvaluation         @relation(fields: [organizationId, evaluationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict)
+  decision        AssuranceReviewDecisionType
+  rationale       String?
+  reviewerUserId  String
+  createdAt       DateTime                    @default(now())
+
+  @@index([organizationId, assuranceCaseId, createdAt])
+  @@index([evaluationId])
+}

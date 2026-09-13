@@ -24,3 +24,5 @@ export * from "./governedEventGateway.js";
 export * from "./episodePersistenceGateway.js";
 export * from "./prescreenGateway.js";
 export * from "./iopReconciliationGateway.js";
+export * from "./assuranceMappers.js";
+export * from "./assuranceGateway.js";
