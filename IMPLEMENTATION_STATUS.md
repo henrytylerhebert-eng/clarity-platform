@@ -55,6 +55,19 @@ Also untriaged: [PR #63](https://github.com/henrytylerhebert-eng/clarity-platfor
 `docs/product/PRODUCT_VISION.md` + the RevOps product definition), no runtime
 change, still in draft state.
 
+**On this branch (`claude/next-scope-of-work-dcbc2f`), not yet on `main`:** P1-1's
+first frontend-wiring slice from PR #73's implementation plan — `IopReconciliation`
+now calls the already-built, already-tested backend
+(`packages/api-service/src/iopReconciliationRoutes.ts`) instead of computing
+everything in-browser against the bundled fixture. See
+[docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md](docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md)'s
+"Frontend wiring" section for exactly what changed, the honest gaps (no
+facility/program picker, no way to browse/reopen a prior import by ID), and this
+session's verification: app suite **141/141** (21 files, +1 from before), lint
+clean, typecheck clean; root suite **762/762** (74 files, unaffected — no
+root-level test was added or changed), `prisma validate` clean. Not yet committed
+to `main` — no PR opened for it yet.
+
 **Not claimed:** production readiness, HIPAA compliance, malware protection, working
 external integrations, approved clinical/legal rules, or Product Acceptance of
 VS-OA-001 — for any capability described anywhere in this file. Synthetic data
@@ -602,10 +615,13 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 ([docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md](docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md)) —
 this must not be performed or pre-verdicted by the implementing session. In
 parallel: (1) [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73)
-(the whole-platform architecture audit, docs-only) is still open and untriaged —
-its own implementation plan's remaining items are P1-1 (wire the IOP
-Reconciliation frontend workspace to its already-built backend API, then Evidence
-Review) and the smaller P1-3…P1-6 redundancy-cleanup items; (2)
+(the whole-platform architecture audit, docs-only) is still open and untriaged — its
+own implementation plan's P1-1 first slice (wire the IOP Reconciliation frontend
+workspace to its already-built backend API) is **done on this branch, not yet on
+`main`** (see Current State above); the plan's own next-named slice is **Evidence
+Review** (evidence-service is the most mature, most-tested backend among the 11
+remaining `localStorage`-only workspaces — do not attempt more than one at a time),
+and the smaller P1-3…P1-6 redundancy-cleanup items remain separately scoped; (2)
 [PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63) (draft
 product-portfolio documentation) needs an owner look before it can leave draft; (3)
 provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate —
