@@ -9,13 +9,9 @@ import {
   type IopReconciliationIssue,
   type IopReconciliationSample,
 } from "../../../packages/domain-contracts/src/iopReconciliation";
-import {
-  apiIopReconciliation,
-  apiLogin,
-  apiLogout,
-  describeApiError,
-  type VerifiedPrincipal,
-} from "../domain/api";
+import { apiIopReconciliation, describeApiError } from "../domain/api";
+import { useAuth } from "../domain/AuthContext";
+import { SignInForm } from "../components/SignInForm";
 
 // Must match the dev-only facility/integration bootstrapped by
 // packages/api-service/src/devMain.ts — this workspace only ever imports
@@ -67,10 +63,10 @@ function sourceRecordsFor(reconciliation: IopReconciliationSample) {
 }
 
 export function IopReconciliation() {
-  const [principal, setPrincipal] = useState<VerifiedPrincipal | null>(null);
-  const [assertion, setAssertion] = useState("");
-  const [loginBusy, setLoginBusy] = useState(false);
-  const [loginError, setLoginError] = useState("");
+  // Shared with every other application area via AuthProvider (Phase 2A) --
+  // signing in through Crisis Ops's own sidebar panel already signs this
+  // workspace in too.
+  const { principal, logout } = useAuth();
 
   const [candidate, setCandidate] = useState<IopReconciliationImport | null>(null);
   const [candidateIssueCount, setCandidateIssueCount] = useState(0);
@@ -106,24 +102,6 @@ export function IopReconciliation() {
     } catch {
       setLoadError("This file is not valid JSON.");
     }
-  }
-
-  async function signIn() {
-    setLoginBusy(true);
-    setLoginError("");
-    try {
-      setPrincipal(await apiLogin(assertion.trim()));
-      setAssertion("");
-    } catch (cause) {
-      setLoginError(describeApiError(cause));
-    } finally {
-      setLoginBusy(false);
-    }
-  }
-
-  async function signOut() {
-    await apiLogout();
-    setPrincipal(null);
   }
 
   async function loadRecord(id: string) {
@@ -223,7 +201,7 @@ export function IopReconciliation() {
             <span>
               Signed in as <strong>{principal.displayName}</strong> ({principal.organizationId})
             </span>
-            <button type="button" className="secondary-button" onClick={() => void signOut()}>
+            <button type="button" className="secondary-button" onClick={() => void logout()}>
               Sign out
             </button>
           </div>
@@ -232,27 +210,10 @@ export function IopReconciliation() {
             <p>
               Importing, reviewing, and closing write through the real backend
               and require a verified session. Previewing a candidate file does
-              not.
+              not. Sign in from any application area — this one included —
+              and every other area recognizes the same session.
             </p>
-            <div className="iop-actions">
-              <label className="iop-reviewer">
-                Development assertion
-                <input
-                  aria-label="Development assertion"
-                  value={assertion}
-                  onChange={(event) => setAssertion(event.target.value)}
-                  placeholder="syn-assert-revops-admin-dev"
-                />
-              </label>
-              <button
-                type="button"
-                disabled={loginBusy || assertion.trim().length < 16}
-                onClick={() => void signIn()}
-              >
-                Sign in
-              </button>
-            </div>
-            {loginError ? <p className="inline-warning">{loginError}</p> : null}
+            <SignInForm placeholder="syn-assert-revops-admin-dev" />
           </>
         )}
       </section>

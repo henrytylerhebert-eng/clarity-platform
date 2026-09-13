@@ -1,14 +1,34 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { CrisisOpsRoute } from "./App";
+import { AuthProvider } from "./domain/AuthContext";
+import { apiLogin } from "./domain/api";
 import { resetAppState } from "./domain/storage";
+
+vi.mock("./domain/api", async () => {
+  const actual = await vi.importActual<typeof import("./domain/api")>("./domain/api");
+  return {
+    ...actual,
+    apiLogin: vi.fn(async () => ({
+      displayName: "Synthetic Physician Reviewer",
+      userId: "synthetic-user-api-physician",
+      organizationId: "synthetic-org-api-dev",
+      roles: ["PHYSICIAN_REVIEWER"],
+      sessionId: "test-session",
+      expiresAt: "2099-01-01T00:00:00.000Z",
+    })),
+    apiLogout: vi.fn(async () => {}),
+  };
+});
 
 function App() {
   return (
     <MemoryRouter>
-      <CrisisOpsRoute />
+      <AuthProvider>
+        <CrisisOpsRoute />
+      </AuthProvider>
     </MemoryRouter>
   );
 }
@@ -138,5 +158,25 @@ describe("App smoke", () => {
     await user.click(screen.getByRole("button", { name: "IOP Reconciliation" }));
     expect(await screen.findByRole("heading", { name: "Attendance reconciliation review" })).toBeInTheDocument();
     expect(screen.getByText(/does not determine clinical compliance or billing eligibility/)).toBeInTheDocument();
+  });
+
+  it("shares one session: signing in via the sidebar leaves IOP Reconciliation already signed in", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByText("Session & identity"));
+    await user.type(screen.getByLabelText("Development assertion"), "syn-assert-api-physician-dev");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(await screen.findByRole("button", { name: "Sign out" })).toBeInTheDocument();
+    expect(apiLogin).toHaveBeenCalledExactlyOnceWith("syn-assert-api-physician-dev");
+
+    await user.selectOptions(screen.getByRole("combobox"), "executive");
+    await user.click(screen.getByRole("button", { name: "IOP Reconciliation" }));
+
+    const signedInNotice = await screen.findByText(/Signed in as/);
+    expect(signedInNotice).toHaveTextContent("Synthetic Physician Reviewer");
+    expect(screen.queryByLabelText("Development assertion")).not.toBeInTheDocument();
+    expect(apiLogin).toHaveBeenCalledOnce();
   });
 });
