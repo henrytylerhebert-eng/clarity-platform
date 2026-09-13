@@ -57,6 +57,7 @@ vi.mock("./domain/api", async () => {
       expiresAt: "2099-01-01T00:00:00.000Z",
     })),
     apiLogout: vi.fn(async () => {}),
+    apiRevOps: vi.fn(async () => []),
   };
 });
 
@@ -79,7 +80,7 @@ describe("canonical router", () => {
 
   it("renders RevOps directly via deep link, preserving the existing /rev-ops bookmark", async () => {
     renderApp(["/rev-ops"]);
-    expect(await screen.findByText("RevOps MVP")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Revenue Operations" })).toBeInTheDocument();
   });
 
   it("redirects an invalid route to Crisis Ops instead of showing a dead end", async () => {
@@ -121,6 +122,20 @@ describe("canonical router", () => {
 
     expect(await screen.findByText(/Verified principal: Synthetic Physician Reviewer/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Development assertion")).not.toBeInTheDocument();
+    expect(apiLogin).toHaveBeenCalledOnce();
+
+    // The full acceptance test: the same one session also already covers
+    // the third and last application area.
+    await router.navigate("/rev-ops");
+    await waitFor(() => expect(router.state.location.pathname).toBe("/rev-ops"));
+    await waitFor(async () => expect((await screen.findAllByRole("button", { name: "Sign out" })).length).toBeGreaterThan(0));
+    expect(screen.queryByLabelText("Development assertion")).not.toBeInTheDocument();
+    expect(apiLogin).toHaveBeenCalledOnce();
+
+    await router.navigate("/");
+    await waitFor(() => expect(router.state.location.pathname).toBe("/"));
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+    expect((await screen.findAllByRole("button", { name: "Sign out" })).length).toBeGreaterThan(0);
     expect(apiLogin).toHaveBeenCalledOnce();
   });
 

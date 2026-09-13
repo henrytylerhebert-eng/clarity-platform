@@ -10,13 +10,18 @@ import { useAuth } from "../domain/AuthContext";
  */
 export function SignInForm({
   placeholder,
+  defaultValue = "",
   helpText,
 }: {
   placeholder: string;
+  /** Pre-fills the field for one-click sign-in, matching RevOps's
+   * pre-existing convenience default. Every other area started empty
+   * before Phase 2A and still does -- this stays opt-in, per area. */
+  defaultValue?: string;
   helpText?: ReactNode;
 }) {
   const { login, busy, error } = useAuth();
-  const [assertion, setAssertion] = useState("");
+  const [assertion, setAssertion] = useState(defaultValue);
 
   async function handleSubmit() {
     try {

@@ -6,9 +6,18 @@ import {
   cleanup,
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { RevOps } from "./RevOps";
+import { RevOps as RevOpsWorkspace } from "./RevOps";
+import { AuthProvider } from "../domain/AuthContext";
 import type { RevOpsView } from "../../../packages/domain-contracts/src/revOps";
 import { apiRevOps } from "../domain/api";
+
+function RevOps() {
+  return (
+    <AuthProvider>
+      <RevOpsWorkspace />
+    </AuthProvider>
+  );
+}
 
 vi.mock("../domain/api", async () => {
   const actual = await vi.importActual<typeof import("../domain/api")>("../domain/api");
