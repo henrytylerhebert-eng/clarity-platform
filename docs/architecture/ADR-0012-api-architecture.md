@@ -1,12 +1,16 @@
 # ADR-0012 — API Architecture (OD-5)
 
-- **Status:** **Accepted in part** — the owner accepted the thin Fastify adapter direction; hosting, production tenancy/RLS, and operational readiness remain separately gated.
+- **Status:** **Accepted** — the native-Fastify migration is complete. Hosting, production tenancy/RLS, and operational readiness remain separately gated (OD-5, OD-6) and are not resolved by this acceptance.
 - **Date:** 2026-07-14
 - **Related:** ADR-0011 (authentication — the middleware this API consumes), ADR-0003 (command pattern), `docs/planning/MVP_ROADMAP.md` (Phase 4), OD-5.
 
 ## 2026-07-18 implementation note
 
 A bounded authenticated vertical slice now exists in `packages/api-service` using `node:http`, not the Fastify package shape proposed below. It proves session-derived actor/tenant handling and one case decision-rationale route with integration tests. The owner accepted the thin Fastify adapter direction on 2026-07-18; this spike remains evidence for contract preservation, not a completed Fastify implementation. Hosting, full route surface, RLS timing, and deployment topology remain separately gated.
+
+## 2026-09-12 implementation note
+
+The native-Fastify migration referenced above is now complete. The original four routes (`/api/auth/login`, `/api/auth/session`, `/api/auth/logout`, `/api/cases/:caseKey/decision-rationale`) moved into `authRoutes.ts`, and all seven prescreen routes (ADR-0014) moved into `prescreenRoutes.ts` — both using native `app.get`/`app.post` registration in the same shape as `assuranceRoutes.ts`, `revOpsRoutes.ts`, `operatingWorkbookRoutes.ts`, and `iopReconciliationRoutes.ts`. The `app.all("/*", ...)` + `reply.hijack()` catch-all that previously carried these routes is removed from `server.ts`; a `setNotFoundHandler` now provides the equivalent generic `{ error: "not_found" }` 404 for anything unmatched. No request/response contract changed: the existing `api-service.test.ts` and `prescreen-api.test.ts` integration suites (11 + 12 tests, including both malformed-percent-encoding cases) pass unmodified, alongside the full root suite (755/755), the app suite (140/140), lint, typecheck, and `prisma validate`, all verified this session. This closes the architecture-audit's DRIFT-06 finding per the owner's ruling recorded there (see PR #73). Hosting, production tenancy/RLS enforcement, and operational readiness (health/readiness endpoints, structured logging, rate limits, graceful shutdown) remain unimplemented and separately gated — this note does not claim any of that is done.
 
 ## Decision to make
 
