@@ -71,7 +71,8 @@ function setupActor() {
 
 /**
  * Idempotently creates the stable synthetic OA case without touching any
- * evidence/evaluation/review history that may already exist.
+ * evidence/evaluation/review history or replay trust-state mutations that may
+ * already exist.
  */
 export async function ensureAssuranceDevFixture(prisma: PrismaClient) {
   assertLocalClarityDevDatabase();
@@ -201,9 +202,6 @@ export async function ensureAssuranceDevFixture(prisma: PrismaClient) {
         title: source.title,
         authorityClass: "FEDERAL_REGULATION",
         citation: source.citation,
-        currentness: "CURRENT",
-        rightsStatus: "PERMITTED",
-        supersededBySourceId: null,
       },
       create: {
         id: source.id,
