@@ -97,18 +97,18 @@ export interface AssuranceApplicabilitySnapshot {
   readonly decisionId?: string;
 }
 
-export interface AssuranceEvaluationSourceSnapshot {
-  readonly sourceId: string;
+export type AssuranceEvaluationSourceSnapshot = Readonly<{
+  sourceId: string;
   /** True only when the fixture/source record has the metadata required by the trust contract. */
-  readonly hasRequiredMetadata: boolean;
-  readonly currentness: AssuranceSourceCurrentness;
-  readonly rights: AssuranceSourceRightsStatus;
-}
+  hasRequiredMetadata: boolean;
+  currentness: AssuranceSourceCurrentness;
+  rights: AssuranceSourceRightsStatus;
+}>;
 
-export interface AssuranceConflictSnapshot {
-  readonly conflictId: string;
-  readonly status: AssuranceConflictStatus;
-}
+export type AssuranceConflictSnapshot = Readonly<{
+  conflictId: string;
+  status: AssuranceConflictStatus;
+}>;
 
 export interface AssuranceEvidenceExpectationSnapshot {
   readonly requiredKeys: readonly string[];
