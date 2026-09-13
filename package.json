@@ -37,7 +37,7 @@
     "zod": "^3.24.1"
   },
   "prisma": {
-    "schema": "prisma/schema.prisma"
+    "schema": "prisma"
   },
   "overrides": {
     "deepmerge-ts": "^8.0.2",
