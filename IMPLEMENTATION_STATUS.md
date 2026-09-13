@@ -1,5 +1,50 @@
 # Implementation Status
 
+## Current State
+
+**As of 2026-09-12, branch `main` at `5348202f8b90ba55b32a8aee811bc6c4e6633995`.**
+
+Today's housekeeping pass merged twelve PRs and closed one. Merged: #58 (workbook
+operating slice + payment scenarios; cleaned of a dead, unused `RevOpsScope.tsx`),
+#59 (governance/operating-assurance documentation recovery), #48 (network-enrichment
+contract kernel, verified contract-only — no Prisma imports, no server/runtime code),
+#64 (root-caused and fixed a real intermittent CI failure: Prisma's 5000ms
+interactive-transaction default was exceeded writing the operating workbook's ~28k-
+record state blob under CI's shared-runner contention, error P2028; raised to 15s in
+the shared `withTenantContext` helper used by every gateway), #65 (corrected that
+fix's test docstring to describe a configuration assertion, not a timeout
+reproduction), #54 and #55 (csv-parse and vitest dependency bumps), #56 (API path
+validation plus a stable prescreen-actor role-order idempotency fingerprint), #57
+(Graphify local-artifact retention policy, resolves issue #40), #60 (opt-in
+ephemeral-PostgreSQL verification runner, independent of the shared local
+`clarity_dev`), #61 (this pass's own preservation and disposition record), #62
+(gstack skill-routing addition to this file's own house rules). Closed: **PR #30**
+(held network-enrichment runtime slice, 2,483 changed files) as superseded — its
+contract-only portion already landed via #48; the runtime portion (service,
+persistence/outbox, API routes, UI, the `agent_bridge` tree) was never reviewed and
+remains unimplemented, preserved in the local recovery bundle and the closed
+branch's history if it is wanted later.
+
+**Verified this session** (PR #64, after the fix, three consecutive full CI passes
+on the same revision): full root suite **617/617** (58 files), app suite **96/96**,
+lint clean, typecheck clean, `prisma validate` clean, `npm audit --audit-level=high`
+clean (the 3 moderate advisories it had flagged, in `vitest`/`@vitest/mocker` and
+`csv-parse`, are resolved by #54/#55). Every merge above has its own passing required
+`verify` CI check on its exact merged revision, and `main`'s own post-merge CI
+passed after each one.
+
+**Not claimed:** production readiness, HIPAA compliance, malware protection, working
+external integrations, or approved clinical/legal rules — for any capability
+described anywhere in this file. Synthetic data only, throughout.
+
+The narrative log below (every prior dated session entry, verbatim, unmoved in
+substance) is historical color for how each capability arrived; it is not where a
+reader should look for current truth. The Completed / Scaffolded / Documented only /
+Blocked / Not started buckets further down remain the authority for
+capability-by-capability status and are unchanged by this reorganization.
+
+## Verification history (historical — not current)
+
 **2026-09-09: Working operating workbook and payment tools implemented locally.**
 The authenticated RevOps client now opens populated operations, rather than the
 scope-definition banner. It imports 31 accepted-source tables / 28,301 synthetic
@@ -420,7 +465,7 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 - **Synthetic outbox runtime:** a tenant-scoped dispatcher and in-process consumer are verified for the accepted three event types, retry preservation, and concurrent row locking; `Bayside Hospital Clarity Intake Receiver` is named as the first consumer contract, but external consumer/runtime delivery remains gated.
 - **H2 governance:** the RLS tenant-enforcement, migration promotion/recovery, and outbox ownership records now contain bounded recommended operating designs. Local fresh migration replay/restore and synthetic outbox delivery are verified; provider-backed or production RLS, production migration promotion, external workers/consumers, APIs, and deployment remain unauthorized.
 - **Workflow Discovery Protocol:** documentation-only requirements-acquisition package and inference-complete synthetic protective-custody session are committed under `docs/discovery/`. They preserve source, assumption, derived, review, and implementation boundaries; they do not add runtime behavior or promote inferred facts to verified domain truth.
-- **Bridge:** the active repository-relative Antigravity file-mirror watcher is detected as `listener=running`; direct Antigravity CLI and agent consumption remain unverified.
+- **Bridge:** retired. The three-agent orchestrator/executor/reviewer bridge (active 2026-07-16 → 2026-07-19, dormant since) is quarantined as evidence under `docs/experiments/2026-07-agent-bridge/` per [ADR-0017](docs/architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md) — see that directory's `README.md` for why. No live listener, dispatch script, or `npm run bridge:*` entry point exists.
 - **Repository promotion and governance (2026-07-19 session):** the verified slice was promoted to protected `main` via PR #13 (reviewed, merged 7345dd8). PR #14 cleared all Dependabot alerts (vitest ^3.2.6, vite ^6.4.3, @playwright/test ^1.55.1; `npm audit` clean) and carried the H1/H3 replay-classification fix. Redundant PRs #6/#10/#11/#12 were closed as superseded; docs PRs #8 (operating manual + session rules) and #9 (MVP roadmap) were merged. PR #15 added the CI `verify` workflow (lint, typecheck, root + app tests against an ephemeral `clarity_dev` Postgres 16 service, Prisma validate/generate/migrate deploy, high-severity npm audit) and it passed on its own PR before merge. The §3a solo-maintainer protection is now live: PR-only, 0 required approvals with documented self-review, required `verify` status check (strict), conversation resolution, admin enforcement. CI closes the former OD-9 toolchain gap; hosting/backup portions of Phase 6 remain open.
 
 ## Prescreen product slice (2026-07-19 session)
