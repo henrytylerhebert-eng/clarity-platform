@@ -8,6 +8,37 @@ import type {
 } from "../../domain-contracts/src/revOpsPricing";
 
 export const LA_INPATIENT_RELEASES: RevOpsMedicaidRelease[] = laRates.releases;
+
+/** Shape returned by GET /api/rev-ops/rate-releases (ADR-0021). */
+export interface PersistedRateReleaseRecord {
+  releaseId: string;
+  publisher: string;
+  sourceUrl: string;
+  sha256: string;
+  retrievedAt: string;
+  effectiveFrom: string;
+  effectiveThrough: string;
+  payload: { sheet: string; rowCount: number; rows: RevOpsMedicaidRelease["rows"] };
+}
+
+/** Pure mapper from the persisted registry's wire shape back to the shape
+ * calculateLaInpatientScenario already accepts — that function is unchanged. */
+export function mapPersistedRateRelease(
+  record: PersistedRateReleaseRecord,
+): RevOpsMedicaidRelease {
+  return {
+    releaseId: record.releaseId,
+    publisher: record.publisher,
+    sourceUrl: record.sourceUrl,
+    sha256: record.sha256,
+    retrievedAt: record.retrievedAt,
+    sheet: record.payload.sheet,
+    scenarioCoverageFrom: record.effectiveFrom.slice(0, 10),
+    scenarioCoverageThrough: record.effectiveThrough.slice(0, 10),
+    rowCount: record.payload.rowCount,
+    rows: record.payload.rows,
+  };
+}
 export const IPF_2026_SOURCE: RevOpsRateSource = {
   publisher: "Centers for Medicare & Medicaid Services",
   releaseId: "CMS-IPF-FY2026-ADDENDUM-A",

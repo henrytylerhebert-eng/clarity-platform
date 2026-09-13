@@ -1,16 +1,17 @@
-import { useState } from "react";
-import type { RevOpsContractRate, RevOpsPaymentMethod, RevOpsPayerKind, RevOpsPricingResult } from "../../../packages/domain-contracts/src/revOpsPricing";
+import { useEffect, useState } from "react";
+import type { RevOpsContractRate, RevOpsMedicaidRelease, RevOpsPaymentMethod, RevOpsPayerKind, RevOpsPricingResult } from "../../../packages/domain-contracts/src/revOpsPricing";
 import {
   calculateContractScenario,
   calculateIpfBaseComponent,
   calculateLaInpatientScenario,
   dollarsToCents,
-  LA_INPATIENT_RELEASES,
+  mapPersistedRateRelease,
   validateContractRate,
+  type PersistedRateReleaseRecord,
 } from "../../../packages/rev-ops-service/src/pricing";
+import { apiRevOps, describeApiError } from "../domain/api";
 
 const money = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
-const providers = [...new Map(LA_INPATIENT_RELEASES.flatMap(release => release.rows).map(row => [row.providerId, row.facilityName])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
 const initialContract = {
   payer: "Dunder demo payer", payerKind: "commercial" as RevOpsPayerKind, plan: "Example PPO",
   network: "In network", funding: "Fully insured", facility: "Dunder Mifflin Hospital",
@@ -56,8 +57,19 @@ export function RevOpsPricing() {
   const [wageIndex, setWageIndex] = useState("");
   const [quality, setQuality] = useState<"compliant" | "reduced">("compliant");
   const [output, setOutput] = useState<RevOpsPricingResult | null>(null);
-  const rateTypes = [...new Set(LA_INPATIENT_RELEASES.flatMap(release => release.rows).filter(row => !providerId || row.providerId === providerId).map(row => row.rateType))].sort();
+  const [releases, setReleases] = useState<RevOpsMedicaidRelease[] | null>(null);
+  const [releasesError, setReleasesError] = useState("");
+  const providers = [...new Map((releases ?? []).flatMap(release => release.rows).map(row => [row.providerId, row.facilityName])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  const rateTypes = [...new Set((releases ?? []).flatMap(release => release.rows).filter(row => !providerId || row.providerId === providerId).map(row => row.rateType))].sort();
   const selectedRate = rates.find(rate => rate.id === activeRateId);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiRevOps<PersistedRateReleaseRecord[]>("/rate-releases?programMethod=LA_MEDICAID_INPATIENT_PER_DIEM")
+      .then(records => { if (!cancelled) setReleases(records.map(mapPersistedRateRelease)); })
+      .catch(error => { if (!cancelled) setReleasesError(describeApiError(error)); });
+    return () => { cancelled = true; };
+  }, []);
 
   return <section aria-labelledby="payment-model-heading">
     <h2 id="payment-model-heading">Payment scenarios</h2>
@@ -67,18 +79,18 @@ export function RevOpsPricing() {
       <option value="medicaid">Louisiana Medicaid inpatient</option><option value="contract">Commercial and managed-plan terms</option><option value="medicare">Medicare IPF base component</option>
     </select></label>
     {mode === "medicaid" && <>
-      <p>1,126 public active-provider rows across the July 2025 and July 2026 releases. Eligible date intervals crossing July 1 use each applicable release. Missing or conflicting rows remain unpriced.</p>
-      <form className="ro-form" onSubmit={event => { event.preventDefault(); setOutput(calculateLaInpatientScenario({ providerId, rateType, firstEligibleDate: firstDate, lastEligibleDate: lastDate, coverage })); }}>
-        <label>Reference provider (scenario only)<select value={providerId} onChange={event => {
+      <p>{releases ? `${releases.reduce((sum, r) => sum + r.rowCount, 0)} public active-provider rows across ${releases.length} published release${releases.length === 1 ? "" : "s"}, recorded in the shared rate-release registry (ADR-0021).` : releasesError ? releasesError : "Loading published releases…"} Eligible date intervals crossing a release boundary use each applicable release. Missing or conflicting rows remain unpriced.</p>
+      <form className="ro-form" onSubmit={event => { event.preventDefault(); if (!releases) return; setOutput(calculateLaInpatientScenario({ providerId, rateType, firstEligibleDate: firstDate, lastEligibleDate: lastDate, coverage }, releases)); }}>
+        <label>Reference provider (scenario only)<select value={providerId} disabled={!releases} onChange={event => {
           const id = event.target.value; setProviderId(id); setOutput(null);
-          const available = LA_INPATIENT_RELEASES.flatMap(release => release.rows).filter(row => row.providerId === id);
+          const available = (releases ?? []).flatMap(release => release.rows).filter(row => row.providerId === id);
           setRateType(available.find(row => row.rateType.includes("Psychiatric"))?.rateType ?? available[0]?.rateType ?? "");
         }}><option value="">Select an exact Medicaid provider</option>{providers.map(([id, name]) => <option key={id} value={id}>{id} — {name}</option>)}</select></label>
         <label>Covered rate type<select value={rateType} onChange={event => { setRateType(event.target.value); setOutput(null); }}>{rateTypes.map(type => <option key={type}>{type}</option>)}</select></label>
         <label>Payment relationship<select value={coverage} onChange={event => { setCoverage(event.target.value as typeof coverage); setOutput(null); }}><option value="feeForService">Fee for service</option><option value="managedCare">Managed care (requires contract)</option></select></label>
         <label>First eligible service day<input type="date" value={firstDate} onChange={event => { setFirstDate(event.target.value); setOutput(null); }} /></label>
         <label>Last eligible service day (inclusive)<input type="date" value={lastDate} onChange={event => { setLastDate(event.target.value); setOutput(null); }} /></label>
-        <button type="submit">Calculate published per-diem subtotal</button>
+        <button type="submit" disabled={!releases}>Calculate published per-diem subtotal</button>
       </form>
     </>}
     {mode === "contract" && <>

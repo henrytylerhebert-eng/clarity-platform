@@ -13,6 +13,9 @@ import type { PrismaRevOpsGateway } from "../../case-repository/src/revOpsGatewa
 import { registerIopReconciliationRoutes } from "./iopReconciliationRoutes.js";
 import type { PrismaIopReconciliationGateway } from "../../case-repository/src/iopReconciliationGateway.js";
 import { IopReconciliationError } from "../../case-repository/src/iopReconciliationGateway.js";
+import { registerRevOpsRateReleaseRoutes } from "./revOpsRateReleaseRoutes.js";
+import type { PrismaRevOpsRateReleaseGateway } from "../../case-repository/src/revOpsRateReleaseGateway.js";
+import { RevOpsRateReleaseError } from "../../case-repository/src/revOpsRateReleaseGateway.js";
 import { RevOpsError } from "../../rev-ops-service/src/index.js";
 import {
   AssuranceServiceError,
@@ -49,6 +52,7 @@ export interface ApiDeps {
   revOps?: PrismaRevOpsGateway;
   operatingWorkbook?: PrismaOperatingWorkbookGateway;
   iopReconciliation?: PrismaIopReconciliationGateway;
+  revOpsRateReleases?: PrismaRevOpsRateReleaseGateway;
   assuranceCommands?: AssuranceCommandService;
   assuranceQueries?: AssuranceQueryService;
   assuranceEvaluationCaseResolver?: AssuranceEvaluationCaseResolver;
@@ -85,6 +89,7 @@ function toHttpError(error: unknown): HttpError {
   if (error instanceof HttpError) return error;
   if (error instanceof RevOpsError) return new HttpError(error.status, error.code);
   if (error instanceof IopReconciliationError) return new HttpError(error.status, error.code);
+  if (error instanceof RevOpsRateReleaseError) return new HttpError(error.status, error.code);
   if (error instanceof AssuranceServiceError) return new HttpError(error.status, error.code);
   if (error instanceof LoginRejectedError || error instanceof AuthenticationFailedError) {
     return new HttpError(401, "authentication_failed");
@@ -139,6 +144,8 @@ export function createApiServer(deps: ApiDeps): Server {
   if (deps.operatingWorkbook) registerOperatingWorkbookRoutes(app, deps.auth, deps.operatingWorkbook);
   if (deps.iopReconciliation)
     registerIopReconciliationRoutes(app, deps.auth, deps.iopReconciliation);
+  if (deps.revOpsRateReleases)
+    registerRevOpsRateReleaseRoutes(app, deps.auth, deps.revOpsRateReleases);
   if (deps.assuranceCommands || deps.assuranceQueries || deps.assuranceEvaluationCaseResolver) {
     if (!deps.assuranceCommands || !deps.assuranceQueries || !deps.assuranceEvaluationCaseResolver) {
       throw new Error("assurance_api_dependencies_incomplete");

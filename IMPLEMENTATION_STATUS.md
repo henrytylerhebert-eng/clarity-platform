@@ -55,18 +55,40 @@ Also untriaged: [PR #63](https://github.com/henrytylerhebert-eng/clarity-platfor
 `docs/product/PRODUCT_VISION.md` + the RevOps product definition), no runtime
 change, still in draft state.
 
-**On this branch (`claude/next-scope-of-work-dcbc2f`), not yet on `main`:** P1-1's
-first frontend-wiring slice from PR #73's implementation plan — `IopReconciliation`
-now calls the already-built, already-tested backend
-(`packages/api-service/src/iopReconciliationRoutes.ts`) instead of computing
-everything in-browser against the bundled fixture. See
-[docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md](docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md)'s
-"Frontend wiring" section for exactly what changed, the honest gaps (no
-facility/program picker, no way to browse/reopen a prior import by ID), and this
-session's verification: app suite **141/141** (21 files, +1 from before), lint
-clean, typecheck clean; root suite **762/762** (74 files, unaffected — no
-root-level test was added or changed), `prisma validate` clean. Not yet committed
-to `main` — no PR opened for it yet.
+**Not yet on `main`, two stacked PRs from this worktree:**
+
+- [PR #79](https://github.com/henrytylerhebert-eng/clarity-platform/pull/79) —
+  P1-1's first frontend-wiring slice from PR #73's implementation plan:
+  `IopReconciliation` now calls the already-built, already-tested backend
+  (`packages/api-service/src/iopReconciliationRoutes.ts`) instead of computing
+  everything in-browser against the bundled fixture. See
+  [docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md](docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md)'s
+  "Frontend wiring" section for exactly what changed and the honest gaps (no
+  facility/program picker, no way to browse/reopen a prior import by ID).
+  Verified: app suite 141/141 (21 files, +1), root suite 762/762 (74 files,
+  unaffected), lint/typecheck/`prisma validate` clean. Self-review posted per
+  §3a; CI `verify` passed.
+- A second branch, stacked on PR #79, implements R1 from
+  [docs/product/REVOPS_FINANCIAL_RATE_IMPLEMENTATION.md](docs/product/REVOPS_FINANCIAL_RATE_IMPLEMENTATION.md)
+  for the Louisiana Medicaid release family (ADR-0021): a new
+  `RevOpsRateRelease` table — deliberately the first in this schema with no
+  `organizationId`, since it holds public government-published reference data
+  identical for every organization, not a tenant-owned fact — replaces the
+  bundled JSON as `RevOpsPricing.tsx`'s runtime source, with correction/
+  supersession support live through a new
+  `POST /api/rev-ops/rate-releases`. See
+  [docs/implementation/REV_OPS_RATE_RELEASE_REGISTRY.md](docs/implementation/REV_OPS_RATE_RELEASE_REGISTRY.md)
+  for exactly what changed, what deliberately did NOT (the CMS IPF base
+  component and the commercial contract-rate scenario tool are both
+  untouched — the latter sits on the still-OD-19-blocked R2 side of the line),
+  and honest gaps (no UI yet to actually record/correct a release; only one
+  release family persisted). Verified: app suite 145/145 (22 files, +4), root
+  suite 771/771 (76 files, +9), lint/typecheck/`prisma validate` clean, zero
+  residue confirmed by an explicit re-run (this table's rows aren't reachable
+  by the shared test harness's tenant-scoped cleanup, so the new integration
+  test cleans up its own rows by name — documented in the implementation
+  record's test manifest). Not yet pushed or opened as a PR as of this
+  write-up.
 
 **Not claimed:** production readiness, HIPAA compliance, malware protection, working
 external integrations, approved clinical/legal rules, or Product Acceptance of
