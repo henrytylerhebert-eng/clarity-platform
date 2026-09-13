@@ -10,6 +10,8 @@
   "scripts": {
     "test": "vitest run",
     "test:app": "npm --workspace app test",
+    "test:oa-e2e": "npx playwright test --config app/playwright.assurance.config.ts",
+    "test:oa-e2e:ephemeral": "npm run test:ephemeral -- npm run test:oa-e2e",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && tsc -b app/tsconfig.json",
     "prisma:format": "prisma format",
