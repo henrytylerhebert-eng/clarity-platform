@@ -46,6 +46,14 @@ export async function apiRevOpsExport(path: string, body: {workspaceRevision:num
   return response.blob();
 }
 
+export async function apiIopReconciliation<T>(path: string, body?: unknown): Promise<T> {
+  const response = await request(`/api/iop${path}`, {
+    token: true,
+    ...(body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }),
+  });
+  return response.json() as Promise<T>;
+}
+
 async function request(path: string, init?: RequestInit & { token?: boolean }): Promise<Response> {
   const headers: Record<string, string> = init?.body === undefined ? {} : { "content-type": "application/json" };
   if (init?.token) {

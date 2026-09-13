@@ -1,34 +1,101 @@
 import { useState } from "react";
 import syntheticImport from "../../../docs/product/evidence/IOP_ATTENDANCE_RECONCILIATION_SYNTHETIC_IMPORT.json";
 import {
-  closeIopReconciliationImport,
-  previewIopReconciliationImport,
-  type IopReconciliationCloseReceipt,
-  type IopReconciliationPreview,
+  IopReconciliationImportSchema,
+  type IopReconciliationImport,
 } from "../../../packages/domain-contracts/src/iopReconciliationImport";
+import {
+  validateIopReconciliationSample,
+  type IopReconciliationIssue,
+  type IopReconciliationSample,
+} from "../../../packages/domain-contracts/src/iopReconciliation";
+import {
+  apiIopReconciliation,
+  apiLogin,
+  apiLogout,
+  describeApiError,
+  type VerifiedPrincipal,
+} from "../domain/api";
+
+// Must match the dev-only facility/integration bootstrapped by
+// packages/api-service/src/devMain.ts — this workspace only ever imports
+// against that one synthetic facility/integration pair.
+const DEV_FACILITY_ID = "synthetic-iop-facility-api-dev";
+const DEV_INTEGRATION_KEY = "SYNTHETIC_IOP_PROGRAM";
+
+interface PersistedReview {
+  issueKey: string;
+  disposition: string;
+  reason: string;
+  reviewerId: string;
+  reviewedAt: string;
+}
+
+interface PersistedCloseReceipt {
+  reviewerId: string;
+  reviewedAt: string;
+  reason: string;
+  sourceCutoffAt: string;
+  issueCount: number;
+  reviewedCount: number;
+}
+
+interface PersistedImport {
+  id: string;
+  revision: number;
+  payload: { reconciliation: unknown };
+  exceptionReviews: PersistedReview[];
+  closeReceipt: PersistedCloseReceipt | null;
+}
+
+type ReviewDraft = { disposition: "RESOLVED" | "ACCEPTED_EXCEPTION"; reason: string };
 
 function issueLabel(reason: string) {
   return reason.replaceAll("_", " ");
 }
 
-export function IopReconciliation() {
-  const [input, setInput] = useState<unknown | null>(null);
-  const [preview, setPreview] = useState<IopReconciliationPreview | null>(null);
-  const [reviewerToken, setReviewerToken] = useState("");
-  const [receipt, setReceipt] = useState<IopReconciliationCloseReceipt | null>(null);
-  const [error, setError] = useState("");
+function sourceRecordsFor(reconciliation: IopReconciliationSample) {
+  const groups: readonly [string, string][] = [
+    ...reconciliation.enrollments.map((e): [string, string] => ["ENROLLMENT", e.enrollmentId]),
+    ...reconciliation.treatmentPlans.map((e): [string, string] => ["TREATMENT_PLAN", e.planId]),
+    ...reconciliation.attendanceEvents.map((e): [string, string] => ["ATTENDANCE", e.attendanceId]),
+    ...reconciliation.noteAudits.map((e): [string, string] => ["NOTE_AUDIT", e.noteId]),
+    ...reconciliation.chargeLines.map((e): [string, string] => ["CHARGE_LINE", e.chargeLineId]),
+    ...reconciliation.emrBillableLines.map((e): [string, string] => ["EMR_BILLABLE_LINE", e.billableLineId]),
+  ];
+  return groups.map(([type, sourceRecordId]) => ({ type, sourceRecordId, sourceVersion: "1" }));
+}
 
-  function load(candidate: unknown) {
+export function IopReconciliation() {
+  const [principal, setPrincipal] = useState<VerifiedPrincipal | null>(null);
+  const [assertion, setAssertion] = useState("");
+  const [loginBusy, setLoginBusy] = useState(false);
+  const [loginError, setLoginError] = useState("");
+
+  const [candidate, setCandidate] = useState<IopReconciliationImport | null>(null);
+  const [candidateIssueCount, setCandidateIssueCount] = useState(0);
+  const [loadError, setLoadError] = useState("");
+
+  const [record, setRecord] = useState<PersistedImport | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const [reviewDrafts, setReviewDrafts] = useState<Record<string, ReviewDraft>>({});
+  const [closeReason, setCloseReason] = useState("");
+
+  function load(raw: unknown) {
     try {
-      setPreview(previewIopReconciliationImport(candidate));
-      setInput(candidate);
-      setReceipt(null);
-      setError("");
+      const parsed = IopReconciliationImportSchema.parse(raw);
+      const { issues } = validateIopReconciliationSample(parsed.reconciliation);
+      setCandidate(parsed);
+      setCandidateIssueCount(issues.length);
+      setRecord(null);
+      setReviewDrafts({});
+      setCloseReason("");
+      setActionError("");
+      setLoadError("");
     } catch {
-      setInput(null);
-      setPreview(null);
-      setReceipt(null);
-      setError("This file is not a valid synthetic IOP reconciliation import.");
+      setCandidate(null);
+      setLoadError("This file is not a valid synthetic IOP reconciliation import.");
     }
   }
 
@@ -37,28 +104,103 @@ export function IopReconciliation() {
     try {
       load(JSON.parse(await file.text()));
     } catch {
-      setError("This file is not valid JSON.");
+      setLoadError("This file is not valid JSON.");
     }
   }
 
-  function closePreview() {
-    if (!input) return;
+  async function signIn() {
+    setLoginBusy(true);
+    setLoginError("");
     try {
-      setReceipt(
-        closeIopReconciliationImport(input, {
-          reviewerToken: reviewerToken.trim(),
-          reviewedAt: new Date().toISOString(),
-        }),
-      );
-      setError("");
+      setPrincipal(await apiLogin(assertion.trim()));
+      setAssertion("");
     } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "The reconciliation could not be closed.",
-      );
+      setLoginError(describeApiError(cause));
+    } finally {
+      setLoginBusy(false);
     }
   }
+
+  async function signOut() {
+    await apiLogout();
+    setPrincipal(null);
+  }
+
+  async function loadRecord(id: string) {
+    setRecord(await apiIopReconciliation<PersistedImport>(`/reconciliation-imports/${id}`));
+  }
+
+  async function submitImport() {
+    if (!candidate) return;
+    setBusy(true);
+    setActionError("");
+    try {
+      const result = await apiIopReconciliation<{ import: { id: string } }>(
+        "/reconciliation-imports",
+        {
+          facilityId: DEV_FACILITY_ID,
+          programId: candidate.reconciliation.programId,
+          integrationKey: DEV_INTEGRATION_KEY,
+          idempotencyKey: `iop-import-${candidate.importId}`,
+          source: candidate.source,
+          sourceRecords: sourceRecordsFor(candidate.reconciliation),
+          reconciliation: candidate.reconciliation,
+        },
+      );
+      await loadRecord(result.import.id);
+    } catch (cause) {
+      setActionError(describeApiError(cause));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitReview(issueKey: string) {
+    if (!record) return;
+    const draft = reviewDrafts[issueKey] ?? { disposition: "RESOLVED", reason: "" };
+    setBusy(true);
+    setActionError("");
+    try {
+      await apiIopReconciliation(
+        `/reconciliation-imports/${record.id}/issues/${encodeURIComponent(issueKey)}/reviews`,
+        {
+          expectedRevision: record.revision,
+          idempotencyKey: `iop-review-${record.id}-${issueKey}`,
+          disposition: draft.disposition,
+          reason: draft.reason.trim(),
+        },
+      );
+      await loadRecord(record.id);
+    } catch (cause) {
+      setActionError(describeApiError(cause));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitClose() {
+    if (!record) return;
+    setBusy(true);
+    setActionError("");
+    try {
+      await apiIopReconciliation(`/reconciliation-imports/${record.id}/close`, {
+        expectedRevision: record.revision,
+        idempotencyKey: `iop-close-${record.id}`,
+        reason: closeReason.trim(),
+      });
+      await loadRecord(record.id);
+    } catch (cause) {
+      setActionError(describeApiError(cause));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const issues: IopReconciliationIssue[] = record
+    ? validateIopReconciliationSample(record.payload.reconciliation).issues
+    : [];
+  const reviewedByIssueKey = new Map(record?.exceptionReviews.map((r) => [r.issueKey, r]) ?? []);
+  const unresolved = issues.filter((issue) => !reviewedByIssueKey.has(issue.issueKey));
 
   return (
     <div className="stack iop-reconciliation">
@@ -73,6 +215,46 @@ export function IopReconciliation() {
           </p>
         </div>
         <span className="status-badge warning">Human review required</span>
+      </section>
+
+      <section className="panel iop-session" aria-label="Verified session">
+        {principal ? (
+          <div className="iop-actions">
+            <span>
+              Signed in as <strong>{principal.displayName}</strong> ({principal.organizationId})
+            </span>
+            <button type="button" className="secondary-button" onClick={() => void signOut()}>
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <>
+            <p>
+              Importing, reviewing, and closing write through the real backend
+              and require a verified session. Previewing a candidate file does
+              not.
+            </p>
+            <div className="iop-actions">
+              <label className="iop-reviewer">
+                Development assertion
+                <input
+                  aria-label="Development assertion"
+                  value={assertion}
+                  onChange={(event) => setAssertion(event.target.value)}
+                  placeholder="syn-assert-revops-admin-dev"
+                />
+              </label>
+              <button
+                type="button"
+                disabled={loginBusy || assertion.trim().length < 16}
+                onClick={() => void signIn()}
+              >
+                Sign in
+              </button>
+            </div>
+            {loginError ? <p className="inline-warning">{loginError}</p> : null}
+          </>
+        )}
       </section>
 
       <section className="panel iop-import-panel" aria-label="Source import">
@@ -96,46 +278,122 @@ export function IopReconciliation() {
             />
           </label>
         </div>
-        {error ? <p className="inline-warning">{error}</p> : null}
+        {loadError ? <p className="inline-warning">{loadError}</p> : null}
+        {candidate && !record ? (
+          <>
+            <dl>
+              <div><dt>Candidate import</dt><dd>{candidate.importId}</dd></div>
+              <div><dt>Source system</dt><dd>{candidate.source.systemLabel}</dd></div>
+              <div><dt>Source cutoff</dt><dd>{candidate.source.cutoffAt}</dd></div>
+              <div><dt>Derived issues</dt><dd>{candidateIssueCount} will need review after import</dd></div>
+            </dl>
+            <button type="button" disabled={busy || !principal} onClick={() => void submitImport()}>
+              Submit synthetic import
+            </button>
+            {!principal ? <p className="inline-warning">Sign in above to submit this import.</p> : null}
+          </>
+        ) : null}
+        {actionError ? <p className="inline-warning">{actionError}</p> : null}
       </section>
 
-      {preview ? (
+      {record ? (
         <>
           <section className="status-strip" aria-label="IOP reconciliation summary">
-            <div><span className="label">Import</span><strong>{preview.importId}</strong><span className="subtext">synthetic source only</span></div>
-            <div><span className="label">Derived issues</span><strong>{preview.issues.length}</strong><span className="subtext">source-link gaps</span></div>
-            <div><span className="label">Unreviewed</span><strong>{preview.unresolved.length}</strong><span className="subtext">blocks close</span></div>
-            <div><span className="label">Close state</span><strong>{preview.closeReady ? "Ready" : "Blocked"}</strong><span className="subtext">review gate</span></div>
-          </section>
-
-          <section className="panel iop-source-detail">
-            <div className="panel-title"><div><h2>Source evidence</h2><p>Retained with the close receipt.</p></div></div>
-            <dl>
-              <div><dt>Source system</dt><dd>{preview.source.systemLabel}</dd></div>
-              <div><dt>Source file</dt><dd>{preview.source.fileName}</dd></div>
-              <div><dt>Exported</dt><dd>{preview.source.exportedAt}</dd></div>
-              <div><dt>Source cutoff</dt><dd>{preview.source.cutoffAt}</dd></div>
-            </dl>
+            <div><span className="label">Import</span><strong>{record.id}</strong><span className="subtext">persisted, tenant-scoped</span></div>
+            <div><span className="label">Derived issues</span><strong>{issues.length}</strong><span className="subtext">source-link gaps</span></div>
+            <div><span className="label">Unreviewed</span><strong>{unresolved.length}</strong><span className="subtext">blocks close</span></div>
+            <div><span className="label">Close state</span><strong>{record.closeReceipt ? "Closed" : unresolved.length === 0 ? "Ready" : "Blocked"}</strong><span className="subtext">review gate</span></div>
           </section>
 
           <section className="grid-two">
             <section className="panel" aria-label="Reviewed exceptions">
-              <div className="panel-title"><div><h2>Reviewed exceptions</h2><p>Each gap needs a discrete reviewer record.</p></div></div>
+              <div className="panel-title"><div><h2>Reviewed exceptions</h2><p>Each gap needs a discrete, authenticated reviewer record.</p></div></div>
               <ul className="iop-issue-list">
-                {preview.issues.map((issue) => {
-                  const review = preview.sample.exceptionReviews.find(
-                    (candidate) => candidate.issueKey === issue.issueKey,
+                {issues.map((issue) => {
+                  const review = reviewedByIssueKey.get(issue.issueKey);
+                  const draft = reviewDrafts[issue.issueKey] ?? { disposition: "RESOLVED" as const, reason: "" };
+                  return (
+                    <li key={issue.issueKey}>
+                      <strong>{issueLabel(issue.reason)}</strong>
+                      <span>{issue.issueKey}</span>
+                      {review ? (
+                        <small>{review.disposition} · {review.reviewerId} · {review.reason}</small>
+                      ) : (
+                        <div className="iop-review-form">
+                          <label>
+                            Disposition
+                            <select
+                              aria-label={`Disposition for ${issue.issueKey}`}
+                              value={draft.disposition}
+                              onChange={(event) =>
+                                setReviewDrafts((prior) => ({
+                                  ...prior,
+                                  [issue.issueKey]: { ...draft, disposition: event.target.value as ReviewDraft["disposition"] },
+                                }))
+                              }
+                            >
+                              <option value="RESOLVED">Resolved</option>
+                              <option value="ACCEPTED_EXCEPTION">Accepted exception</option>
+                            </select>
+                          </label>
+                          <label>
+                            Reason
+                            <input
+                              aria-label={`Review reason for ${issue.issueKey}`}
+                              value={draft.reason}
+                              onChange={(event) =>
+                                setReviewDrafts((prior) => ({
+                                  ...prior,
+                                  [issue.issueKey]: { ...draft, reason: event.target.value },
+                                }))
+                              }
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            aria-label={`Record review for ${issue.issueKey}`}
+                            disabled={busy || !principal || draft.reason.trim().length < 3}
+                            onClick={() => void submitReview(issue.issueKey)}
+                          >
+                            Record review
+                          </button>
+                        </div>
+                      )}
+                    </li>
                   );
-                  return <li key={issue.issueKey}><strong>{issueLabel(issue.reason)}</strong><span>{issue.issueKey}</span><small>{review ? `${review.state} · ${review.reviewerToken} · ${review.disposition}` : "Not reviewed"}</small></li>;
                 })}
               </ul>
             </section>
             <section className="panel" aria-label="Reconciliation close">
-              <div className="panel-title"><div><h2>Close preview</h2><p>Closing records a human identity and the source cutoff.</p></div></div>
-              {preview.unresolved.length ? <p className="inline-warning">{preview.unresolved.length} unmatched event(s) still require a reviewed exception.</p> : <p className="iop-ready">All derived gaps have reviewed exception records.</p>}
-              <label className="iop-reviewer">Reviewer identity<input aria-label="Close reviewer identity" value={reviewerToken} onChange={(event) => setReviewerToken(event.target.value)} placeholder="REVIEWER_002" /></label>
-              <button type="button" disabled={!preview.closeReady || !reviewerToken.trim()} onClick={closePreview}>Record reviewed close</button>
-              {receipt ? <dl className="iop-receipt"><div><dt>Reviewer</dt><dd>{receipt.reviewerToken}</dd></div><div><dt>Source cutoff</dt><dd>{receipt.sourceCutoffAt}</dd></div><div><dt>Reviewed at</dt><dd>{receipt.reviewedAt}</dd></div><div><dt>Exceptions</dt><dd>{receipt.reviewedExceptionCount} reviewed of {receipt.issueCount} derived</dd></div></dl> : null}
+              <div className="panel-title"><div><h2>Close</h2><p>Closing records the authenticated reviewer and the source cutoff.</p></div></div>
+              {record.closeReceipt ? (
+                <dl className="iop-receipt">
+                  <div><dt>Reviewer</dt><dd>{record.closeReceipt.reviewerId}</dd></div>
+                  <div><dt>Source cutoff</dt><dd>{record.closeReceipt.sourceCutoffAt}</dd></div>
+                  <div><dt>Reviewed at</dt><dd>{record.closeReceipt.reviewedAt}</dd></div>
+                  <div><dt>Exceptions</dt><dd>{record.closeReceipt.reviewedCount} reviewed of {record.closeReceipt.issueCount} derived</dd></div>
+                </dl>
+              ) : (
+                <>
+                  {unresolved.length ? <p className="inline-warning">{unresolved.length} unmatched event(s) still require a reviewed exception.</p> : <p className="iop-ready">All derived gaps have reviewed exception records.</p>}
+                  <label className="iop-reviewer">
+                    Close reason
+                    <input
+                      aria-label="Close reason"
+                      value={closeReason}
+                      onChange={(event) => setCloseReason(event.target.value)}
+                      placeholder="All synthetic exceptions reviewed."
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    disabled={busy || !principal || unresolved.length > 0 || closeReason.trim().length < 3}
+                    onClick={() => void submitClose()}
+                  >
+                    Record reviewed close
+                  </button>
+                </>
+              )}
             </section>
           </section>
         </>
