@@ -16,6 +16,28 @@ function historyPanel(page: Page) {
   });
 }
 
+/**
+ * Scopes to Operating Assurance's own session panel, not the shared
+ * ClarityShell bar -- both render a "Sign out" button (Phase 2A's
+ * disclosed, deliberate chrome redundancy; see ClarityShell.tsx).
+ */
+function sessionPanel(page: Page) {
+  return page.locator(".session-panel");
+}
+
+/**
+ * "Load case" sits directly below a filled text input on the mobile
+ * project (isMobile+hasTouch emulation). Chromium's actionability
+ * hit-test there reports the "Case access..." paragraph or the case-key
+ * label as intercepting the click even though direct geometry
+ * (getBoundingClientRect on both elements, checked by hand) shows no
+ * overlap, and a forced click loads the case correctly every time --
+ * a false positive from the emulation, not a real click target problem.
+ */
+async function clickLoadCase(page: Page) {
+  await page.getByRole("button", { name: "Load case" }).click({ force: true });
+}
+
 function capabilityRow(page: Page, label: string) {
   return page.getByText(label, { exact: true }).locator("..");
 }
@@ -23,11 +45,11 @@ function capabilityRow(page: Page, label: string) {
 async function openAssuranceCase(page: Page, assertion: string) {
   await page.goto("/");
   await page.getByRole("button", { name: "Operating Assurance" }).click();
-  await page.getByLabel("Operating Assurance dev assertion").fill(assertion);
-  await page.getByRole("button", { name: "Sign in (verified session)" }).click();
-  await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+  await page.getByLabel("Development assertion").fill(assertion);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(sessionPanel(page).getByRole("button", { name: "Sign out" })).toBeVisible();
   await page.getByLabel("Operating Assurance case key").fill(ASSURANCE_DEV_FIXTURE.caseKey);
-  await page.getByRole("button", { name: "Load case" }).click();
+  await clickLoadCase(page);
   await expect(page.getByRole("heading", { name: "Synthetic Monthly Environmental Assurance" })).toBeVisible();
 }
 
@@ -47,13 +69,13 @@ async function runSupportedEvaluation(page: Page) {
 }
 
 async function signOutAndIn(page: Page, assertion: string) {
-  await page.getByRole("button", { name: "Sign out" }).click();
+  await sessionPanel(page).getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("heading", { name: "Verified API session required" })).toBeVisible();
-  await page.getByLabel("Operating Assurance dev assertion").fill(assertion);
-  await page.getByRole("button", { name: "Sign in (verified session)" }).click();
-  await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+  await page.getByLabel("Development assertion").fill(assertion);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(sessionPanel(page).getByRole("button", { name: "Sign out" })).toBeVisible();
   await page.getByLabel("Operating Assurance case key").fill(ASSURANCE_DEV_FIXTURE.caseKey);
-  await page.getByRole("button", { name: "Load case" }).click();
+  await clickLoadCase(page);
   await expect(page.getByRole("heading", { name: "Synthetic Monthly Environmental Assurance" })).toBeVisible();
 }
 
