@@ -85,7 +85,7 @@ npm audit --audit-level=high
 For a local disposable PostgreSQL run, the repository also provides:
 
 ```bash
-npm run test:ephemeral -- npx vitest run \
+npm run test:ephemeral -- node node_modules/vitest/vitest.mjs run \
   tests/integration/assurance-gateway.test.ts \
   tests/integration/assurance-tenant-isolation.test.ts \
   tests/integration/assurance-command-service.test.ts \
