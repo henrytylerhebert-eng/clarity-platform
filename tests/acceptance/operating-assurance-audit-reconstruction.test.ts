@@ -209,7 +209,7 @@ describe("VS-OA-001 independent audit reconstruction", () => {
           ],
         },
       },
-      orderBy: { occurredAt: "asc" },
+      orderBy: { timestamp: "asc" },
     });
     const actions = audit.map((event) => event.action);
     expect(actions).toEqual(expect.arrayContaining([
