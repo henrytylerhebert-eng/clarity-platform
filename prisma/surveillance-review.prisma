@@ -1,0 +1,153 @@
+model SurveillanceReviewPacket {
+  id                String                       @id @default(cuid())
+  organizationId    String
+  candidateVarianceId String
+  candidateVariance SurveillanceCandidateVariance @relation(fields: [candidateVarianceId], references: [id], onDelete: Cascade, map: "sr02_fk_037")
+  packetVersion     Int
+  snapshot          Json
+  snapshotHash      String
+  decisions         SurveillanceDecisionRecord[]
+  finding           SurveillanceReviewedFinding?
+  createdAt         DateTime                     @default(now())
+
+  @@unique([organizationId, candidateVarianceId, packetVersion], map: "sr02_uq_014")
+}
+
+model SurveillanceDecisionRecord {
+  id                  String                       @id @default(cuid())
+  organizationId      String
+  reviewPacketId      String?
+  reviewPacket        SurveillanceReviewPacket?     @relation(fields: [reviewPacketId], references: [id], map: "sr02_fk_038")
+  candidateVarianceId String?
+  candidateVariance   SurveillanceCandidateVariance? @relation(fields: [candidateVarianceId], references: [id], map: "sr02_fk_039")
+  findingId           String?
+  finding             SurveillanceReviewedFinding?  @relation(fields: [findingId], references: [id], map: "sr02_fk_040")
+  decisionType        SurveillanceDecisionType
+  decision            String
+  reason              String
+  decidedBy           String
+  roleAtDecision      String
+  authorityBasis      String
+  supersedesDecisionId String?
+  createdAt           DateTime                     @default(now())
+  citationsApproved   SurveillanceFindingCitation[] @relation("CitationApprovalDecision")
+
+  @@index([organizationId, decisionType, createdAt], map: "sr02_ix_018")
+}
+
+model SurveillanceReviewedFinding {
+  id                  String                     @id @default(cuid())
+  organizationId      String
+  candidateVarianceId String                     @unique(map: "sr02_uqf_004")
+  candidateVariance   SurveillanceCandidateVariance @relation(fields: [candidateVarianceId], references: [id], map: "sr02_fk_041")
+  reviewPacketId      String                     @unique(map: "sr02_uqf_005")
+  reviewPacket        SurveillanceReviewPacket   @relation(fields: [reviewPacketId], references: [id], map: "sr02_fk_042")
+  status              SurveillanceFindingStatus  @default(OPEN)
+  currentVersion      Int                        @default(1)
+  versions            SurveillanceFindingVersion[]
+  citations           SurveillanceFindingCitation[]
+  decisions           SurveillanceDecisionRecord[]
+  corrections         SurveillanceImmediateCorrection[]
+  actions             SurveillanceCorrectiveAction[]
+  trendOccurrences    SurveillanceTrendOccurrence[]
+  createdBy           String
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+
+  @@index([organizationId, status], map: "sr02_ix_019")
+}
+
+model SurveillanceFindingVersion {
+  id                String                      @id @default(cuid())
+  organizationId    String
+  findingId         String
+  finding           SurveillanceReviewedFinding @relation(fields: [findingId], references: [id], onDelete: Cascade, map: "sr02_fk_043")
+  version           Int
+  expectedState     String
+  objectiveEvidence String
+  observedVariance  String
+  scope             String
+  authoredBy        String
+  citations         SurveillanceFindingCitation[]
+  createdAt         DateTime                    @default(now())
+
+  @@unique([organizationId, findingId, version], map: "sr02_uq_015")
+}
+
+model SurveillanceFindingCitation {
+  id                 String                       @id @default(cuid())
+  organizationId     String
+  findingId          String
+  finding            SurveillanceReviewedFinding  @relation(fields: [findingId], references: [id], onDelete: Cascade, map: "sr02_fk_044")
+  findingVersionId   String
+  findingVersion     SurveillanceFindingVersion   @relation(fields: [findingVersionId], references: [id], onDelete: Cascade, map: "sr02_fk_045")
+  authorityBindingId String
+  authorityBinding   SurveillanceAuthorityBinding @relation(fields: [authorityBindingId], references: [id], map: "sr02_fk_046")
+  approvalDecisionId String
+  approvalDecision   SurveillanceDecisionRecord   @relation("CitationApprovalDecision", fields: [approvalDecisionId], references: [id], map: "sr02_fk_047")
+  createdAt          DateTime                     @default(now())
+
+  @@unique([organizationId, findingVersionId, authorityBindingId], map: "sr02_uq_016")
+}
+
+model SurveillanceImmediateCorrection {
+  id                  String                       @id @default(cuid())
+  organizationId      String
+  candidateVarianceId String?
+  candidateVariance   SurveillanceCandidateVariance? @relation(fields: [candidateVarianceId], references: [id], map: "sr02_fk_048")
+  findingId           String?
+  finding             SurveillanceReviewedFinding? @relation(fields: [findingId], references: [id], map: "sr02_fk_049")
+  description         String
+  performedBy         String
+  performedAt         DateTime                     @default(now())
+
+  @@index([organizationId, findingId], map: "sr02_ix_020")
+}
+
+model SurveillanceCorrectiveAction {
+  id             String                       @id @default(cuid())
+  organizationId String
+  findingId      String
+  finding        SurveillanceReviewedFinding  @relation(fields: [findingId], references: [id], onDelete: Cascade, map: "sr02_fk_050")
+  ownerUserId    String
+  requiredAction String
+  dueDate        DateTime?
+  status         SurveillanceActionStatus     @default(OPEN)
+  completionNote String?
+  evidence       SurveillanceActionEvidence[]
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+
+  @@index([organizationId, findingId, status], map: "sr02_ix_021")
+}
+
+model SurveillanceActionEvidence {
+  id             String                       @id @default(cuid())
+  organizationId String
+  actionId       String
+  action         SurveillanceCorrectiveAction  @relation(fields: [actionId], references: [id], onDelete: Cascade, map: "sr02_fk_051")
+  evidenceId     String
+  evidence       SurveillanceEvidenceArtifact  @relation(fields: [evidenceId], references: [id], map: "sr02_fk_052")
+  createdAt      DateTime                     @default(now())
+
+  @@unique([organizationId, actionId, evidenceId], map: "sr02_uq_017")
+}
+
+model SurveillanceTrendOccurrence {
+  id                  String                       @id @default(cuid())
+  organizationId      String
+  trendIdentityId     String
+  trendIdentity       SurveillanceTrendIdentity    @relation(fields: [trendIdentityId], references: [id], map: "sr02_fk_053")
+  sceneInstanceId     String
+  sceneInstance       SurveillanceSceneInstance    @relation(fields: [sceneInstanceId], references: [id], onDelete: Cascade, map: "sr02_fk_054")
+  criterionId         String
+  criterion           SurveillanceCriterion        @relation(fields: [criterionId], references: [id], map: "sr02_fk_055")
+  candidateVarianceId String?
+  candidateVariance   SurveillanceCandidateVariance? @relation(fields: [candidateVarianceId], references: [id], map: "sr02_fk_056")
+  findingId           String?
+  finding             SurveillanceReviewedFinding?  @relation(fields: [findingId], references: [id], map: "sr02_fk_057")
+  outcome             SurveillanceTrendOutcome
+  eventTime           DateTime                     @default(now())
+
+  @@index([organizationId, trendIdentityId, eventTime], map: "sr02_ix_022")
+}
