@@ -1,21 +1,15 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { App as CrisisOpsApp } from "./CrisisOpsApp";
 import { StatusBadge } from "./components/StatusBadge";
-import {
-  apiLogin,
-  apiLogout,
-  describeApiError,
-  type VerifiedPrincipal,
-} from "./domain/api";
+import { useAuth } from "./domain/AuthContext";
+import { SignInForm } from "./components/SignInForm";
 import { OperatingAssurance } from "./workspaces/OperatingAssurance";
 
 /**
- * Router-addressable now (Phase 2A, commit 1): "/" and "/assurance" used to
- * be one component's local `module` toggle. Splitting them into two route
- * components makes the boundary a real URL — auth still local here; that
- * migrates in a later commit.
+ * Router-addressable (Phase 2A, commit 1): "/" and "/assurance" used to be
+ * one component's local `module` toggle, split into two route components so
+ * the boundary is a real URL.
  */
 export function CrisisOpsRoute() {
   const navigate = useNavigate();
@@ -36,28 +30,9 @@ export function CrisisOpsRoute() {
 
 export function AssuranceRoute() {
   const navigate = useNavigate();
-  const [principal, setPrincipal] = useState<VerifiedPrincipal | null>(null);
-  const [assertion, setAssertion] = useState("");
-  const [loginError, setLoginError] = useState<string | null>(null);
-
-  async function handleLogin() {
-    setLoginError(null);
-    try {
-      setPrincipal(await apiLogin(assertion.trim()));
-      setAssertion("");
-    } catch (error) {
-      setPrincipal(null);
-      setLoginError(describeApiError(error));
-    }
-  }
-
-  async function handleLogout() {
-    try {
-      await apiLogout();
-    } finally {
-      setPrincipal(null);
-    }
-  }
+  // Shared with every other application area via AuthProvider (Phase 2A,
+  // commit 4) -- signing in here or anywhere else is now one session.
+  const { principal, logout } = useAuth();
 
   return (
     <div className="app-shell">
@@ -89,29 +64,12 @@ export function AssuranceRoute() {
                 <dt>Verified roles</dt><dd>{principal.roles.join(", ") || "none"}</dd>
                 <dt>Expires</dt><dd>{new Date(principal.expiresAt).toLocaleTimeString()}</dd>
               </dl>
-              <button className="secondary-button" type="button" onClick={handleLogout}>Sign out</button>
+              <button className="secondary-button" type="button" onClick={() => void logout()}>Sign out</button>
             </>
           ) : (
             <>
-              <p>Sign in with a synthetic dev assertion printed by <code>npm run api:dev</code>. No demo role can substitute for this session.</p>
-              <label className="session-login">
-                Dev assertion
-                <input
-                  aria-label="Operating Assurance dev assertion"
-                  value={assertion}
-                  onChange={(event) => setAssertion(event.target.value)}
-                  placeholder="syn-assert-oa-reviewer-dev"
-                />
-              </label>
-              <button
-                className="secondary-button"
-                type="button"
-                disabled={assertion.trim().length < 16}
-                onClick={handleLogin}
-              >
-                Sign in (verified session)
-              </button>
-              {loginError ? <p className="inline-warning" role="alert">{loginError}</p> : null}
+              <p>Sign in with a synthetic dev assertion printed by <code>npm run api:dev</code>. No demo role can substitute for this session. Signing in here also signs in Crisis Ops, IOP Reconciliation, and RevOps.</p>
+              <SignInForm placeholder="syn-assert-oa-reviewer-dev" />
             </>
           )}
         </details>
