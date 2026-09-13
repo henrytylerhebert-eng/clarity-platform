@@ -1,7 +1,21 @@
 # CLPR-0 through CLPR-3 synthetic vertical slice
 
 Implementation owner: Codex. Designated review owner: Claude.
-Review acceptance: [Unverified]; this document does not record Claude approval.
+Review acceptance: **Accepted, 2026-09-12**, on `main` at `15a094ddc352030ee392f1d4f9b31c8ae49a2973`
+(this slice merged as PR #68, well after the preflight HEAD recorded below). Full house
+validation gate run this session: `npm run lint` clean, `npm run typecheck` clean, root
+suite **755/755** (72 files, includes `packages/learning-practice-service`'s 16/16
+behavioral tests), app suite **132/132** (20 files, includes the three
+`components/learning-practice/*.test.tsx` files), `npx prisma validate` clean — covering
+every command `CLPR_INTEGRATION_RESOLUTION.md` §F specifies. `CLPR_FILE_OWNERSHIP.json`'s
+`blocked_paths` were confirmed untouched by PR #68 via `git diff --stat` in an earlier
+pass this same session. This acceptance is scoped exactly as the rest of this document
+describes: a synthetic, in-memory, unpersisted training simulation with no Prisma schema,
+API route, or production authority — see
+[docs/architecture/CLARITY_ARCHITECTURE_LEDGER.md](../architecture/CLARITY_ARCHITECTURE_LEDGER.md)
+§10 for its integration status (BUILT — INTEGRATION PENDING) and
+[ARCHITECTURE_DRIFT_REGISTER.md](../architecture/ARCHITECTURE_DRIFT_REGISTER.md)
+DRIFT-10 for the review-gap history this closes.
 
 ## Scope and provenance
 
