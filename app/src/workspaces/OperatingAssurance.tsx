@@ -54,18 +54,9 @@ function currentExpectation(view: AssuranceCaseViewDto | null): AssuranceEvidenc
   return view?.evidenceExpectations[0];
 }
 
-function trustCard(label: string, value: string, detail: string) {
+function TrustCard({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div
-      key={label}
-      style={{
-        border: "1px solid var(--border)",
-        borderRadius: 12,
-        padding: 12,
-        background: "var(--surface)",
-        minWidth: 0,
-      }}
-    >
+    <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: 12, background: "var(--surface)", minWidth: 0 }}>
       <span className="label">{label}</span>
       <div style={{ marginTop: 8 }}><StatusBadge tone={toneFor(value)}>{displayState(value)}</StatusBadge></div>
       <p style={{ margin: "8px 0 0", fontSize: 12 }}>{detail}</p>
@@ -102,18 +93,10 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
     const openConflict = view.sourceConflicts.some((item) => item.status === "OPEN");
     const restricted = view.sources.some((item) => item.rightsStatus === "RESTRICTED");
     const stale = view.sources.some((item) => ["STALE", "SUPERSEDED"].includes(item.currentness));
-    const uncertainSource = view.sources.some((item) => item.currentness === "UNKNOWN" || item.rightsStatus === "UNKNOWN");
+    const uncertain = view.sources.some((item) => item.currentness === "UNKNOWN" || item.rightsStatus === "UNKNOWN");
     const authority = view.sources.length === 0
       ? "UNKNOWN"
-      : openConflict
-        ? "CONFLICT"
-        : restricted
-          ? "RESTRICTED"
-          : stale
-            ? "STALE"
-            : uncertainSource
-              ? "REVIEW_REQUIRED"
-              : "CURRENT";
+      : openConflict ? "CONFLICT" : restricted ? "RESTRICTED" : stale ? "STALE" : uncertain ? "REVIEW_REQUIRED" : "CURRENT";
     const policy = view.documentReferences.some((item) => item.kind === "POLICY") ? "LINKED" : "MISSING_EVIDENCE";
     const sop = view.documentReferences.some((item) => item.kind === "SOP") ? "LINKED" : "MISSING_EVIDENCE";
     const evidence = latestSubmission?.status ?? "MISSING_EVIDENCE";
@@ -130,8 +113,8 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
     ];
   }, [expectation?.prompt, latestEvaluation, latestReview, latestSubmission?.status, view]);
 
-  async function refresh(caseKey = view?.caseKey ?? caseKeyInput.trim()) {
-    if (!principal || !caseKey) return;
+  async function refresh(caseKey = view?.caseKey ?? caseKeyInput.trim()): Promise<boolean> {
+    if (!principal || !caseKey) return false;
     setBusy(true);
     setError(null);
     try {
@@ -143,14 +126,15 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
       setHistory(nextHistory);
       const nextExpectation = currentExpectation(nextView);
       const payload = nextExpectation?.submissions[0]?.payload ?? {};
-      setEvidenceValues(
-        Object.fromEntries((nextExpectation?.requiredKeys ?? []).map((key) => [key, stringValue(payload[key])])),
-      );
+      setEvidenceValues(Object.fromEntries((nextExpectation?.requiredKeys ?? []).map((key) => [key, stringValue(payload[key])])));
       setCaseKeyInput(nextView.caseKey);
+      return true;
     } catch (cause) {
       setView(null);
       setHistory([]);
+      setNotice(null);
       setError(describeApiError(cause));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -163,9 +147,10 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
     setNotice(null);
     try {
       await action();
-      await refresh(view.caseKey);
-      setNotice(successMessage);
+      const refreshed = await refresh(view.caseKey);
+      if (refreshed) setNotice(successMessage);
     } catch (cause) {
+      setNotice(null);
       setError(describeApiError(cause));
     } finally {
       setBusy(false);
@@ -177,11 +162,7 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
     const payload = Object.fromEntries(expectation.requiredKeys.map((key) => [key, evidenceValues[key] ?? ""]));
     if (latestSubmission) {
       await perform(
-        () => apiAssuranceReviseEvidence({
-          caseKey: view.caseKey,
-          priorSubmissionId: latestSubmission.id,
-          payload,
-        }),
+        () => apiAssuranceReviseEvidence({ caseKey: view.caseKey, priorSubmissionId: latestSubmission.id, payload }),
         "Evidence revision submitted for review.",
       );
       return;
@@ -208,11 +189,7 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
       return;
     }
     await perform(
-      () => apiAssuranceReview({
-        evaluationId: latestEvaluation.id,
-        decision,
-        ...(rationale.trim() ? { rationale: rationale.trim() } : {}),
-      }),
+      () => apiAssuranceReview({ evaluationId: latestEvaluation.id, decision, ...(rationale.trim() ? { rationale: rationale.trim() } : {}) }),
       "Qualified human review recorded.",
     );
     setRationale("");
@@ -223,7 +200,7 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
       <div className="workspace-stack">
         <SectionHeader title="Operating Assurance" eyebrow="Authenticated one-case workspace" />
         <EmptyState title="Verified API session required">
-          Sign in through Session & identity. The demo role selector only changes navigation and never grants Operating Assurance authority.
+          Sign in with a verified API session. Demo role selectors never grant Operating Assurance authority.
         </EmptyState>
       </div>
     );
@@ -234,52 +211,27 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
       <SectionHeader title="Operating Assurance" eyebrow="One-case governed assurance workspace" />
 
       <section className="panel">
-        <div className="panel-title">
-          <div>
-            <h2>Open assurance case</h2>
-            <p>Case access, contributor rights, and reviewer authority are enforced by the verified backend session.</p>
-          </div>
-        </div>
+        <div className="panel-title"><div><h2>Open assurance case</h2><p>Case access, contributor rights, and reviewer authority are enforced by the verified backend session.</p></div></div>
         <div style={{ display: "flex", gap: 10, alignItems: "end", flexWrap: "wrap" }}>
           <label style={{ flex: "1 1 320px" }}>
             <span className="label">Case key</span>
-            <input
-              aria-label="Operating Assurance case key"
-              value={caseKeyInput}
-              onChange={(event) => setCaseKeyInput(event.target.value)}
-              placeholder="oa-synthetic-case"
-            />
+            <input aria-label="Operating Assurance case key" value={caseKeyInput} onChange={(event) => setCaseKeyInput(event.target.value)} placeholder="oa-synthetic-case" />
           </label>
-          <button className="secondary-button" type="button" disabled={busy || !caseKeyInput.trim()} onClick={() => refresh(caseKeyInput.trim())}>
-            {busy ? "Loading…" : "Load case"}
-          </button>
+          <button className="secondary-button" type="button" disabled={busy || !caseKeyInput.trim()} onClick={() => void refresh(caseKeyInput.trim())}>{busy ? "Loading…" : "Load case"}</button>
         </div>
-        <p className="role-note" style={{ marginTop: 10 }}>
-          Verified principal: {principal.displayName} · {principal.organizationId} · roles: {principal.roles.join(", ") || "none"}. Demo workspace roles do not affect these permissions.
-        </p>
+        <p className="role-note" style={{ marginTop: 10 }}>Verified principal: {principal.displayName} · {principal.organizationId} · roles: {principal.roles.join(", ") || "none"}. Demo workspace roles do not affect these permissions.</p>
         {error ? <p className="inline-warning" role="alert">{error}</p> : null}
-        {notice ? <p role="status">{notice}</p> : null}
+        {notice && !error ? <p role="status">{notice}</p> : null}
       </section>
 
       {view ? (
         <>
           <section className="panel">
-            <div className="panel-title">
-              <div>
-                <span className="label">{view.caseKey}</span>
-                <h2>{view.title}</h2>
-                <p>{view.assuranceStatement}</p>
-              </div>
+            <div className="panel-title"><div><span className="label">{view.caseKey}</span><h2>{view.title}</h2><p>{view.assuranceStatement}</p></div></div>
+            <div aria-label="Operating Assurance trust strip" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+              {trust.map((item) => <TrustCard key={item.label} {...item} />)}
             </div>
-            <div
-              aria-label="Operating Assurance trust strip"
-              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}
-            >
-              {trust.map((item) => trustCard(item.label, item.value, item.detail))}
-            </div>
-            <p className="role-note" style={{ marginTop: 12 }}>
-              Machine assistance is not a compliance determination. Every evaluation remains human-review gated.
-            </p>
+            <p className="role-note" style={{ marginTop: 12 }}>Machine assistance is not a compliance determination. Every evaluation remains human-review gated.</p>
           </section>
 
           <div className="grid-two">
@@ -295,12 +247,8 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
                   </div>
                 </div>
               )) : <p>No authority source recorded.</p>}
-              {view.documentReferences.map((reference) => (
-                <p key={reference.id}><strong>{reference.kind}</strong> · {reference.title} · {reference.versionLabel}</p>
-              ))}
-              {view.sourceConflicts.some((item) => item.status === "OPEN") ? (
-                <p className="inline-warning">An unresolved source conflict is recorded. The machine result must remain fail-closed.</p>
-              ) : null}
+              {view.documentReferences.map((reference) => <p key={reference.id}><strong>{reference.kind}</strong> · {reference.title} · {reference.versionLabel}</p>)}
+              {view.sourceConflicts.some((item) => item.status === "OPEN") ? <p className="inline-warning">An unresolved source conflict is recorded. The machine result must remain fail-closed.</p> : null}
             </section>
 
             <section className="panel">
@@ -321,16 +269,10 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
                   {expectation.requiredKeys.map((key) => (
                     <label key={key} style={{ display: "block", marginBottom: 10 }}>
                       <span className="label">{displayState(key)}</span>
-                      <input
-                        aria-label={`Evidence ${key}`}
-                        value={evidenceValues[key] ?? ""}
-                        onChange={(event) => setEvidenceValues((current) => ({ ...current, [key]: event.target.value }))}
-                      />
+                      <input aria-label={`Evidence ${key}`} value={evidenceValues[key] ?? ""} onChange={(event) => setEvidenceValues((current) => ({ ...current, [key]: event.target.value }))} />
                     </label>
                   ))}
-                  <button className="secondary-button" type="button" disabled={busy || !canContribute} onClick={submitEvidence}>
-                    {latestSubmission ? "Submit evidence revision" : "Submit evidence"}
-                  </button>
+                  <button className="secondary-button" type="button" disabled={busy || !canContribute} onClick={() => void submitEvidence()}>{latestSubmission ? "Submit evidence revision" : "Submit evidence"}</button>
                   <p className="role-note" style={{ marginTop: 10 }}>Submission records evidence; it does not accept the evidence or determine compliance.</p>
                 </>
               ) : <p>No evidence expectation is available.</p>}
@@ -340,13 +282,9 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
               <div className="panel-title"><div><h2>Machine assistance</h2><p>Deterministic and fail-closed. A qualified human remains authoritative.</p></div></div>
               <p><strong>Current result:</strong> <StatusBadge tone={toneFor(latestEvaluation?.result)}>{displayState(latestEvaluation?.result ?? "REVIEW_REQUIRED")}</StatusBadge></p>
               {latestEvaluation?.reasonCodes.length ? <p><strong>Reason codes:</strong> {latestEvaluation.reasonCodes.join(", ")}</p> : null}
-              {latestEvaluation ? <p><strong>Human review required:</strong> {latestEvaluation.requiresHumanReview ? "Yes" : "Yes"}</p> : null}
-              {latestEvaluation && FAIL_CLOSED_STATES.has(latestEvaluation.result) ? (
-                <p className="inline-warning">This is a fail-closed state. Do not treat it as a compliance determination or completed assurance conclusion.</p>
-              ) : null}
-              <button className="secondary-button" type="button" disabled={busy || !canEvaluate || !expectation} onClick={runEvaluation}>
-                Run governed evaluation
-              </button>
+              {latestEvaluation ? <p><strong>Human review required:</strong> Yes</p> : null}
+              {latestEvaluation && FAIL_CLOSED_STATES.has(latestEvaluation.result) ? <p className="inline-warning">This is a fail-closed state. Do not treat it as a compliance determination or completed assurance conclusion.</p> : null}
+              <button className="secondary-button" type="button" disabled={busy || !canEvaluate || !expectation} onClick={() => void runEvaluation()}>Run governed evaluation</button>
             </section>
           </div>
 
@@ -358,10 +296,7 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
                   <label>
                     <span className="label">Decision</span>
                     <select aria-label="Review decision" value={decision} onChange={(event) => setDecision(event.target.value as AssuranceReviewDecisionDto["decision"])}>
-                      <option value="ACCEPT">Accept bounded result</option>
-                      <option value="REJECT">Reject</option>
-                      <option value="REQUEST_MORE_EVIDENCE">Request more evidence</option>
-                      <option value="REVIEW_REQUIRED">Keep review required</option>
+                      <option value="ACCEPT">Accept bounded result</option><option value="REJECT">Reject</option><option value="REQUEST_MORE_EVIDENCE">Request more evidence</option><option value="REVIEW_REQUIRED">Keep review required</option>
                     </select>
                   </label>
                   <label>
@@ -369,9 +304,7 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
                     <textarea aria-label="Review rationale" rows={3} value={rationale} onChange={(event) => setRationale(event.target.value)} />
                   </label>
                 </div>
-                <button className="secondary-button" type="button" disabled={busy || !canReview} onClick={recordReview}>
-                  Record qualified review
-                </button>
+                <button className="secondary-button" type="button" disabled={busy || !canReview} onClick={() => void recordReview()}>Record qualified review</button>
                 <p className="role-note" style={{ marginTop: 10 }}>The UI can explain expected capability, but only the backend can authorize this action.</p>
               </>
             ) : <p>Run an evaluation before recording a human review.</p>}
@@ -380,22 +313,9 @@ export function OperatingAssurance({ principal }: { principal: VerifiedPrincipal
           <section className="panel">
             <div className="panel-title"><div><h2>Assurance history</h2><p>Evidence, machine evaluations, and human decisions remain distinct historical events.</p></div></div>
             {history.length ? (
-              <div style={{ overflowX: "auto" }}>
-                <table>
-                  <thead><tr><th>When</th><th>Kind</th><th>State</th><th>Version</th><th>Related record</th></tr></thead>
-                  <tbody>
-                    {history.map((entry) => (
-                      <tr key={`${entry.kind}-${entry.id}`}>
-                        <td>{new Date(entry.occurredAt).toLocaleString()}</td>
-                        <td>{displayState(entry.kind)}</td>
-                        <td><StatusBadge tone={toneFor(entry.state)}>{displayState(entry.state)}</StatusBadge></td>
-                        <td>{entry.version}</td>
-                        <td>{entry.relatedId ?? "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <div style={{ overflowX: "auto" }}><table><thead><tr><th>When</th><th>Kind</th><th>State</th><th>Version</th><th>Related record</th></tr></thead><tbody>
+                {history.map((entry) => <tr key={`${entry.kind}-${entry.id}`}><td>{new Date(entry.occurredAt).toLocaleString()}</td><td>{displayState(entry.kind)}</td><td><StatusBadge tone={toneFor(entry.state)}>{displayState(entry.state)}</StatusBadge></td><td>{entry.version}</td><td>{entry.relatedId ?? "—"}</td></tr>)}
+              </tbody></table></div>
             ) : <p>No assurance history is visible for this case yet.</p>}
           </section>
         </>
