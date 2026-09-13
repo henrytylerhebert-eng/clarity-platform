@@ -2,12 +2,21 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import Fastify from "fastify";
 import { registerRevOpsRoutes } from "./revOpsRoutes.js";
 import { registerOperatingWorkbookRoutes } from "./operatingWorkbookRoutes.js";
+import {
+  registerAssuranceRoutes,
+  type AssuranceEvaluationCaseResolver,
+} from "./assuranceRoutes.js";
 import type { PrismaOperatingWorkbookGateway } from "../../case-repository/src/operatingWorkbookGateway.js";
 import type { PrismaRevOpsGateway } from "../../case-repository/src/revOpsGateway.js";
 import { registerIopReconciliationRoutes } from "./iopReconciliationRoutes.js";
 import type { PrismaIopReconciliationGateway } from "../../case-repository/src/iopReconciliationGateway.js";
 import { IopReconciliationError } from "../../case-repository/src/iopReconciliationGateway.js";
 import { RevOpsError } from "../../rev-ops-service/src/index.js";
+import {
+  AssuranceServiceError,
+  type AssuranceCommandService,
+  type AssuranceQueryService,
+} from "../../assurance-service/src/index.js";
 import { z, ZodError } from "zod";
 import {
   AuthenticationFailedError,
@@ -155,6 +164,9 @@ export interface ApiDeps {
   revOps?: PrismaRevOpsGateway;
   operatingWorkbook?: PrismaOperatingWorkbookGateway;
   iopReconciliation?: PrismaIopReconciliationGateway;
+  assuranceCommands?: AssuranceCommandService;
+  assuranceQueries?: AssuranceQueryService;
+  assuranceEvaluationCaseResolver?: AssuranceEvaluationCaseResolver;
 }
 
 class HttpError extends Error {
@@ -207,6 +219,7 @@ function toHttpError(error: unknown): HttpError {
   if (error instanceof HttpError) return error;
   if (error instanceof RevOpsError) return new HttpError(error.status, error.code);
   if (error instanceof IopReconciliationError) return new HttpError(error.status, error.code);
+  if (error instanceof AssuranceServiceError) return new HttpError(error.status, error.code);
   if (error instanceof LoginRejectedError || error instanceof AuthenticationFailedError) {
     return new HttpError(401, "authentication_failed");
   }
@@ -285,6 +298,18 @@ export function createApiServer(deps: ApiDeps): Server {
   if (deps.operatingWorkbook) registerOperatingWorkbookRoutes(app, deps.auth, deps.operatingWorkbook);
   if (deps.iopReconciliation)
     registerIopReconciliationRoutes(app, deps.auth, deps.iopReconciliation);
+  if (deps.assuranceCommands || deps.assuranceQueries || deps.assuranceEvaluationCaseResolver) {
+    if (!deps.assuranceCommands || !deps.assuranceQueries || !deps.assuranceEvaluationCaseResolver) {
+      throw new Error("assurance_api_dependencies_incomplete");
+    }
+    registerAssuranceRoutes(
+      app,
+      deps.auth,
+      deps.assuranceCommands,
+      deps.assuranceQueries,
+      deps.assuranceEvaluationCaseResolver,
+    );
+  }
   app.all("/*", async (request, reply) => {
     reply.hijack();
     const req = request.raw;

@@ -4,6 +4,7 @@ import { PrismaIopReconciliationGateway } from "../../case-repository/src/iopRec
 import {
   assertLocalClarityDevDatabase,
   createPrismaClient,
+  PrismaAssuranceGateway,
   PrismaAuthGateway,
   PrismaCaseCommandGateway,
   PrismaPrescreenGateway,
@@ -11,6 +12,10 @@ import {
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
 import { PRESCREEN_PRODUCTION_POLICY, PrescreenCommandService } from "@clarity/prescreen-service";
+import {
+  AssuranceCommandService,
+  AssuranceQueryService,
+} from "../../assurance-service/src/index.js";
 import { createApiServer } from "./server.js";
 
 /**
@@ -140,7 +145,27 @@ async function main(): Promise<void> {
   // Phase 3 gateway: prescreen state persists in local clarity_dev and
   // survives a server restart (provider-backed verification stays gated).
   const prescreen = new PrescreenCommandService(new PrismaPrescreenGateway(prisma), PRESCREEN_PRODUCTION_POLICY);
-  const server = createApiServer({ revOps: new PrismaRevOpsGateway(prisma), operatingWorkbook: new PrismaOperatingWorkbookGateway(prisma), iopReconciliation: new PrismaIopReconciliationGateway(prisma), auth, caseCommands, prescreen });
+  const assuranceGateway = new PrismaAssuranceGateway(prisma);
+  const assuranceCommands = new AssuranceCommandService(assuranceGateway);
+  const assuranceQueries = new AssuranceQueryService(assuranceGateway);
+  const assuranceEvaluationCaseResolver = async (organizationId: string, evaluationId: string) => {
+    const row = await prisma.assuranceEvaluation.findFirst({
+      where: { id: evaluationId, organizationId },
+      select: { assuranceCase: { select: { caseKey: true } } },
+    });
+    return row?.assuranceCase.caseKey;
+  };
+  const server = createApiServer({
+    revOps: new PrismaRevOpsGateway(prisma),
+    operatingWorkbook: new PrismaOperatingWorkbookGateway(prisma),
+    iopReconciliation: new PrismaIopReconciliationGateway(prisma),
+    auth,
+    caseCommands,
+    prescreen,
+    assuranceCommands,
+    assuranceQueries,
+    assuranceEvaluationCaseResolver,
+  });
 
   const port = Number(process.env.API_PORT ?? 4315);
   server.listen(port, "127.0.0.1", () => {
