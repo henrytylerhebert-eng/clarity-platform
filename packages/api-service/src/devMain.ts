@@ -16,6 +16,10 @@ import {
   AssuranceCommandService,
   AssuranceQueryService,
 } from "../../assurance-service/src/index.js";
+import {
+  ASSURANCE_DEV_USERS,
+  ensureAssuranceDevFixture,
+} from "./assuranceDevFixture.js";
 import { createApiServer } from "./server.js";
 
 /**
@@ -56,6 +60,7 @@ const DEV_USERS = [
     roles: ["INTAKE_COORDINATOR"],
     assertion: "syn-assert-api-intake-dev",
   },
+  ...ASSURANCE_DEV_USERS,
 ] as const;
 
 async function main(): Promise<void> {
@@ -90,6 +95,8 @@ async function main(): Promise<void> {
     });
     provider.register(user.assertion, user.email);
   }
+
+  const assuranceDevFixture = await ensureAssuranceDevFixture(prisma);
 
   const patientToken = await prisma.patientToken.upsert({
     where: { id: "synthetic-pt-api-dev" },
@@ -172,6 +179,7 @@ async function main(): Promise<void> {
     console.log(`[api-service] listening on http://127.0.0.1:${port}`);
     console.log(`[api-service] synthetic tenant: ${ORG_ID}`);
     console.log(`[api-service] synthetic case:   ${CASE_KEY}`);
+    console.log(`[api-service] assurance case:   ${assuranceDevFixture.caseKey}`);
     console.log(`[api-service] citable legal record: ${LEGAL_RECORD_ID}`);
     console.log("[api-service] dev assertions (synthetic, dev-only):");
     for (const user of DEV_USERS) {
