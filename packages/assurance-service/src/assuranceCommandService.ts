@@ -1,5 +1,8 @@
-import type { AuthenticatedPrincipal, AssuranceReviewDecision } from "@clarity/domain-contracts";
-import { principalToActor } from "@clarity/domain-contracts";
+import type {
+  AuditActor,
+  AuthenticatedPrincipal,
+  AssuranceReviewDecision,
+} from "@clarity/domain-contracts";
 import {
   AssuranceNotFoundError,
   AssuranceStateError,
@@ -29,13 +32,21 @@ const RATIONALE_REQUIRED = new Set<AssuranceReviewDecision>([
   "REVIEW_REQUIRED",
 ]);
 
+function auditActorFromPrincipal(principal: AuthenticatedPrincipal): AuditActor {
+  return { actorType: "USER", actorId: principal.userId };
+}
+
 function translatePersistenceError(error: unknown): never {
   if (error instanceof AssuranceNotFoundError) throw new AssuranceServiceNotFoundError();
   if (error instanceof AssuranceStateError) throw new AssuranceConflictError(error.message);
   throw error;
 }
 
-async function requireCase(gateway: PrismaAssuranceGateway, principal: AuthenticatedPrincipal, caseKey: string) {
+async function requireCase(
+  gateway: PrismaAssuranceGateway,
+  principal: AuthenticatedPrincipal,
+  caseKey: string,
+) {
   const assuranceCase = await gateway.findCaseByKey(principal.organizationId, caseKey);
   if (!assuranceCase) throw new AssuranceServiceNotFoundError();
   return assuranceCase;
@@ -55,7 +66,7 @@ export class AssuranceCommandService {
           expectationId: command.expectationId,
           payload: command.payload,
         },
-        principalToActor(principal),
+        auditActorFromPrincipal(principal),
       );
     } catch (error) {
       return translatePersistenceError(error);
@@ -77,7 +88,7 @@ export class AssuranceCommandService {
         principal.organizationId,
         prior.id,
         command.payload,
-        principalToActor(principal),
+        auditActorFromPrincipal(principal),
       );
     } catch (error) {
       if (error instanceof AssuranceServiceNotFoundError) throw error;
@@ -93,7 +104,7 @@ export class AssuranceCommandService {
         principal.organizationId,
         assuranceCase.id,
         command.expectationId,
-        principalToActor(principal),
+        auditActorFromPrincipal(principal),
         evaluateAssurance,
       );
     } catch (error) {
@@ -119,7 +130,7 @@ export class AssuranceCommandService {
           rationale: command.rationale?.trim(),
           reviewerUserId: principal.userId,
         },
-        principalToActor(principal),
+        auditActorFromPrincipal(principal),
       );
     } catch (error) {
       return translatePersistenceError(error);
