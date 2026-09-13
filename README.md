@@ -113,8 +113,6 @@ npm test               # root safety/workflow suites (vitest)
 cd app && npm test     # prototype domain tests
 cd app && npm run dev  # http://127.0.0.1:5173
 npx prisma validate    # canonical schema
-npm run bridge:status  # local three-agent bridge capabilities and inboxes
-npm run bridge:test    # bridge lifecycle and credential-guard checks
 ```
 
 Useful app checks:
