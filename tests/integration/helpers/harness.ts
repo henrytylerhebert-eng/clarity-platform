@@ -62,6 +62,17 @@ async function createTenantRecords(prisma: PrismaClient, runId: string, label: s
 
 async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string[]): Promise<void> {
   // FK-safe order; every delete is scoped to the given organization ids only.
+  await prisma.assuranceReviewDecision.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.assuranceEvaluation.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.assuranceSourceConflict.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.assuranceEvidenceSubmission.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.assuranceEvidenceExpectation.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.assuranceDocumentReference.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.assuranceSourceReference.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.assuranceApplicabilityDecision.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.assuranceParticipantAssignment.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.assuranceCase.deleteMany({ where: { organizationId: { in: organizationIds } } });
+
   await prisma.iopReconciliationCloseReceipt.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.iopReconciliationExceptionReview.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.iopReconciliationImport.deleteMany({ where: { organizationId: { in: organizationIds } } });
@@ -100,7 +111,6 @@ async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string
 export async function createHarness(): Promise<Harness> {
   assertLocalClarityDevDatabase();
   const prisma = createPrismaClient();
-  // Migration check: the foundation migration must be applied and not failed.
   const applied = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
     `SELECT count(*)::bigint AS count FROM _prisma_migrations
      WHERE migration_name = '20260710233252_initial_clarity_foundation' AND finished_at IS NOT NULL`,
