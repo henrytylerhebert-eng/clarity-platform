@@ -37,6 +37,9 @@ export default defineConfig({
       "@clarity/prescreen-service": fileURLToPath(
         new URL("./packages/prescreen-service/src/index.ts", import.meta.url),
       ),
+      "@clarity/learning-practice-service": fileURLToPath(
+        new URL("./packages/learning-practice-service/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {

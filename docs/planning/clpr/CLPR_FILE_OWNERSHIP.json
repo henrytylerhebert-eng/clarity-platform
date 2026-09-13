@@ -1,0 +1,72 @@
+{
+  "branch": "claude/clarity-clpr-codex-handoff-7434af",
+  "head": "5348202f8b90ba55b32a8aee811bc6c4e6633995",
+  "implementation_owner": "Codex",
+  "review_owner": "Claude",
+  "allowed_additions": [
+    "packages/domain-contracts/src/learningPractice.ts",
+    "packages/domain-contracts/src/learningPractice.test.ts",
+    "packages/learning-practice-service/package.json",
+    "packages/learning-practice-service/src/gateway.ts",
+    "packages/learning-practice-service/src/gateway.test.ts",
+    "packages/learning-practice-service/src/id.ts",
+    "packages/learning-practice-service/src/id.test.ts",
+    "packages/learning-practice-service/src/seed.ts",
+    "packages/learning-practice-service/src/practiceLab.ts",
+    "packages/learning-practice-service/src/practiceLab.test.ts",
+    "packages/learning-practice-service/src/evaluator.ts",
+    "packages/learning-practice-service/src/evaluator.test.ts",
+    "packages/learning-practice-service/src/recognition.ts",
+    "packages/learning-practice-service/src/recognition.test.ts",
+    "packages/learning-practice-service/src/registry.ts",
+    "packages/learning-practice-service/src/registry.test.ts",
+    "packages/learning-practice-service/src/index.ts",
+    "packages/learning-practice-service/README.md",
+    "data/synthetic-practice-scenarios/clpr-central-intake-contradiction-v1.json",
+    "app/src/domain/learningPractice.ts",
+    "app/src/domain/learningPractice.test.ts",
+    "app/src/components/learning-practice/PracticeLabScenario.tsx",
+    "app/src/components/learning-practice/PracticeLabScenario.test.tsx",
+    "app/src/components/learning-practice/NoticeAcknowledgeCard.tsx",
+    "app/src/components/learning-practice/NoticeAcknowledgeCard.test.tsx",
+    "app/src/components/learning-practice/MyPathPanel.tsx",
+    "app/src/components/learning-practice/MyPathPanel.test.tsx",
+    "docs/implementation/CLPR_SYNTHETIC_VERTICAL_SLICE.md"
+  ],
+  "allowed_existing_file_edits": [
+    "packages/domain-contracts/src/index.ts",
+    "tsconfig.json",
+    "vitest.config.ts",
+    "app/src/workspaces/TrainingSops.tsx",
+    "IMPLEMENTATION_STATUS.md"
+  ],
+  "read_only_files": [
+    "docs/architecture/ADR-0012-api-architecture.md",
+    "packages/domain-contracts/src/roles.ts",
+    "packages/domain-contracts/src/episode.ts",
+    "packages/domain-contracts/src/syntheticCase.ts",
+    "packages/domain-contracts/src/seedLoader.ts",
+    "data/synthetic-cases/*",
+    "tests/data/synthetic-cases.test.ts",
+    "app/src/domain/training.ts",
+    "app/vite.config.ts",
+    "app/src/domain/roles.ts",
+    "prisma/schema.prisma"
+  ],
+  "blocked_paths": [
+    "prisma/**",
+    "packages/api-service/**",
+    "packages/case-repository/**",
+    "docs/architecture/ADR-0012-api-architecture.md",
+    "data/synthetic-cases/**"
+  ],
+  "active_collision_paths": [],
+  "notes": [
+    "No active concurrent work was found touching training, learning, practice, recognition, or CLPR paths as of HEAD 5348202. 20 worktrees and 2 open PRs (#66, #63) exist repo-wide but none overlap the allowed_additions/allowed_existing_file_edits lists above; re-verify at apply time if HEAD has moved.",
+    "PATCH_MANIFEST.json's targetPaths for the app side (app/src/features/learning-practice/*) and the fixture (data/synthetic-cases/clpr-central-intake-contradiction-v1.json) are superseded by this file — see CLPR_INTEGRATION_RESOLUTION.md sections C and D for why.",
+    "PATCH_MANIFEST.json's requiredExistingFileEdits list omits tsconfig.json and vitest.config.ts, both of which use literal per-package maps (not globs) and must be edited for the new package's imports to resolve at all; both are included in allowed_existing_file_edits above.",
+    "The role-family string used throughout the package source ('CENTRAL_INTAKE_COORDINATOR') does not match the live UserRole enum value ('INTAKE_COORDINATOR') and must be corrected in seed.ts, recognition.ts, and the relocated fixture file before merge.",
+    "data/synthetic-cases/ is blocked outright: it is schema-validated (SyntheticCaseSchema) and load-tested (tests/data/synthetic-cases.test.ts) as BehavioralHealthCase fixtures; the CLPR practice-scenario fixture has an incompatible shape and must not be added there under any adaptation.",
+    "IMPLEMENTATION_STATUS.md is listed as an allowed existing-file edit only for the standard session-close status update described in the project's operating rules; it is optional and not required for the slice to function or pass verification."
+  ]
+}

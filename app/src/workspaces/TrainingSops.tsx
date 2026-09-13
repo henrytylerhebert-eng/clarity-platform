@@ -8,12 +8,13 @@ import {
   trainingSourceBoundaries,
 } from "../domain/training";
 import type { RoleId } from "../domain/roles";
+import { PracticeLabScenario } from "../components/learning-practice/PracticeLabScenario";
 
 export function TrainingSops({ roleId }: { roleId: RoleId }) {
   const plan = getRoleTrainingPlan(roleId);
 
   return (
-    <div className="stack">
+    <div className="stack" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
       <section className="panel">
         <div className="panel-title">
           <div>
@@ -45,6 +46,8 @@ export function TrainingSops({ roleId }: { roleId: RoleId }) {
           </div>
         </div>
       </section>
+
+      {(roleId === "central" || roleId === "all") && <PracticeLabScenario />}
 
       <section className="grid-two">
         <article className="panel">
