@@ -1,0 +1,11 @@
+{
+  "name": "@clarity/learning-practice-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Synthetic in-memory learning, practice, acknowledgement and competency demonstration slice.",
+  "dependencies": {
+    "@clarity/domain-contracts": "*"
+  }
+}

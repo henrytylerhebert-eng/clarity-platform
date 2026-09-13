@@ -1,0 +1,29 @@
+{
+  "fixtureVersion": "1.0.0",
+  "syntheticOnly": true,
+  "scenarioId": "SCN-EI-03",
+  "caseRef": "case-synthetic-michael-scot",
+  "roleFamily": "INTAKE_COORDINATOR",
+  "learner": {
+    "actorId": "person-april-ludgate",
+    "displayName": "April Ludgate"
+  },
+  "facts": [
+    {
+      "factId": "FACT-A",
+      "source": "Synthetic sending-nurse collateral",
+      "statement": "At simulated handoff checkpoint T0, the patient was oriented to person, place, time, and situation and denied current thoughts of death."
+    },
+    {
+      "factId": "FACT-B",
+      "source": "Synthetic field-responder note",
+      "statement": "At simulated handoff checkpoint T0, the patient was not oriented to place and reported current passive thoughts of death."
+    }
+  ],
+  "expectedBehavior": [
+    "IDENTIFY_CONTRADICTION",
+    "PRESERVE_BOTH_SOURCES",
+    "ESCALATE_FOR_REVIEW"
+  ],
+  "criticalError": "SILENTLY_RESOLVE_CONTRADICTION"
+}
