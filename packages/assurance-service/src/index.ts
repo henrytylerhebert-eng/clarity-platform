@@ -1,6 +1,12 @@
 export * from "./commands.js";
-export * from "./errors.js";
+export {
+  AssuranceServiceError,
+  AssurancePermissionDeniedError,
+  AssuranceServiceNotFoundError,
+  AssuranceValidationError,
+  AssuranceConflictError,
+} from "./errors.js";
 export * from "./permissions.js";
 export * from "./evaluator.js";
-export * from "./assuranceCommandService.js";
-export * from "./assuranceQueryService.js";
+export { AssuranceCommandService } from "./assuranceCommandService.js";
+export { AssuranceQueryService } from "./assuranceQueryService.js";
