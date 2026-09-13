@@ -42,6 +42,11 @@ describe("governed synthetic evaluator", () => {
     }
   });
 
+  it("rejects the declared behaviors recorded out of order", () => {
+    const env = setup(["ESCALATE_FOR_REVIEW", "IDENTIFY_CONTRADICTION", "PRESERVE_BOTH_SOURCES"]);
+    expect(env.evaluator.evaluate(env.evaluationContext)).toMatchObject({ candidate: null, reason: expect.stringContaining("declared order") });
+  });
+
   it("blocks recognition after silent contradiction resolution", () => {
     const env = setup([...actions, "SILENTLY_RESOLVE_CONTRADICTION"]);
     expect(env.evaluator.evaluate(env.evaluationContext)).toMatchObject({ candidate: null, reason: expect.stringContaining("Critical error") });

@@ -39,6 +39,17 @@ it("completes the pathway, acknowledges a notice, and resets without storage or 
   expect(store).not.toHaveBeenCalled();
   expect(fetch).not.toHaveBeenCalled();
 });
+it("only enables ordered behaviors once their predecessor is recorded, while the critical-error path stays available throughout", () => {
+  render(<PracticeLabScenario />);
+  expect(screen.getByRole("button", { name: "Preserve both sources" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Escalate for review" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Silently resolve contradiction (critical error)" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("button", { name: "Identify contradiction" }));
+  expect(screen.getByRole("button", { name: "Preserve both sources" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Escalate for review" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Preserve both sources" }));
+  expect(screen.getByRole("button", { name: "Escalate for review" })).toBeEnabled();
+});
 it("does not grant recognition for silent resolution and recovers with a fresh attempt", () => {
   render(<PracticeLabScenario />);
   fireEvent.click(screen.getByRole("button", { name: "Silently resolve contradiction (critical error)" }));

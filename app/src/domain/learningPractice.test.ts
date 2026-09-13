@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   applyNoticeAction, CENTRAL_INTAKE_ROLE, centralIntakePathway, contradictionScenario, demoLearner,
-  demoReviewer, contradictionRule, evaluatePractice, learningModule, readPractice, recordPracticeAction, startPractice,
+  demoReviewer, contradictionRule, evaluatePractice, isPracticeActionAvailable, learningModule, readPractice,
+  recordPracticeAction, startPractice,
   type PracticeState, type ScenarioAction, type SyntheticWorkflowEventType,
 } from "./learningPractice";
 
@@ -36,8 +37,18 @@ describe("standalone synthetic learning practice", () => {
     ["incomplete", correct.slice(0, -1)],
     ["missing escalation", ["IDENTIFY_CONTRADICTION", "PRESERVE_BOTH_SOURCES", "COMPLETE_SCENARIO"]],
     ["critical error", ["SILENTLY_RESOLVE_CONTRADICTION", ...correct]],
+    ["out-of-order behaviors", ["ESCALATE_FOR_REVIEW", "IDENTIFY_CONTRADICTION", "PRESERVE_BOTH_SOURCES", "COMPLETE_SCENARIO"]],
   ] as [string, ScenarioAction[]][])("rejects %s", (_label, actions) => {
     expect(evaluatePractice(attempt(actions), demoLearner).candidate).toBeNull();
+  });
+  it("only makes the ordered behaviors available once their predecessors are recorded, leaving the critical-error path always open", () => {
+    expect(isPracticeActionAvailable("IDENTIFY_CONTRADICTION", [])).toBe(true);
+    expect(isPracticeActionAvailable("PRESERVE_BOTH_SOURCES", [])).toBe(false);
+    expect(isPracticeActionAvailable("PRESERVE_BOTH_SOURCES", ["IDENTIFY_CONTRADICTION"])).toBe(true);
+    expect(isPracticeActionAvailable("ESCALATE_FOR_REVIEW", ["IDENTIFY_CONTRADICTION"])).toBe(false);
+    expect(isPracticeActionAvailable("ESCALATE_FOR_REVIEW", ["IDENTIFY_CONTRADICTION", "PRESERVE_BOTH_SOURCES"])).toBe(true);
+    expect(isPracticeActionAvailable("SILENTLY_RESOLVE_CONTRADICTION", [])).toBe(true);
+    expect(isPracticeActionAvailable("COMPLETE_SCENARIO", [])).toBe(true);
   });
   it.each(["ADMISSION_RECORDED", "REVENUE_RECORDED", "CENSUS_UPDATED"] as const)("ignores %s without strengthening ID, confidence or evidence", type => {
     const state = candidate();

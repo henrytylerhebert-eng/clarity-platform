@@ -37,6 +37,13 @@ export const practiceActions: { action: ScenarioAction; label: string }[] = [
   { action: "ESCALATE_FOR_REVIEW", label: "Escalate for review" },
   { action: "SILENTLY_RESOLVE_CONTRADICTION", label: "Silently resolve contradiction (critical error)" },
 ];
+/** The three governed behaviors must be recorded in this order; the critical-error path is always available. */
+const ORDERED_PRACTICE_BEHAVIORS: ScenarioAction[] = ["IDENTIFY_CONTRADICTION", "PRESERVE_BOTH_SOURCES", "ESCALATE_FOR_REVIEW"];
+export function isPracticeActionAvailable(action: ScenarioAction, completedActions: ScenarioAction[]): boolean {
+  const position = ORDERED_PRACTICE_BEHAVIORS.indexOf(action);
+  if (position < 0) return true;
+  return ORDERED_PRACTICE_BEHAVIORS.slice(0, position).every(prior => completedActions.includes(prior));
+}
 const actionEvents = {
   IDENTIFY_CONTRADICTION: "CONTRADICTION_IDENTIFIED",
   PRESERVE_BOTH_SOURCES: "CONTRADICTION_PRESERVED",
@@ -133,6 +140,11 @@ export function evaluatePractice(state: PracticeState, actor: ActorScope): Pract
   if (governed.some(event => event.eventType === "CONTRADICTION_SILENTLY_RESOLVED")) return reject("Critical error: contradiction was silently resolved. Reset for a new attempt.");
   const missing = governedTypes.filter(type => !relevant.some(event => event.eventType === type));
   if (missing.length) return reject(`Missing required evidence: ${missing.join(", ")}`);
+  const orderedBehaviors = governedTypes.slice(0, 3);
+  const orderIndexes = orderedBehaviors.map(type => governed.findIndex(event => event.eventType === type));
+  if (orderIndexes.some((index, position) => position > 0 && index <= orderIndexes[position - 1]!)) {
+    return reject(`Required behavior was not recorded in the declared order: ${orderedBehaviors.join(" -> ")}`);
+  }
   const requiredRefs: Partial<Record<SyntheticWorkflowEventType, string[]>> = {
     PRACTICE_SCENARIO_STARTED: [], PRACTICE_SCENARIO_COMPLETED: [],
     CONTRADICTION_IDENTIFIED: ["FACT-A", "FACT-B"], CONTRADICTION_PRESERVED: ["FACT-A", "FACT-B"],

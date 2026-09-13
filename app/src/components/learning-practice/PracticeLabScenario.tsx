@@ -2,7 +2,8 @@ import { useState } from "react";
 import { StatusBadge } from "../StatusBadge";
 import {
   applyNoticeAction, contradictionRule, contradictionScenario, demoLearner, demoReviewer, evaluatePractice,
-  learningModule, practiceActions, recordPracticeAction, startPractice, type NoticeAction, type ScenarioAction,
+  isPracticeActionAvailable, learningModule, practiceActions, recordPracticeAction, startPractice,
+  type NoticeAction, type ScenarioAction,
 } from "../../domain/learningPractice";
 import { MyPathPanel } from "./MyPathPanel";
 import { NoticeAcknowledgeCard } from "./NoticeAcknowledgeCard";
@@ -36,7 +37,7 @@ export function PracticeLabScenario() {
           <h4>{fact.sourceLabel}</h4><p>{fact.statement}</p><p className="subtext">{fact.factId} · Source reliability: {fact.sourceReliability}</p>
         </article>)}</div>
         <p>Identify the contradiction, retain both source statements, and escalate to the clinical review queue. Complete the attempt to evaluate the recorded behavior.</p>
-        <div className="training-badge-row">{practiceActions.map(({ action, label }) => <button type="button" key={action} className="secondary-button" disabled={state.completed || state.actions.includes(action)} onClick={() => act(action)}>{label}</button>)}</div>
+        <div className="training-badge-row">{practiceActions.map(({ action, label }) => <button type="button" key={action} className="secondary-button" disabled={state.completed || state.actions.includes(action) || !isPracticeActionAvailable(action, state.actions)} onClick={() => act(action)}>{label}</button>)}</div>
         <div className="training-badge-row">
           <button type="button" className="primary-button" disabled={state.completed} onClick={() => act("COMPLETE_SCENARIO")}>Complete and evaluate practice</button>
           <button type="button" className="secondary-button" onClick={() => { setState(startPractice()); setError(""); setResetMessage("Practice reset: previous events and competency evidence cleared."); }}>Reset synthetic practice</button>

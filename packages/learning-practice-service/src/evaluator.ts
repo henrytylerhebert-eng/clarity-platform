@@ -61,6 +61,10 @@ export class NoticeAcknowledgeEvaluator {
     if (events.some((event) => !hasGovernedReferences(event))) return noRecognition("Required governed source references are missing or unsupported");
     const missing = contradictionRule.requiredEvidence.filter((required) => !events.some((event) => event.eventType === required));
     if (missing.length) return noRecognition(`Missing required evidence: ${missing.join(", ")}`);
+    const requiredOrder = contradictionRule.requiredEvidence.map((required) => events.findIndex((event) => event.eventType === required));
+    if (requiredOrder.some((index, position) => position > 0 && index <= requiredOrder[position - 1]!)) {
+      return noRecognition(`Required behavior was not recorded in the declared order: ${contradictionRule.requiredEvidence.join(" -> ")}`);
+    }
 
     const relevantEvents = events.filter((event) => [...contradictionRule.requiredEvidence, "PRACTICE_SCENARIO_COMPLETED"].includes(event.eventType));
     const observationId = stableId("obs", [context.organizationId, context.caseRef, context.actorId, context.sessionId,
