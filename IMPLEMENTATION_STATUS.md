@@ -99,6 +99,24 @@ VS-OA-001, or that the mobile Chromium click-interception false positive above h
 a root cause beyond what PR #84's fix commit documents — for any capability
 described anywhere in this file. Synthetic data only, throughout.
 
+**2026-09-12: OD-13 research executed.** The CMS/Medicare/Medicaid Phase 1 deep
+research prompt (`docs/legal/GEMINI_DEEP_RESEARCH_PROMPT_CMS_MEDICARE_MEDICAID.md`)
+was run by Tyler using an external deep-research tool; the historical entry below
+dated to PR #41 that says "the research has NOT been executed" is superseded by
+this line only — everything else in that entry (the classification scheme, the
+Phase 2 relationship) stands. Output is at
+[`docs/legal/CMS_MEDICARE_MEDICAID_REGULATORY_REFERENCE_INDEX.md`](docs/legal/CMS_MEDICARE_MEDICAID_REGULATORY_REFERENCE_INDEX.md):
+~30 classified requirement records across EMTALA, hospital CoPs, Medicare IPF
+payment, Medicaid/IMD exclusion, prior-auth/interoperability, quality reporting,
+program integrity, privacy/consent, telehealth, and other facility types, plus
+two Louisiana-specific surfaces the scaffold missed, a contradictions section,
+an interpretation map, and a top-10-by-consequence ranking. **This does not
+close OD-13** — citations were not independently re-verified inside this
+repository session (see the file's own front matter), and "who reviews the
+output before it informs a rule" remains open pending OD-2 (counsel) and OD-3
+(clinical licensing). Nothing in it is a Clarity rule, validation rule,
+state-machine transition, or role permission yet.
+
 The narrative log below (every prior dated session entry, verbatim, unmoved in
 substance) is historical color for how each capability arrived; it is not where a
 reader should look for current truth. The Completed / Scaffolded / Documented only /
