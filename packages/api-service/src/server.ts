@@ -237,8 +237,18 @@ function prescreenActorFor(principal: AuthenticatedPrincipal) {
   return {
     actorId: principal.userId,
     actorType: "USER" as const,
-    roleCodes: [...principal.roles],
+    // Sorted so the idempotency fingerprint never depends on role order.
+    roleCodes: [...principal.roles].sort(),
   };
+}
+
+/** Malformed percent-encoding in a path segment is a caller error, not a 500. */
+function decodePathSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    throw new HttpError(400, "invalid_request");
+  }
 }
 
 export function createApiServer(deps: ApiDeps): Server {
@@ -272,7 +282,7 @@ export function createApiServer(deps: ApiDeps): Server {
         const result = await deps.caseCommands.recordDecisionRationale({
           organizationId: principal.organizationId,
           actor: deps.auth.actorFor(principal),
-          caseKey: decodeURIComponent(rationaleMatch[1]!),
+          caseKey: decodePathSegment(rationaleMatch[1]!),
           reason: body.reason,
           decisionContext: body.decisionContext,
           citedLegalStatusRecordId: body.citedLegalStatusRecordId,
@@ -299,7 +309,7 @@ export function createApiServer(deps: ApiDeps): Server {
 
       const prescreenMatch = PRESCREEN_ACTION_PATH.exec(url);
       if (prescreenMatch) {
-        const encounterId = decodeURIComponent(prescreenMatch[1]!);
+        const encounterId = decodePathSegment(prescreenMatch[1]!);
         const action = prescreenMatch[2]!;
 
         if (method === "GET" && action === "readiness") {

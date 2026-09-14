@@ -334,6 +334,20 @@ describe("server-derived envelope fields cannot be smuggled through the body", (
     expect(readinessProbe.status).toBe(404);
   });
 
+  it("malformed percent-encoding in the encounter path segment is a 400, not a 500", async () => {
+    const intake = await login(ASSERTIONS.intake);
+    const res = await fetch(`${baseUrl}/api/prescreen/encounters/%zz/draft`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${intake}` },
+      body: JSON.stringify({
+        draft: draftInput("syn-ps-api-asv-badpath"),
+        idempotencyKey: idem("badpath"),
+      }),
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "invalid_request" });
+  });
+
   it("a stale expectedVersion is a 409 version conflict with a content-free body", async () => {
     const intake = await login(ASSERTIONS.intake);
     const encounterId = await startEncounter(intake);
