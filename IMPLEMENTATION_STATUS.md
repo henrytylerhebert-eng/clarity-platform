@@ -2,98 +2,102 @@
 
 ## Current State
 
-**As of 2026-09-13, branch `main` at `82aa1388e3bc028b788a42c1501772da774828f1`.**
+**As of 2026-09-13 (late), branch `main` at `66b0b7a` (confirmed via `git log
+origin/main` and `gh pr view` on every PR named below — not carried forward from
+memory).**
 
-Since the housekeeping pass below, three more PRs merged directly into `main`:
-[#70](https://github.com/henrytylerhebert-eng/clarity-platform/pull/70) (Operating
-Assurance commands, queries, and scoped review authority),
-[#71](https://github.com/henrytylerhebert-eng/clarity-platform/pull/71) (Operating
-Assurance authenticated Fastify API), and
-[#72](https://github.com/henrytylerhebert-eng/clarity-platform/pull/72) (Operating
-Assurance one-case workspace) — merged 2026-09-13 02:36–03:23 UTC.
+**PR #83 merged** (`92ed7b9`): a live UX audit of the Clarity prototype produced a
+full topology/navigation/session/IA reconciliation — eight documents under
+`docs/ux/`, now the source of truth for anything navigation/session/IA-related.
+[`docs/ux/PRODUCT_TOPOLOGY_DECISION.md`](docs/ux/PRODUCT_TOPOLOGY_DECISION.md) is
+**the answer** worth knowing before touching any of this again: Clarity is **one
+platform** with several applications (Crisis Ops, Operating Assurance, RevOps) —
+not one monolithic product, not a suite of unrelated apps.
 
-A separate whole-platform-tree-and-architecture-audit session produced nine audit
-documents plus
-[ADR-0020](docs/architecture/ADR-0020-operating-assurance-retroactive-ratification.md)
-on [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73) —
-**still open and untriaged** (opened 2026-09-13 03:48 UTC, docs-only). A later
-session implemented two of that PR's own backlog items directly against `main` and
-opened [PR #75](https://github.com/henrytylerhebert-eng/clarity-platform/pull/75):
-**P0-2** (finished the ADR-0012 native-Fastify migration — the original four routes
-and all seven prescreen routes moved off the `app.all("/*", ...)` catch-all into
-native Fastify registration; ADR-0012 updated from "Accepted in part" to "Accepted"
-for the routing decision specifically, hosting/tenancy/RLS/operational readiness
-still separately gated) and **P0-3** (added strict Zod validation to Operating
-Assurance's command envelopes, matching every other command service's "parse →
-policy → gateway" discipline). **Verified in that session:** full root suite
-**759/759** (73 files, +4 tests from new schema-rejection coverage), app suite
-**140/140** (21 files, unchanged), lint clean, typecheck clean, `prisma validate`
-clean. PR #75 carried a documented self-review comment per §3a of the
-solo-maintainer policy. **PR #75 merged 2026-09-13 19:39 UTC** (confirmed via
-`gh pr view 75`) — the paragraph this replaced was stale in describing it as still
-open with CI pending.
+**PR #84 merged** (`66b0b7a`, the first implementation slice acting on that
+reconciliation — "Phase 2A"): fixed the concretely-demonstrated defect from the
+audit — four independent sign-in surfaces (Crisis Ops sidebar, IOP Reconciliation,
+Operating Assurance, RevOps) each called the same `apiLogin`/`apiLogout` but kept
+separate React state, so signing in on one left the other three still prompting.
+New: `app/src/domain/AuthContext.tsx` (one shared `AuthProvider`/`useAuth()`),
+`app/src/components/SignInForm.tsx` (one shared sign-in form replacing four bespoke
+copies), `app/src/ClarityShell.tsx` (minimal global layout: Clarity mark, area
+switcher, one identity display). `react-router-dom` now drives `/`, `/assurance`,
+`/rev-ops` in place of a raw pathname check and a client-state boolean toggle.
+Verified live with a real running `api:dev` + `app dev`: sign in once via Crisis
+Ops, navigate to Operating Assurance (already signed in), navigate to Revenue
+Operations (already signed in, data loaded), back to Crisis Ops (still signed in) —
+the brief's exact acceptance test, passing. Deliberately did **not** touch any
+workspace/clinical/domain logic, any security boundary, or Prescreen/Analytics/
+Network-Enrichment UI (confirmed during the topology audit that none of those three
+have a frontend). **Disclosed, accepted limitation, not fixed here:**
+`ClarityShell`'s own identity bar sits above each area's existing chrome without
+editing it, so e.g. two "Sign out" buttons render after sign-in (the shell's own
+plus the area's own) — a small, known redundancy, deliberately left for a later
+visual-cleanup pass per the brief's explicit "no product-wide visual cleanup"
+instruction; do not "fix" this without it being asked for.
 
-**Immediately after that merge, a docs-only commit landed directly on `main`**
-(`82aa138`, "docs: hand off VS-OA-001 to Product Acceptance", 3 files added, all
-under `docs/`, no runtime/schema/test change — confirmed by diff): TWP-OA-007, the
-VS-OA-001 Product Acceptance handoff package —
-[implementation record](docs/implementation/OPERATING_ASSURANCE_VS_OA_001.md),
-[test manifest](docs/testing/OPERATING_ASSURANCE_TEST_MANIFEST.md), and the
-[acceptance handoff](docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md)
-itself (10 accepted fixtures FIX-OA-001…010, 14 acceptance criteria
-AC-OA-001…014). Per the handoff's own §12, this transitions VS-OA-001's lifecycle
-state from **Controlled Implementation to Product Acceptance** — but that only
-*authorizes* an independent acceptance review; **no independent reviewer has run it
-yet**, and the handoff explicitly bars the implementing session from pre-writing the
-verdict. The test counts cited inside the handoff (root 73 files/758 tests, app 21
-files/140 tests, OA workspace 8/8, desktop/mobile Playwright 6/6, migrations 24/24,
-lint/typecheck/audit clean — from protected CI run #181) are labeled there as
-historical implementation evidence, not acceptance evidence.
+**PR #84's CI was actually red on first push, not merely pending** — this session
+verified that directly (`gh pr checks 84`, then read the actual failure log) rather
+than trusting the open-PR state. All 6 Playwright cases in "Operating Assurance
+replay E2E" failed (3 scenarios × desktop/mobile). Two real, distinct bugs, both
+root-caused and fixed in a follow-up commit (`e6d04c8`) before merge:
+1. `app/smoke/operating-assurance.spec.ts` still targeted the pre-Phase-2A
+   accessible names (`"Operating Assurance dev assertion"` / `"Sign in (verified
+   session)"`); the new shared `SignInForm` renders `"Development assertion"` /
+   `"Sign in"` instead. Fixed by updating the locators to match, confirmed against
+   `SignInForm.tsx`'s actual source rather than guessed.
+2. `ClarityShell`'s new global "Sign out" button made `getByRole("button", {name:
+   "Sign out"})` a strict-mode ambiguity against Operating Assurance's own. Scoped
+   the test's locator to `.session-panel` (OA's own panel) rather than changing any
+   product chrome.
+3. Mobile-project-only: Playwright's actionability check reported a sibling
+   paragraph/label as intercepting the "Load case" click. Verified by hand this is
+   a Chromium `isMobile+hasTouch` emulation false positive, not a real defect —
+   direct `getBoundingClientRect()`/`elementFromPoint()` checks show no actual
+   overlap, and a forced click loads the case correctly every time. Used `{force:
+   true}` on just that one click, with a comment explaining why.
 
-Also untriaged: [PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63)
-(draft, opened 2026-09-12) — public product-portfolio documentation (README +
-`docs/product/PRODUCT_VISION.md` + the RevOps product definition), no runtime
-change, still in draft state.
+**Verified in this session before pushing the fix, all locally against local
+`clarity_dev`:** lint clean, typecheck clean, root suite **771/771** (76 files),
+app suite **151/151** (23 files), app build succeeds, `npm audit --audit-level=high`
+clean, and `npm run test:oa-e2e` **6/6** (previously 0/6) across desktop and mobile.
+Re-ran the full gate a second time after the fix, not just the previously-failing
+suite in isolation. Self-review posted per §3a, both for the original 5 commits and
+as an addendum for this fix commit. CI `verify` green on the fix
+(run `34790844425`). **Merged 2026-09-13 23:55 UTC** (confirmed via
+`gh pr view 84 --json state,mergedAt`).
 
-**Not yet on `main`, two stacked PRs from this worktree:**
+**PR #85 (open, not yet merged):** the session handoff document written at the end
+of the PR #83/#84 session, committed verbatim to
+`docs/developer-handoff/SESSION_HANDOFF_2026-09-13_PHASE_2A.md`. Docs-only.
 
-- [PR #79](https://github.com/henrytylerhebert-eng/clarity-platform/pull/79) —
-  P1-1's first frontend-wiring slice from PR #73's implementation plan:
-  `IopReconciliation` now calls the already-built, already-tested backend
-  (`packages/api-service/src/iopReconciliationRoutes.ts`) instead of computing
-  everything in-browser against the bundled fixture. See
-  [docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md](docs/product/IOP_AUTHENTICATED_SOURCE_IMPORT_PATH.md)'s
-  "Frontend wiring" section for exactly what changed and the honest gaps (no
-  facility/program picker, no way to browse/reopen a prior import by ID).
-  Verified: app suite 141/141 (21 files, +1), root suite 762/762 (74 files,
-  unaffected), lint/typecheck/`prisma validate` clean. Self-review posted per
-  §3a; CI `verify` passed.
-- A second branch, stacked on PR #79, implements R1 from
-  [docs/product/REVOPS_FINANCIAL_RATE_IMPLEMENTATION.md](docs/product/REVOPS_FINANCIAL_RATE_IMPLEMENTATION.md)
-  for the Louisiana Medicaid release family (ADR-0021): a new
-  `RevOpsRateRelease` table — deliberately the first in this schema with no
-  `organizationId`, since it holds public government-published reference data
-  identical for every organization, not a tenant-owned fact — replaces the
-  bundled JSON as `RevOpsPricing.tsx`'s runtime source, with correction/
-  supersession support live through a new
-  `POST /api/rev-ops/rate-releases`. See
-  [docs/implementation/REV_OPS_RATE_RELEASE_REGISTRY.md](docs/implementation/REV_OPS_RATE_RELEASE_REGISTRY.md)
-  for exactly what changed, what deliberately did NOT (the CMS IPF base
-  component and the commercial contract-rate scenario tool are both
-  untouched — the latter sits on the still-OD-19-blocked R2 side of the line),
-  and honest gaps (no UI yet to actually record/correct a release; only one
-  release family persisted). Verified: app suite 145/145 (22 files, +4), root
-  suite 771/771 (76 files, +9), lint/typecheck/`prisma validate` clean, zero
-  residue confirmed by an explicit re-run (this table's rows aren't reachable
-  by the shared test harness's tenant-scoped cleanup, so the new integration
-  test cleans up its own rows by name — documented in the implementation
-  record's test manifest). Not yet pushed or opened as a PR as of this
-  write-up.
+**PR #82 (open, now stale/superseded — an owner call, not acted on here):** its own
+scope was "bring `IMPLEMENTATION_STATUS.md` current on the #78/#79/#80 merges";
+`main` has since gained PR #83 and PR #84, so its diff no longer reflects current
+state and `gh pr view 82` reports `mergeStateStatus: BEHIND`. This session's update
+supersedes it rather than building on it. Recommend closing #82 as superseded, but
+that is the owner's call, not this session's.
+
+**PR #81 (open, docs-only, independent):** a Gemini deep-research prompt for
+Louisiana psychiatrist/PMHNP scope-of-practice, relevant to ADR-0014's still-open
+PMHNP signer-authority question. `verify` passed; `mergeStateStatus: BEHIND` (needs
+a rebase, not a conflict) as of this write-up.
+
+**PR #73 (open, untriaged, now has real merge conflicts with current `main`):** the
+whole-platform architecture audit from 2026-09-13 03:48 UTC, docs-only, `verify`
+passed on its own (now-stale) head, but `gh pr view 73` reports
+`mergeStateStatus: DIRTY` — an owner call on disposition, not something to resolve
+unprompted.
+
+**PR #63 (draft, unchanged):** public product-portfolio documentation, still needs
+an owner look before it can leave draft.
 
 **Not claimed:** production readiness, HIPAA compliance, malware protection, working
-external integrations, approved clinical/legal rules, or Product Acceptance of
-VS-OA-001 — for any capability described anywhere in this file. Synthetic data
-only, throughout.
+external integrations, approved clinical/legal rules, Product Acceptance of
+VS-OA-001, or that the mobile Chromium click-interception false positive above has
+a root cause beyond what PR #84's fix commit documents — for any capability
+described anywhere in this file. Synthetic data only, throughout.
 
 The narrative log below (every prior dated session entry, verbatim, unmoved in
 substance) is historical color for how each capability arrived; it is not where a
@@ -631,24 +635,40 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 
 ## Next recommended action
 
-~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011). ~~Check PR #75's CI and merge it~~ **done** — merged 2026-09-13 19:39 UTC.
+~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011). ~~Check PR #75's CI and merge it~~ **done** — merged 2026-09-13 19:39 UTC. ~~Phase 2A: shared auth + router + global shell~~ **done** — PR #84 merged 2026-09-13 23:55 UTC (see Current State above for the CI regressions found and fixed en route).
 
-**Current action (updated 2026-09-13; the paragraph this replaced was stale — it still described PR #75 as open with CI pending after it had already merged):** VS-OA-001's lifecycle state is now **Product Acceptance** (TWP-OA-007 handoff merged directly to `main` as `82aa138`, docs-only, no runtime change). The single next action is **an independent Product Acceptance review of VS-OA-001** against the handoff's AC-OA-001…014 criteria and FIX-OA-001…010 fixtures
-([docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md](docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md)) —
-this must not be performed or pre-verdicted by the implementing session. In
-parallel: (1) [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73)
-(the whole-platform architecture audit, docs-only) is still open and untriaged — its
-own implementation plan's P1-1 first slice (wire the IOP Reconciliation frontend
-workspace to its already-built backend API) is **done on this branch, not yet on
-`main`** (see Current State above); the plan's own next-named slice is **Evidence
-Review** (evidence-service is the most mature, most-tested backend among the 11
-remaining `localStorage`-only workspaces — do not attempt more than one at a time),
-and the smaller P1-3…P1-6 redundancy-cleanup items remain separately scoped; (2)
-[PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63) (draft
-product-portfolio documentation) needs an owner look before it can leave draft; (3)
-provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate —
-still blocked on owner GCP access (`gcloud auth login` + intended project); (4)
-OD-13 (execute CMS regulatory research) and OD-14 (per-org AI-native policy index)
-remain open owner decisions. Do not add Studio mutation, publication, feature-flag,
-worker, or deployment controls before server authorization and audit boundaries
-exist.
+**Current action (updated 2026-09-13, late; the paragraph this replaced described Phase 2A as PR #84 "open, not yet merged" — it has since merged):** no single blocking action — several independent threads, none of which should be attempted together:
+
+1. **VS-OA-001 still needs an independent Product Acceptance review** (unchanged from the prior entry) against the handoff's AC-OA-001…014 criteria and FIX-OA-001…010 fixtures
+   ([docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md](docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md)) —
+   this must not be performed or pre-verdicted by an implementing session.
+2. **Phase 2B candidates, none scoped yet** (per
+   [docs/ux/CLARITY_UX_MIGRATION_PRECONDITIONS.md](docs/ux/CLARITY_UX_MIGRATION_PRECONDITIONS.md)'s
+   "Migration sequence" section): make workspace/tab/case selection
+   URL-addressable (deliberately deferred from Phase 2A); resolve the
+   ClarityShell/area-chrome visual redundancy noted above — a visual-cleanup call
+   that wants explicit owner sign-off before starting, given the brief's repeated
+   "not yet" on visual redesign; wire the Evidence Review frontend to its backend
+   (the next-named P1-1 slice per PR #73's implementation plan, after IOP
+   Reconciliation — evidence-service is the most mature, most-tested backend among
+   the remaining `localStorage`-only workspaces; do not attempt more than one at a
+   time).
+3. **Four open PRs need an owner look, not code changes:**
+   [PR #82](https://github.com/henrytylerhebert-eng/clarity-platform/pull/82) is
+   now stale/superseded by this update — candidate to close;
+   [PR #81](https://github.com/henrytylerhebert-eng/clarity-platform/pull/81) is
+   docs-only, independent, `verify` passed, just needs a rebase and a look;
+   [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73) (the
+   whole-platform architecture audit) is untriaged and now has real merge
+   conflicts with `main` — a disposition call, not something to resolve
+   unprompted; [PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63)
+   (draft product-portfolio documentation) needs an owner look before it can leave
+   draft.
+4. **Unchanged, still blocked on the owner:** provider-backed Cloud SQL/RLS
+   verification remains the separate, non-waived gate (`gcloud auth login` +
+   intended project); OD-13 (execute CMS regulatory research) and OD-14 (per-org
+   AI-native policy index) remain open decisions; OD-19 (Louisiana hospital
+   provider identifiers) is still pending.
+
+Do not add Studio mutation, publication, feature-flag, worker, or deployment
+controls before server authorization and audit boundaries exist.
