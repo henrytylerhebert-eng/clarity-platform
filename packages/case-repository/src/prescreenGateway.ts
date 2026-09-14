@@ -318,16 +318,25 @@ export class PrismaPrescreenGateway {
       if (existing) {
         await tx.prescreenAssessmentVersion.update({ where: { id: existing.id }, data });
       } else {
-        await tx.prescreenAssessmentVersion.create({
-          data: {
-            ...data,
-            organizationId: cmd.organizationId,
-            assessmentVersionId: cmd.draft.assessmentVersionId,
-            encounterId: encounter.id,
-            createdAt: new Date(cmd.occurredAt),
-            createdBy: cmd.actor.actorId,
-          },
-        });
+        try {
+          await tx.prescreenAssessmentVersion.create({
+            data: {
+              ...data,
+              organizationId: cmd.organizationId,
+              assessmentVersionId: cmd.draft.assessmentVersionId,
+              encounterId: encounter.id,
+              createdAt: new Date(cmd.occurredAt),
+              createdBy: cmd.actor.actorId,
+            },
+          });
+        } catch (error) {
+          // The create precedes the versioned UPDATE, so a concurrent writer
+          // that inserted this id first trips the unique index before the
+          // version predicate can classify the loss. Same meaning as losing
+          // the version race: the record changed — refresh and retry.
+          if (isAssessmentIdUniqueViolation(error)) throw new PrescreenVersionConflictError();
+          throw error;
+        }
       }
       const newVersion = await this.versionedEncounterUpdate(tx, encounter, {
         currentAssessmentVersionId: cmd.draft.assessmentVersionId,
