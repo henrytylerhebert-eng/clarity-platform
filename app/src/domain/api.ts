@@ -305,6 +305,138 @@ export async function apiAssuranceReview(input: {
   return (await response.json()) as AssuranceReviewDecisionDto;
 }
 
+export type IopSourceRecordType =
+  | "ENROLLMENT"
+  | "TREATMENT_PLAN"
+  | "ATTENDANCE"
+  | "NOTE_AUDIT"
+  | "CHARGE_LINE"
+  | "EMR_BILLABLE_LINE";
+
+export interface IopSourceRecordDto {
+  type: IopSourceRecordType;
+  sourceRecordId: string;
+  sourceVersion: string;
+}
+
+/** Mirrors IopReconciliationSampleSchema (packages/domain-contracts/src/iopReconciliation.ts). */
+export interface IopReconciliationSampleDto {
+  privacy: "SYNTHETIC_ONLY";
+  sampleId: string;
+  serviceDate: string;
+  programId: string;
+  enrollments: Array<{ enrollmentId: string; personToken: string; status: "ACTIVE" | "PENDING_TREATMENT_PLAN" | "CLOSED"; enrolledOn: string }>;
+  treatmentPlans: Array<{ planId: string; enrollmentId: string; version: string; effectiveFrom: string; prescribedDaysPerWeek: number; status: "ACTIVE" }>;
+  attendanceEvents: Array<{ attendanceId: string; enrollmentId: string; planId?: string; groupType: string; outcome: "ATTENDED" | "ABSENT" | "EXCUSED" | "CANCELED" }>;
+  noteAudits: Array<{ attendanceId: string; noteId: string; auditStatus: "COMPLETE" | "PENDING" | "FAILED"; reviewedBy?: string; reviewedAt?: string }>;
+  chargeLines: Array<{ chargeLineId: string; attendanceId: string; noteId: string; units: number; status: "CREATED" | "HELD" | "VOIDED" }>;
+  emrBillableLines: Array<{ billableLineId: string; chargeLineId: string; status: "POSTED" | "HELD" | "DENIED" }>;
+  exceptionReviews: Array<{ issueKey: string; state: "REVIEWED"; reviewerToken: string; reviewedAt: string; disposition: "ACCEPTED_EXCEPTION" | "HOLD" | "REJECTED"; reason: string }>;
+}
+
+export interface IopReconciliationImportPayload {
+  facilityId: string;
+  programId: string;
+  integrationKey: string;
+  idempotencyKey: string;
+  source: { fileName?: string; exportedAt: string; cutoffAt: string };
+  sourceRecords: IopSourceRecordDto[];
+  reconciliation: IopReconciliationSampleDto;
+}
+
+export interface IopReconciliationImportRecordDto {
+  id: string;
+  organizationId: string;
+  facilityId: string;
+  programId: string;
+  integrationId: string;
+  idempotencyKey: string;
+  requestHash: string;
+  snapshotHash: string;
+  exportedAt: string;
+  cutoffAt: string;
+  sourceFileName: string | null;
+  payload: IopReconciliationImportPayload;
+  revision: number;
+  acceptedBy: string;
+  acceptedAt: string;
+}
+
+export interface IopReconciliationExceptionReviewDto {
+  id: string;
+  importId: string;
+  idempotencyKey: string;
+  issueKey: string;
+  disposition: "RESOLVED" | "ACCEPTED_EXCEPTION";
+  reason: string;
+  reviewerId: string;
+  reviewedAt: string;
+}
+
+export interface IopReconciliationCloseReceiptDto {
+  id: string;
+  importId: string;
+  idempotencyKey: string;
+  reviewerId: string;
+  reviewedAt: string;
+  reason: string;
+  sourceCutoffAt: string;
+  issueCount: number;
+  reviewedCount: number;
+}
+
+export interface IopReconciliationImportDetailDto extends IopReconciliationImportRecordDto {
+  exceptionReviews: IopReconciliationExceptionReviewDto[];
+  closeReceipt: IopReconciliationCloseReceiptDto | null;
+  integration: { integrationKey: string; label: string };
+}
+
+export async function apiIopReconciliationImport(input: {
+  facilityId: string;
+  programId: string;
+  integrationKey: string;
+  idempotencyKey: string;
+  source: { fileName?: string; exportedAt: string; cutoffAt: string };
+  sourceRecords: IopSourceRecordDto[];
+  reconciliation: IopReconciliationSampleDto;
+}): Promise<{ import: IopReconciliationImportRecordDto; replayed: boolean }> {
+  const response = await request("/api/iop/reconciliation-imports", {
+    method: "POST",
+    token: true,
+    body: JSON.stringify(input),
+  });
+  return (await response.json()) as { import: IopReconciliationImportRecordDto; replayed: boolean };
+}
+
+export async function apiIopReconciliationGet(id: string): Promise<IopReconciliationImportDetailDto> {
+  const response = await request(`/api/iop/reconciliation-imports/${encodeURIComponent(id)}`, { token: true });
+  return (await response.json()) as IopReconciliationImportDetailDto;
+}
+
+export async function apiIopReconciliationReview(
+  id: string,
+  issueKey: string,
+  input: { expectedRevision: number; idempotencyKey: string; disposition: "RESOLVED" | "ACCEPTED_EXCEPTION"; reason: string },
+): Promise<{ review: IopReconciliationExceptionReviewDto; replayed: boolean }> {
+  const response = await request(
+    `/api/iop/reconciliation-imports/${encodeURIComponent(id)}/issues/${encodeURIComponent(issueKey)}/reviews`,
+    { method: "POST", token: true, body: JSON.stringify(input) },
+  );
+  return (await response.json()) as { review: IopReconciliationExceptionReviewDto; replayed: boolean };
+}
+
+export async function apiIopReconciliationClose(
+  id: string,
+  input: { expectedRevision: number; idempotencyKey: string; reason: string },
+): Promise<{ receipt: IopReconciliationCloseReceiptDto; replayed: boolean }> {
+  const response = await request(`/api/iop/reconciliation-imports/${encodeURIComponent(id)}/close`, {
+    method: "POST",
+    token: true,
+    body: JSON.stringify(input),
+  });
+  return (await response.json()) as { receipt: IopReconciliationCloseReceiptDto; replayed: boolean };
+}
+
 /** Human-readable explanations for the API's uniform error codes. */
 export function describeApiError(error: unknown): string {
   if (!(error instanceof ApiError)) return "Unexpected error.";
@@ -318,6 +450,7 @@ export function describeApiError(error: unknown): string {
       return "The verified session is not permitted to perform this action.";
     case "case_not_found":
     case "assurance_resource_not_found":
+    case "resource_not_found":
       return "The requested resource is not visible to this session's organization.";
     case "review_requires_current_evaluation":
       return "This evaluation is no longer current. Reload the case before reviewing.";
@@ -327,6 +460,18 @@ export function describeApiError(error: unknown): string {
       return "The evidence state changed. Reload the case before reviewing.";
     case "review_rationale_required":
       return "A reviewer rationale is required for this decision.";
+    case "idempotency_key_reused":
+      return "This action already ran with that idempotency key and a different request body.";
+    case "source_snapshot_already_imported":
+      return "This exact source snapshot has already been imported for this integration.";
+    case "version_conflict":
+      return "The record changed since it was loaded. Reload before submitting again.";
+    case "reconciliation_issue_not_found":
+      return "That issue is not derived from this import's current source data.";
+    case "reconciliation_already_closed":
+      return "This reconciliation is already closed.";
+    case "unreviewed_exceptions":
+      return "Every derived issue needs a recorded review before closing.";
     case "invalid_request":
       return "The request was rejected by validation (unknown or missing fields).";
     default:

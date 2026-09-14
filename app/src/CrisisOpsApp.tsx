@@ -735,7 +735,7 @@ export function App() {
           {workspace === "training" ? <TrainingSops roleId={roleId} /> : null}
           {workspace === "mock-admits" ? <MockAdmitLab /> : null}
           {workspace === "studio" ? <ProductStudio /> : null}
-          {workspace === "iop-reconciliation" ? <IopReconciliation /> : null}
+          {workspace === "iop-reconciliation" ? <IopReconciliation apiPrincipal={apiPrincipal} /> : null}
         </section>
       </main>
     </div>
