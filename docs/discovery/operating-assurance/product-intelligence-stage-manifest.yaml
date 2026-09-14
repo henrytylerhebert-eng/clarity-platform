@@ -1,0 +1,52 @@
+skill:
+  id: product-intelligence
+  version: "1.0"
+  purpose: Define the consultant-supervised operating-assurance product and propose one bounded first-release outcome.
+entry_conditions:
+  required_artifacts:
+    - idea_assessment
+    - source_pattern_audit
+    - portfolio_mix_evidence
+    - open_decisions
+    - risk_register
+    - repository_state
+  required_gates:
+    - opportunity_definition
+  prohibited_states:
+    - implementation_in_progress
+outputs:
+  - executive_product_summary
+  - one_sentence_product_definition
+  - product_thesis
+  - problem_definition
+  - users_and_jobs
+  - current_workflow_and_alternatives
+  - capability_inventory
+  - domain_data_permissions_integrations_architecture_context
+  - success_model
+  - maturity_assessment
+  - assumption_register
+  - contradictions_and_risks
+  - product_story_vs_truth
+  - canonical_product_definition
+  - platform_intelligence_corpus_strategy
+  - proposed_first_release_boundary
+  - stage_handoff
+exit_verdicts:
+  - ready_for_product_requirements_planning
+  - more_product_discovery_required
+  - repository_evidence_insufficient
+  - stop
+next_skills:
+  ready_for_product_requirements_planning:
+    - product-requirements-planning
+  more_product_discovery_required:
+    - product-intelligence
+  repository_evidence_insufficient:
+    - product-intelligence
+  stop: []
+return_conditions:
+  product_requirements_planning:
+    - primary_user_workflow_or_outcome_invalidated
+    - product_home_changes_product_boundary
+    - first_release_requires_prohibited_authority_or_data
