@@ -1,12 +1,13 @@
 ---
-status: Provider/session choice recorded; bounded local synthetic slice verified; provider-backed implementation remains gated
+status: Provider swapped to Supabase Postgres and schema deployed (2026-09-13, see amendment below); a Supabase-specific REST-exposure gap was found and fixed same session; provider-backed RLS/role-separation acceptance tests still not run against the new provider
 decision: OD-6
 owner: Tyler/product owner with technical and security review
-date: 2026-07-19
+date: 2026-07-19 (superseded in part 2026-09-13 — see amendment)
 data_boundary: synthetic only
 related_decisions:
   - docs/architecture/ADR-0011-authentication.md
   - docs/architecture/ADR-0012-api-architecture.md
+  - docs/architecture/ADR-0022-supabase-provider-swap.md
   - docs/decisions/RLS_TENANT_ENFORCEMENT_DESIGN.md
   - docs/decisions/S2_MIGRATION_PROMOTION_AND_RECOVERY_CHECKLIST.md
 ---
@@ -218,7 +219,7 @@ must be preceded by:
 No provider account, secret, deployment, live tenant, API route, worker, outbox
 delivery, or production data is authorized by this packet.
 
-## Owner Decision
+## Owner Decision (2026-07-19, original)
 
 - Decision: `[x] Accept recommended posture`  `[x] Select provider/connection option`  `[ ] Revise`  `[ ] Defer`
 - Provider: `Google Cloud SQL for PostgreSQL`
@@ -233,3 +234,46 @@ delivery, or production data is authorized by this packet.
   backup/restore, and production implementation remain unverified. Application
   predicates remain required alongside the local RLS boundary. No provider
   secret, live tenant, or production deployment is authorized by this record.
+
+## Amendment — 2026-09-13: Provider Swapped To Supabase, First Provider-Backed Write
+
+Full detail, evidence, and the RLS-vs-REST-exposure distinction are in
+[ADR-0022](../architecture/ADR-0022-supabase-provider-swap.md); this section
+records the owner decision itself.
+
+Tyler had an existing, previously-idle Supabase project (`clarity-platform`,
+ref `ipragrvmnhdnnltwyqbq`, region `ca-central-1`, created 2026-08-07) and, in
+this session, directed swapping the provider from Google Cloud SQL to it,
+then explicitly authorized applying the schema — the first time this
+packet's "provider-backed" step has actually happened. All 25 existing
+Prisma migrations were applied unchanged. Supabase's default `anon`/
+`authenticated` REST-API grants (present on all 60 public tables, 44 without
+RLS) were found and revoked same session — a Supabase-specific exposure
+class Cloud SQL would never have had, unrelated to this packet's RLS design.
+
+**Still not satisfied by this amendment** — every item in
+[Required Acceptance Tests](#required-acceptance-tests) above remains
+unverified against the new provider; only the local `clarity_dev` evidence
+exists. No dedicated non-superuser runtime role has been created on Supabase
+(Prisma still connects as `postgres`, mirroring the same accepted local-dev
+gap). No backup/restore, break-glass, or secret-rotation plan exists for this
+project. No application code or test points at Supabase — `DATABASE_URL` for
+the app and every test suite remains local `clarity_dev`.
+
+### Owner Decision (2026-09-13, current)
+
+- Decision: `[x] Accept recommended posture`  `[x] Select provider/connection option`  `[ ] Revise`  `[ ] Defer`
+- Provider: `Supabase Postgres` (project `ipragrvmnhdnnltwyqbq`)
+- Region: `ca-central-1`
+- Connection/pooling mode: `Session pooler` (`aws-0-ca-central-1.pooler.supabase.com:5432`) — the direct host is IPv6-only and unreachable from this session's network; session-pooler mode preserves the "not transaction pooling" requirement from the original Option A choice
+- Owner/security approver: `Tyler Hebert / Clarity product owner`
+- Date: `2026-09-13`
+- Notes: supersedes the provider/region/connection fields of the 2026-07-19
+  decision above; every other posture requirement recorded there (shared
+  schema, application-layer predicates, transaction-local context, non-owner
+  runtime role, separate migration/recovery role, no session-scoped tenant
+  state) is unchanged and still required. This record authorizes exactly
+  what was done — schema migration and closing the anon/authenticated
+  REST-exposure gap — and nothing beyond that; it does not authorize
+  production configuration, live/real data, application deployment against
+  this database, or any broader RLS rollout.
