@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "main": "src/index.ts",
-  "description": "Thin HTTP layer over the command services. The first (and only) path where identity is verified: every request authenticates a bearer token through @clarity/auth-service and builds its CommandActor via actorFor(), so tenant and roles come from the database-backed principal — never from the request body. One command exposed end-to-end (RecordDecisionRationale); no framework, no PHI, no UI.",
+  "description": "Thin node:http layer over authentication and command services. Protected routes authenticate bearer tokens through @clarity/auth-service, so tenant and roles come from the database-backed principal rather than request bodies. Exposes auth/session, case decision-rationale, and seven same-organization prescreen routes; synthetic-only by policy and not PHI-ready, deployed, or a production API.",
   "dependencies": {
     "@clarity/auth-service": "*",
     "@clarity/case-repository": "*",

@@ -26,13 +26,12 @@ const ID = z.string().min(1).max(200);
 
 /**
  * Prescreen command actor. Role codes are free-form strings evaluated
- * against an explicitly injected policy because the production role
- * taxonomy for prescreen actors (field officers, prescreen assessors,
- * Central Intake) is deliberately NOT invented in this slice — see
- * docs/decisions/PRESCREEN_ROLE_MAPPING_DECISION_PACKET.md. Synthetic
- * tests use clearly synthetic role codes. This diverges from
- * CommandActorSchema (exact UserRole enum) on purpose and must be
- * reconciled before any API/UI exposure.
+ * against an explicitly injected policy. ADR-0014 maps the current
+ * same-organization API slice to exactly INTAKE_COORDINATOR and
+ * PHYSICIAN_REVIEWER through PRESCREEN_PRODUCTION_POLICY; synthetic tests use
+ * clearly synthetic role codes. External/field roles and PMHNP configuration
+ * remain deferred. The free-form schema is an injection boundary, not
+ * authority: the selected policy must approve every role before any read.
  */
 export const PrescreenCommandActorSchema = z
   .object({

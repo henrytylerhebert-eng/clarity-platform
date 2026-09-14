@@ -71,8 +71,9 @@ Where no measurement exists, the project says `No measurements found`. Where a c
 |---|---|
 | `app/` | Working prototype (Vite + React + TS): guided intake, medical-necessity/legal drafts, command center, stakeholder feature map, hash-chained custody ledger, packet builder, simulated routing, bedboard, Training & SOPs. `cd app && npm run dev` |
 | `packages/domain-contracts/` | Domain types, Zod schemas, state machines, audit helper, feature flags — contracts only |
-| `packages/*-service/` | Backend service foundations for case, document, evidence, benefits, authorization, and authentication workflows |
-| `prisma/` | Canonical foundation schema (validated; initial migration generated) — ADR-0002 |
+| `packages/*-service/` | Backend service foundations for case, document, evidence, benefits, authorization, authentication, and same-organization prescreen workflows |
+| `packages/api-service/` | Local authenticated `node:http` slice for sessions, case decision rationale, and seven same-organization prescreen routes; synthetic-only, not deployed, and not the settled production API architecture |
+| `prisma/` | Canonical schema and local migration history exercised by repository adapters/tests; provider hosting and RLS evidence remain open — ADR-0002 |
 | `data/synthetic-cases/` | Validated synthetic fixtures (3 of a planned 10) |
 | `data/mock-use-cohorts/` | Separated mock-use training cohorts; not canonical app seed data |
 | `docs/` | Canonical documentation: `product/`, `architecture/` (incl. ADRs), `workflows/`, `discovery/`, `clinical/`, `legal/`, `payer-and-benefits/`, `governance/`, `security/`, `testing/`, `roadmap/`, `developer-handoff/`, `decisions/` |
@@ -96,7 +97,15 @@ For potential customers or POC reviewers:
 
 For developers:
 
-- For human-supervised multi-agent work, start with agents/bridge/PROJECT_CONFIGURATION.md and agents/bridge/PROTOCOL.md.
+- Before any domain-aware development-agent experiment, read
+  [the repository preparation and entry gate](docs/developer-handoff/AI_NATIVE_DOMAIN_AGENT_REPOSITORY_PREPARATION.md).
+  No code-modifying agent is currently authorized. OD-18 must reconcile the
+  competing open PR #33 plan with that package before either governance lane
+  merges or launches a role.
+- The existing human-supervised bridge record remains at
+  `agents/bridge/PROJECT_CONFIGURATION.md` and `agents/bridge/PROTOCOL.md`;
+  live dispatch is not assumed and requires the OD-16 disposition plus a
+  current status/authentication check.
 - For a new workflow or requirements-acquisition session, start with [docs/discovery/README.md](docs/discovery/README.md); it is documentation-only and does not authorize implementation.
 - Read `IMPLEMENTATION_STATUS.md` for what is complete, scaffolded, documented-only, blocked, and next.
 - Read `docs/roadmap/IMPLEMENTATION_ROADMAP.md` for the platform sequence.
@@ -137,7 +146,11 @@ npm audit --omit=dev
 Current prototype status:
 
 - Local app: guided intake, command center, role scoping, Training & SOPs, packet generation, simulated routing, custody ledger, and bedboard are implemented with synthetic data.
-- Backend foundations: case, document, evidence, benefits, authorization, and authentication services are in place as repository/service layers, not as a deployed API product.
+- Backend foundations: case, document, evidence, benefits, authorization,
+  authentication, and same-organization prescreen services are in place. A
+  bounded local authenticated API exposes sessions, case decision rationale,
+  and prescreen routes; the prescreen gateway remains in-memory and none of
+  this is a deployed API product.
 - Production deployment: not started.
 - Live integrations: not started.
 - Clinical/legal/payer validation: required before any real-world use.

@@ -1,13 +1,16 @@
 ---
 status: Integrated draft
 owner: TBD
-version: 1.0.0
-last_integrated: 2026-07-10
+version: 1.1.0
+last_integrated: 2026-07-29
 source_artifacts:
   - reference/source-packages/clarity-ai-master-architecture-v0.2.0-partial/MASTER_ARCHITECTURE.md (§5–9, §19–21)
   - reference/source-packages/clarity-ai-master-architecture-v0.2.0-partial/REPOSITORY_STRUCTURE.md
   - docs/01-project-architecture.md §3, §11 (crisis generation)
   - reference/source-packages/clarity-ai-database-artifact/docs/INTEGRATION_PLAN.md
+  - docs/architecture/ADR-0013-prescreen-command-service.md
+  - docs/architecture/ADR-0014-prescreen-role-mapping-and-api-slice.md
+  - IMPLEMENTATION_STATUS.md
 unresolved_conflicts: "Package files 07-agent-architecture/, 09-rules-and-retrieval/, 11-api-and-services/ missing — agent contracts, retrieval spec, and API architecture have no local source"
 related_requirements: REQ-001…REQ-012
 related_adrs: ADR-0001, ADR-0002
@@ -43,8 +46,8 @@ Each case maintains an overall status plus independent statuses for clinical, le
 ## Current implementation state (honest)
 
 - **Implemented prototype (`app/`):** localStorage-backed guided intake, medical-necessity and legal drafts, evidence review, benefits/authorization views, packet/routing, custody ledger, bedboard, training, Mock Admit Lab, and read-only synthetic Product Studio.
-- **Implemented service foundations (`packages/*-service`):** tenant-scoped case, document, evidence, benefits, authorization, and authentication services plus Prisma adapters and tests. These are local foundations, not deployed products.
-- **Implemented API spike (`packages/api-service`):** authenticated `node:http` vertical slice for session routes and one case decision-rationale command. ADR-0012 remains Proposed and recommends a different Fastify package shape, so the production API decision is open.
+- **Implemented service foundations (`packages/*-service`):** tenant-scoped case, document, evidence, benefits, authorization, and authentication services plus Prisma adapters and tests, and the same-organization Phase 2 prescreen command service with an in-memory gateway. These are local foundations, not deployed products; prescreen persistence remains open in PR #32.
+- **Implemented API spike (`packages/api-service`):** authenticated `node:http` vertical slice for session routes, one case decision-rationale command, and seven same-organization prescreen routes. ADR-0012 remains Proposed and recommends a different Fastify package shape, so the production API decision is open.
 - **Schema and local persistence:** `prisma/schema.prisma` is valid and migrations/adapters are exercised by integration tests. Production database hosting and RLS strategy remain open.
 - **Documented only or open:** model gateway, retrieval, product agents, production hosting, managed identity, production storage, observability, external integrations, and controlled release.
 

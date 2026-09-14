@@ -11,7 +11,7 @@ Build sequence (agreed): case repository → case command service → documents 
 ## Session open / close (mandatory)
 
 - **Open:** read `IMPLEMENTATION_STATUS.md` (current state + next recommended action) and restate the project state in ≤5 lines before doing new work. Verify `git status` is clean before starting.
-- **Close:** update `IMPLEMENTATION_STATUS.md`, run `graphify update .`, and end with completed items + the single next action.
+- **Close:** update `IMPLEMENTATION_STATUS.md` when implementation or verified status changed, refresh generated graph output only when the assignment authorizes generated artifacts, and end with completed items + the single next action.
 
 ## Hard rules (truth discipline)
 
@@ -33,9 +33,10 @@ Build sequence (agreed): case repository → case command service → documents 
 ## Workflow
 
 - Discovery first (read existing code/ADRs), then implementation, then integration tests against `clarity_dev`, then docs (ADR + implementation doc + test manifest with **honest gaps**), then small commits, then PR to `main`. Never push directly to `main`.
-- Validation gate before any completion claim: `npm run lint`, `npm run typecheck`, `npm test`, `npx prisma validate` — all must actually run and pass.
+- Named reusable, persistent, or temporary domain-aware roles under the proposed operating model must pass the entry gate in `docs/developer-handoff/AI_NATIVE_DOMAIN_AGENT_REPOSITORY_PREPARATION.md` and complete the execution contract in `docs/AGENTS_TEMPLATE.quickfill.md`. An ordinary user-directed Codex/Claude session is outside this role gate only when it is not assigned domain-aware code or shared-contract modification. Any one-off, temporary, reusable, or persistent agent assigned such modification must complete the gate, a separate approval record, and a bounded work package; direct user authorization defines task scope but does not waive the gate for domain-changing work. OD-15 can authorize only the bounded read-only DEV-R1 trial; it can never grant code-modification authority.
+- Validation gate before a code/behavior completion claim: `npm run lint`, `npm run typecheck`, `npm test`, `npx prisma validate` — all must actually run and pass. Documentation-only work uses scoped link/format/metadata validation and must explicitly list unavailable code gates.
 - Commit style: conventional prefixes (`feat:`/`fix:`/`test:`/`docs:`/`chore:`), body explains the why.
-- ADR numbering is sequential; check `docs/architecture/` for the next free number (0001–0008 taken as of 2026-07-11).
+- ADR numbering is a shared surface; check `docs/architecture/` and every open PR before allocating. Current `main` contains ADR-0001 through ADR-0014 and ADR-0018; unmerged lanes claim 0015 through 0017.
 - Out-of-scope findings become GitHub issues, not silent scope creep (backlog: issues #1–#5).
 
 ## House terminology
@@ -44,18 +45,18 @@ Adopt these exactly: tenant = `organizationId`; case = `BehavioralHealthCase`; t
 
 ## Standing assumptions (labeled, in force)
 
-- Actor roles are trusted caller input — authentication does not exist yet.
+- Authentication and database-sourced roles exist for the bounded API slice. Managed identity-provider integration and production-wide authorization remain unimplemented.
 - Local filesystem object storage is development-only.
 - REQ numbering is inferred lineage; the source REQ matrix is missing (OD-1).
 
 ## Project state (update on every phase change)
 
 ```
-PROJECT STATE: Clarity Platform — updated 2026-07-19
+PROJECT STATE: Clarity Platform — updated 2026-07-29
 Objective: local, tested, tenant-scoped backend foundation for behavioral-health case workflows (synthetic only)
-Current phase: prescreen product slice — package onboarded (PRs #17/#20), Phase 1 contracts + hardening (PRs #19/#27), Phase 2 command service (PR #23, ADR-0013), role mapping RESOLVED + same-org HTTP API slice implemented (ADR-0014, PR #28 pending); provider-backed Cloud SQL/RLS verification remains the separate gate before Phase 3 prescreen persistence
-Decisions: solo-maintainer §3a protection is LIVE (PR-only, approvals 0, required strict "verify" check, conversation resolution, admin enforcement); prescreen role mapping ruled Option-3-narrow (INTAKE_COORDINATOR ≡ Central Intake, PHYSICIAN_REVIEWER ≡ authorized practitioner, PMHNP scope as configured policy, external/field roles deferred, same-org only, receivingOrganizationId principal-derived); prescreen Phase 2 approved same-org synthetic-only with submission-as-intent; NON_OPPOSED routing remains an authorized-review pathway; contract evaluators fail closed for missing privacy regime, overlapping consent rules, unresolved transport restrictions, and missing sending/receiving facility approvals; idempotency fingerprint excludes occurredAt (ADR-0014 §5); event-vocabulary expansion stays gated on named consumers and domain review
-Open decisions: OD-1 (missing master package), OD-2 (counsel review), OD-3 (clinical licensing), OD-5 (API — vertical slice merged, hosting undecided), OD-6 (DB hosting/RLS — provider posture accepted, provider-backed evidence gated), OD-7 (pnpm/Turborepo), OD-8 (schema graduation), cross-org prescreen submission/receipt model (successor packet — blocks field-originated prescreens), prescreen UI scope
-Deliverables: 343/343 root tests, 64/64 app; 145/145 prescreen source-package checksums; tag clarity-foundation-v0.1; ADR-0001…0014
-Next action: owner provides GCP access (gcloud auth login + intended project) for the provider-backed Cloud SQL/RLS gate, or decides prescreen UI scope / cross-org packet; no Studio mutation/publication/feature-flag/worker/deployment controls before server authorization and audit boundaries exist
+Current phase: prescreen product slice — package onboarded (PRs #17/#20), Phase 1 contracts + hardening (PRs #19/#27), Phase 2 command service (PR #23, ADR-0013), role mapping resolved + same-org HTTP API slice merged via PR #28 (ADR-0014); Phase 3 persistence is open in PR #32 and is not accepted main-branch behavior. Parallel agent-governance work: Stage 0.4 landed in PR #36; Stage 0.1-0.3 and PR #30 remain held by the owner; no role launch is authorized.
+Decisions: solo-maintainer §3a protection is LIVE (PR-only, approvals 0, required strict "verify" check, conversation resolution, admin enforcement); prescreen role mapping ruled Option-3-narrow (INTAKE_COORDINATOR ≡ Central Intake, PHYSICIAN_REVIEWER ≡ authorized practitioner, PMHNP scope as configured policy, external/field roles deferred, same-org only, receivingOrganizationId principal-derived); prescreen Phase 2 approved same-org synthetic-only with submission-as-intent; NON_OPPOSED routing remains an authorized-review pathway; contract evaluators fail closed for missing privacy regime, overlapping consent rules, unresolved transport restrictions, and missing sending/receiving facility approvals; idempotency fingerprint excludes occurredAt (ADR-0014 §5); current-main ADR-0018 rules MEDICAL_TRANSFER_REQUIRED as a diversion but leaves its role authority open; PR #30 is held for owner review because its 2,483-file diff overlaps canonical status and agent_bridge surfaces; event-vocabulary expansion stays gated on named consumers and domain review
+Open decisions: OD-1 (missing master package), OD-2 (counsel review), OD-3 (clinical licensing), OD-5 (API hosting), OD-6 (provider-backed DB/RLS evidence), OD-7 (pnpm/Turborepo), OD-8 (schema graduation), OD-9 (hermetic local verification), OD-13 (CMS regulatory research), OD-14 (organization policy index), OD-15 (read-only verifier ownership/approval), OD-16 (bridge disposition), OD-17 (remaining RETURNED_FOR_MORE_INFORMATION alignment), OD-18 (single canonical agent-governance plan), OD-19 (medical-diversion role authority), cross-org prescreen submission/receipt, prescreen UI scope
+Current evidence: see the top block of IMPLEMENTATION_STATUS.md. On 2026-07-29, checks at assessed base 8399edd in a pre-existing worktree passed prescreen units/app/lint/Prisma validation while root migration integrity and typecheck exposed shared database/workspace state. The fresh preparation worktree has no installed dependencies, so repository commands are unavailable there. During final review, origin/main advanced five commits to edd0855: PR #37's package-lock update, PR #36's enum-mirror guard, PR #38's MEDICAL_TRANSFER_REQUIRED diversion ruling, PR #39's accepted status record, and PR #41's OD-13/OD-14 product decisions. PR #39 records green CI and historical PR #38 session results; none were reproduced here. The current guard tolerates only RETURNED_FOR_MORE_INFORMATION; this branch remains behind all five commits. Historical counts are labeled in IMPLEMENTATION_STATUS.md.
+Next action: integrate current main through PR #41, then reconcile open governance PR #33 and held PR #30 with this preparation package to select one canonical agent/bridge/evaluation/status plan; hermetic verification and all product, deployment, clinical, legal, and security gates remain separate
 ```

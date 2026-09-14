@@ -115,4 +115,33 @@ Use:
 ## Template usage (for future lanes)
 
 - Use [docs/AGENTS_TEMPLATE.md](docs/AGENTS_TEMPLATE.md) for standard lanes.
+  When launching a named reusable/persistent/domain role under the proposed
+  operating model, also complete the execution-contract section in
+  [docs/AGENTS_TEMPLATE.quickfill.md](docs/AGENTS_TEMPLATE.quickfill.md); the
+  full template does not replace that authorization record.
 - Use [docs/AGENTS_TEMPLATE.quickfill.md](docs/AGENTS_TEMPLATE.quickfill.md) for urgent lanes that need fast scoping.
+
+## Domain-aware agent entry gate
+
+- Start with
+  [docs/developer-handoff/AI_NATIVE_DOMAIN_AGENT_REPOSITORY_PREPARATION.md](docs/developer-handoff/AI_NATIVE_DOMAIN_AGENT_REPOSITORY_PREPARATION.md).
+- The only proposed first experiment is the read-only repository-review role
+  defined in
+  [docs/agents/PRESCREEN_INVARIANT_VERIFIER_CHARTER.md](docs/agents/PRESCREEN_INVARIANT_VERIFIER_CHARTER.md).
+  It is not a product AI agent and is not authorized until OD-15 and its
+  prompt-approval record are approved. That approval can authorize only DEV-R1's
+  bounded read-only trial, not code modification or other agent roles.
+- Any reusable, persistent, or temporary domain-aware role under this proposed
+  model, and any separately proposed code-modifying agent role, must complete
+  the agent execution contract in
+  [docs/AGENTS_TEMPLATE.quickfill.md](docs/AGENTS_TEMPLATE.quickfill.md).
+  An ordinary user-directed Codex/Claude session is outside this role gate only
+  when it is **not** assigned domain-aware code or shared-contract
+  modification. Any one-off, temporary, reusable, or persistent agent assigned
+  such modification must complete this gate, a separate approval record, and a
+  bounded work package. Direct user authorization defines task scope but does
+  not waive the gate for domain-changing work.
+- If typecheck or tests resolve a package, generated client, migration ledger,
+  or configuration outside the target worktree, stop. Do not use that result
+  to authorize code modification.
+- Do not relocate or dispatch through `agents/bridge/` until OD-16 is decided.

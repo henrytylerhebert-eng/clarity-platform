@@ -4,7 +4,7 @@ Use this template for new feature lanes so every lane starts with the same proto
 
 | Choose this template when... | Use instead when... |
 | --- | --- |
-| The lane needs full planning, cross-cutting detail, or review traceability. | Use `docs/AGENTS_TEMPLATE.quickfill.md` for urgent, tightly scoped work. |
+| The lane needs full planning, cross-cutting detail, or review traceability. For a named reusable, persistent, or temporary domain-aware role under the proposed operating model, also complete §6 of `docs/AGENTS_TEMPLATE.quickfill.md`. | Use `docs/AGENTS_TEMPLATE.quickfill.md` alone for urgent, tightly scoped work. |
 
 ## 1) Lane header
 
@@ -134,6 +134,12 @@ When reporting completion, use:
 
 ## 10) Safety + governance reminders
 
+- A full lane plan does not authorize a named reusable, persistent, or
+  temporary domain-aware role under the proposed operating model. For such a
+  role, attach the completed
+  execution contract from
+  `docs/AGENTS_TEMPLATE.quickfill.md` §6, including the exact authorization
+  record, approval state, scope, and date.
 - No fabricated facts.
 - No secrets in outputs, logs, or code.
 - Output is not evidence; speed is not progress; automation is not understanding; polish is not trust.

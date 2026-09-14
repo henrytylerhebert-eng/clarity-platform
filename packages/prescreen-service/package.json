@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "main": "src/index.ts",
-  "description": "Prescreen command service (Phase 2): six controlled commands behind strict envelopes, explicit synthetic role policy, idempotency, optimistic concurrency, immutable attestation, supplement lineage, and audit/outbox contracts — in-memory gateway only, no persistence, no API, no UI.",
+  "description": "Prescreen command service (Phase 2): six controlled commands plus a readiness view behind strict envelopes, injected synthetic/production role policies, idempotency, optimistic concurrency, immutable attestation, supplement lineage, and audit/outbox contracts. The gateway on main is in-memory; authenticated same-organization API routes exist, with no durable persistence or UI.",
   "dependencies": {
     "@clarity/domain-contracts": "0.1.0",
     "zod": "^3.24.1"

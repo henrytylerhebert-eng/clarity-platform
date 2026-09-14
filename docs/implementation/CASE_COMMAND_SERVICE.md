@@ -1,20 +1,29 @@
 ---
-status: Implemented and verified against clarity_dev
+status: Implemented foundation; verification counts below are historical
 owner: TBD
-version: 1.0.0
-last_integrated: 2026-07-11
+version: 1.1.0
+last_integrated: 2026-07-29
 source_artifacts:
   - packages/case-service/ (implementation)
   - packages/case-repository/src/caseCommandGateway.ts (approved Prisma adapter)
   - prisma/migrations/20260711133547_case_version_and_command_idempotency
-unresolved_conflicts: "MEDICAL_TRANSFER_REQUIRED status vocabulary gap (OD-8); actor roles trusted from caller until auth exists"
+unresolved_conflicts: "Current-main ADR-0018 resolves MEDICAL_TRANSFER_REQUIRED topology but leaves target-role authority open (OD-19); RETURNED_FOR_MORE_INFORMATION remains deferred (OD-17)"
 related_requirements: REQ-001…REQ-004
-related_adrs: ADR-0003 (decision record), ADR-0001, ADR-0002
+related_adrs: ADR-0003 (decision record), ADR-0001, ADR-0002, ADR-0018 (current-main amendment)
 ---
 
 # Case Command Service
 
 The application boundary for every case action. Architecture and decisions: **ADR-0003**. This document covers usage and test coverage.
+
+**Current amendment:** authentication and a bounded local API now exist, so
+direct service envelopes remain an internal/test boundary while HTTP actors
+come from an authenticated principal. Current-main ADR-0018 adds
+`MEDICAL_TRANSFER_REQUIRED` as a nonterminal diversion state, but explicitly
+does not approve its inherited nonclinical transition roles (OD-19).
+`RETURNED_FOR_MORE_INFORMATION` remains unrepresentable pending OD-17.
+Current verification belongs in `IMPLEMENTATION_STATUS.md`; totals below are
+historical implementation-session evidence.
 
 ## Command flow
 
@@ -60,7 +69,11 @@ Suite totals this run: **52 integration tests** (2 command-service files: 22; pr
 
 ## Known limitations
 
-1. Actor roles are trusted from the caller — no authentication layer exists yet; the service is the authorization point only.
+1. Direct service callers supply actor roles and the service enforces them;
+   authenticated HTTP routes derive roles from the database-backed principal.
+   Current-main ADR-0018 inherits `TransitionCase` roles for
+   `MEDICAL_TRANSFER_REQUIRED`; target-specific clinical authority is unresolved
+   under OD-19.
 2. ~~`AssignCase` checks the assignee's organization just before the transaction (small TOCTOU window)~~ **Closed 2026-07-11 (ADR-0005):** assignee validation (same organization + `ACTIVE` status) now runs inside the command transaction and is re-asserted as a predicate on the conditional UPDATE itself; a mid-transaction membership change rolls the whole command back. Verified by `tests/integration/case-assignment-atomicity.test.ts`.
 3. `RecordDecisionRationale` is audit-only (no `DecisionRecord` table in the foundation schema — expanded-draft model, OD-8).
 4. Idempotency records are never expired; a retention policy is future work.
