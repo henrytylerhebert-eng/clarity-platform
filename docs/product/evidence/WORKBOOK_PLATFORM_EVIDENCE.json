@@ -4313,7 +4313,7 @@
         "C09"
       ],
       "code_status": "PARTIAL_REUSE",
-      "gap": "Backend synthetic import/review/close exists; current UI local preview is not wired to it; real sources unapproved",
+      "gap": "Authenticated synthetic UI is wired to persisted import/review/close/read; program binding, database controls, source authority and real sources remain unapproved",
       "phase": "P2",
       "dependencies": [
         "F13",
@@ -4820,8 +4820,8 @@
       "id": "AT34",
       "features": "X04",
       "rules": "P04",
-      "scenario": "Attended event has no audited note or charge/billable link; locally typed reviewer token tries to close persisted import. Test a note audit performed by its author and then source-backed audit by an independent reviewer.",
-      "expected": "Issue remains until authenticated authorized review; browser token grants no authority; source/actor/cutoff retained; no billable/compliance inference. Admin can import/review/close; utilization/compliance reviewer can view/review only; other roles denied. Director/program grants remain a decision. Author self-review cannot satisfy an independent audit; retain author/reviewer identity, audit status/time and exception evidence. Missing audit proof remains Unknown.",
+      "scenario": "Attended event has no audited note or charge/billable link; an unauthenticated browser attempts to close the persisted import, then a signed-in reviewer attempts it. Test a note audit performed by its author and then source-backed audit by an independent reviewer.",
+      "expected": "Issue remains until authenticated authorized review; browser-supplied role claims grant no authority; source/actor/cutoff retained; no billable/compliance inference. Admin can import/review/close; utilization/compliance reviewer can view/review only; other roles denied. Director/program grants remain a decision. Author self-review cannot satisfy an independent audit; retain author/reviewer identity, audit status/time and exception evidence. Missing audit proof remains Unknown.",
       "phase": "P2"
     },
     {
@@ -5289,7 +5289,7 @@
     },
     {
       "id": "C08",
-      "title": "Synthetic IOP link validation and local preview",
+      "title": "Synthetic IOP link validation and authenticated UI",
       "code": [
         {
           "path": "packages/domain-contracts/src/iopReconciliation.ts",
@@ -5355,8 +5355,8 @@
         "Date strings use a format regex in this schema. Real calendar validity and date-range rules need further validation before adopting workbook edge-case guarantees.",
         "Maps are keyed by attendance/plan IDs and no general entity-ID uniqueness validation was found in the sample schema; duplicate source-entity handling needs an explicit adapter rule.",
         "Charge and EMR statuses are stored but linkage success does not assert that status is billable or payable.",
-        "Loads fixture or local JSON, calls previewIopReconciliationImport/closeIopReconciliationImport, stores state only in React and accepts a typed reviewer token.",
-        "Does not call /api/iop routes, load persisted imports or use server-derived reviewer identity. Do not present the visible close as a persisted authenticated close."
+        "The workspace accepts fixture or local synthetic JSON as a candidate preview, then requires the shared verified session for persisted import, exception review, close, and read requests through /api/iop; reviewer identity is server-derived.",
+        "The focused UI test mocks the API client, so it proves client behavior rather than a live API connection. Real sources remain unapproved."
       ],
       "status": "CODE_PRESENT_RUNTIME_NOT_RERUN"
     },
@@ -5488,8 +5488,8 @@
     },
     {
       "id": "IOP-A5",
-      "type": "application integration missing",
-      "detail": "Wire authenticated UI import/review/close/read to server endpoints; retain local preview as a distinct demonstration. Typed reviewer tokens are not verified principals."
+      "type": "application integration verified for synthetic local use",
+      "detail": "The authenticated UI now imports, reviews, closes, and reads through server endpoints using a shared verified session. Program binding, direct database controls, source authority, and real adapters remain open."
     },
     {
       "id": "IOP-A6",
