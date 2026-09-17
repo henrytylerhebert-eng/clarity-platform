@@ -35,6 +35,32 @@ The adapter must receive immutable source snapshots with stable source record ID
 
 Grants must be server-resolved, effective-dated, revocable, program-specific, and recorded with grantor identity. Browser role or program claims never confer permission.
 
+**Proposed default for program directors:** view and review only after an active program grant; import and close stay with an organization admin until IOP operations and compliance approve a narrower delegated-close policy. This is a conservative proposal, not a recorded owner decision.
+
+## Provider RLS remediation
+
+Supabase Postgres is the recorded OD-6 provider. Its schema is deployed, but the
+current Prisma runtime connection is the `postgres` role, which bypasses RLS.
+That connection must not be used for an RLS-backed IOP import path.
+
+Before any provider-backed IOP RLS migration:
+
+1. Security creates a dedicated, `NOSUPERUSER NOBYPASSRLS` runtime role and a separate migration role.
+2. The runtime role receives only the exact table/sequence privileges required by the API; Supabase `anon` and `authenticated` remain without public-table grants.
+3. The deployed API uses the runtime role through a server-held secret; browser clients never receive a database credential.
+4. A provider-backed test runs the OD-6 no-context, cross-tenant, rollback, concurrency, and non-revealing denial cases, extended with wrong-program and revoked-grant cases.
+5. Security records the runtime-role, secret-rotation, backup/recovery, and break-glass evidence before an RLS policy is treated as enabled for any non-synthetic workload.
+
+## Owner action record
+
+| Owner | Action required to clear the gate | Evidence to attach |
+| --- | --- | --- |
+| IOP operations | Name the authoritative enrollment/plan and attendance export; approve cutoff behavior | Export specification and sample header only |
+| Compliance | Name the note-audit source and approve independent-review semantics | Field map and audit-state glossary |
+| Revenue cycle | Name charge and EMR-billable sources; approve correction timing | Field map and a late-charge example |
+| Privacy + security | Approve minimum fields, retention, credential custodian, and runtime database role | Data inventory and access-control review |
+| Technical owner | Approve program-grant model and run provider-backed RLS proof | Migration review and test receipt |
+
 ## Required implementation sequence
 
 1. Record the seven source decisions above and approve the permission matrix.
