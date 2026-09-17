@@ -187,9 +187,11 @@ automated GitHub review on PR #68 found it, not this review.
 close that gap, the full CLPR implementation was re-verified fresh, in a clean
 checkout of `origin/main` at `9370b8b` (which contains `2e10cca` + `4d88e2b`
 unchanged since PR #68 merged): `npm run typecheck` (pass), `npm run lint`
-(pass), focused domain-contracts/service tests (55/55, one more than at merge
-time — the fixture-alignment test added alongside the fix), focused app tests
-(36/36), `npx prisma validate` (pass), `git diff --check` (pass). Boundary and
+(pass), focused domain-contracts/service tests (55/55 — the count already
+includes `evaluator.test.ts`'s out-of-order-behavior case, added in `4d88e2b`
+itself; the domain-contracts fixture-alignment test was already present in
+`2e10cca` and unchanged by the fix), focused app tests (36/36), `npx prisma
+validate` (pass), `git diff --check` (pass). Boundary and
 repo-convention compliance were re-read directly against this same checkout,
 not re-asserted from memory: organization scoping is enforced at the gateway
 layer, competency-evidence persistence is re-validated at the gateway
