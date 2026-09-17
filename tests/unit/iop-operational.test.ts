@@ -13,7 +13,7 @@ const records = {
     { planId: "PLAN_2", enrollmentId: "ENR_001", version: "1.1.0", effectiveFrom: "2028-02-03", effectiveThrough: "2028-02-05", prescribedDaysPerWeek: 2 },
     { planId: "PLAN_1", enrollmentId: "ENR_001", version: "1.2.0", effectiveFrom: "2028-02-05", prescribedDaysPerWeek: 1 },
   ],
-  attendance: Array.from({ length: 8 }, (_, index) => ({ attendanceId: `ATT_${index + 1}`, enrollmentId: "ENR_001", planId: "PLAN_1", serviceDate: "2028-02-07", scheduled: true, outcome: "ATTENDED" as const })).concat([
+  attendance: (Array.from({ length: 8 }, (_, index) => ({ attendanceId: `ATT_${index + 1}`, enrollmentId: "ENR_001", planId: "PLAN_1", serviceDate: "2028-02-07", scheduled: true, outcome: "ATTENDED" as const })) as Array<{ attendanceId: string; enrollmentId: string; planId?: string; serviceDate: string; scheduled: boolean; outcome: "ATTENDED" | "NO_SHOW" | "APPROVED_CANCELED" | "UNSCHEDULED" }>).concat([
     { attendanceId: "ATT_CANCEL", enrollmentId: "ENR_001", planId: "PLAN_1", serviceDate: "2028-02-07", scheduled: true, outcome: "APPROVED_CANCELED" as const },
     { attendanceId: "ATT_NO_1", enrollmentId: "ENR_001", planId: "PLAN_1", serviceDate: "2028-02-07", scheduled: true, outcome: "NO_SHOW" as const },
     { attendanceId: "ATT_NO_2", enrollmentId: "ENR_001", planId: "PLAN_1", serviceDate: "2028-02-07", scheduled: true, outcome: "NO_SHOW" as const },
