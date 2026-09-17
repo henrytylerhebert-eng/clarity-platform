@@ -162,38 +162,59 @@ CLPR-0→CLPR-3 behavior and local verification listed above.**
 
 ### Claude post-implementation review — ACCEPT
 
-Performed pre-merge against PR #68's diff (implementation commit `2e10cca`,
-before the follow-up fix commit `4d88e2b` was added to the same PR), following
-the handoff package's designated review order:
+Two passes make up this verdict; both are disclosed rather than compressed
+into one claim, per two accuracy findings raised on this PR by an automated
+reviewer against the first version of this section.
 
-- **Scope compliance:** changed/added files matched the Claude-issued
-  `CLPR_FILE_OWNERSHIP.json` allowlist exactly; no blocked path (Prisma,
-  `packages/api-service`, `packages/case-repository`, ADR-0012,
-  `data/synthetic-cases/`) was touched.
-- **Behavior compliance:** full identify → preserve → escalate → complete →
-  acknowledge/contest → distinct-reviewer-confirm → My Path flow verified live
-  in a browser at 390px, in addition to the automated suite.
-- **Boundary/safety compliance:** organization scoping enforced at the gateway
-  layer (not only the service layer), competency-evidence persistence
-  re-validated at the gateway boundary, contest resolution requires a reviewer
-  identity distinct from the learner, outcome/operational events excluded
-  before evaluation.
-- **Test-quality review:** 54/54 focused service/contract tests and 129/129 app
-  tests at merge time, covering the named negative cases (silent resolution,
-  split-session evidence, foreign-org/actor denial, contest-then-resolve, only
-  a configured distinct reviewer may confirm).
-- **Repo-convention review:** barrel imports, workspace/test conventions,
-  additive-only `TrainingSops.tsx` change, no direct `@clarity/*` import from
-  the app.
-- One finding from a subsequent automated GitHub review on PR #68 — the
-  evaluator and its app mirror checked only for the *presence* of the three
-  governed behaviors, not their declared order — was fixed pre-merge in commit
-  `4d88e2b` (order enforcement added at both the service and app layers, plus
-  UI button gating), with tests, and verified before PR #68 was merged.
+**Pass 1 (pre-merge, against commit `2e10cca` only):** the designated 9-point
+review — scope, behavior, boundary/safety, test-quality, repo-convention — was
+performed against PR #68 as it stood before the order-enforcement fix. That
+pass reported ACCEPT, verified the full identify → preserve → escalate →
+complete → acknowledge/contest → distinct-reviewer-confirm → My Path flow live
+in a browser at 390px, and confirmed 54/54 focused and 129/129 app tests. **It
+did not catch the order-enforcement gap described below** — a subsequent
+automated GitHub review on PR #68 found it, not this review.
 
-No fixes remain outstanding from the Claude review. **This does not constitute
-or imply product-owner acceptance, which remains a separate, pending act.**
+- One finding from that automated review — the evaluator and its app mirror
+  checked only for the *presence* of the three governed behaviors, not their
+  declared order — was fixed pre-merge in commit `4d88e2b` (order enforcement
+  added at both the service and app layers, plus UI button gating), with new
+  tests. That fix was verified narrowly (its own diff, its own new tests, one
+  live browser recheck) before PR #68 merged — not by re-running the full
+  9-point review against the combined final diff.
 
-**Claude review verdict: ACCEPT. Product-owner acceptance: PENDING.** This
-return document does not replace the product owner's authority to accept the
-feature.
+**Pass 2 (this follow-up, against the actual merged state on `main`):** to
+close that gap, the full CLPR implementation was re-verified fresh, in a clean
+checkout of `origin/main` at `9370b8b` (which contains `2e10cca` + `4d88e2b`
+unchanged since PR #68 merged): `npm run typecheck` (pass), `npm run lint`
+(pass), focused domain-contracts/service tests (55/55, one more than at merge
+time — the fixture-alignment test added alongside the fix), focused app tests
+(36/36), `npx prisma validate` (pass), `git diff --check` (pass). Boundary and
+repo-convention compliance were re-read directly against this same checkout,
+not re-asserted from memory: organization scoping is enforced at the gateway
+layer, competency-evidence persistence is re-validated at the gateway
+boundary, contest resolution requires a reviewer identity distinct from the
+learner, outcome/operational events are excluded before evaluation, imports
+use the domain-contracts barrel, and the app still imports no `@clarity/*`
+package.
+
+- **Scope compliance, corrected:** the merged diff does **not** match
+  `CLPR_FILE_OWNERSHIP.json`'s `allowed_existing_file_edits` exactly — it also
+  modified `package-lock.json` (commit `3aaab2d`), which is on neither
+  `allowed_additions` nor `allowed_existing_file_edits`. That edit was a
+  narrow, mechanical necessity (`npm ci` fails without it once a new workspace
+  package is added) rather than an ownership-file gap discovered in hindsight;
+  its diff was 11 lines, purely additive (new workspace entries only), and was
+  reviewed as such before commit. No blocked path (Prisma, `packages/api-service`,
+  `packages/case-repository`, ADR-0012, `data/synthetic-cases/`) was touched.
+  The original ownership file is left as Claude issued it in Phase A rather
+  than edited retroactively; this paragraph is the correction of record.
+
+No fixes remain outstanding from either pass. **Neither this review nor the
+Codex evidence review above constitutes or implies product-owner acceptance,
+which remains a separate, pending act.**
+
+**Claude review verdict: ACCEPT, covering the complete implementation as
+merged on `main` at `9370b8b` (both passes above). Product-owner acceptance:
+PENDING.** This return document does not replace the product owner's
+authority to accept the feature.
