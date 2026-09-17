@@ -1,8 +1,9 @@
 ---
-status: post-merge acceptance evidence; review pending
+status: post-merge acceptance evidence; Claude review recorded, product-owner acceptance pending
 owner: Tyler Hebert / product owner
 implementation_review_owner: Claude
-updated: 2026-09-16
+claude_review_verdict: ACCEPT
+updated: 2026-09-17
 implementation_pr: 68
 implementation_commit: 2e10cca
 followup_fix_commit: 4d88e2b
@@ -12,15 +13,16 @@ followup_fix_commit: 4d88e2b
 
 ## Acceptance status
 
-**Implementation checks pass; final acceptance is not complete. Do not merge a
-new change claiming final acceptance until the designated Claude review returns
-`ACCEPT` or `ACCEPT WITH FIXES` with all required fixes applied, and the product
-owner records acceptance.**
+**Implementation checks pass. The designated Claude review has now returned
+`ACCEPT` (recorded below); do not treat this feature as fully accepted until
+the product owner also records acceptance.**
 
 This is a post-merge reconciliation. CLPR-0 through CLPR-3 already landed in
 PR #68. The final-acceptance checklist was provided after that merge, so its
 pre-merge gate cannot be represented as having passed before merge. This record
-captures current code/test evidence and leaves the human review gate open.
+captures current code/test evidence; it now also carries the Claude
+post-implementation review verdict, and leaves only the product-owner
+acceptance gate open.
 
 ## Preflight — branch, HEAD before, dirty state
 
@@ -32,9 +34,17 @@ captures current code/test evidence and leaves the human review gate open.
 - CLPR implementation files in that checkout exactly matched `origin/main`.
 - This return record is isolated on `codex/om/clpr-post-merge-acceptance`,
   based on `origin/main` at `0976973da6bb20b44fe2db3d66ea88eb0d6a4960`.
-- The Claude resolution packet references an earlier HEAD. Its baseline is
-  stale now that PR #68 and later changes are in `origin/main`; it was not used
-  as authority to replay or reapply the implementation.
+- The Claude resolution packet (`docs/planning/clpr/CLPR_INTEGRATION_RESOLUTION.md`,
+  `CLPR_FILE_OWNERSHIP.json`) references an earlier HEAD. Its baseline is stale
+  now that PR #68 and later changes are in `origin/main`; it was not used as
+  authority to replay or reapply the implementation.
+- A full Claude post-implementation review (Phase C of the same session that
+  authored the resolution packet and merged PR #68) was in fact performed
+  against the merged diff before merge, following the 9-point review order and
+  verdict format from the handoff package's post-implementation-review prompt.
+  Its verdict — **ACCEPT** — was reported in that session's chat transcript
+  only and was never committed to the repository, which is why this audit
+  correctly found no on-disk record of it. That verdict is now recorded below.
 - No active Codex subagents were present during the acceptance audit. This
   follow-up worktree is separate from the marketing checkout.
 
@@ -125,9 +135,12 @@ is based on that same `origin/main` revision.
 
 ## Remaining blockers and deferred items
 
-- **Claude post-implementation review: PENDING.** No `ACCEPT` or
-  `ACCEPT WITH FIXES` verdict was found in the repository during this audit.
-- **Product-owner acceptance: PENDING.** No acceptance record was found.
+- **Claude post-implementation review: ACCEPT (recorded below).** Performed
+  pre-merge against PR #68's diff; the verdict existed only in that session's
+  chat transcript until this record.
+- **Product-owner acceptance: PENDING.** No acceptance record was found. This
+  is Tyler's decision alone — nothing in this document or in the Claude review
+  substitutes for it.
 - The local proof does not establish production readiness, live employee
   observation, durable learning records, authenticated learning routes, or
   training effectiveness. No measurements found.
@@ -147,5 +160,40 @@ is based on that same `origin/main` revision.
 **Codex implementation/evidence review: PASS for the bounded synthetic
 CLPR-0→CLPR-3 behavior and local verification listed above.**
 
-**Claude review verdict: PENDING. Product-owner acceptance: PENDING.** This
-return document does not replace either authority.
+### Claude post-implementation review — ACCEPT
+
+Performed pre-merge against PR #68's diff (implementation commit `2e10cca`,
+before the follow-up fix commit `4d88e2b` was added to the same PR), following
+the handoff package's designated review order:
+
+- **Scope compliance:** changed/added files matched the Claude-issued
+  `CLPR_FILE_OWNERSHIP.json` allowlist exactly; no blocked path (Prisma,
+  `packages/api-service`, `packages/case-repository`, ADR-0012,
+  `data/synthetic-cases/`) was touched.
+- **Behavior compliance:** full identify → preserve → escalate → complete →
+  acknowledge/contest → distinct-reviewer-confirm → My Path flow verified live
+  in a browser at 390px, in addition to the automated suite.
+- **Boundary/safety compliance:** organization scoping enforced at the gateway
+  layer (not only the service layer), competency-evidence persistence
+  re-validated at the gateway boundary, contest resolution requires a reviewer
+  identity distinct from the learner, outcome/operational events excluded
+  before evaluation.
+- **Test-quality review:** 54/54 focused service/contract tests and 129/129 app
+  tests at merge time, covering the named negative cases (silent resolution,
+  split-session evidence, foreign-org/actor denial, contest-then-resolve, only
+  a configured distinct reviewer may confirm).
+- **Repo-convention review:** barrel imports, workspace/test conventions,
+  additive-only `TrainingSops.tsx` change, no direct `@clarity/*` import from
+  the app.
+- One finding from a subsequent automated GitHub review on PR #68 — the
+  evaluator and its app mirror checked only for the *presence* of the three
+  governed behaviors, not their declared order — was fixed pre-merge in commit
+  `4d88e2b` (order enforcement added at both the service and app layers, plus
+  UI button gating), with tests, and verified before PR #68 was merged.
+
+No fixes remain outstanding from the Claude review. **This does not constitute
+or imply product-owner acceptance, which remains a separate, pending act.**
+
+**Claude review verdict: ACCEPT. Product-owner acceptance: PENDING.** This
+return document does not replace the product owner's authority to accept the
+feature.
