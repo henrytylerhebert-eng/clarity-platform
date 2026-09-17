@@ -147,8 +147,8 @@ async function main(): Promise<void> {
   });
   await prisma.iopSourceIntegration.upsert({
     where: { organizationId_integrationKey: { organizationId: ORG_ID, integrationKey: "SYNTHETIC_IOP_PROGRAM" } },
-    update: { active: true, label: "Synthetic IOP program source" },
-    create: { organizationId: ORG_ID, integrationKey: "SYNTHETIC_IOP_PROGRAM", label: "Synthetic IOP program source" },
+    update: { active: true, label: "Synthetic IOP program source", programId: "IOP_PROGRAM_001" },
+    create: { organizationId: ORG_ID, integrationKey: "SYNTHETIC_IOP_PROGRAM", programId: "IOP_PROGRAM_001", label: "Synthetic IOP program source" },
   });
   // ADR-0021 (R1): seed the two checked-in, source-hashed LA Medicaid
   // releases as the initial ACTIVE rows. Public reference data, not a

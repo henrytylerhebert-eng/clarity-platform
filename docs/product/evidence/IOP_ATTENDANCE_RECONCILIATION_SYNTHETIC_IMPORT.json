@@ -28,9 +28,9 @@
       { "attendanceId": "ATT_005", "enrollmentId": "ENR_002", "planId": "PLAN_002", "groupType": "PSYCH_SOCIAL", "outcome": "ATTENDED" }
     ],
     "noteAudits": [
-      { "attendanceId": "ATT_001", "noteId": "NOTE_001", "auditStatus": "COMPLETE", "reviewedBy": "REVIEWER_001", "reviewedAt": "2028-02-08T12:00:00.000Z" },
-      { "attendanceId": "ATT_004", "noteId": "NOTE_004", "auditStatus": "COMPLETE", "reviewedBy": "REVIEWER_001", "reviewedAt": "2028-02-08T12:01:00.000Z" },
-      { "attendanceId": "ATT_005", "noteId": "NOTE_005", "auditStatus": "COMPLETE", "reviewedBy": "REVIEWER_001", "reviewedAt": "2028-02-08T12:02:00.000Z" }
+      { "attendanceId": "ATT_001", "noteId": "NOTE_001", "authoredBy": "THERAPIST_001", "auditStatus": "COMPLETE", "reviewedBy": "REVIEWER_001", "reviewedAt": "2028-02-08T12:00:00.000Z" },
+      { "attendanceId": "ATT_004", "noteId": "NOTE_004", "authoredBy": "THERAPIST_001", "auditStatus": "COMPLETE", "reviewedBy": "REVIEWER_001", "reviewedAt": "2028-02-08T12:01:00.000Z" },
+      { "attendanceId": "ATT_005", "noteId": "NOTE_005", "authoredBy": "THERAPIST_002", "auditStatus": "COMPLETE", "reviewedBy": "REVIEWER_001", "reviewedAt": "2028-02-08T12:02:00.000Z" }
     ],
     "chargeLines": [
       { "chargeLineId": "CHARGE_001", "attendanceId": "ATT_001", "noteId": "NOTE_001", "units": 1, "status": "CREATED" },

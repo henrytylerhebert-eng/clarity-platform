@@ -24,7 +24,7 @@ beforeAll(async () => {
   h = await createHarness();
   facilityId = `synthetic-iop-facility-${h.runId}`;
   await h.prisma.facilityProfile.create({ data: { id: facilityId, organizationId: h.tenantA.organizationId, name: "Synthetic IOP Facility" } });
-  await h.prisma.iopSourceIntegration.create({ data: { organizationId: h.tenantA.organizationId, integrationKey: "SYNTHETIC_IOP_PROGRAM", label: "Synthetic source" } });
+  await h.prisma.iopSourceIntegration.create({ data: { organizationId: h.tenantA.organizationId, integrationKey: "SYNTHETIC_IOP_PROGRAM", programId: "IOP_PROGRAM_001", label: "Synthetic source" } });
   gateway = new PrismaIopReconciliationGateway(h.prisma);
 });
 afterAll(async () => h.dispose());
@@ -91,5 +91,11 @@ describe("IOP reconciliation persistence", () => {
     await expect(gateway.import(auditor, request("iop-import-key-002"))).rejects.toMatchObject({ code: "permission_denied", status: 403 });
     const foreign = principal(h.tenantB.organizationId, h.tenantB.userId, ["ORGANIZATION_ADMIN"]);
     await expect(gateway.import(foreign, request("iop-import-key-003"))).rejects.toMatchObject({ code: "resource_not_found", status: 404 });
+  });
+
+  it("denies an import whose program is not bound to the authenticated tenant integration", async () => {
+    const actor = principal(h.tenantA.organizationId, h.tenantA.userId, ["ORGANIZATION_ADMIN"]);
+    const wrongProgram = { ...request("iop-import-key-006"), programId: "IOP_PROGRAM_OTHER", reconciliation: { ...reconciliation, programId: "IOP_PROGRAM_OTHER" } };
+    await expect(gateway.import(actor, wrongProgram)).rejects.toMatchObject({ code: "resource_not_found", status: 404 });
   });
 });

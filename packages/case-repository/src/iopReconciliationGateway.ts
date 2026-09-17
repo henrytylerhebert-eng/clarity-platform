@@ -67,6 +67,7 @@ export class PrismaIopReconciliationGateway {
         where: {
           organizationId: actor.organizationId,
           integrationKey: request.integrationKey,
+          programId: request.programId,
           active: true,
         },
       });
