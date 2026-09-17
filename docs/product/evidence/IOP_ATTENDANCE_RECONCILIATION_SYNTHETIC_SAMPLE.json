@@ -82,6 +82,7 @@
     {
       "attendanceId": "ATT_001",
       "noteId": "NOTE_001",
+      "authoredBy": "THERAPIST_001",
       "auditStatus": "COMPLETE",
       "reviewedBy": "REVIEWER_001",
       "reviewedAt": "2028-02-07T15:00:00.000Z"
@@ -89,6 +90,7 @@
     {
       "attendanceId": "ATT_004",
       "noteId": "NOTE_004",
+      "authoredBy": "THERAPIST_001",
       "auditStatus": "COMPLETE",
       "reviewedBy": "REVIEWER_001",
       "reviewedAt": "2028-02-07T15:05:00.000Z"
@@ -96,6 +98,7 @@
     {
       "attendanceId": "ATT_005",
       "noteId": "NOTE_005",
+      "authoredBy": "THERAPIST_002",
       "auditStatus": "COMPLETE",
       "reviewedBy": "REVIEWER_001",
       "reviewedAt": "2028-02-07T15:10:00.000Z"

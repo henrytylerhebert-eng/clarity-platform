@@ -982,6 +982,7 @@ model IopSourceIntegration {
   id             String                    @id @default(cuid())
   organizationId String
   integrationKey String
+  programId      String
   label          String
   active         Boolean                   @default(true)
   createdAt      DateTime                  @default(now())
@@ -989,6 +990,7 @@ model IopSourceIntegration {
   imports        IopReconciliationImport[]
 
   @@unique([organizationId, integrationKey])
+  @@index([organizationId, programId, active])
   @@index([organizationId, active])
 }
 

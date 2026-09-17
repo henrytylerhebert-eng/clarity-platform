@@ -16,6 +16,7 @@ export * from "./documents.js";
 export * from "./legalStatus.js";
 export * from "./evidence.js";
 export * from "./authentication.js";
+export * from "./iopOperational.js";
 export * from "./episode.js";
 export * from "./prescreen.js";
 export * from "./prescreenCommands.js";
