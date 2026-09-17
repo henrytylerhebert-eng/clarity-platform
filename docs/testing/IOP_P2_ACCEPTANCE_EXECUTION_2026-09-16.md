@@ -1,6 +1,6 @@
 # P2 synthetic IOP acceptance execution — 2026-09-16
 
-**Revision:** `81fe4bff63c4f8130cdfa50f93e4aabd367a5111`  
+**Revision:** `81fe4bff63c4f8130cdfa50f93e4aabd367a5111`
 **Data boundary:** synthetic/de-identified only. No external source, credentials, connector, PHI, or production environment was used.
 
 This is an execution record for the Phase 2 scenarios in the [workbook platform acceptance matrix](WORKBOOK_PLATFORM_ACCEPTANCE_MATRIX.md). A passing unit, UI, or gateway test is credited only for the behavior it directly demonstrates. It does not promote a scenario to accepted parity when its required records or controls are absent.
