@@ -45,7 +45,7 @@ const sqlRestoreUrl = sqlDatabaseUrl(restoreDatabase);
 
 try {
   run("psql", [sqlBaseUrl, "-v", "ON_ERROR_STOP=1", "-c", `CREATE DATABASE "${replayDatabase}"`]);
-  run("npx", ["prisma", "migrate", "deploy", "--schema", "prisma/schema.prisma"], {
+  run("npx", ["prisma", "migrate", "deploy", "--schema", "prisma"], {
     ...process.env,
     DATABASE_URL: replayUrl,
   });
