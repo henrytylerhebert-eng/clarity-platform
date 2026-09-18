@@ -290,6 +290,15 @@ overstated the evidence and is retracted here. Phase 3 must therefore **diagnose
 and attribute rows per fixture family before deleting anything**; deleting first risks the
 deletion simply being undone, which holds whatever the cause turns out to be.
 
+**[RESOLVED 2026-09-18 — Housekeeping Phase 3B]** The operating path is removed rather than
+the historical cause proven. PR #107 made database-writing tests run only on per-run
+disposable clusters (the harness refuses an unmarked database) and added a schema-driven
+tenant-cleanup coverage guard. Gate A.5 reproduced **two** mechanisms that leave this exact
+residue signature (cleanup exception; termination before `afterAll`), so which one produced
+the historical rows remains **UNKNOWN**. Gate B rebuilt `clarity_dev` from canonical
+migrations; three sequential and one concurrent two-worktree integration runs left it
+unchanged. See `docs/recovery/2026-09-18-housekeeping-phase-3b-gate-b-clarity-dev-rebuild.md`.
+
 ---
 
 ## Summary by priority
