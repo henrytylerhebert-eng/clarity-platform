@@ -43,7 +43,7 @@ Filename convention: `docs/architecture/ADR-NNNN-kebab-case-title.md`.
 | 0009 | Accepted | 2026-07-13 | Manual insurance and benefits verification | `main` |
 | 0010 | Accepted | 2026-07-13 | Authorization readiness (preparation phase) | `main` |
 | 0011 | Accepted | 2026-07-14 | Authentication: sessions, identity port, principal bridge | `main` |
-| 0012 | Accepted in part | 2026-07-14 | API architecture (OD-5) — native-Fastify migration open; see DRIFT-06 | `main` |
+| 0012 | Accepted | 2026-07-14 | API architecture (OD-5) — native-Fastify migration **complete** (2026-09-12 note); closes DRIFT-06. Hosting, production tenancy/RLS and operational readiness remain separately gated (OD-5, OD-6) | `main` |
 | 0013 | Accepted | 2026-07-19 | Prescreen command service (Phase 2, in-memory slice) | `main` |
 | 0014 | Accepted | 2026-07-19 | Prescreen role mapping and same-organization API slice | `main` |
 | **0015** | **Accepted (2026-07-19) — HISTORICAL** | 2026-07-19 | Network-enrichment invariant remediation | `main` (preserved 2026-09-18); originated on `codex/om/sync-main` |
