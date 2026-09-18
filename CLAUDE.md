@@ -36,7 +36,8 @@ Build sequence (agreed): case repository → case command service → documents 
 - Bounded implementation slices state scope, prohibited paths, and required acceptance evidence up front using [docs/governance/WORK_PACKAGE_TEMPLATE.md](docs/governance/WORK_PACKAGE_TEMPLATE.md).
 - Validation gate before any completion claim: `npm run lint`, `npm run typecheck`, `npm test`, `npx prisma validate` — all must actually run and pass.
 - Commit style: conventional prefixes (`feat:`/`fix:`/`test:`/`docs:`/`chore:`), body explains the why.
-- ADR numbering is sequential; check `docs/architecture/` for the next free number (0001–0008 taken as of 2026-07-11).
+- **ADR numbering:** `docs/architecture/ADR_INDEX.md` is authoritative and must be updated in the same commit that creates an ADR. A number is permanently reserved on first use **anywhere in repository history or on any durable ref** — never reuse one, and never renumber to close a gap. Do **not** allocate by listing `docs/architecture/` on `main`: that is exactly how 0015 and 0020 were double-claimed. Check all refs:
+  `git log --all --diff-filter=A --name-only --pretty=format: -- 'docs/architecture/ADR-*' | grep -o 'ADR-[0-9]\{4\}' | sort -u | tail -1`, then take max + 1.
 - Out-of-scope findings become GitHub issues, not silent scope creep (backlog: issues #1–#5).
 
 ## House terminology
