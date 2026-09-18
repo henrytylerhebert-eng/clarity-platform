@@ -2,11 +2,17 @@
 
 ## Current State
 
-**As of 2026-09-18, branch `main` at `5c4c0b9`** (merge of PR #99, committed
-2026-09-16 22:26 -0500). Confirmed in-session via `git rev-parse origin/main`, `gh pr
-list`, `git ls-tree`, and read-only `psql` against local `clarity_dev` — not carried
-forward from memory. This block was written during **Housekeeping Phase 1** and
-supersedes the 2026-09-13 narrative preserved below it.
+**Current-state assertions below were validated against `origin/main` at `5c4c0b9` on
+2026-09-18, then re-validated at `f0cd909` on 2026-09-18 after Housekeeping Phase 2B.**
+
+Those SHAs are an **evidence baseline** — the commit the claims were checked against — not a
+claim that either is still the newest commit. `main` moves; this line does not need editing
+after every merge. Re-validate before relying on a specific capability claim, and record the
+new SHA and date here when you do. Earlier baselines are kept as historical evidence.
+
+Validated via `git rev-parse origin/main`, `gh pr list`, `git ls-tree`, and read-only `psql`
+against local `clarity_dev` — not carried forward from memory. This block was written during
+**Housekeeping Phase 1** and supersedes the 2026-09-13 narrative preserved below it.
 
 ### Status vocabulary used here
 
@@ -61,8 +67,13 @@ current evidence.
 
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
-Open PRs (12): #63, #73, #81, #82, #88, #89, #91, #92, #93, #94, #95, #100.
-Open issues (8): #1, #2, #3, #4, #5, #24, #31, #35.
+**Open PRs: 0** as of 2026-09-18, after Housekeeping Phase 2B.
+
+Phase 2B landed #81, #89, #100, #102, #103, #104, #105 and closed #63, #73, #82, #88, #91,
+#92, #93, #94, #95 with per-PR evidence. **No branch was deleted for any closure** — each
+closed PR's head branch remains on `origin` as its preserving ref.
+
+Open issues (8, unchanged): #1, #2, #3, #4, #5, #24, #31, #35.
 
 **Closed — no longer blockers:** PR #30 closed 2026-09-12; PR #18 and PR #29 closed
 2026-08-23. Any document describing PR #30 as an active blocker is stale.
