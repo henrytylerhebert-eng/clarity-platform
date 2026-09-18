@@ -91,7 +91,17 @@ async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string
   await prisma.facilityTimezoneConfiguration.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.facilityProfile.deleteMany({ where: { organizationId: { in: organizationIds } } });
 
-  await prisma.prescreenSubmission.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  // PrescreenSubmission is owned by TWO tenants: the sending organizationId and the
+  // receivingOrganizationId. Deleting by organizationId alone leaves a submission behind
+  // when the tenant being cleaned is only its receiver.
+  await prisma.prescreenSubmission.deleteMany({
+    where: {
+      OR: [
+        { organizationId: { in: organizationIds } },
+        { receivingOrganizationId: { in: organizationIds } },
+      ],
+    },
+  });
   await prisma.prescreenPacketRequirement.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.prescreenAssessmentVersion.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.prescreenEncounter.deleteMany({ where: { organizationId: { in: organizationIds } } });
