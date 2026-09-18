@@ -6,8 +6,8 @@
 > Treat every capability, package, PR and branch reference in it as historical to that date:
 > `main` has changed substantially since (14 packages, authentication implemented per ADR-0011,
 > prescreen relocated to `packages/prescreen-service`), and PRs #29, #30 and #32 referenced in
-> this era are all closed. Current state lives in `IMPLEMENTATION_STATUS.md`,
-> `docs/architecture/CLARITY_ARCHITECTURE_LEDGER.md` and the ADR index.
+> this era are all closed. Current state lives in `IMPLEMENTATION_STATUS.md` and the
+> accepted ADRs under `docs/architecture/`.
 
 **Package:** WP-10 (hermetic typecheck) + WP-11 (per-session ephemeral database)
 **Milestone:** MS-01 · **Epic:** EP-02 · **Slice:** VS-02 (Protected baseline)

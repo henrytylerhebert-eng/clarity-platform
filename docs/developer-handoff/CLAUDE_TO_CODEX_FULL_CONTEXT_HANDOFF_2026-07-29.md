@@ -6,8 +6,8 @@
 > Treat every capability, package, PR and branch reference in it as historical to that date:
 > `main` has changed substantially since (14 packages, authentication implemented per ADR-0011,
 > prescreen relocated to `packages/prescreen-service`), and PRs #29, #30 and #32 referenced in
-> this era are all closed. Current state lives in `IMPLEMENTATION_STATUS.md`,
-> `docs/architecture/CLARITY_ARCHITECTURE_LEDGER.md` and the ADR index.
+> this era are all closed. Current state lives in `IMPLEMENTATION_STATUS.md` and the
+> accepted ADRs under `docs/architecture/`.
 
 **Project:** Clarity Platform
 **Prepared:** 2026-07-29 (America/Chicago)
