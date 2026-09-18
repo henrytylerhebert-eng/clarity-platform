@@ -23,7 +23,10 @@
     "regulatory:check": "tsx scripts/regulatory-corpus/cli.ts check",
     "regulatory:sync": "tsx scripts/regulatory-corpus/cli.ts sync",
     "regulatory:index": "tsx scripts/regulatory-corpus/cli.ts index",
-    "regulatory:fr": "tsx scripts/regulatory-corpus/cli.ts federal-register"
+    "regulatory:fr": "tsx scripts/regulatory-corpus/cli.ts federal-register",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:integration": "npm run test:ephemeral -- node node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts",
+    "verify": "npm run lint && npm run typecheck && npm run prisma:validate && npm run test:unit && npm run test:integration"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

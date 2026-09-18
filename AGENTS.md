@@ -67,7 +67,8 @@ When a request is improved, rewrite in this compact structure:
 ## Verification-first posture
 
 - Use existing commands first for this repo:
-  - `npm test`
+  - `npm run verify` (lint, typecheck, prisma validate, unit tests, and integration tests on a disposable database)
+    - integration tests refuse to run against a persistent database; use `npm run test:integration`
   - `cd app && npm test`
   - `cd app && npm run smoke`
   - `npm run lint`

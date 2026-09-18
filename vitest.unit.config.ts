@@ -2,14 +2,14 @@ import { defineConfig } from "vitest/config";
 import { aliases } from "./vitest.aliases.js";
 
 /**
- * Default runner: the whole suite in one pass. CI uses this with its own
- * per-run disposable PostgreSQL service. Locally prefer `npm run verify`, which
- * splits unit from integration and gives integration a throwaway database.
+ * Unit/contract suite: everything that does NOT write to a database.
+ * No PostgreSQL required, so the fast path stays fast.
  */
 export default defineConfig({
   resolve: { alias: aliases },
   test: {
     include: ["tests/**/*.test.ts", "packages/**/*.test.ts"],
+    exclude: ["**/node_modules/**", "**/dist/**", "tests/integration/**"],
     environment: "node",
   },
 });

@@ -101,6 +101,13 @@ async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string
   await prisma.contradictionGroup.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.authorization.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.insuranceCoverage.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  // PayerProfile's Organization relation has no onDelete, so Prisma defaults to Restrict:
+  // leaving one behind makes the organization delete below throw and leaks the whole tenant.
+  // PlanProfile cascades from PayerProfile, so it needs no explicit delete.
+  await prisma.payerProfile.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  // RevOpsRateRelease is tenant-owned through recordedByOrganizationId, not organizationId,
+  // and has no foreign key to Organization — it never blocks the delete, it just leaks.
+  await prisma.revOpsRateRelease.deleteMany({ where: { recordedByOrganizationId: { in: organizationIds } } });
   await prisma.authSession.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.behavioralHealthCase.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.patientToken.deleteMany({ where: { organizationId: { in: organizationIds } } });
@@ -108,8 +115,28 @@ async function deleteTenantRecords(prisma: PrismaClient, organizationIds: string
   await prisma.organization.deleteMany({ where: { id: { in: organizationIds } } });
 }
 
+/**
+ * Integration tests write tenant data. They must never do that to a persistent
+ * developer database: that is how issue #24's residue accumulated, and how issue
+ * #31's migration ledger became contended across parallel worktrees.
+ *
+ * Both the ephemeral runner (scripts/with-ephemeral-database.ts) and CI, whose
+ * PostgreSQL service is created and destroyed per run, set this marker.
+ */
+function assertDisposableDatabase(): void {
+  if (process.env.CLARITY_DISPOSABLE_DATABASE === "1") return;
+  throw new Error(
+    "Refusing to run database tests against a database that is not marked disposable.\n" +
+      "Run integration tests through the ephemeral runner instead:\n" +
+      "    npm run test:integration      (integration suite on a throwaway database)\n" +
+      "    npm run verify                (unit + integration, the full local gate)\n" +
+      "If you are certain this database is disposable, set CLARITY_DISPOSABLE_DATABASE=1.",
+  );
+}
+
 export async function createHarness(): Promise<Harness> {
   assertLocalClarityDevDatabase();
+  assertDisposableDatabase();
   const prisma = createPrismaClient();
   const applied = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
     `SELECT count(*)::bigint AS count FROM _prisma_migrations
