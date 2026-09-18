@@ -161,7 +161,10 @@ async function main(): Promise<number> {
     socketDirectory = mkdtempSync(join(existsSync("/tmp") ? "/tmp" : tmpdir(), "clarity-pgsock-"));
     const port = await freePort();
     const databaseUrl = `postgresql://${DATABASE_USER}@${HOST}:${port}/${DATABASE}?schema=public`;
-    const commandEnvironment = { ...environment, DATABASE_URL: databaseUrl };
+    // Marks this DATABASE_URL as a throwaway instance. The integration harness refuses to
+    // write to a database that is not marked, so DB-writing tests can never reach a
+    // developer's persistent clarity_dev.
+    const commandEnvironment = { ...environment, DATABASE_URL: databaseUrl, CLARITY_DISPOSABLE_DATABASE: "1" };
     const logFile = join(dataDirectory, "server.log");
     console.log(`[ephemeral-db] resources ${JSON.stringify({ dataDirectory, socketDirectory, port })}`);
 

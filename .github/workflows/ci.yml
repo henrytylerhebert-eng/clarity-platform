@@ -26,6 +26,10 @@ jobs:
       # Integration tests refuse to run against anything but local clarity_dev
       # (assertLocalClarityDevDatabase); the service container satisfies that.
       DATABASE_URL: postgresql://clarity:clarity@localhost:5432/clarity_dev?schema=public
+      # The harness also refuses any database not marked disposable, so DB-writing
+      # tests can never reach a developer's persistent clarity_dev. This service
+      # container is created and destroyed per run, so it qualifies.
+      CLARITY_DISPOSABLE_DATABASE: "1"
     steps:
       - uses: actions/checkout@v4
 
