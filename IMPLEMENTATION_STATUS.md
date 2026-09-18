@@ -69,22 +69,29 @@ Open issues (8): #1, #2, #3, #4, #5, #24, #31, #35.
 
 ### ADR inventory — CURRENT, VERIFIED
 
-**Updated 2026-09-18 (Housekeeping Phase 2B).** The two off-main ADR numbers are being
+**Updated 2026-09-18 (Housekeeping Phase 2B).** Both previously off-main ADR numbers are now
 reconciled onto `main`:
 
-- **ADR-0015** (network-enrichment invariant remediation) — landed on `main` by this change,
+- **ADR-0020** (Operating Assurance implementation ratified retroactively past its own
+  discovery-lifecycle gate, **Accepted** 2026-09-12) — extracted from the PR #73 branch per
+  owner decision OD-HK2-002. Its decision is current and unchanged; only its path to `main`
+  differed.
+- **ADR-0015** (network-enrichment invariant remediation, Accepted 2026-07-19) — landed
   **preserved as historical** per owner decision OD-HK2-001. Its implementation lineage never
-  merged; it is not evidence that a network-enrichment service exists. It is kept because it
-  is the only document explaining orphan migration `20260720014914`.
-- **ADR-0020** (Operating Assurance retroactive ratification) — extracted from the PR #73
-  branch and landing separately in Phase 2B Step C. Verify its presence on `main` before
-  relying on it.
+  merged: PRs #29/#30 closed unmerged and `packages/network-enrichment-service` does not exist
+  on `main`. **It is not evidence that a network-enrichment service exists today.** It is kept
+  because it is the only document explaining orphan migration
+  `20260720014914_network_review_append_only_audit`, which is still applied in the local
+  `clarity_dev` ledger while absent from `main`, and because its findings are reusable
+  invariant lessons.
 
-The prior text here read "20 ADRs on `main`: 0001–0014, 0016–0019, 0021, 0022" with both
-numbers listed as gaps; that was accurate at `5c4c0b9` and is superseded by this
-reconciliation. **Numbers 0001–0022 are all permanently reserved.** Do not allocate ADR-0023
-or reuse any number before checking every ref by filename, never `main` alone. The
-authoritative inventory is `docs/architecture/ADR_INDEX.md` once Phase 2B Step F lands it.
+Any earlier statement that either ADR exists only on an unmerged branch and awaits disposition
+is **superseded**. The prior text here read "20 ADRs on `main`: 0001–0014, 0016–0019, 0021,
+0022" and listed both as gaps; that was accurate at `5c4c0b9`.
+
+**Numbers 0001–0022 are all permanently reserved; the next safe number is ADR-0023.** Never
+allocate from a `main`-only listing — check every ref by filename. The authoritative inventory
+is `docs/architecture/ADR_INDEX.md` once Phase 2B Step F lands it.
 
 ### Local database — CURRENT, VERIFIED read-only (not modified)
 
