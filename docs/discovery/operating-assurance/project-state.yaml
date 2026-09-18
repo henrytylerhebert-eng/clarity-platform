@@ -1,13 +1,28 @@
-# Recovered 2026-09-12: acceptance/gate values record July 30 source decisions.
-# They were not independently revalidated; lifecycle remains paused, with no implementation authority.
+# Recovered 2026-09-12: acceptance/gate values below (opportunity_definition,
+# product_definition) record July 30 source decisions and were not independently
+# revalidated by this discovery lane's own process.
+#
+# 2026-09-12 (later same day): requirement_readiness and execution_readiness were
+# reached via direct owner authorization, out of sequence with this lane's normal
+# product-requirements-planning step — see ADR-0020
+# (docs/architecture/ADR-0020-operating-assurance-retroactive-ratification.md). The
+# implementation this authorized is merged and tested: packages/domain-contracts's
+# assurance.ts, packages/case-repository's assuranceGateway.ts, packages/assurance-service,
+# and packages/api-service's assuranceRoutes.ts (commits 9eeeda3..15a094d). This file's
+# gate values below are updated to match that reality; the discovery lane's own
+# requirement/execution-readiness artifacts (per product-intelligence-stage-manifest.yaml's
+# `outputs` list) were not separately produced — ADR-0020 is the record of that gap.
+#
 # Scoped state for the operating-assurance product-definition lane only.
 # Canonical Clarity implementation and roadmap status remain in
-# IMPLEMENTATION_STATUS.md and docs/roadmap/IMPLEMENTATION_ROADMAP.md.
+# IMPLEMENTATION_STATUS.md and docs/roadmap/IMPLEMENTATION_ROADMAP.md. The architecture
+# ledger (docs/architecture/CLARITY_ARCHITECTURE_LEDGER.md) is a HISTORICAL 2026-09-12
+# snapshot and is supporting context only — it is not the roadmap authority.
 project:
   id: PROJECT-OA-001
   name: Operating Assurance Workspace
   current_stage: product-intelligence
-  lifecycle_status: paused
+  lifecycle_status: implementation_ratified_out_of_sequence
 product:
   primary_user: USR-OA-01
   primary_workflow: WF-OA-01
@@ -76,8 +91,8 @@ artifacts:
 gates:
   opportunity_definition: passed
   product_definition: passed
-  requirement_readiness: not_started
-  execution_readiness: not_started
+  requirement_readiness: reached_via_owner_ratification # ADR-0020, 2026-09-12
+  execution_readiness: reached_via_owner_ratification # ADR-0020, 2026-09-12
   product_acceptance: not_started
   pilot_readiness: not_started
 active_work:
