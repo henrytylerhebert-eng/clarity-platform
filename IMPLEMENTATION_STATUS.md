@@ -102,7 +102,18 @@ never be deleted.
 
 Not claimed: production readiness, HIPAA compliance, PHI handling, approved clinical or
 legal rules, working external integrations, or provider-backed tenancy evidence.
-Provider-backed Cloud SQL/RLS verification (OD-6) remains a separate, non-waived gate.
+
+**OD-6 provider — CURRENT, VERIFIED.** The provider is **Supabase Postgres**, not Google
+Cloud SQL. [ADR-0022](docs/architecture/ADR-0022-supabase-provider-swap.md) is **Accepted**
+(owner-directed, 2026-09-13) and swapped OD-6's recorded provider from Cloud SQL to the
+existing Supabase project; the schema was actually applied there, which is the first time
+OD-6's provider-backed step happened at all. No GCP account or project was ever available,
+so Cloud SQL remained recorded intent only. **What still remains open under OD-6:
+provider-backed tenancy tests and independent security review** (per
+[OPEN_DECISIONS.md](docs/decisions/OPEN_DECISIONS.md) — the schema and anon-grant fix are
+already done). Direct any provider-specific tenancy or security work at Supabase.
+Earlier sections of this file that name Cloud SQL as the pending gate predate ADR-0022 and
+are retained as **HISTORICAL**.
 
 ---
 
