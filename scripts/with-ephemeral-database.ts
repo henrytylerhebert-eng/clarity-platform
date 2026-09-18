@@ -1,8 +1,8 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { createServer } from "node:net";
-import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 
 /**
  * Opt-in synthetic verification on macOS/Linux. Each invocation starts its
@@ -49,7 +49,7 @@ function localPath(path: string): string {
   return actual;
 }
 
-function toolchain(): { prisma: string; vitest: string; schema: string; clientSchema: string } {
+function toolchain(): { prisma: string; vitest: string; schemaDirectory: string; schemaFiles: string[]; clientSchema: string } {
   const modules = join(REPOSITORY, "node_modules");
   const prisma = localPath(join(modules, "prisma/build/index.js"));
   const vitest = localPath(join(modules, "vitest/vitest.mjs"));
@@ -61,13 +61,18 @@ function toolchain(): { prisma: string; vitest: string; schema: string; clientSc
   if (existsSync(workspaceLinks)) {
     for (const entry of readdirSync(workspaceLinks)) localPath(join(workspaceLinks, entry));
   }
-  const schema = localPath(join(REPOSITORY, "prisma/schema.prisma"));
+  const schemaDirectory = localPath(join(REPOSITORY, "prisma"));
+  const schemaFiles = readdirSync(schemaDirectory)
+    .filter((entry) => entry.endsWith(".prisma"))
+    .sort()
+    .map((entry) => localPath(join(schemaDirectory, entry)));
+  if (schemaFiles.length === 0) throw new Error("No Prisma schema files found in prisma/");
   // This runner supports this repository's default client output only.
-  if (/^\s*output\s*=/m.test(readFileSync(schema, "utf8"))) {
+  if (schemaFiles.some((schema) => /^\s*output\s*=/m.test(readFileSync(schema, "utf8")))) {
     throw new Error("Custom Prisma generator outputs require a separate isolation review.");
   }
   const clientSchema = localPath(join(modules, ".prisma/client/schema.prisma"));
-  return { prisma, vitest, schema, clientSchema };
+  return { prisma, vitest, schemaDirectory, schemaFiles, clientSchema };
 }
 
 function freePort(): Promise<number> {
@@ -165,19 +170,24 @@ async function main(): Promise<number> {
     // before postgres writes its PID file would make shutdown race startup.
     await run("pg_ctl", ["-D", dataDirectory, "-l", logFile, "-o", `-p ${port} -h ${HOST} -k ${socketDirectory} -c fsync=off`, "-w", "-t", "10", "start"], postgresEnvironment, false, true);
     await run("createdb", ["-h", HOST, "-p", String(port), "-U", DATABASE_USER, DATABASE], postgresEnvironment, false);
-    // Prisma formats its generated schema. Normalize a disposable copy, never
-    // the tracked source, so whitespace/index ordering is not a false mismatch.
-    const sourceSchema = readFileSync(tools.schema);
-    const normalizedSchema = join(socketDirectory, "source.prisma");
-    writeFileSync(normalizedSchema, sourceSchema);
-    await run(process.execPath, [tools.prisma, "format", "--schema", normalizedSchema], commandEnvironment);
-    await run(process.execPath, [tools.prisma, "generate", "--schema", tools.schema], commandEnvironment);
+    // Prisma's canonical schema is a directory. Normalize a disposable copy,
+    // never the tracked source, then compare it with the client generated from
+    // that same complete schema set.
+    const normalizedSchemaDirectory = join(socketDirectory, "schema");
+    mkdirSync(normalizedSchemaDirectory);
+    for (const schemaFile of tools.schemaFiles) {
+      writeFileSync(join(normalizedSchemaDirectory, basename(schemaFile)), readFileSync(schemaFile));
+    }
+    await run(process.execPath, [tools.prisma, "format", "--schema", normalizedSchemaDirectory], commandEnvironment);
+    const sourceSchema = tools.schemaFiles
+      .map((schemaFile) => readFileSync(join(normalizedSchemaDirectory, basename(schemaFile)), "utf8"))
+      .join("\n");
+    await run(process.execPath, [tools.prisma, "generate", "--schema", tools.schemaDirectory], commandEnvironment);
     localPath(tools.clientSchema);
-    if (!sourceSchema.equals(readFileSync(tools.schema)) ||
-        !readFileSync(normalizedSchema).equals(readFileSync(tools.clientSchema))) {
+    if (sourceSchema !== readFileSync(tools.clientSchema, "utf8")) {
       throw new Error("Generated Prisma schema does not match this worktree.");
     }
-    await run(process.execPath, [tools.prisma, "migrate", "deploy", "--schema", tools.schema], commandEnvironment);
+    await run(process.execPath, [tools.prisma, "migrate", "deploy", "--schema", tools.schemaDirectory], commandEnvironment);
     console.log(`[ephemeral-db] ready ${HOST}:${port}/${DATABASE}`);
     await run(executable, commandArgs, commandEnvironment);
   } catch (error) {

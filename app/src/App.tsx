@@ -1,55 +1,38 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { App as CrisisOpsApp } from "./CrisisOpsApp";
 import { StatusBadge } from "./components/StatusBadge";
-import {
-  apiLogin,
-  apiLogout,
-  describeApiError,
-  type VerifiedPrincipal,
-} from "./domain/api";
+import { useAuth } from "./domain/AuthContext";
+import { SignInForm } from "./components/SignInForm";
 import { OperatingAssurance } from "./workspaces/OperatingAssurance";
 
-export function App() {
-  const [module, setModule] = useState<"crisis-ops" | "operating-assurance">("crisis-ops");
-  const [principal, setPrincipal] = useState<VerifiedPrincipal | null>(null);
-  const [assertion, setAssertion] = useState("");
-  const [loginError, setLoginError] = useState<string | null>(null);
+/**
+ * Router-addressable (Phase 2A, commit 1): "/" and "/assurance" used to be
+ * one component's local `module` toggle, split into two route components so
+ * the boundary is a real URL.
+ */
+export function CrisisOpsRoute() {
+  const navigate = useNavigate();
+  return (
+    <>
+      <button
+        className="secondary-button"
+        type="button"
+        onClick={() => navigate("/assurance")}
+        style={{ position: "fixed", right: 18, top: 14, zIndex: 50, display: "inline-flex", gap: 7, alignItems: "center" }}
+      >
+        <ShieldCheck size={16} /> Operating Assurance
+      </button>
+      <CrisisOpsApp />
+    </>
+  );
+}
 
-  async function handleLogin() {
-    setLoginError(null);
-    try {
-      setPrincipal(await apiLogin(assertion.trim()));
-      setAssertion("");
-    } catch (error) {
-      setPrincipal(null);
-      setLoginError(describeApiError(error));
-    }
-  }
-
-  async function handleLogout() {
-    try {
-      await apiLogout();
-    } finally {
-      setPrincipal(null);
-    }
-  }
-
-  if (module === "crisis-ops") {
-    return (
-      <>
-        <button
-          className="secondary-button"
-          type="button"
-          onClick={() => setModule("operating-assurance")}
-          style={{ position: "fixed", right: 18, top: 14, zIndex: 50, display: "inline-flex", gap: 7, alignItems: "center" }}
-        >
-          <ShieldCheck size={16} /> Operating Assurance
-        </button>
-        <CrisisOpsApp />
-      </>
-    );
-  }
+export function AssuranceRoute() {
+  const navigate = useNavigate();
+  // Shared with every other application area via AuthProvider (Phase 2A,
+  // commit 4) -- signing in here or anywhere else is now one session.
+  const { principal, logout } = useAuth();
 
   return (
     <div className="app-shell">
@@ -62,7 +45,7 @@ export function App() {
           </div>
         </div>
 
-        <button className="secondary-button" type="button" onClick={() => setModule("crisis-ops")}>
+        <button className="secondary-button" type="button" onClick={() => navigate("/")}>
           <ArrowLeft size={16} /> Crisis Ops
         </button>
 
@@ -81,29 +64,12 @@ export function App() {
                 <dt>Verified roles</dt><dd>{principal.roles.join(", ") || "none"}</dd>
                 <dt>Expires</dt><dd>{new Date(principal.expiresAt).toLocaleTimeString()}</dd>
               </dl>
-              <button className="secondary-button" type="button" onClick={handleLogout}>Sign out</button>
+              <button className="secondary-button" type="button" onClick={() => void logout()}>Sign out</button>
             </>
           ) : (
             <>
-              <p>Sign in with a synthetic dev assertion printed by <code>npm run api:dev</code>. No demo role can substitute for this session.</p>
-              <label className="session-login">
-                Dev assertion
-                <input
-                  aria-label="Operating Assurance dev assertion"
-                  value={assertion}
-                  onChange={(event) => setAssertion(event.target.value)}
-                  placeholder="syn-assert-oa-reviewer-dev"
-                />
-              </label>
-              <button
-                className="secondary-button"
-                type="button"
-                disabled={assertion.trim().length < 16}
-                onClick={handleLogin}
-              >
-                Sign in (verified session)
-              </button>
-              {loginError ? <p className="inline-warning" role="alert">{loginError}</p> : null}
+              <p>Sign in with a synthetic dev assertion printed by <code>npm run api:dev</code>. No demo role can substitute for this session. Signing in here also signs in Crisis Ops, IOP Reconciliation, and RevOps.</p>
+              <SignInForm placeholder="syn-assert-oa-reviewer-dev" />
             </>
           )}
         </details>
