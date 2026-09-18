@@ -7,8 +7,8 @@
 - **Provenance:** authored 2026-09-12 on the PR #73 branch and extracted to `main` on
   2026-09-18 during Housekeeping Phase 2B, because PR #73 was not merged wholesale. The
   decision below is unchanged and remains **Accepted** — only its path to `main` differs.
-  ADR number 0020 was claimed off-main from 2026-09-12 until that date; the ADR index
-  (`docs/architecture/ADR_INDEX.md`) records that history.
+  ADR number 0020 was claimed off-main from 2026-09-12 until that date. That history will be
+  recorded in `docs/architecture/ADR_INDEX.md`, which Housekeeping Phase 2B Step F creates.
 
 ## Context
 

@@ -15,7 +15,9 @@
 #
 # Scoped state for the operating-assurance product-definition lane only.
 # Canonical Clarity implementation and roadmap status remain in
-# IMPLEMENTATION_STATUS.md and docs/architecture/CLARITY_ARCHITECTURE_LEDGER.md.
+# IMPLEMENTATION_STATUS.md and docs/roadmap/IMPLEMENTATION_ROADMAP.md. The architecture
+# ledger (docs/architecture/CLARITY_ARCHITECTURE_LEDGER.md) is a HISTORICAL 2026-09-12
+# snapshot and is supporting context only — it is not the roadmap authority.
 project:
   id: PROJECT-OA-001
   name: Operating Assurance Workspace

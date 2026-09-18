@@ -12,8 +12,10 @@ metadata:
 >
 > - ADRs live at `docs/architecture/ADR-NNNN-kebab-title.md` — **not** `docs/adr/NNNN-title.md`.
 >   The directory layout and index table shown further down are illustrative only.
-> - The authoritative index is `docs/architecture/ADR_INDEX.md`, which must be updated in the
->   **same commit** that creates an ADR.
+> - An authoritative index at `docs/architecture/ADR_INDEX.md` is being established in
+>   Housekeeping Phase 2B Step F. **Once that file exists it is authoritative and must be
+>   updated in the same commit that creates an ADR.** Until it exists, the all-refs check below
+>   is the rule, and it stands on its own.
 > - **Numbers are permanently reserved on first use anywhere in repository history or on any
 >   durable ref — not just on `main`.** Abandoned numbers stay vacant; never renumber an ADR to
 >   close a gap. Clarity has real gaps at 0015 and 0020 for exactly this reason.
