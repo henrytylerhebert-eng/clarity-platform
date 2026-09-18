@@ -69,6 +69,13 @@ Open issues (8): #1, #2, #3, #4, #5, #24, #31, #35.
 
 ### ADR inventory — CURRENT, VERIFIED
 
+**Updated 2026-09-18 (Housekeeping Phase 2B Step C).** **ADR-0020** (Operating Assurance
+retroactive ratification, Accepted 2026-09-12) is **now on `main`**, extracted from the PR #73
+branch per owner decision OD-HK2-002. Any statement below or elsewhere that ADR-0020 exists
+only on `claude/tree-structure-buildout-765db6` and awaits disposition is **superseded**.
+ADR-0015 is reconciled separately in Phase 2B Step E. Numbers 0001–0022 are all permanently
+reserved; the authoritative inventory is `docs/architecture/ADR_INDEX.md` once Step F lands it.
+
 20 ADRs on `main`: 0001–0014, 0016–0019, 0021, 0022. **Gaps:** ADR-0015 exists only on
 `codex/om/sync-main` (and its recovery ref); ADR-0020 exists only on
 `claude/tree-structure-buildout-765db6` (PR #73, open, CONFLICTING). Do not allocate
