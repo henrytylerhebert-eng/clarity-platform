@@ -2,6 +2,126 @@
 
 ## Current State
 
+**As of 2026-09-18, branch `main` at `5c4c0b9`** (merge of PR #99, committed
+2026-09-16 22:26 -0500). Confirmed in-session via `git rev-parse origin/main`, `gh pr
+list`, `git ls-tree`, and read-only `psql` against local `clarity_dev` — not carried
+forward from memory. This block was written during **Housekeeping Phase 1** and
+supersedes the 2026-09-13 narrative preserved below it.
+
+### Status vocabulary used here
+
+- **CURRENT — VERIFIED** — observed in the repository at `5c4c0b9` during this update.
+- **HISTORICAL** — was verified on a stated earlier date; not re-run here.
+- **DOCUMENTATION ONLY** — a document exists; no runtime behind it.
+- **PROPOSED** — designed, not authorized and not implemented.
+- **BLOCKED** — waiting on a named owner decision or external access.
+- **UNKNOWN** — not established by this update.
+
+### Repository shape — CURRENT, VERIFIED
+
+14 packages on `main`: `api-service`, `assurance-service`, `auth-service`,
+`authorization-service`, `benefits-service`, `case-repository`, `case-service`,
+`document-service`, `domain-contracts`, `evidence-service`, `learning-practice-service`,
+`legal-hold-forms`, `prescreen-service`, `rev-ops-service`. Frontend in `app/`.
+26 Prisma migrations plus `migration_lock.toml`.
+
+**Prescreen moved.** The command service is `packages/prescreen-service`; contracts are
+the flat files `packages/domain-contracts/src/prescreen.ts` and
+`packages/domain-contracts/src/prescreenCommands.ts`. There is **no**
+`packages/domain-contracts/src/prescreen/` directory. Documents that cite that path are stale.
+
+**Authentication is implemented** (ADR-0011, Accepted). `packages/api-service` verifies a
+bearer token through `@clarity/auth-service` and builds every `CommandActor` via
+`actorFor(principal)` (`packages/auth-service/src/authenticationService.ts:65`);
+`organizationId` and roles come from the database-backed principal, never the request body.
+The long-standing assumption "actor roles are trusted caller input" is **retired** for
+API-mediated paths.
+
+**Prisma boundary holds.** Only `packages/case-repository` has a runtime `@prisma/client`
+dependency. `packages/api-service/src/assuranceDevFixture.ts` carries a single **type-only**
+`import type { PrismaClient }`, which erases at compile time and is not a runtime violation.
+
+### Capability state — CURRENT, VERIFIED (shape only)
+
+| Capability | State | Note |
+|---|---|---|
+| Prescreen | CURRENT — VERIFIED (shape) | `prescreen-service` + flat contracts; 2 migrations; 4 tables live in `clarity_dev` |
+| RevOps | CURRENT — VERIFIED (shape) | `rev-ops-service`, rate-release registry (ADR-0021), 5 migrations |
+| Operating Assurance | CURRENT — VERIFIED (shape) | `assurance-service`, `prisma/assurance.prisma`, 5 migrations; VS-OA-001 acceptance review still outstanding |
+| Learning & Practice / CLPR | CURRENT — VERIFIED (shape) | `learning-practice-service`, `app/src/components/learning-practice/*`, `docs/planning/clpr/*`; PR #99 reconciled post-merge acceptance |
+| Shared auth / router / shell | CURRENT — VERIFIED (shape) | `AuthContext.tsx`, `SignInForm.tsx`, `ClarityShell.tsx` (PR #84, verified live on 2026-09-13 — that live run is HISTORICAL) |
+| IOP | PARTIAL / BLOCKED | `iop_reconciliation_persistence` applied; `20260917000100_iop_program_binding` is on `main` but **not applied** to `clarity_dev`; source-adapter and access gates open (PR #100) |
+| Liaison / referral-development training | NOT IMPLEMENTED | Absent from every ref; "liaison" appears once, incidentally, in `docs/09-personas-and-role-ux.md` |
+| Freedom Behavioral roles / workflows | NOT IMPLEMENTED | Absent from every ref; the name appears only as facility names in `data/public-rates/la-inpatient-2026.json` |
+| Clarity Access refactor | PROPOSED — FROZEN | Access Domain Reconciliation v0.1.0 is proposed future architecture; feature development frozen by owner direction 2026-09-18 |
+
+**Test evidence:** this update ran **no** tests, lint, or typecheck. Every count in
+"Verification history" below is **HISTORICAL**. Do not restate a historical count as
+current evidence.
+
+### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
+
+Open PRs (12): #63, #73, #81, #82, #88, #89, #91, #92, #93, #94, #95, #100.
+Open issues (8): #1, #2, #3, #4, #5, #24, #31, #35.
+
+**Closed — no longer blockers:** PR #30 closed 2026-09-12; PR #18 and PR #29 closed
+2026-08-23. Any document describing PR #30 as an active blocker is stale.
+
+### ADR inventory — CURRENT, VERIFIED
+
+20 ADRs on `main`: 0001–0014, 0016–0019, 0021, 0022. **Gaps:** ADR-0015 exists only on
+`codex/om/sync-main` (and its recovery ref); ADR-0020 exists only on
+`claude/tree-structure-buildout-765db6` (PR #73, open, CONFLICTING). Do not allocate
+ADR-0023 or reuse 0015/0020 before both are dispositioned. Check every ref by filename,
+never `main` alone.
+
+### Local database — CURRENT, VERIFIED read-only (not modified)
+
+`clarity_dev` holds **401 organizations / 1,192 cases, all synthetic** — no real-data
+contamination detected. Ledger has 27 rows, 0 failed, 0 rolled back.
+
+- **Issue #24 (open) — condition persists and has grown.** Residue cohorts: 28 orgs
+  (2026-07-20), 94 (2026-09-08), 264 (2026-09-13), plus `synthetic-org-api-dev`.
+- **Issue #31 (open) — contention persists.** The ledger carries
+  `20260720002049_packet11_persistence` and `20260720014914_network_review_append_only_audit`,
+  whose migration files are absent from `main`; they came from the now-closed #29/#30 lineage.
+- **Pending:** `20260917000100_iop_program_binding` is on `main` but not applied locally.
+- Three migrations show `applied_steps_count = 0` from the documented
+  `migrate diff` → `db execute` → `migrate resolve --applied` hotfix flow recorded in #31;
+  their tables were verified present. Provenance gap, not corruption.
+
+### Branch and worktree durability — CURRENT, VERIFIED
+
+A 2026-09-18 read-only forensic audit found 64 local branches, 99 remote branches, 0
+stashes, 10 worktrees, and **zero unpreserved committed content** — the 8 local-only SHAs
+were patch-equivalent to work already on origin. The 2026-09-17 machine-only recovery plan
+was executed; all 8 `recovery/machine-only/2026-09-17/*` refs exist on origin and must
+never be deleted.
+
+### Known production-readiness limitations — UNCHANGED
+
+Not claimed: production readiness, HIPAA compliance, PHI handling, approved clinical or
+legal rules, working external integrations, or provider-backed tenancy evidence.
+
+**OD-6 provider — CURRENT, VERIFIED.** The provider is **Supabase Postgres**, not Google
+Cloud SQL. [ADR-0022](docs/architecture/ADR-0022-supabase-provider-swap.md) is **Accepted**
+(owner-directed, 2026-09-13) and swapped OD-6's recorded provider from Cloud SQL to the
+existing Supabase project; the schema was actually applied there, which is the first time
+OD-6's provider-backed step happened at all. No GCP account or project was ever available,
+so Cloud SQL remained recorded intent only. **What still remains open under OD-6:
+provider-backed tenancy tests and independent security review** (per
+[OPEN_DECISIONS.md](docs/decisions/OPEN_DECISIONS.md) — the schema and anon-grant fix are
+already done). Direct any provider-specific tenancy or security work at Supabase.
+Earlier sections of this file that name Cloud SQL as the pending gate predate ADR-0022 and
+are retained as **HISTORICAL**.
+
+---
+
+### Prior current-state narrative (2026-09-13, `main` at `66b0b7a`) — HISTORICAL
+
+Retained as written. Superseded by the 2026-09-18 block above; its `main` SHA and PR
+states are no longer current.
+
 **As of 2026-09-13 (late), branch `main` at `66b0b7a` (confirmed via `git log
 origin/main` and `gh pr view` on every PR named below — not carried forward from
 memory).**
@@ -98,6 +218,24 @@ external integrations, approved clinical/legal rules, Product Acceptance of
 VS-OA-001, or that the mobile Chromium click-interception false positive above has
 a root cause beyond what PR #84's fix commit documents — for any capability
 described anywhere in this file. Synthetic data only, throughout.
+
+**2026-09-12: OD-13 research executed.** The CMS/Medicare/Medicaid Phase 1 deep
+research prompt (`docs/legal/GEMINI_DEEP_RESEARCH_PROMPT_CMS_MEDICARE_MEDICAID.md`)
+was run by Tyler using an external deep-research tool; the historical entry below
+dated to PR #41 that says "the research has NOT been executed" is superseded by
+this line only — everything else in that entry (the classification scheme, the
+Phase 2 relationship) stands. Output is at
+[`docs/legal/CMS_MEDICARE_MEDICAID_REGULATORY_REFERENCE_INDEX.md`](docs/legal/CMS_MEDICARE_MEDICAID_REGULATORY_REFERENCE_INDEX.md):
+~30 classified requirement records across EMTALA, hospital CoPs, Medicare IPF
+payment, Medicaid/IMD exclusion, prior-auth/interoperability, quality reporting,
+program integrity, privacy/consent, telehealth, and other facility types, plus
+two Louisiana-specific surfaces the scaffold missed, a contradictions section,
+an interpretation map, and a top-10-by-consequence ranking. **This does not
+close OD-13** — citations were not independently re-verified inside this
+repository session (see the file's own front matter), and "who reviews the
+output before it informs a rule" remains open pending OD-2 (counsel) and OD-3
+(clinical licensing). Nothing in it is a Clarity rule, validation rule,
+state-machine transition, or role permission yet.
 
 The narrative log below (every prior dated session entry, verbatim, unmoved in
 substance) is historical color for how each capability arrived; it is not where a
@@ -634,6 +772,29 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 - OD-5 (API architecture), OD-6 (database hosting/RLS), OD-7 (pnpm/Turborepo timing), OD-8 (expanded-schema graduation), OD-9 (toolchain/CI).
 
 ## Next recommended action
+
+**Current action (updated 2026-09-18, Housekeeping Phase 1).** Repository housekeeping
+runs before any further feature work, in this order:
+
+1. **Phase 1 — this change.** Preserve the four previously-untracked local documents and
+   repair `CLAUDE.md` and this file against actual `main`. Documentation only.
+2. **Phase 2 — ADR / branch / PR disposition.** Rule on ADR-0015, ADR-0020 / PR #73, and
+   `codex/om/sync-main`; then disposition the remaining open PRs. No deletions until the
+   rulings exist; never delete `recovery/machine-only/*`.
+3. **Phase 3 — database and migration cleanup.** Issue #31 ledger contention, issue #24
+   residue (confirm `synthetic-org-api-dev` is an intended fixture first, and fix the test
+   cleanup that regrew it), then apply `20260917000100_iop_program_binding`.
+
+**CLARITY ACCESS IMPLEMENTATION FREEZE IS ACTIVE (2026-09-18).** No Access patient-journey
+refactor, scenario/rule architecture, Guided Intake / Prescreen convergence, role redesign,
+`JourneyPhase`, `WorkItem`, or UI redesign is authorized. The Access Domain Reconciliation
+v0.1.0 package is proposed future architecture and a freeze declaration — not an
+implementation mandate.
+
+The threads below remain open and are unchanged by Phase 1, but are **not** the next action
+while housekeeping runs.
+
+#### Prior "current action" (2026-09-13, late) — HISTORICAL
 
 ~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011). ~~Check PR #75's CI and merge it~~ **done** — merged 2026-09-13 19:39 UTC. ~~Phase 2A: shared auth + router + global shell~~ **done** — PR #84 merged 2026-09-13 23:55 UTC (see Current State above for the CI regressions found and fixed en route).
 
