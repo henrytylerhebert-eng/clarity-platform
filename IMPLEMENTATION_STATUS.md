@@ -21,8 +21,9 @@ the Housekeeping Phase 3B baseline `f9c4eb8`** (merge of PR #107), validated 202
 ### Status vocabulary used here
 
 - **CURRENT — VERIFIED** — observed in the repository at one of this block's stated baselines:
-  `5c4c0b9` for claims written in Phase 1, `f0cd909` for claims added or changed in Phase 2B.
-  Neither is a claim to be the newest commit.
+  `5c4c0b9` for claims written in Phase 1, `f0cd909` for claims added or changed in Phase 2B,
+  and `f9c4eb8` for the database, test-isolation and issue #24/#31 claims established by
+  Housekeeping Phase 3B. None of the three is a claim to be the newest commit.
 - **HISTORICAL** — was verified on a stated earlier date; not re-run here.
 - **DOCUMENTATION ONLY** — a document exists; no runtime behind it.
 - **PROPOSED** — designed, not authorized and not implemented.

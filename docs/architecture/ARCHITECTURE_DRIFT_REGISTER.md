@@ -9,8 +9,10 @@
 > [`../recovery/2026-09-18-housekeeping-phase-1-truth-reconciliation.md`](../recovery/2026-09-18-housekeeping-phase-1-truth-reconciliation.md).
 
 > **Status of these findings as re-verified on 2026-09-18:**
-> **DRIFT-01** still true — the two orphan ledger entries remain in local `clarity_dev`; issue
-> #31 is open. **DRIFT-09** is **SUPERSEDED** by PR #101, which repaired
+> **DRIFT-01** is **resolved (2026-09-18, Housekeeping Phase 3B)** — the two orphan ledger
+> entries are gone with the canonical `clarity_dev` rebuild, integration databases are
+> per-run disposable, and issue #31 is closed. (It was still true when re-verified earlier
+> that day, before Gate B.) **DRIFT-09** is **SUPERSEDED** by PR #101, which repaired
 > `IMPLEMENTATION_STATUS.md` and `CLAUDE.md`. **DRIFT-10** is **closed on main** — the CLPR
 > review acceptance was recorded in `docs/planning/clpr/CLPR_IMPLEMENTATION_RETURN.md`
 > (`claude_review_verdict: ACCEPT`) via PR #99, which also corrected that record's test-count
@@ -56,7 +58,10 @@ revops_rls_test` on this specific local Postgres instance (the role's schema-usa
 was missing, causing a same-symptom `relation does not exist` error even after the
 migration fix — a local-environment privilege gap, not a code or migration defect).
 **Priority:** P0. **Status:** fixed for this worktree's session; the underlying
-shared-ledger fragility (issue #31) remains open.
+shared-ledger fragility (issue #31) was **resolved on 2026-09-18 by Housekeeping Phase 3B** —
+database-writing tests now run on per-run disposable clusters with their own ledgers, and
+`clarity_dev` was rebuilt from the canonical chain. See
+`../recovery/2026-09-18-housekeeping-phase-3b-gate-b-clarity-dev-rebuild.md`.
 
 ---
 
