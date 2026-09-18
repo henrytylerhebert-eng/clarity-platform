@@ -280,10 +280,15 @@ regression from this session's changes, but confirmed concretely here.
 across the suite is a separate, pre-existing tracked item.
 **Priority:** P2.
 
-**[CORROBORATED 2026-09-18]** An independent read-only count found **401 organizations /
-1,192 cases** — one above this entry's 400/1191 endpoint. That match confirms the mechanism:
-the suite's own teardown, not any single session, regrows issue #24's residue. Phase 3 must
-therefore fix teardown **before** deleting residue, or the deletion will simply be undone.
+**[CORROBORATED 2026-09-18, then NARROWED]** An independent read-only count found **401
+organizations / 1,192 cases** — one above this entry's 400/1191 endpoint. The persistence of
+the residue is corroborated; **the mechanism is not.** These are aggregate before/after counts
+and cannot attribute rows to a writer: they do not distinguish a failed teardown hook from an
+intentionally persistent setup or dev fixture, a crashed run, or another session's writes.
+An earlier revision of this note said the match "confirms" teardown as the mechanism — that
+overstated the evidence and is retracted here. Phase 3 must therefore **diagnose the cause
+and attribute rows per fixture family before deleting anything**; deleting first risks the
+deletion simply being undone, which holds whatever the cause turns out to be.
 
 ---
 

@@ -802,17 +802,31 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 
 ## Next recommended action
 
-**Current action (updated 2026-09-18, Housekeeping Phase 1).** Repository housekeeping
-runs before any further feature work, in this order:
+**Current action (updated 2026-09-18, after Housekeeping Phase 2B).** **Phases 1 and 2B are
+COMPLETE.** Phase 1 preserved the previously-untracked local documents and repaired this file
+and `CLAUDE.md`. Phase 2A produced the owner decision packet. Phase 2B landed seven PRs, closed
+nine with evidence, reconciled ADR-0015 and ADR-0020 onto `main`, and added
+`docs/architecture/ADR_INDEX.md` with a corrected numbering rule. **No branch was deleted for
+any closure, and no database state changed.**
 
-1. **Phase 1 — this change.** Preserve the four previously-untracked local documents and
-   repair `CLAUDE.md` and this file against actual `main`. Documentation only.
-2. **Phase 2 — ADR / branch / PR disposition.** Rule on ADR-0015, ADR-0020 / PR #73, and
-   `codex/om/sync-main`; then disposition the remaining open PRs. No deletions until the
-   rulings exist; never delete `recovery/machine-only/*`.
-3. **Phase 3 — database and migration cleanup.** Issue #31 ledger contention, issue #24
-   residue (confirm `synthetic-org-api-dev` is an intended fixture first, and fix the test
-   cleanup that regrew it), then apply `20260917000100_iop_program_binding`.
+**The next action is Phase 3 — database and migration cleanup only**, in this order:
+
+1. **Diagnose the issue #24 residue before deleting anything.** The evidence is aggregate, not
+   causal: DRIFT-13 recorded the suite moving `Organization` 338→400 and
+   `BehavioralHealthCase` 1023→1191 across full-suite runs, and a 2026-09-18 read-only count
+   found 401/1,192. That is consistent with a cleanup gap but does not identify a writer — it
+   cannot distinguish a failed teardown hook from an intentionally persistent setup or dev
+   fixture, a crashed run, or another session. Attribute rows per fixture family first.
+2. **Rule on `synthetic-org-api-dev`** — whether it is an intended long-lived fixture.
+3. **Delete the run-scoped residue**, once 1 and 2 are settled.
+4. **Decide the issue #31 orphan ledger entries** `20260720002049_packet11_persistence` and
+   `20260720014914_network_review_append_only_audit`. Their nine `Network*` tables hold 891
+   synthetic rows, and their only explanation is ADR-0015 — now on `main`, preserved as
+   historical.
+5. **Apply the pending `20260917000100_iop_program_binding`.**
+
+Only after that may `codex/om/sync-main` be retired; it stays **KEEP — DB/MIGRATION
+DEPENDENCY** until then, and `recovery/machine-only/*` is never deleted.
 
 **CLARITY ACCESS IMPLEMENTATION FREEZE IS ACTIVE (2026-09-18).** No Access patient-journey
 refactor, scenario/rule architecture, Guided Intake / Prescreen convergence, role redesign,
