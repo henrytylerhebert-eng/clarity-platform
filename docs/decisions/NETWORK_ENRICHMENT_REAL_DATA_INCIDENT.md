@@ -12,6 +12,11 @@
 > The containment described below still holds. No row was read for content, and nothing was
 > modified.
 >
+> **Historical `OD-13` numbering:** any `OD-13` reference in this record means the
+> network-enrichment service/worker boundary decision, **not** current `main`'s OD-13
+> (CMS/Medicare/Medicaid regulatory reference acquisition). The collision is recorded in
+> `docs/developer-handoff/AI_NATIVE_DOMAIN_AGENT_REPOSITORY_PREPARATION.md`.
+>
 > The loader and agent prompt this record describes live only on the unmerged lineage and its
 > recovery ref. Related: [`../architecture/ADR-0015-network-enrichment-invariant-remediation.md`](../architecture/ADR-0015-network-enrichment-invariant-remediation.md).
 

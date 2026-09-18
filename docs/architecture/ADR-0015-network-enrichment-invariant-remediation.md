@@ -21,6 +21,14 @@
 >    contention. Its sibling `20260720002049_packet11_persistence` created the nine
 >    `Network*` tables that still hold synthetic rows locally. **Phase 3 owns that database
 >    decision; nothing here authorizes a ledger or schema change.**
+> 5. **Its `OD-13` references are NOT current OD-13.** This ADR predates a renumbering. On
+>    current `main`, `docs/decisions/OPEN_DECISIONS.md` defines **OD-13 as CMS/Medicare/Medicaid
+>    regulatory reference acquisition**. The `OD-13` cited below and in the incident record
+>    means the *network-enrichment service/worker boundary* decision from the PR #30 lineage.
+>    `docs/developer-handoff/AI_NATIVE_DOMAIN_AGENT_REPOSITORY_PREPARATION.md` records this as
+>    an unresolved ID collision. Read every `OD-13` in this document as **"OD-13
+>    (network-enrichment, historical numbering)"**, never as the CMS research decision.
+>
 > 4. **This is NOT evidence that a network-enrichment service is implemented today.** Do not
 >    cite this ADR as capability. Its value is the record of *why* the invariants matter —
 >    dead policy configuration, a placeholder integrity hash presented as valid, and a
