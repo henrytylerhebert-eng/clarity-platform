@@ -946,12 +946,43 @@ model RevOpsChange {
   @@unique([organizationId, workspaceId, revision])
 }
 
+/// Published Louisiana Medicaid inpatient per-diem release registry (ADR-0021,
+/// RevOps R1). Deliberately NOT tenant-scoped: this is public, government-
+/// published reference data identical for every organization, not a
+/// tenant-owned fact. recordedByOrganizationId/recordedBy attribute the write
+/// for audit purposes only and are not a read-side filter. Corrections never
+/// mutate payload/sha256/sourceUrl/effective dates on an existing row; they
+/// insert a new row and flip only status/supersededById on the one replaced,
+/// mirroring EvidenceItem's supersession pattern (ADR-0008).
+model RevOpsRateRelease {
+  id                       String              @id @default(cuid())
+  programMethod            String
+  releaseId                String              @unique
+  publisher                String
+  sourceUrl                String
+  sha256                   String
+  retrievedAt              DateTime
+  effectiveFrom            DateTime
+  effectiveThrough         DateTime
+  payload                  Json
+  status                   String              @default("ACTIVE")
+  supersededById           String?
+  supersededBy             RevOpsRateRelease?  @relation("RateReleaseSupersession", fields: [supersededById], references: [id])
+  supersedes               RevOpsRateRelease[] @relation("RateReleaseSupersession")
+  recordedByOrganizationId String
+  recordedBy               String
+  recordedAt               DateTime            @default(now())
+
+  @@index([programMethod, status, effectiveFrom, effectiveThrough])
+}
+
 /// Tenant-owned configuration for a source that supplies IOP reconciliation facts.
 /// Credentials and raw clinical content are intentionally outside this model.
 model IopSourceIntegration {
   id             String                    @id @default(cuid())
   organizationId String
   integrationKey String
+  programId      String
   label          String
   active         Boolean                   @default(true)
   createdAt      DateTime                  @default(now())
@@ -959,6 +990,7 @@ model IopSourceIntegration {
   imports        IopReconciliationImport[]
 
   @@unique([organizationId, integrationKey])
+  @@index([organizationId, programId, active])
   @@index([organizationId, active])
 }
 

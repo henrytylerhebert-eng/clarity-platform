@@ -6,19 +6,32 @@ import {
   cleanup,
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { RevOps } from "./RevOps";
+import { RevOps as RevOpsWorkspace } from "./RevOps";
+import { AuthProvider } from "../domain/AuthContext";
 import type { RevOpsView } from "../../../packages/domain-contracts/src/revOps";
 import { apiRevOps } from "../domain/api";
 
-vi.mock("../domain/api", () => ({
-  apiLogin: vi.fn(async () => ({
-    displayName: "Synthetic admin",
-    organizationId: "test-org",
-    roles: ["ORGANIZATION_ADMIN"],
-  })),
-  apiLogout: vi.fn(async () => {}),
-  apiRevOps: vi.fn(),
-}));
+function RevOps() {
+  return (
+    <AuthProvider>
+      <RevOpsWorkspace />
+    </AuthProvider>
+  );
+}
+
+vi.mock("../domain/api", async () => {
+  const actual = await vi.importActual<typeof import("../domain/api")>("../domain/api");
+  return {
+    ...actual,
+    apiLogin: vi.fn(async () => ({
+      displayName: "Synthetic admin",
+      organizationId: "test-org",
+      roles: ["ORGANIZATION_ADMIN"],
+    })),
+    apiLogout: vi.fn(async () => {}),
+    apiRevOps: vi.fn(),
+  };
+});
 const workspace = (id: string, label: string): RevOpsView => ({
   id,
   name: id,
@@ -50,6 +63,7 @@ beforeEach(() => {
   vi.mocked(apiRevOps).mockImplementation(async (path) => {
     if (path === "/workspaces") return structuredClone(rows);
     if (path === "/members") return [];
+    if (path.startsWith("/rate-releases")) return [];
     if (path.includes("/operating-workbook")) return { revision: 1, workbook: null, summary: null, history: [], closings: [] };
     if (path.includes("/history"))
       return [

@@ -1,9 +1,12 @@
 import { PrismaRevOpsGateway } from "../../case-repository/src/revOpsGateway.js";
 import { PrismaOperatingWorkbookGateway } from "../../case-repository/src/operatingWorkbookGateway.js";
 import { PrismaIopReconciliationGateway } from "../../case-repository/src/iopReconciliationGateway.js";
+import { PrismaRevOpsRateReleaseGateway } from "../../case-repository/src/revOpsRateReleaseGateway.js";
+import { LA_INPATIENT_RELEASES } from "../../rev-ops-service/src/pricing.js";
 import {
   assertLocalClarityDevDatabase,
   createPrismaClient,
+  PrismaAssuranceGateway,
   PrismaAuthGateway,
   PrismaCaseCommandGateway,
   PrismaPrescreenGateway,
@@ -11,6 +14,14 @@ import {
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { CaseCommandService } from "@clarity/case-service";
 import { PRESCREEN_PRODUCTION_POLICY, PrescreenCommandService } from "@clarity/prescreen-service";
+import {
+  AssuranceCommandService,
+  AssuranceQueryService,
+} from "../../assurance-service/src/index.js";
+import {
+  ASSURANCE_DEV_USERS,
+  ensureAssuranceDevFixture,
+} from "./assuranceDevFixture.js";
 import { createApiServer } from "./server.js";
 
 /**
@@ -51,6 +62,7 @@ const DEV_USERS = [
     roles: ["INTAKE_COORDINATOR"],
     assertion: "syn-assert-api-intake-dev",
   },
+  ...ASSURANCE_DEV_USERS,
 ] as const;
 
 async function main(): Promise<void> {
@@ -85,6 +97,8 @@ async function main(): Promise<void> {
     });
     provider.register(user.assertion, user.email);
   }
+
+  const assuranceDevFixture = await ensureAssuranceDevFixture(prisma);
 
   const patientToken = await prisma.patientToken.upsert({
     where: { id: "synthetic-pt-api-dev" },
@@ -133,20 +147,70 @@ async function main(): Promise<void> {
   });
   await prisma.iopSourceIntegration.upsert({
     where: { organizationId_integrationKey: { organizationId: ORG_ID, integrationKey: "SYNTHETIC_IOP_PROGRAM" } },
-    update: { active: true, label: "Synthetic IOP program source" },
-    create: { organizationId: ORG_ID, integrationKey: "SYNTHETIC_IOP_PROGRAM", label: "Synthetic IOP program source" },
+    update: { active: true, label: "Synthetic IOP program source", programId: "IOP_PROGRAM_001" },
+    create: { organizationId: ORG_ID, integrationKey: "SYNTHETIC_IOP_PROGRAM", programId: "IOP_PROGRAM_001", label: "Synthetic IOP program source" },
   });
+  // ADR-0021 (R1): seed the two checked-in, source-hashed LA Medicaid
+  // releases as the initial ACTIVE rows. Public reference data, not a
+  // tenant-owned fact — recordedByOrganizationId/recordedBy here just
+  // attribute this bootstrap, distinct from a real "record release" API call.
+  for (const release of LA_INPATIENT_RELEASES) {
+    await prisma.revOpsRateRelease.upsert({
+      where: { releaseId: release.releaseId },
+      update: {},
+      create: {
+        programMethod: "LA_MEDICAID_INPATIENT_PER_DIEM",
+        releaseId: release.releaseId,
+        publisher: release.publisher,
+        sourceUrl: release.sourceUrl,
+        sha256: release.sha256,
+        retrievedAt: new Date(release.retrievedAt),
+        effectiveFrom: new Date(`${release.scenarioCoverageFrom}T00:00:00.000Z`),
+        effectiveThrough: new Date(`${release.scenarioCoverageThrough}T00:00:00.000Z`),
+        payload: JSON.parse(JSON.stringify({
+          sheet: release.sheet,
+          rowCount: release.rowCount,
+          rows: release.rows,
+        })),
+        recordedByOrganizationId: ORG_ID,
+        recordedBy: "system-dev-seed",
+      },
+    });
+  }
+
   const caseCommands = new CaseCommandService(new PrismaCaseCommandGateway(prisma));
   // Phase 3 gateway: prescreen state persists in local clarity_dev and
   // survives a server restart (provider-backed verification stays gated).
   const prescreen = new PrescreenCommandService(new PrismaPrescreenGateway(prisma), PRESCREEN_PRODUCTION_POLICY);
-  const server = createApiServer({ revOps: new PrismaRevOpsGateway(prisma), operatingWorkbook: new PrismaOperatingWorkbookGateway(prisma), iopReconciliation: new PrismaIopReconciliationGateway(prisma), auth, caseCommands, prescreen });
+  const assuranceGateway = new PrismaAssuranceGateway(prisma);
+  const assuranceCommands = new AssuranceCommandService(assuranceGateway);
+  const assuranceQueries = new AssuranceQueryService(assuranceGateway);
+  const assuranceEvaluationCaseResolver = async (organizationId: string, evaluationId: string) => {
+    const row = await prisma.assuranceEvaluation.findFirst({
+      where: { id: evaluationId, organizationId },
+      select: { assuranceCase: { select: { caseKey: true } } },
+    });
+    return row?.assuranceCase.caseKey;
+  };
+  const server = createApiServer({
+    revOps: new PrismaRevOpsGateway(prisma),
+    operatingWorkbook: new PrismaOperatingWorkbookGateway(prisma),
+    iopReconciliation: new PrismaIopReconciliationGateway(prisma),
+    revOpsRateReleases: new PrismaRevOpsRateReleaseGateway(prisma),
+    auth,
+    caseCommands,
+    prescreen,
+    assuranceCommands,
+    assuranceQueries,
+    assuranceEvaluationCaseResolver,
+  });
 
   const port = Number(process.env.API_PORT ?? 4315);
   server.listen(port, "127.0.0.1", () => {
     console.log(`[api-service] listening on http://127.0.0.1:${port}`);
     console.log(`[api-service] synthetic tenant: ${ORG_ID}`);
     console.log(`[api-service] synthetic case:   ${CASE_KEY}`);
+    console.log(`[api-service] assurance case:   ${assuranceDevFixture.caseKey}`);
     console.log(`[api-service] citable legal record: ${LEGAL_RECORD_ID}`);
     console.log("[api-service] dev assertions (synthetic, dev-only):");
     for (const user of DEV_USERS) {

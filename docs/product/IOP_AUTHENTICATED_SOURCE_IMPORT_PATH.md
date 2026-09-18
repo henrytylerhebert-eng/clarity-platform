@@ -11,6 +11,8 @@ related_artifacts:
   - packages/case-repository/src/revOpsGateway.ts
   - docs/architecture/ADR-0012-api-architecture.md
   - docs/product/IOP_ATTENDANCE_HANDOFF_VALIDATION.md
+  - app/src/workspaces/IopReconciliation.tsx
+  - app/src/domain/api.ts
 ---
 
 # IOP authenticated, source-owned reconciliation import path
@@ -145,10 +147,47 @@ The body supplies only a required close reason and expected import revision. The
 | Does the API move to the accepted Fastify direction before this route is added? | Technical lead | Requires technical decision |
 | What program/facility authorization model is enforced in the database? | Technical lead + security | Requires technical decision |
 
+## Frontend wiring (2026-09-13)
+
+`app/src/workspaces/IopReconciliation.tsx` now calls this path directly through a
+new `apiIopReconciliation` client (`app/src/domain/api.ts`, mirroring the existing
+`apiRevOps` pattern) instead of computing everything in-browser against the bundled
+fixture. The workspace's own self-contained sign-in (matching `RevOps.tsx`'s
+pattern — a dev assertion input, independent of the app shell's own login panel)
+gates import/review/close; loading a candidate file for a client-side structural
+preview remains available without a session.
+
+The synthetic dev facility (`synthetic-iop-facility-api-dev`) and integration key
+(`SYNTHETIC_IOP_PROGRAM`) that `packages/api-service/src/devMain.ts` bootstraps are
+hardcoded in the workspace as the only import target — this is dev-only wiring, not
+a facility/program picker, and there is deliberately no such picker in this slice.
+`sourceRecords` (required by `IopPersistedImportRequestSchema`) are derived from the
+loaded reconciliation sample with a fixed `sourceVersion: "1"`, since the bundled
+synthetic fixture carries no real source-side version marker. Exception reviews are
+recorded one at a time against the authenticated session (`disposition` + `reason`
+per issue) — the fixture's bundled `exceptionReviews` are no longer submitted on
+import (the server already refuses reviewer authority from the import payload) and
+are not shown; a reviewer records them live against each derived issue instead.
+
+**Known gaps, not fixed here:** no facility/program selection UI (single hardcoded
+dev target); no way to reopen or browse a prior import by ID (the backend exposes no
+list endpoint, so only the most recently submitted-or-fetched import is visible in a
+given session); idempotency keys for review/close are derived deterministically from
+`(importId, issueKey)` / `importId`, so a reviewer cannot silently resubmit a
+*changed* review for the same issue under the same key (a 409, not a silent
+overwrite) — correcting a review requires a fresh import in this slice. Verified
+(app suite only — the app-workspace tests fully mock the network layer and make no
+real database writes): 2 new/extended tests in `IopReconciliation.test.tsx`
+(previously 1), app suite **141/141** (21 files), lint clean, typecheck clean. Root
+suite (`npm test`, unaffected — no root-level test was added or changed by this
+slice): **762/762** (74 files) against local `clarity_dev`. `prisma validate`
+clean.
+
 ## Non-goals
 
 - Connecting to a live EHR, note, charge, EMR, or RCM system.
 - Importing real patient data or note content.
 - Declaring a charge valid, a note clinically sufficient, or an EMR line payable.
 - Replacing EHR, charge, or RCM ownership.
-- Treating the local IOP prototype screen as an authenticated or persisted system.
+- A facility/program picker, or a way to browse/reopen a prior import by ID —
+  both remain out of scope for this frontend-wiring slice.

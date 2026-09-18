@@ -2,49 +2,221 @@
 
 ## Current State
 
-**As of 2026-09-12, branch `main` at `5348202f8b90ba55b32a8aee811bc6c4e6633995`.**
+**As of 2026-09-18, branch `main` at `5c4c0b9`** (merge of PR #99, committed
+2026-09-16 22:26 -0500). Confirmed in-session via `git rev-parse origin/main`, `gh pr
+list`, `git ls-tree`, and read-only `psql` against local `clarity_dev` — not carried
+forward from memory. This block was written during **Housekeeping Phase 1** and
+supersedes the 2026-09-13 narrative preserved below it.
 
-Today's housekeeping pass merged twelve PRs and closed one. Merged: #58 (workbook
-operating slice + payment scenarios; cleaned of a dead, unused `RevOpsScope.tsx`),
-#59 (governance/operating-assurance documentation recovery), #48 (network-enrichment
-contract kernel, verified contract-only — no Prisma imports, no server/runtime code),
-#64 (root-caused and fixed a real intermittent CI failure: Prisma's 5000ms
-interactive-transaction default was exceeded writing the operating workbook's ~28k-
-record state blob under CI's shared-runner contention, error P2028; raised to 15s in
-the shared `withTenantContext` helper used by every gateway), #65 (corrected that
-fix's test docstring to describe a configuration assertion, not a timeout
-reproduction), #54 and #55 (csv-parse and vitest dependency bumps), #56 (API path
-validation plus a stable prescreen-actor role-order idempotency fingerprint), #57
-(Graphify local-artifact retention policy, resolves issue #40), #60 (opt-in
-ephemeral-PostgreSQL verification runner, independent of the shared local
-`clarity_dev`), #61 (this pass's own preservation and disposition record), #62
-(gstack skill-routing addition to this file's own house rules). Closed: **PR #30**
-(held network-enrichment runtime slice, 2,483 changed files) as superseded — its
-contract-only portion already landed via #48; the runtime portion (service,
-persistence/outbox, API routes, UI, the `agent_bridge` tree) was never reviewed and
-remains unimplemented, preserved in the local recovery bundle and the closed
-branch's history if it is wanted later.
+### Status vocabulary used here
 
-**Bridge: retired**, as of this same pass (PR #66). PR #30's closure unblocked
-AI_OPERATING_MODEL_PLAN.md's Stage 0.1–0.3: `agents/bridge/` and the root
-`agent_bridge/` notification mirror both moved, byte-identical, to
-`docs/experiments/2026-07-agent-bridge/` per
-[ADR-0017](docs/architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md);
-no live listener, dispatch script, or `npm run bridge:*` entry point exists. The
-"Bridge:" bullet in the Verification history below is the dated observation from
-the session that made it (`listener=running`) and is kept verbatim, not updated —
-this paragraph is where current truth about the bridge belongs.
+- **CURRENT — VERIFIED** — observed in the repository at `5c4c0b9` during this update.
+- **HISTORICAL** — was verified on a stated earlier date; not re-run here.
+- **DOCUMENTATION ONLY** — a document exists; no runtime behind it.
+- **PROPOSED** — designed, not authorized and not implemented.
+- **BLOCKED** — waiting on a named owner decision or external access.
+- **UNKNOWN** — not established by this update.
 
-**Verified this session** (PR #64, after the fix, three consecutive full CI passes
-on the same revision): full root suite **617/617** (58 files), app suite **96/96**,
-lint clean, typecheck clean, `prisma validate` clean, `npm audit --audit-level=high`
-clean (the 3 moderate advisories it had flagged, in `vitest`/`@vitest/mocker` and
-`csv-parse`, are resolved by #54/#55). Every merge above has its own passing required
-`verify` CI check on its exact merged revision, and `main`'s own post-merge CI
-passed after each one.
+### Repository shape — CURRENT, VERIFIED
+
+14 packages on `main`: `api-service`, `assurance-service`, `auth-service`,
+`authorization-service`, `benefits-service`, `case-repository`, `case-service`,
+`document-service`, `domain-contracts`, `evidence-service`, `learning-practice-service`,
+`legal-hold-forms`, `prescreen-service`, `rev-ops-service`. Frontend in `app/`.
+26 Prisma migrations plus `migration_lock.toml`.
+
+**Prescreen moved.** The command service is `packages/prescreen-service`; contracts are
+the flat files `packages/domain-contracts/src/prescreen.ts` and
+`packages/domain-contracts/src/prescreenCommands.ts`. There is **no**
+`packages/domain-contracts/src/prescreen/` directory. Documents that cite that path are stale.
+
+**Authentication is implemented** (ADR-0011, Accepted). `packages/api-service` verifies a
+bearer token through `@clarity/auth-service` and builds every `CommandActor` via
+`actorFor(principal)` (`packages/auth-service/src/authenticationService.ts:65`);
+`organizationId` and roles come from the database-backed principal, never the request body.
+The long-standing assumption "actor roles are trusted caller input" is **retired** for
+API-mediated paths.
+
+**Prisma boundary holds.** Only `packages/case-repository` has a runtime `@prisma/client`
+dependency. `packages/api-service/src/assuranceDevFixture.ts` carries a single **type-only**
+`import type { PrismaClient }`, which erases at compile time and is not a runtime violation.
+
+### Capability state — CURRENT, VERIFIED (shape only)
+
+| Capability | State | Note |
+|---|---|---|
+| Prescreen | CURRENT — VERIFIED (shape) | `prescreen-service` + flat contracts; 2 migrations; 4 tables live in `clarity_dev` |
+| RevOps | CURRENT — VERIFIED (shape) | `rev-ops-service`, rate-release registry (ADR-0021), 5 migrations |
+| Operating Assurance | CURRENT — VERIFIED (shape) | `assurance-service`, `prisma/assurance.prisma`, 5 migrations; VS-OA-001 acceptance review still outstanding |
+| Learning & Practice / CLPR | CURRENT — VERIFIED (shape) | `learning-practice-service`, `app/src/components/learning-practice/*`, `docs/planning/clpr/*`; PR #99 reconciled post-merge acceptance |
+| Shared auth / router / shell | CURRENT — VERIFIED (shape) | `AuthContext.tsx`, `SignInForm.tsx`, `ClarityShell.tsx` (PR #84, verified live on 2026-09-13 — that live run is HISTORICAL) |
+| IOP | PARTIAL / BLOCKED | `iop_reconciliation_persistence` applied; `20260917000100_iop_program_binding` is on `main` but **not applied** to `clarity_dev`; source-adapter and access gates open (PR #100) |
+| Liaison / referral-development training | NOT IMPLEMENTED | Absent from every ref; "liaison" appears once, incidentally, in `docs/09-personas-and-role-ux.md` |
+| Freedom Behavioral roles / workflows | NOT IMPLEMENTED | Absent from every ref; the name appears only as facility names in `data/public-rates/la-inpatient-2026.json` |
+| Clarity Access refactor | PROPOSED — FROZEN | Access Domain Reconciliation v0.1.0 is proposed future architecture; feature development frozen by owner direction 2026-09-18 |
+
+**Test evidence:** this update ran **no** tests, lint, or typecheck. Every count in
+"Verification history" below is **HISTORICAL**. Do not restate a historical count as
+current evidence.
+
+### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
+
+Open PRs (12): #63, #73, #81, #82, #88, #89, #91, #92, #93, #94, #95, #100.
+Open issues (8): #1, #2, #3, #4, #5, #24, #31, #35.
+
+**Closed — no longer blockers:** PR #30 closed 2026-09-12; PR #18 and PR #29 closed
+2026-08-23. Any document describing PR #30 as an active blocker is stale.
+
+### ADR inventory — CURRENT, VERIFIED
+
+20 ADRs on `main`: 0001–0014, 0016–0019, 0021, 0022. **Gaps:** ADR-0015 exists only on
+`codex/om/sync-main` (and its recovery ref); ADR-0020 exists only on
+`claude/tree-structure-buildout-765db6` (PR #73, open, CONFLICTING). Do not allocate
+ADR-0023 or reuse 0015/0020 before both are dispositioned. Check every ref by filename,
+never `main` alone.
+
+### Local database — CURRENT, VERIFIED read-only (not modified)
+
+`clarity_dev` holds **401 organizations / 1,192 cases, all synthetic** — no real-data
+contamination detected. Ledger has 27 rows, 0 failed, 0 rolled back.
+
+- **Issue #24 (open) — condition persists and has grown.** Residue cohorts: 28 orgs
+  (2026-07-20), 94 (2026-09-08), 264 (2026-09-13), plus `synthetic-org-api-dev`.
+- **Issue #31 (open) — contention persists.** The ledger carries
+  `20260720002049_packet11_persistence` and `20260720014914_network_review_append_only_audit`,
+  whose migration files are absent from `main`; they came from the now-closed #29/#30 lineage.
+- **Pending:** `20260917000100_iop_program_binding` is on `main` but not applied locally.
+- Three migrations show `applied_steps_count = 0` from the documented
+  `migrate diff` → `db execute` → `migrate resolve --applied` hotfix flow recorded in #31;
+  their tables were verified present. Provenance gap, not corruption.
+
+### Branch and worktree durability — CURRENT, VERIFIED
+
+A 2026-09-18 read-only forensic audit found 64 local branches, 99 remote branches, 0
+stashes, 10 worktrees, and **zero unpreserved committed content** — the 8 local-only SHAs
+were patch-equivalent to work already on origin. The 2026-09-17 machine-only recovery plan
+was executed; all 8 `recovery/machine-only/2026-09-17/*` refs exist on origin and must
+never be deleted.
+
+### Known production-readiness limitations — UNCHANGED
+
+Not claimed: production readiness, HIPAA compliance, PHI handling, approved clinical or
+legal rules, working external integrations, or provider-backed tenancy evidence.
+
+**OD-6 provider — CURRENT, VERIFIED.** The provider is **Supabase Postgres**, not Google
+Cloud SQL. [ADR-0022](docs/architecture/ADR-0022-supabase-provider-swap.md) is **Accepted**
+(owner-directed, 2026-09-13) and swapped OD-6's recorded provider from Cloud SQL to the
+existing Supabase project; the schema was actually applied there, which is the first time
+OD-6's provider-backed step happened at all. No GCP account or project was ever available,
+so Cloud SQL remained recorded intent only. **What still remains open under OD-6:
+provider-backed tenancy tests and independent security review** (per
+[OPEN_DECISIONS.md](docs/decisions/OPEN_DECISIONS.md) — the schema and anon-grant fix are
+already done). Direct any provider-specific tenancy or security work at Supabase.
+Earlier sections of this file that name Cloud SQL as the pending gate predate ADR-0022 and
+are retained as **HISTORICAL**.
+
+---
+
+### Prior current-state narrative (2026-09-13, `main` at `66b0b7a`) — HISTORICAL
+
+Retained as written. Superseded by the 2026-09-18 block above; its `main` SHA and PR
+states are no longer current.
+
+**As of 2026-09-13 (late), branch `main` at `66b0b7a` (confirmed via `git log
+origin/main` and `gh pr view` on every PR named below — not carried forward from
+memory).**
+
+**PR #83 merged** (`92ed7b9`): a live UX audit of the Clarity prototype produced a
+full topology/navigation/session/IA reconciliation — eight documents under
+`docs/ux/`, now the source of truth for anything navigation/session/IA-related.
+[`docs/ux/PRODUCT_TOPOLOGY_DECISION.md`](docs/ux/PRODUCT_TOPOLOGY_DECISION.md) is
+**the answer** worth knowing before touching any of this again: Clarity is **one
+platform** with several applications (Crisis Ops, Operating Assurance, RevOps) —
+not one monolithic product, not a suite of unrelated apps.
+
+**PR #84 merged** (`66b0b7a`, the first implementation slice acting on that
+reconciliation — "Phase 2A"): fixed the concretely-demonstrated defect from the
+audit — four independent sign-in surfaces (Crisis Ops sidebar, IOP Reconciliation,
+Operating Assurance, RevOps) each called the same `apiLogin`/`apiLogout` but kept
+separate React state, so signing in on one left the other three still prompting.
+New: `app/src/domain/AuthContext.tsx` (one shared `AuthProvider`/`useAuth()`),
+`app/src/components/SignInForm.tsx` (one shared sign-in form replacing four bespoke
+copies), `app/src/ClarityShell.tsx` (minimal global layout: Clarity mark, area
+switcher, one identity display). `react-router-dom` now drives `/`, `/assurance`,
+`/rev-ops` in place of a raw pathname check and a client-state boolean toggle.
+Verified live with a real running `api:dev` + `app dev`: sign in once via Crisis
+Ops, navigate to Operating Assurance (already signed in), navigate to Revenue
+Operations (already signed in, data loaded), back to Crisis Ops (still signed in) —
+the brief's exact acceptance test, passing. Deliberately did **not** touch any
+workspace/clinical/domain logic, any security boundary, or Prescreen/Analytics/
+Network-Enrichment UI (confirmed during the topology audit that none of those three
+have a frontend). **Disclosed, accepted limitation, not fixed here:**
+`ClarityShell`'s own identity bar sits above each area's existing chrome without
+editing it, so e.g. two "Sign out" buttons render after sign-in (the shell's own
+plus the area's own) — a small, known redundancy, deliberately left for a later
+visual-cleanup pass per the brief's explicit "no product-wide visual cleanup"
+instruction; do not "fix" this without it being asked for.
+
+**PR #84's CI was actually red on first push, not merely pending** — this session
+verified that directly (`gh pr checks 84`, then read the actual failure log) rather
+than trusting the open-PR state. All 6 Playwright cases in "Operating Assurance
+replay E2E" failed (3 scenarios × desktop/mobile). Two real, distinct bugs, both
+root-caused and fixed in a follow-up commit (`e6d04c8`) before merge:
+1. `app/smoke/operating-assurance.spec.ts` still targeted the pre-Phase-2A
+   accessible names (`"Operating Assurance dev assertion"` / `"Sign in (verified
+   session)"`); the new shared `SignInForm` renders `"Development assertion"` /
+   `"Sign in"` instead. Fixed by updating the locators to match, confirmed against
+   `SignInForm.tsx`'s actual source rather than guessed.
+2. `ClarityShell`'s new global "Sign out" button made `getByRole("button", {name:
+   "Sign out"})` a strict-mode ambiguity against Operating Assurance's own. Scoped
+   the test's locator to `.session-panel` (OA's own panel) rather than changing any
+   product chrome.
+3. Mobile-project-only: Playwright's actionability check reported a sibling
+   paragraph/label as intercepting the "Load case" click. Verified by hand this is
+   a Chromium `isMobile+hasTouch` emulation false positive, not a real defect —
+   direct `getBoundingClientRect()`/`elementFromPoint()` checks show no actual
+   overlap, and a forced click loads the case correctly every time. Used `{force:
+   true}` on just that one click, with a comment explaining why.
+
+**Verified in this session before pushing the fix, all locally against local
+`clarity_dev`:** lint clean, typecheck clean, root suite **771/771** (76 files),
+app suite **151/151** (23 files), app build succeeds, `npm audit --audit-level=high`
+clean, and `npm run test:oa-e2e` **6/6** (previously 0/6) across desktop and mobile.
+Re-ran the full gate a second time after the fix, not just the previously-failing
+suite in isolation. Self-review posted per §3a, both for the original 5 commits and
+as an addendum for this fix commit. CI `verify` green on the fix
+(run `34790844425`). **Merged 2026-09-13 23:55 UTC** (confirmed via
+`gh pr view 84 --json state,mergedAt`).
+
+**PR #85 (open, not yet merged):** the session handoff document written at the end
+of the PR #83/#84 session, committed verbatim to
+`docs/developer-handoff/SESSION_HANDOFF_2026-09-13_PHASE_2A.md`. Docs-only.
+
+**PR #82 (open, now stale/superseded — an owner call, not acted on here):** its own
+scope was "bring `IMPLEMENTATION_STATUS.md` current on the #78/#79/#80 merges";
+`main` has since gained PR #83 and PR #84, so its diff no longer reflects current
+state and `gh pr view 82` reports `mergeStateStatus: BEHIND`. This session's update
+supersedes it rather than building on it. Recommend closing #82 as superseded, but
+that is the owner's call, not this session's.
+
+**PR #81 (open, docs-only, independent):** a Gemini deep-research prompt for
+Louisiana psychiatrist/PMHNP scope-of-practice, relevant to ADR-0014's still-open
+PMHNP signer-authority question. `verify` passed; `mergeStateStatus: BEHIND` (needs
+a rebase, not a conflict) as of this write-up.
+
+**PR #73 (open, untriaged, now has real merge conflicts with current `main`):** the
+whole-platform architecture audit from 2026-09-13 03:48 UTC, docs-only, `verify`
+passed on its own (now-stale) head, but `gh pr view 73` reports
+`mergeStateStatus: DIRTY` — an owner call on disposition, not something to resolve
+unprompted.
+
+**PR #63 (draft, unchanged):** public product-portfolio documentation, still needs
+an owner look before it can leave draft.
 
 **Not claimed:** production readiness, HIPAA compliance, malware protection, working
-external integrations, or approved clinical/legal rules — for any capability
+external integrations, approved clinical/legal rules, Product Acceptance of
+VS-OA-001, or that the mobile Chromium click-interception false positive above has
+a root cause beyond what PR #84's fix commit documents — for any capability
 described anywhere in this file. Synthetic data only, throughout.
 
 **2026-09-12: OD-13 research executed.** The CMS/Medicare/Medicaid Phase 1 deep
@@ -72,6 +244,40 @@ Blocked / Not started buckets further down remain the authority for
 capability-by-capability status and are unchanged by this reorganization.
 
 ## Verification history (historical — not current)
+
+**2026-09-12: Twelve-PR housekeeping pass and bridge retirement.** Merged: #58
+(workbook operating slice + payment scenarios; cleaned of a dead, unused
+`RevOpsScope.tsx`), #59 (governance/operating-assurance documentation recovery),
+#48 (network-enrichment contract kernel, verified contract-only — no Prisma
+imports, no server/runtime code), #64 (root-caused and fixed a real intermittent
+CI failure: Prisma's 5000ms interactive-transaction default was exceeded writing
+the operating workbook's ~28k-record state blob under CI's shared-runner
+contention, error P2028; raised to 15s in the shared `withTenantContext` helper
+used by every gateway), #65 (corrected that fix's test docstring to describe a
+configuration assertion, not a timeout reproduction), #54 and #55 (csv-parse and
+vitest dependency bumps), #56 (API path validation plus a stable prescreen-actor
+role-order idempotency fingerprint), #57 (Graphify local-artifact retention
+policy, resolves issue #40), #60 (opt-in ephemeral-PostgreSQL verification
+runner, independent of the shared local `clarity_dev`), #61 (this pass's own
+preservation and disposition record), #62 (gstack skill-routing addition to this
+file's own house rules). Closed: **PR #30** (held network-enrichment runtime
+slice, 2,483 changed files) as superseded — its contract-only portion already
+landed via #48; the runtime portion (service, persistence/outbox, API routes,
+UI, the `agent_bridge` tree) was never reviewed and remains unimplemented,
+preserved in the local recovery bundle and the closed branch's history if it is
+wanted later. **Bridge: retired** as of this same pass (PR #66) — PR #30's
+closure unblocked AI_OPERATING_MODEL_PLAN.md's Stage 0.1–0.3: `agents/bridge/`
+and the root `agent_bridge/` notification mirror both moved, byte-identical, to
+`docs/experiments/2026-07-agent-bridge/` per
+[ADR-0017](docs/architecture/ADR-0017-agent-operating-model-and-bridge-retirement.md);
+no live listener, dispatch script, or `npm run bridge:*` entry point exists.
+Verified that session (PR #64, after the fix, three consecutive full CI passes on
+the same revision): full root suite **617/617** (58 files), app suite **96/96**,
+lint clean, typecheck clean, `prisma validate` clean, `npm audit
+--audit-level=high` clean (the 3 moderate advisories it had flagged, in
+`vitest`/`@vitest/mocker` and `csv-parse`, are resolved by #54/#55). Every merge
+above has its own passing required `verify` CI check on its exact merged
+revision, and `main`'s own post-merge CI passed after each one.
 
 **2026-09-09: Working operating workbook and payment tools implemented locally.**
 The authenticated RevOps client now opens populated operations, rather than the
@@ -567,6 +773,63 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 
 ## Next recommended action
 
-~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011).
+**Current action (updated 2026-09-18, Housekeeping Phase 1).** Repository housekeeping
+runs before any further feature work, in this order:
 
-**Current action:** The owner-approved prescreen chain now runs durable end-to-end locally: package onboarded (PR #17), Phase 1 contracts (PR #19/#27), Phase 2 command service (ADR-0013), same-org HTTP slice + role ruling (ADR-0014, PR #28), and **Phase 3 local persistence (ADR-0016, branch `claude/prescreen-phase3-persistence` — PR pending)**. Next: (1) merge order for the parallel network-enrichment branch (PRs #29/#30) — it must renumber its ADR off the already-assigned 0014 (0015 left free) and reconcile the shared-ledger contention (issue #31) before or at merge; (2) provider-backed Cloud SQL/RLS verification remains the separate, non-waived gate — still blocked on owner GCP access (`gcloud auth login` + intended project); (3) the cross-organization submission/receipt model is the successor decision packet before any field-originated prescreen or external-actor work; (4) a prescreen UI slice needs an owner scope decision; (5) prior H1/H2/H3, event-vocabulary, OD-6, migration-recovery, and outbox acceptances stand unchanged. Do not add Studio mutation, publication, feature-flag, worker, or deployment controls before server authorization and audit boundaries exist.
+1. **Phase 1 — this change.** Preserve the four previously-untracked local documents and
+   repair `CLAUDE.md` and this file against actual `main`. Documentation only.
+2. **Phase 2 — ADR / branch / PR disposition.** Rule on ADR-0015, ADR-0020 / PR #73, and
+   `codex/om/sync-main`; then disposition the remaining open PRs. No deletions until the
+   rulings exist; never delete `recovery/machine-only/*`.
+3. **Phase 3 — database and migration cleanup.** Issue #31 ledger contention, issue #24
+   residue (confirm `synthetic-org-api-dev` is an intended fixture first, and fix the test
+   cleanup that regrew it), then apply `20260917000100_iop_program_binding`.
+
+**CLARITY ACCESS IMPLEMENTATION FREEZE IS ACTIVE (2026-09-18).** No Access patient-journey
+refactor, scenario/rule architecture, Guided Intake / Prescreen convergence, role redesign,
+`JourneyPhase`, `WorkItem`, or UI redesign is authorized. The Access Domain Reconciliation
+v0.1.0 package is proposed future architecture and a freeze declaration — not an
+implementation mandate.
+
+The threads below remain open and are unchanged by Phase 1, but are **not** the next action
+while housekeeping runs.
+
+#### Prior "current action" (2026-09-13, late) — HISTORICAL
+
+~~Case repository~~ ~~case command service~~ ~~document repository~~ ~~foundation hardening~~ ~~evidence repository~~ ~~benefits verification~~ ~~authorization readiness~~ ~~authentication~~ **all done** (ADR-0003…ADR-0011). ~~Check PR #75's CI and merge it~~ **done** — merged 2026-09-13 19:39 UTC. ~~Phase 2A: shared auth + router + global shell~~ **done** — PR #84 merged 2026-09-13 23:55 UTC (see Current State above for the CI regressions found and fixed en route).
+
+**Current action (updated 2026-09-13, late; the paragraph this replaced described Phase 2A as PR #84 "open, not yet merged" — it has since merged):** no single blocking action — several independent threads, none of which should be attempted together:
+
+1. **VS-OA-001 still needs an independent Product Acceptance review** (unchanged from the prior entry) against the handoff's AC-OA-001…014 criteria and FIX-OA-001…010 fixtures
+   ([docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md](docs/developer-handoff/OPERATING_ASSURANCE_VS_OA_001_ACCEPTANCE_HANDOFF.md)) —
+   this must not be performed or pre-verdicted by an implementing session.
+2. **Phase 2B candidates, none scoped yet** (per
+   [docs/ux/CLARITY_UX_MIGRATION_PRECONDITIONS.md](docs/ux/CLARITY_UX_MIGRATION_PRECONDITIONS.md)'s
+   "Migration sequence" section): make workspace/tab/case selection
+   URL-addressable (deliberately deferred from Phase 2A); resolve the
+   ClarityShell/area-chrome visual redundancy noted above — a visual-cleanup call
+   that wants explicit owner sign-off before starting, given the brief's repeated
+   "not yet" on visual redesign; wire the Evidence Review frontend to its backend
+   (the next-named P1-1 slice per PR #73's implementation plan, after IOP
+   Reconciliation — evidence-service is the most mature, most-tested backend among
+   the remaining `localStorage`-only workspaces; do not attempt more than one at a
+   time).
+3. **Four open PRs need an owner look, not code changes:**
+   [PR #82](https://github.com/henrytylerhebert-eng/clarity-platform/pull/82) is
+   now stale/superseded by this update — candidate to close;
+   [PR #81](https://github.com/henrytylerhebert-eng/clarity-platform/pull/81) is
+   docs-only, independent, `verify` passed, just needs a rebase and a look;
+   [PR #73](https://github.com/henrytylerhebert-eng/clarity-platform/pull/73) (the
+   whole-platform architecture audit) is untriaged and now has real merge
+   conflicts with `main` — a disposition call, not something to resolve
+   unprompted; [PR #63](https://github.com/henrytylerhebert-eng/clarity-platform/pull/63)
+   (draft product-portfolio documentation) needs an owner look before it can leave
+   draft.
+4. **Unchanged, still blocked on the owner:** provider-backed Cloud SQL/RLS
+   verification remains the separate, non-waived gate (`gcloud auth login` +
+   intended project); OD-13 (execute CMS regulatory research) and OD-14 (per-org
+   AI-native policy index) remain open decisions; OD-19 (Louisiana hospital
+   provider identifiers) is still pending.
+
+Do not add Studio mutation, publication, feature-flag, worker, or deployment
+controls before server authorization and audit boundaries exist.

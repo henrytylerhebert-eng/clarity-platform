@@ -56,6 +56,7 @@ export const IopReconciliationSampleSchema = z
           .object({
             attendanceId: token,
             noteId: token,
+            authoredBy: token,
             auditStatus: z.enum(["COMPLETE", "PENDING", "FAILED"]),
             reviewedBy: token.optional(),
             reviewedAt: timestamp.optional(),
@@ -114,6 +115,7 @@ export interface IopReconciliationIssue {
     | "plan_missing"
     | "attendance_plan_mismatch"
     | "note_audit_missing"
+    | "note_audit_not_independent"
     | "note_audit_orphan"
     | "charge_missing_or_note_mismatch"
     | "charge_attendance_missing"
@@ -175,6 +177,11 @@ export function validateIopReconciliationSample(
       issues.push({
         issueKey: `attendance:${event.attendanceId}:note_audit_missing`,
         reason: "note_audit_missing",
+      });
+    else if (audit.authoredBy === audit.reviewedBy)
+      issues.push({
+        issueKey: `attendance:${event.attendanceId}:note_audit_not_independent`,
+        reason: "note_audit_not_independent",
       });
     const charge = charges.get(event.attendanceId);
     if (!charge || (audit && charge.noteId !== audit.noteId))

@@ -1,10 +1,7 @@
 import { useEffect, useState, useRef, lazy, Suspense, type FormEvent } from "react";
-import {
-  apiLogin,
-  apiLogout,
-  apiRevOps,
-  type VerifiedPrincipal,
-} from "../domain/api";
+import { apiRevOps } from "../domain/api";
+import { useAuth } from "../domain/AuthContext";
+import { SignInForm } from "../components/SignInForm";
 import type {
   RevOpsView,
   RevOpsCommand,
@@ -114,7 +111,9 @@ function download(name: string, text: string) {
 }
 
 export function RevOps() {
-  const [principal, setPrincipal] = useState<VerifiedPrincipal | null>(null);
+  // Shared with every other application area via AuthProvider (Phase 2A) --
+  // the fourth and last of the previously-independent sign-in surfaces.
+  const { principal, logout } = useAuth();
   const [items, setItems] = useState<RevOpsView[]>([]);
   const [selected, setSelected] = useState("");
   const [tab, setTab] = useState("Operations");
@@ -149,6 +148,12 @@ export function RevOps() {
       rows.some((r) => r.id === s) ? s : (rows.find(r => r.name === "Dunder Mifflin Hospital" && r.state.unit === "Hospital operations")?.id ?? rows[0]?.id ?? ""),
     );
   }
+  useEffect(() => {
+    // Covers both "signed in through this workspace's own form" and "signed
+    // in elsewhere, then navigated here" -- either way, a session becoming
+    // available is when operations data should load.
+    if (principal) void refresh();
+  }, [principal]);
   async function run(
     action: () => Promise<unknown>,
     success: string,
@@ -294,7 +299,10 @@ export function RevOps() {
           <span className="ro-eyebrow">
             DUNDER MIFFLIN HOSPITAL · RESTORED OPERATIONS 2026
           </span>
-          <h1>RevOps MVP</h1>
+          {/* Named to match the shell's own "Revenue Operations" nav label
+              (docs/ux/CLARITY_GLOBAL_SHELL_SPEC.md's brand hierarchy) --
+              previously "RevOps MVP", internal shorthand that didn't match. */}
+          <h1>Revenue Operations</h1>
         </div>
         <span className="ro-synthetic">
           Synthetic workspace · local development
@@ -305,38 +313,20 @@ export function RevOps() {
           <h2>Sign in to your organization</h2>
           <p>
             Access is verified by the server. The prototype role selector does
-            not grant access here.
+            not grant access here. Signing in here also signs in Crisis Ops,
+            IOP Reconciliation, and Operating Assurance.
           </p>
-          <form
-            onSubmit={(e) => {
-              const d = fields(e);
-              setBusy(true);
-              setError("");
-              apiLogin(value(d, "assertion"))
-                .then(async (p) => {
-                  setPrincipal(p);
-                  await refresh();
-                })
-                .catch((e) => setError(e.message))
-                .finally(() => setBusy(false));
-            }}
-          >
-            <label>
-              Development assertion
-              <input
-                name="assertion"
-                defaultValue="syn-assert-revops-admin-dev"
-                required
-                autoComplete="off"
-              />
-            </label>
-            <button disabled={busy}>Sign in</button>
-          </form>
-          <p>
-            Local fixtures: <code>syn-assert-revops-admin-dev</code> or{" "}
-            <code>syn-assert-revops-census-dev</code>. Administrator delegates
-            census permissions after setup.
-          </p>
+          <SignInForm
+            placeholder="syn-assert-revops-admin-dev"
+            defaultValue="syn-assert-revops-admin-dev"
+            helpText={
+              <p>
+                Local fixtures: <code>syn-assert-revops-admin-dev</code> or{" "}
+                <code>syn-assert-revops-census-dev</code>. Administrator delegates
+                census permissions after setup.
+              </p>
+            }
+          />
         </section>
       ) : (
         <>
@@ -348,18 +338,17 @@ export function RevOps() {
               className="ro-secondary"
               disabled={busy}
               onClick={() => {
-                void apiLogout()
+                void logout()
                   .finally(() => {
-                    setPrincipal(null);
                     setItems([]);
                     setComparison(null);
                     setHistory([]);
                     setUpload(null);
                     setPreview(null);
                   })
-                  .catch((e) =>
+                  .catch((e: unknown) =>
                     setError(
-                      `Signed out locally; server session revocation could not be confirmed: ${e.message}`,
+                      `Signed out locally; server session revocation could not be confirmed: ${e instanceof Error ? e.message : String(e)}`,
                     ),
                   );
               }}

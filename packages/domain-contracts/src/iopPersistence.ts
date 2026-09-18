@@ -56,6 +56,13 @@ export const IopPersistedImportRequestSchema = z
   })
   .strict()
   .superRefine((request, context) => {
+    if (request.programId !== request.reconciliation.programId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["programId"],
+        message: "Request program must match the reconciliation program",
+      });
+    }
     const expectedSourceIds = {
       ENROLLMENT: request.reconciliation.enrollments.map((entry) => entry.enrollmentId),
       TREATMENT_PLAN: request.reconciliation.treatmentPlans.map((entry) => entry.planId),
