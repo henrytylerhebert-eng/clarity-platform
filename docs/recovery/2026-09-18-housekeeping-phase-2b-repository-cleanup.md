@@ -142,12 +142,17 @@ baseline.
 | Nine `Network*` tables | still present; `NetworkReviewPackage` 249, `NetworkReview` 249, `NetworkReviewAudit` 393 rows |
 | Pending migration | `20260917000100_iop_program_binding` — still unapplied (0 ledger rows) |
 
-**The decisive Phase 3 finding is DRIFT-13.** It measured the suite moving `Organization`
-338 → 400 and `BehavioralHealthCase` 1023 → 1191 in a single session. An independent count
-found 401 / 1,192 — one above that endpoint. **The test suite's own teardown, not any single
-session, is what regrows the issue #24 residue.** Deleting residue before fixing teardown will
-simply be undone. Phase 3's order should therefore be: teardown root cause → `synthetic-org-api-dev`
-fixture ruling → residue deletion → ledger decision → pending IOP migration.
+**The most useful Phase 3 lead is DRIFT-13, but it is a lead, not a proof.** It measured the
+suite moving `Organization` 338 → 400 and `BehavioralHealthCase` 1023 → 1191 across full-suite
+runs; an independent 2026-09-18 count found 401 / 1,192, one above that endpoint. Those are
+**aggregate before/after counts**. They are consistent with a cleanup gap but do **not**
+establish one: they cannot distinguish a failed teardown hook from an intentionally persistent
+setup or dev fixture, a crashed run, or another session's writes.
+
+Phase 3 should therefore **diagnose before deleting**: attribute rows to a writer per fixture
+family, then fix whatever is actually leaving them. Suggested order: diagnose the cause →
+`synthetic-org-api-dev` fixture ruling → residue deletion → ledger decision → pending IOP
+migration. Deleting first risks the deletion simply being undone.
 
 ADR-0015 is now on `main` as the documentation needed to understand the orphan migrations
 before any decision is taken about them.
