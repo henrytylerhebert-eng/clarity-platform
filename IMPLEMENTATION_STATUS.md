@@ -15,13 +15,15 @@ against local `clarity_dev` — not carried forward from memory. This block was 
 during Housekeeping Phase 1 at `5c4c0b9` and updated during Phase 2B at `f0cd909`**; it
 supersedes the 2026-09-13 narrative preserved below it. Where a claim changed between those two
 baselines — the reconciled ADR-0015 and ADR-0020, the ADR index, zero open PRs — the `f0cd909`
-baseline is the one that supports it.
+baseline is the one that supports it. **Database, test-isolation and issue #24/#31 claims carry
+the Housekeeping Phase 3B baseline `f9c4eb8`** (merge of PR #107), validated 2026-09-18.
 
 ### Status vocabulary used here
 
 - **CURRENT — VERIFIED** — observed in the repository at one of this block's stated baselines:
-  `5c4c0b9` for claims written in Phase 1, `f0cd909` for claims added or changed in Phase 2B.
-  Neither is a claim to be the newest commit.
+  `5c4c0b9` for claims written in Phase 1, `f0cd909` for claims added or changed in Phase 2B,
+  and `f9c4eb8` for the database, test-isolation and issue #24/#31 claims established by
+  Housekeeping Phase 3B. None of the three is a claim to be the newest commit.
 - **HISTORICAL** — was verified on a stated earlier date; not re-run here.
 - **DOCUMENTATION ONLY** — a document exists; no runtime behind it.
 - **PROPOSED** — designed, not authorized and not implemented.
@@ -61,14 +63,15 @@ dependency. `packages/api-service/src/assuranceDevFixture.ts` carries a single *
 | Operating Assurance | CURRENT — VERIFIED (shape) | `assurance-service`, `prisma/assurance.prisma`, 5 migrations; VS-OA-001 acceptance review still outstanding |
 | Learning & Practice / CLPR | CURRENT — VERIFIED (shape) | `learning-practice-service`, `app/src/components/learning-practice/*`, `docs/planning/clpr/*`; PR #99 reconciled post-merge acceptance |
 | Shared auth / router / shell | CURRENT — VERIFIED (shape) | `AuthContext.tsx`, `SignInForm.tsx`, `ClarityShell.tsx` (PR #84, verified live on 2026-09-13 — that live run is HISTORICAL) |
-| IOP | PARTIAL / BLOCKED | `iop_reconciliation_persistence` applied; `20260917000100_iop_program_binding` is on `main` but **not applied** to `clarity_dev`; source-adapter and access gates open (PR #100) |
+| IOP | PARTIAL / BLOCKED | `iop_reconciliation_persistence` and `20260917000100_iop_program_binding` both applied to the rebuilt `clarity_dev` (Phase 3B Gate B); source-adapter and access gates open (PR #100) |
 | Liaison / referral-development training | NOT IMPLEMENTED | Absent from every ref; "liaison" appears once, incidentally, in `docs/09-personas-and-role-ux.md` |
 | Freedom Behavioral roles / workflows | NOT IMPLEMENTED | Absent from every ref; the name appears only as facility names in `data/public-rates/la-inpatient-2026.json` |
 | Clarity Access refactor | PROPOSED — FROZEN | Access Domain Reconciliation v0.1.0 is proposed future architecture; feature development frozen by owner direction 2026-09-18 |
 
-**Test evidence:** this update ran **no** tests, lint, or typecheck. Every count in
-"Verification history" below is **HISTORICAL**. Do not restate a historical count as
-current evidence.
+**Test evidence:** the Phase 1/2B updates ran no tests. Phase 3B Gate B (2026-09-18, at
+`f9c4eb8`) ran lint, typecheck, `prisma validate`, unit (47 files / 504 tests) and four
+ephemeral integration runs (32 files / 276 tests each). Those are dated evidence, not a standing
+claim. Every count in "Verification history" below is **HISTORICAL**.
 
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
@@ -78,7 +81,9 @@ Phase 2B landed #81, #89, #100, #102, #103, #104, #105 and closed #63, #73, #82,
 #92, #93, #94, #95 with per-PR evidence. **No branch was deleted for any closure** — each
 closed PR's head branch remains on `origin` as its preserving ref.
 
-Open issues (8, unchanged): #1, #2, #3, #4, #5, #24, #31, #35.
+Open issues: #1, #2, #3, #4, #5, #35. **#24 and #31 were resolved by Housekeeping Phase 3B
+Gate B** — closure evidence in
+[docs/recovery/2026-09-18-housekeeping-phase-3b-gate-b-clarity-dev-rebuild.md](docs/recovery/2026-09-18-housekeeping-phase-3b-gate-b-clarity-dev-rebuild.md).
 
 **Closed — no longer blockers:** PR #30 closed 2026-09-12; PR #18 and PR #29 closed
 2026-08-23. Any document describing PR #30 as an active blocker is stale.
@@ -96,10 +101,11 @@ reconciled onto `main`:
   **preserved as historical** per owner decision OD-HK2-001. Its implementation lineage never
   merged: PRs #29/#30 closed unmerged and `packages/network-enrichment-service` does not exist
   on `main`. **It is not evidence that a network-enrichment service exists today.** It is kept
-  because it is the only document explaining orphan migration
-  `20260720014914_network_review_append_only_audit`, which is still applied in the local
-  `clarity_dev` ledger while absent from `main`, and because its findings are reusable
-  invariant lessons.
+  because it is the only document explaining the historical orphan migrations
+  `20260720002049_packet11_persistence` and `20260720014914_network_review_append_only_audit`,
+  and because its findings are reusable invariant lessons. Those two migrations were applied to
+  the pre-rebuild `clarity_dev` while absent from `main`; the Phase 3B Gate B rebuild removed
+  them, and they now survive only on remote history/recovery refs.
 
 Any earlier statement that either ADR exists only on an unmerged branch and awaits disposition
 is **superseded**. The prior text here read "20 ADRs on `main`: 0001–0014, 0016–0019, 0021,
@@ -109,20 +115,34 @@ is **superseded**. The prior text here read "20 ADRs on `main`: 0001–0014, 001
 allocate from a `main`-only listing — check every ref by filename. The authoritative inventory
 is `docs/architecture/ADR_INDEX.md` once Phase 2B Step F lands it.
 
-### Local database — CURRENT, VERIFIED read-only (not modified)
+### Local database — CURRENT, VERIFIED (rebuilt 2026-09-18, Phase 3B Gate B)
 
-`clarity_dev` holds **401 organizations / 1,192 cases, all synthetic** — no real-data
-contamination detected. Ledger has 27 rows, 0 failed, 0 rolled back.
+`clarity_dev` was **dropped and rebuilt** from the canonical current-`main` migration chain
+(`prisma migrate deploy`) after a verified `pg_dump` backup. Full evidence:
+[docs/recovery/2026-09-18-housekeeping-phase-3b-gate-b-clarity-dev-rebuild.md](docs/recovery/2026-09-18-housekeeping-phase-3b-gate-b-clarity-dev-rebuild.md).
 
-- **Issue #24 (open) — condition persists and has grown.** Residue cohorts: 28 orgs
-  (2026-07-20), 94 (2026-09-08), 264 (2026-09-13), plus `synthetic-org-api-dev`.
-- **Issue #31 (open) — contention persists.** The ledger carries
-  `20260720002049_packet11_persistence` and `20260720014914_network_review_append_only_audit`,
-  whose migration files are absent from `main`; they came from the now-closed #29/#30 lineage.
-- **Pending:** `20260917000100_iop_program_binding` is on `main` but not applied locally.
-- Three migrations show `applied_steps_count = 0` from the documented
-  `migrate diff` → `db execute` → `migrate resolve --applied` hotfix flow recorded in #31;
-  their tables were verified present. Provenance gap, not corruption.
+| | Before (historical) | After rebuild |
+|---|---|---|
+| Organizations / cases | 401 / 1,192 | 1 / 1 |
+| Users / PatientTokens / FacilityProfiles | 670 / 401 / 101 | 8 / 1 / 2 |
+| Ledger rows | 27 (2 orphans, 1 pending, 3 zero-step) | 26, set-identical to `prisma/migrations/`, 0 orphan / pending / failed / zero-step |
+| Legacy `Network*` tables / rows | 9 / **1,598** | 0 / 0 |
+| `IopSourceIntegration.programId` | absent | present, `NOT NULL`, indexed |
+
+- **Operating model.** The only sanctioned persistent organization is
+  `synthetic-org-api-dev`, seeded idempotently by `npm run api:dev`; any other organization in
+  `clarity_dev` is residue. Database-writing tests never target it: `npm run test:integration`
+  runs on a per-run disposable cluster, and the harness refuses any database not marked
+  disposable (PR #107). Three sequential runs and one concurrent two-worktree run left the
+  persistent database unchanged — every table's row count, the ledger hash, and the
+  organization-id hash matched the post-seed baseline.
+- **Correction:** earlier housekeeping text said the Network tables held **891** rows. That
+  figure came from stale `pg_stat_user_tables` estimates; exact `COUNT(*)` was **1,598**.
+- **Unknown, preserved:** the 2026-09-13 residue mechanism. Gate A.5 reproduced two different
+  mechanisms that leave the same signature, so the historical state cannot tell them apart.
+- **Residual drift (names only):** 20 constraint/index names differ between the migration
+  chain and the Prisma schema (hand-named Assurance FKs; index names over PostgreSQL's 63-byte
+  limit). No structural difference. Reproduces on every clean replay; needs its own issue.
 
 ### Branch and worktree durability — CURRENT, VERIFIED
 
@@ -807,31 +827,26 @@ local `clarity_dev`. Pre-existing synthetic residue from earlier sessions
 
 ## Next recommended action
 
-**Current action (updated 2026-09-18, after Housekeeping Phase 2B).** **Phases 1 and 2B are
-COMPLETE.** Phase 1 preserved the previously-untracked local documents and repaired this file
-and `CLAUDE.md`. Phase 2A produced the owner decision packet. Phase 2B landed seven PRs, closed
-nine with evidence, reconciled ADR-0015 and ADR-0020 onto `main`, and added
-`docs/architecture/ADR_INDEX.md` with a corrected numbering rule. **No branch was deleted for
-any closure, and no database state changed.**
+**Current action (updated 2026-09-18, after Housekeeping Phase 3B).** **The historical
+housekeeping cycle is closed.** Phases 1, 2B, 3A and 3B are complete. Phase 3B Gate A (PR #107)
+isolated database-writing tests from the persistent developer database. Gate A.5 recorded the
+residue reproduction (`PARTIALLY REPRODUCED`; the 2026-09-13 mechanism remains unknown). Gate B
+rebuilt `clarity_dev` from canonical migrations, recreated only `synthetic-org-api-dev`,
+proved isolation, and resolved issues #24 and #31. Local `codex/om/sync-main` is retired: its
+exact tip is preserved on `origin/recovery/machine-only/2026-09-17/codex/om/sync-main`,
+`origin/codex/om/sync-main` is untouched, and `recovery/machine-only/*` is never deleted.
 
-**The next action is Phase 3 — database and migration cleanup only**, in this order:
+**The next action is an owner decision: authorize Access Reconciliation against the clean
+baseline.** Until then the freeze below stands. One small follow-up: file an issue for the
+constraint-name drift noted under "Local database".
 
-1. **Diagnose the issue #24 residue before deleting anything.** The evidence is aggregate, not
-   causal: DRIFT-13 recorded the suite moving `Organization` 338→400 and
-   `BehavioralHealthCase` 1023→1191 across full-suite runs, and a 2026-09-18 read-only count
-   found 401/1,192. That is consistent with a cleanup gap but does not identify a writer — it
-   cannot distinguish a failed teardown hook from an intentionally persistent setup or dev
-   fixture, a crashed run, or another session. Attribute rows per fixture family first.
-2. **Rule on `synthetic-org-api-dev`** — whether it is an intended long-lived fixture.
-3. **Delete the run-scoped residue**, once 1 and 2 are settled.
-4. **Decide the issue #31 orphan ledger entries** `20260720002049_packet11_persistence` and
-   `20260720014914_network_review_append_only_audit`. Their nine `Network*` tables hold 891
-   synthetic rows, and their only explanation is ADR-0015 — now on `main`, preserved as
-   historical.
-5. **Apply the pending `20260917000100_iop_program_binding`.**
+#### Phase 3 plan as written after Phase 2B — HISTORICAL (now executed)
 
-Only after that may `codex/om/sync-main` be retired; it stays **KEEP — DB/MIGRATION
-DEPENDENCY** until then, and `recovery/machine-only/*` is never deleted.
+The five Phase 3 steps were: diagnose the residue; rule on `synthetic-org-api-dev` (ruled:
+canonical persistent fixture); remove run-scoped residue (done by rebuild); decide the #31
+orphan ledger entries (removed by rebuild, never ported to `main`; their nine `Network*`
+tables held **1,598** synthetic rows, not the 891 this plan originally stated); apply
+`20260917000100_iop_program_binding` (applied by clean replay).
 
 **CLARITY ACCESS IMPLEMENTATION FREEZE IS ACTIVE (2026-09-18).** No Access patient-journey
 refactor, scenario/rule architecture, Guided Intake / Prescreen convergence, role redesign,

@@ -9,16 +9,19 @@
 > [`../recovery/2026-09-18-housekeeping-phase-1-truth-reconciliation.md`](../recovery/2026-09-18-housekeeping-phase-1-truth-reconciliation.md).
 
 > **Status of these findings as re-verified on 2026-09-18:**
-> **DRIFT-01** still true — the two orphan ledger entries remain in local `clarity_dev`; issue
-> #31 is open. **DRIFT-09** is **SUPERSEDED** by PR #101, which repaired
+> **DRIFT-01** is **resolved (2026-09-18, Housekeeping Phase 3B)** — the two orphan ledger
+> entries are gone with the canonical `clarity_dev` rebuild, integration databases are
+> per-run disposable, and issue #31 is closed. (It was still true when re-verified earlier
+> that day, before Gate B.) **DRIFT-09** is **SUPERSEDED** by PR #101, which repaired
 > `IMPLEMENTATION_STATUS.md` and `CLAUDE.md`. **DRIFT-10** is **closed on main** — the CLPR
 > review acceptance was recorded in `docs/planning/clpr/CLPR_IMPLEMENTATION_RETURN.md`
 > (`claude_review_verdict: ACCEPT`) via PR #99, which also corrected that record's test-count
 > attribution; this register's own proposed edit to
 > `docs/implementation/CLPR_SYNTHETIC_VERTICAL_SLICE.md` was deliberately **not** extracted so
 > those corrected counts are not re-introduced. **DRIFT-11** is **partially true** — see its
-> inline correction. **DRIFT-13** still true and now load-bearing: it is the measured evidence
-> that the test suite, not any one session, regrows the issue #24 synthetic residue.
+> inline correction. **DRIFT-13** is **resolved (2026-09-18, Housekeeping Phase 3B)** — the
+> operating path was removed (disposable-only integration databases, cleanup coverage guard,
+> canonical `clarity_dev` rebuild); the historical mechanism stays UNKNOWN. See its inline note.
 
 Every item below was found by direct repository inspection this session (code, schema,
 migrations, and test runs — not by re-quoting documentation) and is flagged, not silently
@@ -55,7 +58,10 @@ revops_rls_test` on this specific local Postgres instance (the role's schema-usa
 was missing, causing a same-symptom `relation does not exist` error even after the
 migration fix — a local-environment privilege gap, not a code or migration defect).
 **Priority:** P0. **Status:** fixed for this worktree's session; the underlying
-shared-ledger fragility (issue #31) remains open.
+shared-ledger fragility (issue #31) was **resolved on 2026-09-18 by Housekeeping Phase 3B** —
+database-writing tests now run on per-run disposable clusters with their own ledgers, and
+`clarity_dev` was rebuilt from the canonical chain. See
+`../recovery/2026-09-18-housekeeping-phase-3b-gate-b-clarity-dev-rebuild.md`.
 
 ---
 
@@ -290,6 +296,15 @@ overstated the evidence and is retracted here. Phase 3 must therefore **diagnose
 and attribute rows per fixture family before deleting anything**; deleting first risks the
 deletion simply being undone, which holds whatever the cause turns out to be.
 
+**[RESOLVED 2026-09-18 — Housekeeping Phase 3B]** The operating path is removed rather than
+the historical cause proven. PR #107 made database-writing tests run only on per-run
+disposable clusters (the harness refuses an unmarked database) and added a schema-driven
+tenant-cleanup coverage guard. Gate A.5 reproduced **two** mechanisms that leave this exact
+residue signature (cleanup exception; termination before `afterAll`), so which one produced
+the historical rows remains **UNKNOWN**. Gate B rebuilt `clarity_dev` from canonical
+migrations; three sequential and one concurrent two-worktree integration runs left it
+unchanged. See `docs/recovery/2026-09-18-housekeeping-phase-3b-gate-b-clarity-dev-rebuild.md`.
+
 ---
 
 ## Summary by priority
@@ -298,4 +313,4 @@ deletion simply being undone, which holds whatever the cause turns out to be.
 | --- | --- | --- |
 | P0 | DRIFT-01, DRIFT-08, DRIFT-11 | DRIFT-01 fixed this session; DRIFT-08 ruled, ADR written, doc-sync pending; DRIFT-11 flagged for planning, no code change proposed |
 | P1 | DRIFT-02 (Zod gap only), DRIFT-06, DRIFT-09, DRIFT-10, DRIFT-12 | DRIFT-09 fixed; DRIFT-06 ruled, migration pending; DRIFT-10 evidence gathered, doc-line pending; DRIFT-02/DRIFT-12 flagged |
-| P2 | DRIFT-02 (vocabulary), DRIFT-03, DRIFT-04, DRIFT-05, DRIFT-07, DRIFT-13 | all flagged, none require an owner ruling, none executed in this audit pass |
+| P2 | DRIFT-02 (vocabulary), DRIFT-03, DRIFT-04, DRIFT-05, DRIFT-07, DRIFT-13 | DRIFT-13 resolved 2026-09-18 (Housekeeping Phase 3B); the rest flagged, none require an owner ruling, none executed in this audit pass |
