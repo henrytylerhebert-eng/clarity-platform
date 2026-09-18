@@ -11,12 +11,17 @@ after every merge. Re-validate before relying on a specific capability claim, an
 new SHA and date here when you do. Earlier baselines are kept as historical evidence.
 
 Validated via `git rev-parse origin/main`, `gh pr list`, `git ls-tree`, and read-only `psql`
-against local `clarity_dev` — not carried forward from memory. This block was written during
-**Housekeeping Phase 1** and supersedes the 2026-09-13 narrative preserved below it.
+against local `clarity_dev` — not carried forward from memory. This block was **first written
+during Housekeeping Phase 1 at `5c4c0b9` and updated during Phase 2B at `f0cd909`**; it
+supersedes the 2026-09-13 narrative preserved below it. Where a claim changed between those two
+baselines — the reconciled ADR-0015 and ADR-0020, the ADR index, zero open PRs — the `f0cd909`
+baseline is the one that supports it.
 
 ### Status vocabulary used here
 
-- **CURRENT — VERIFIED** — observed in the repository at `5c4c0b9` during this update.
+- **CURRENT — VERIFIED** — observed in the repository at one of this block's stated baselines:
+  `5c4c0b9` for claims written in Phase 1, `f0cd909` for claims added or changed in Phase 2B.
+  Neither is a claim to be the newest commit.
 - **HISTORICAL** — was verified on a stated earlier date; not re-run here.
 - **DOCUMENTATION ONLY** — a document exists; no runtime behind it.
 - **PROPOSED** — designed, not authorized and not implemented.
