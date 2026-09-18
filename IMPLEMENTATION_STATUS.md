@@ -100,10 +100,11 @@ reconciled onto `main`:
   **preserved as historical** per owner decision OD-HK2-001. Its implementation lineage never
   merged: PRs #29/#30 closed unmerged and `packages/network-enrichment-service` does not exist
   on `main`. **It is not evidence that a network-enrichment service exists today.** It is kept
-  because it is the only document explaining orphan migration
-  `20260720014914_network_review_append_only_audit`, which is still applied in the local
-  `clarity_dev` ledger while absent from `main`, and because its findings are reusable
-  invariant lessons.
+  because it is the only document explaining the historical orphan migrations
+  `20260720002049_packet11_persistence` and `20260720014914_network_review_append_only_audit`,
+  and because its findings are reusable invariant lessons. Those two migrations were applied to
+  the pre-rebuild `clarity_dev` while absent from `main`; the Phase 3B Gate B rebuild removed
+  them, and they now survive only on remote history/recovery refs.
 
 Any earlier statement that either ADR exists only on an unmerged branch and awaits disposition
 is **superseded**. The prior text here read "20 ADRs on `main`: 0001–0014, 0016–0019, 0021,

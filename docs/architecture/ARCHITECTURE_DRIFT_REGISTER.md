@@ -17,8 +17,9 @@
 > attribution; this register's own proposed edit to
 > `docs/implementation/CLPR_SYNTHETIC_VERTICAL_SLICE.md` was deliberately **not** extracted so
 > those corrected counts are not re-introduced. **DRIFT-11** is **partially true** — see its
-> inline correction. **DRIFT-13** still true and now load-bearing: it is the measured evidence
-> that the test suite, not any one session, regrows the issue #24 synthetic residue.
+> inline correction. **DRIFT-13** is **resolved (2026-09-18, Housekeeping Phase 3B)** — the
+> operating path was removed (disposable-only integration databases, cleanup coverage guard,
+> canonical `clarity_dev` rebuild); the historical mechanism stays UNKNOWN. See its inline note.
 
 Every item below was found by direct repository inspection this session (code, schema,
 migrations, and test runs — not by re-quoting documentation) and is flagged, not silently
@@ -307,4 +308,4 @@ unchanged. See `docs/recovery/2026-09-18-housekeeping-phase-3b-gate-b-clarity-de
 | --- | --- | --- |
 | P0 | DRIFT-01, DRIFT-08, DRIFT-11 | DRIFT-01 fixed this session; DRIFT-08 ruled, ADR written, doc-sync pending; DRIFT-11 flagged for planning, no code change proposed |
 | P1 | DRIFT-02 (Zod gap only), DRIFT-06, DRIFT-09, DRIFT-10, DRIFT-12 | DRIFT-09 fixed; DRIFT-06 ruled, migration pending; DRIFT-10 evidence gathered, doc-line pending; DRIFT-02/DRIFT-12 flagged |
-| P2 | DRIFT-02 (vocabulary), DRIFT-03, DRIFT-04, DRIFT-05, DRIFT-07, DRIFT-13 | all flagged, none require an owner ruling, none executed in this audit pass |
+| P2 | DRIFT-02 (vocabulary), DRIFT-03, DRIFT-04, DRIFT-05, DRIFT-07, DRIFT-13 | DRIFT-13 resolved 2026-09-18 (Housekeeping Phase 3B); the rest flagged, none require an owner ruling, none executed in this audit pass |
