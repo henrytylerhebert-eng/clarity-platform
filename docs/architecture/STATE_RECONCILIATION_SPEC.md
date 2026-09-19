@@ -1,6 +1,6 @@
 # Case State Reconciliation Specification
 
-**Status:** PARTIALLY RESOLVED. Slice 2A (Option B2, ADR-0023) is implemented and merged. JourneyPhase is still proposed. This document records what current
+**Status:** PARTIALLY RESOLVED. Slice 2A (Option B2, ADR-0023) is implemented and merged. Slice 3 (derived JourneyPhase projection, §6) is implemented and merged (PR #115, `899ca98`, 2026-09-19). This document records what current
 `main` does and what is proposed. It **decides nothing**. Sections marked
 `PROPOSED — NOT CURRENT RUNTIME CONTRACT` are design input only.
 
@@ -23,7 +23,8 @@ The pre-existing identifiers cited here — **OD-6**, **OD-22**, **OD-24** — *
 the canonical register and are verifiable.
 
 `CLARITY ACCESS IMPLEMENTATION FREEZE: PARTIALLY LIFTED` ·
-`RUNTIME JOURNEYPHASE IMPLEMENTATION: AUTHORIZED (Slice 3)`
+`RUNTIME JOURNEYPHASE IMPLEMENTATION: MERGED (Slice 3, PR #115)` ·
+`ACCESS GUIDANCE PROJECTION: AUTHORIZED (Slice 4B)`
 
 ---
 
@@ -238,6 +239,13 @@ fixture is not auditable, and in a synthetic-only system it risks presenting fix
 state as operational truth.
 
 ## 9. Decisions required before Slice 2
+
+**Status note (2026-09-19):** items 1–2 were decided by ADR-0023 (Accepted: legacy lane
+statuses collapsed into `REVIEW_IN_PROGRESS`, legacy rows read-only, audit history immutable).
+Item 3 is recorded in §5 as ratified by ADR-0023, although that ADR's text does not itself
+state the Tier 1/2/3 model; Slice 3 shipped the runtime projection. Items 4 (OD-22) and 5
+(OD-24) remain open. The original text
+is kept below as the pre-Slice-2 record.
 
 The runtime projection is **blocked** until an architecture decision is accepted.
 
