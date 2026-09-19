@@ -836,7 +836,7 @@ proved isolation, and resolved issues #24 and #31. Local `codex/om/sync-main` is
 exact tip is preserved on `origin/recovery/machine-only/2026-09-17/codex/om/sync-main`,
 `origin/codex/om/sync-main` is untouched, and `recovery/machine-only/*` is never deleted.
 
-**The next action is RUNTIME JOURNEYPHASE.** The Access implementation freeze is partially lifted. Access Slice 2A (Option B2 explicit semantic transition graph and REVIEW_IN_PROGRESS) is implemented and merged via PR #112 / ADR-0023. OD-22 and OD-24 remain open. The known constraint-name drift is resolved incidentally by the Slice 2A migration.
+**The next action is BLOCKING + NEXT WORK (Slice 4B) or API EXPOSURE (Slice 4A).** The Access implementation freeze is partially lifted. Access Slice 2A (Option B2, ADR-0023) and Slice 3 (JourneyPhase) are implemented and merged. OD-22 and OD-24 remain open. WorkItem/UI/Guided Intake convergence remain unauthorized.
 
 #### Phase 3 plan as written after Phase 2B — HISTORICAL (now executed)
 
