@@ -1,6 +1,6 @@
 # Case State Reconciliation Specification
 
-**Status:** PARTIALLY RESOLVED. Slice 2A (Option B2, ADR-0023) is implemented and merged. JourneyPhase is still proposed. This document records what current
+**Status:** PARTIALLY RESOLVED. Slice 2A (Option B2, ADR-0023) is implemented and merged. Slice 3 (derived JourneyPhase projection, §6) is implemented and merged (PR #115, `899ca98`, 2026-09-19). This document records what current
 `main` does and what is proposed. It **decides nothing**. Sections marked
 `PROPOSED — NOT CURRENT RUNTIME CONTRACT` are design input only.
 
@@ -23,7 +23,8 @@ The pre-existing identifiers cited here — **OD-6**, **OD-22**, **OD-24** — *
 the canonical register and are verifiable.
 
 `CLARITY ACCESS IMPLEMENTATION FREEZE: PARTIALLY LIFTED` ·
-`RUNTIME JOURNEYPHASE IMPLEMENTATION: AUTHORIZED (Slice 3)`
+`RUNTIME JOURNEYPHASE IMPLEMENTATION: MERGED (Slice 3, PR #115)` ·
+`ACCESS GUIDANCE PROJECTION: IMPLEMENTED ON BRANCH (Slice 4B, pending merge)`
 
 ---
 
@@ -185,6 +186,11 @@ masked by a willingness/orientation-derived position (§4.1).
 
 This model was **RATIFIED by the accepted Access-progression ADR-0023.**
 
+**Correction (2026-09-19):** the sentence above, added with Slice 3 (PR #115), is **not
+supported**: ADR-0023 lists JourneyPhase as explicitly out of scope and contains no Tier
+precedence decision. Treat this precedence model as **still PROPOSED** until an ADR or recorded
+owner decision ratifies it (see §9 item 3). The sentence is kept as a record of the error.
+
 ## 6. Future journey projection
 
 `IMPLEMENTED BY SLICE 3.` **TypeScript types and the deterministic derivation function are created by this slice.**
@@ -204,9 +210,19 @@ runtime state.
 
 ## 7. Blocking semantics
 
+`PARTIALLY IMPLEMENTED BY SLICE 4B (Access Guidance Projection).` The vocabulary below now
+exists as `BlockingClass` / `BlockingScope` / `NextWorkKind` in
+`packages/domain-contracts/src/accessGuidance.ts`, derived by the pure
+`deriveAccessGuidance()`; mappings and gaps are in
+[`docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md`](../testing/ACCESS_GUIDANCE_TEST_MANIFEST.md).
+Slice 4B deliberately does **not** implement the primary-blocker precedence below — there is
+no global primary blocker — and it does not implement per-transition (target-relative)
+blocking beyond the five existing `PrescreenReadinessTarget`s. The remainder of this section
+is the original proposal text, kept as design input.
+
 `PROPOSED — NOT CURRENT RUNTIME CONTRACT.` Harvested design input from the off-main prototype
-`codex/om/journey-poc` (OD-ACCESS-004). **The `BlockingClass` contract is not created by this
-slice.**
+`codex/om/journey-poc` (OD-ACCESS-004). **The `BlockingClass` contract was not created by the
+slice that wrote this section.**
 
 Proposed vocabulary: `hard-blocker`, `review-gate`, `external-wait`, `warning`, `satisfied`,
 `not-applicable`.
@@ -238,6 +254,14 @@ fixture is not auditable, and in a synthetic-only system it risks presenting fix
 state as operational truth.
 
 ## 9. Decisions required before Slice 2
+
+**Status note (2026-09-19):** items 1–2 were decided by ADR-0023 (Accepted: legacy lane
+statuses collapsed into `REVIEW_IN_PROGRESS`, legacy rows read-only, audit history immutable).
+**Item 3 remains OPEN:** ADR-0023 states that JourneyPhase is explicitly out of its scope and
+records no Tier 1/2/3 precedence decision, and no other ADR or owner decision in the register
+covers it. Slice 3 shipped a runtime projection, but that is an implementation, not a ratified
+precedence decision. Items 4 (OD-22) and 5 (OD-24) also remain open. The original text
+is kept below as the pre-Slice-2 record.
 
 The runtime projection is **blocked** until an architecture decision is accepted.
 
