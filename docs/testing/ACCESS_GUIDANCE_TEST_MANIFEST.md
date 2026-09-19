@@ -1,7 +1,7 @@
 # Access Guidance Projection — Test Manifest (Access Slice 4B)
 
 **Code:** `packages/domain-contracts/src/accessGuidance.ts` — `deriveAccessGuidance()`
-**Tests:** `tests/unit/access-guidance.test.ts` (30 tests, unit, no database)
+**Tests:** `tests/unit/access-guidance.test.ts` (31 tests, unit, no database — run at `53d123a`)
 **Baseline:** branched from `origin/main` at `44c3ec2` (2026-09-19), which contains Slice 3
 (PR #115, `899ca98`).
 
@@ -64,6 +64,7 @@ its signal and the reason.
 | Absent vs empty packet requirements | `absent packet requirements claim nothing; empty requirements report every target ready` |
 | Deterministic ordering | `output is identical for any input order …`; `repeated calls are identical and the input is not mutated` |
 | Duplicate suppression | `duplicate requirements collapse to one signal per target and one candidate per requirement` |
+| Collision-free identifiers | `requirements whose fields contain the old delimiter never collide (regression: PR #120 review)` |
 | Traceability | `every candidate and suppression traces to emitted signals; every actionable signal is accounted for` |
 | No global primary blocker | `there is no global primary blocker field` |
 | No persistence / API dependency | `the module imports only sibling pure contracts` |
