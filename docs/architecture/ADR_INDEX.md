@@ -54,8 +54,9 @@ Filename convention: `docs/architecture/ADR-NNNN-kebab-case-title.md`.
 | **0020** | **Accepted (2026-09-12)** | 2026-09-12 | Operating Assurance implementation ratified retroactively past its discovery gate | `main` (extracted 2026-09-18); originated on the PR #73 branch |
 | 0021 | **Proposed** | 2026-09-13 | Persisted Louisiana Medicaid rate-release registry (R1) | `main` |
 | 0022 | Accepted | 2026-09-13 | Provider swap — Supabase Postgres replaces Cloud SQL for OD-6 | `main` |
+| 0023 | Accepted | 2026-09-19 | Adopt Explicit State Machine and Neutral Review Span (Option B2) | `main` |
 
-**Next safe number: `ADR-0023`.** Not yet created.
+**Next safe number: `ADR-0024`.** Not yet created.
 
 ## Notes on the two reconciled numbers
 
