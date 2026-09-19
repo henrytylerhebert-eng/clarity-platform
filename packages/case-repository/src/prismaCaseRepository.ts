@@ -3,12 +3,12 @@ import { Prisma } from "@prisma/client";
 import {
   canTransitionCase,
   canTransitionWorkstream,
-  CASE_STATUSES,
+  WRITABLE_CASE_STATUSES,
   WORKSTREAM_STATUSES,
   WORKSTREAMS,
   type AuditActor,
   type CaseRepository,
-  type CaseStatus,
+  type CaseStatus, type WritableCaseStatus,
   type MutationOptions,
   type Workstream,
   type WorkstreamStatus,
@@ -70,6 +70,9 @@ export class PrismaCaseRepository implements CaseRepository<PersistedCase> {
     options?: MutationOptions,
   ): Promise<PersistedCase> {
     assertActor(actor);
+    if (!(WRITABLE_CASE_STATUSES as readonly string[]).includes(data.status)) {
+      throw new Error(`Cannot create case with non-writable legacy status "${data.status}"`);
+    }
     const createInput = domainToCreateRow(organizationId, data);
     try {
       const row = await this.prisma.$transaction(async (tx) => {
@@ -115,12 +118,12 @@ export class PrismaCaseRepository implements CaseRepository<PersistedCase> {
   async transitionStatus(
     organizationId: string,
     caseKey: string,
-    to: string,
+    to: WritableCaseStatus,
     actor: AuditActor,
     options?: MutationOptions,
   ): Promise<PersistedCase> {
     assertActor(actor);
-    if (!(CASE_STATUSES as readonly string[]).includes(to)) {
+    if (!(WRITABLE_CASE_STATUSES as readonly string[]).includes(to)) {
       throw new Error(`Unknown case status "${to}"`);
     }
     const target = to as CaseStatus;
@@ -166,7 +169,7 @@ export class PrismaCaseRepository implements CaseRepository<PersistedCase> {
     organizationId: string,
     caseKey: string,
     workstream: string,
-    to: string,
+    to: WorkstreamStatus,
     actor: AuditActor,
     options?: MutationOptions,
   ): Promise<PersistedCase> {

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { WRITABLE_CASE_STATUSES } from "./caseStateMachine.js";
 
 /**
  * Zod schema for data/synthetic-cases/*.json fixtures.
@@ -20,7 +21,7 @@ export const SyntheticCaseSchema = z
     }),
     case: z
       .object({
-        status: z.string(),
+        status: z.enum(WRITABLE_CASE_STATUSES),
         urgency: z.enum(["ROUTINE", "URGENT", "EMERGENT"]),
         currentLocation: z.string(),
         requestedLevelOfCare: z.string(),

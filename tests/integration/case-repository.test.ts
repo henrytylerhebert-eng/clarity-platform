@@ -61,7 +61,7 @@ describe("case state transitions (DB)", () => {
     await repo.transitionStatus(h.tenantA.organizationId, h.caseKey("detour"), "INFORMATION_INCOMPLETE", TEST_ACTOR);
     const detoured = await repo.findByKey(h.tenantA.organizationId, h.caseKey("detour"));
     expect(detoured?.status).toBe("INFORMATION_INCOMPLETE");
-    await repo.transitionStatus(h.tenantA.organizationId, h.caseKey("detour"), "CLINICAL_REVIEW", TEST_ACTOR);
+    await repo.transitionStatus(h.tenantA.organizationId, h.caseKey("detour"), "REVIEW_IN_PROGRESS", TEST_ACTOR);
     await repo.transitionStatus(h.tenantA.organizationId, h.caseKey("detour"), "CANCELLED", TEST_ACTOR);
     const cancelled = await repo.findByKey(h.tenantA.organizationId, h.caseKey("detour"));
     expect(cancelled?.status).toBe("CANCELLED");

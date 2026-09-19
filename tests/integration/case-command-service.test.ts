@@ -254,8 +254,8 @@ describe("parallel workstreams through commands", () => {
     await service.transitionCase({ ...base("cmd-emergency"), to: "DOCUMENTS_RECEIVED" });
     await service.transitionCase({ ...base("cmd-emergency"), to: "EVIDENCE_PROCESSING" });
     await service.transitionCase({ ...base("cmd-emergency"), to: "EVIDENCE_REVIEW" });
-    const advanced = await service.transitionCase({ ...base("cmd-emergency"), to: "CLINICAL_REVIEW" });
-    expect(advanced.case.status).toBe("CLINICAL_REVIEW");
+    const advanced = await service.transitionCase({ ...base("cmd-emergency"), to: "REVIEW_IN_PROGRESS" });
+    expect(advanced.case.status).toBe("REVIEW_IN_PROGRESS");
     expect(advanced.case.workstreams.benefits).toBe("BLOCKED");
   });
 });

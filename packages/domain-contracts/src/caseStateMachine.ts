@@ -2,19 +2,25 @@ import { type WorkstreamStatuses } from "./workstreams.js";
 
 /**
  * Overall case status. Values mirror prisma/schema.prisma enum CaseStatus — keep in sync.
+ * OD-22 'RETURNED_FOR_MORE_INFORMATION' remains a Prisma-only known desync and is omitted here.
  */
-export const CASE_STATUSES = [
+export const LEGACY_CASE_STATUSES = [
+  "CLINICAL_REVIEW",
+  "LEGAL_REVIEW",
+  "BENEFITS_REVIEW",
+  "AUTHORIZATION_PREPARATION",
+] as const;
+export type LegacyCaseStatus = (typeof LEGACY_CASE_STATUSES)[number];
+
+export const WRITABLE_CASE_STATUSES = [
   "DRAFT",
   "INTAKE_IN_PROGRESS",
   "DOCUMENTS_PENDING",
   "DOCUMENTS_RECEIVED",
   "EVIDENCE_PROCESSING",
   "EVIDENCE_REVIEW",
+  "REVIEW_IN_PROGRESS",
   "INFORMATION_INCOMPLETE",
-  "CLINICAL_REVIEW",
-  "LEGAL_REVIEW",
-  "BENEFITS_REVIEW",
-  "AUTHORIZATION_PREPARATION",
   "PACKET_PREPARATION",
   "READY_FOR_ROUTING",
   "ROUTING_IN_PROGRESS",
@@ -30,26 +36,27 @@ export const CASE_STATUSES = [
   "REFERRED_TO_ALTERNATIVE_LEVEL",
   "MEDICAL_TRANSFER_REQUIRED",
 ] as const;
+export type WritableCaseStatus = (typeof WRITABLE_CASE_STATUSES)[number];
+
+export const CASE_STATUSES = [
+  ...WRITABLE_CASE_STATUSES,
+  ...LEGACY_CASE_STATUSES,
+] as const;
 export type CaseStatus = (typeof CASE_STATUSES)[number];
 
 export const URGENCY_LEVELS = ["ROUTINE", "URGENT", "EMERGENT"] as const;
 export type UrgencyLevel = (typeof URGENCY_LEVELS)[number];
 
-/**
- * Forward transitions plus explicit terminal/exception paths.
- * INFORMATION_INCOMPLETE is reachable from any active review state and returns to it.
- */
-const ACTIVE_ORDER: readonly CaseStatus[] = [
+const TERMINAL_SET = new Set(["CLOSED", "CANCELLED", "WITHDRAWN"]);
+
+const WRITABLE_REOPEN_TARGETS = new Set<WritableCaseStatus>([
   "DRAFT",
   "INTAKE_IN_PROGRESS",
   "DOCUMENTS_PENDING",
   "DOCUMENTS_RECEIVED",
   "EVIDENCE_PROCESSING",
   "EVIDENCE_REVIEW",
-  "CLINICAL_REVIEW",
-  "LEGAL_REVIEW",
-  "BENEFITS_REVIEW",
-  "AUTHORIZATION_PREPARATION",
+  "REVIEW_IN_PROGRESS",
   "PACKET_PREPARATION",
   "READY_FOR_ROUTING",
   "ROUTING_IN_PROGRESS",
@@ -57,65 +64,42 @@ const ACTIVE_ORDER: readonly CaseStatus[] = [
   "ACCEPTED",
   "TRANSPORT_PENDING",
   "HANDOFF_IN_PROGRESS",
-  "TRANSFER_COMPLETE",
-  "CLOSED",
-];
+  "TRANSFER_COMPLETE"
+]);
 
-const EXIT_STATES: readonly CaseStatus[] = ["CANCELLED", "WITHDRAWN"];
-const ROUTING_EXCEPTIONS: readonly CaseStatus[] = [
-  "NO_PLACEMENT_FOUND",
-  "REFERRED_TO_ALTERNATIVE_LEVEL",
-];
-const TERMINAL: readonly CaseStatus[] = ["CLOSED", "CANCELLED", "WITHDRAWN"];
-
-/**
- * Medical-stabilization diversion (ADR-0018, owner ruling 2026-07-29).
- *
- * MEDICAL_TRANSFER_REQUIRED records that a case cannot proceed toward
- * behavioral-health placement until a medical need is addressed. It is a
- * DIVERSION, not a terminal state: it may be entered from the review and
- * routing span, and it returns to the pipeline once the medical need is
- * resolved, or reaches CLOSED if placement is abandoned.
- *
- * It is deliberately NOT in ACTIVE_ORDER — it is off the linear pipeline, so
- * the one-step-forward / bounded-step-back arithmetic below must not apply
- * to it. Cancellation and withdrawal remain available from it because it is
- * not terminal.
- *
- * Medical-stabilization precedence is existing house doctrine: the prescreen
- * possible-pathway derivation already gives it precedence over placement
- * pathways (ADR-0013).
- */
-const MEDICAL_DIVERSION_ENTRY: readonly CaseStatus[] = [
-  "CLINICAL_REVIEW",
-  "LEGAL_REVIEW",
-  "BENEFITS_REVIEW",
-  "AUTHORIZATION_PREPARATION",
-  "PACKET_PREPARATION",
-  "READY_FOR_ROUTING",
-  "ROUTING_IN_PROGRESS",
-  "FACILITY_RESPONSE_PENDING",
-];
+// Ratified 181-edge G2 Compatibility Transition Graph
+const TRANSITIONS: Record<CaseStatus, Set<CaseStatus>> = {
+  DRAFT: new Set(["INTAKE_IN_PROGRESS", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  INTAKE_IN_PROGRESS: new Set(["DRAFT", "DOCUMENTS_PENDING", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  DOCUMENTS_PENDING: new Set(["DRAFT", "INTAKE_IN_PROGRESS", "DOCUMENTS_RECEIVED", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  DOCUMENTS_RECEIVED: new Set(["DRAFT", "INTAKE_IN_PROGRESS", "DOCUMENTS_PENDING", "EVIDENCE_PROCESSING", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  EVIDENCE_PROCESSING: new Set(["INTAKE_IN_PROGRESS", "DOCUMENTS_PENDING", "DOCUMENTS_RECEIVED", "EVIDENCE_REVIEW", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  EVIDENCE_REVIEW: new Set(["DOCUMENTS_PENDING", "DOCUMENTS_RECEIVED", "EVIDENCE_PROCESSING", "REVIEW_IN_PROGRESS", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  REVIEW_IN_PROGRESS: new Set(["DOCUMENTS_RECEIVED", "EVIDENCE_PROCESSING", "EVIDENCE_REVIEW", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE", "MEDICAL_TRANSFER_REQUIRED", "PACKET_PREPARATION"]),
+  PACKET_PREPARATION: new Set(["REVIEW_IN_PROGRESS", "READY_FOR_ROUTING", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE", "MEDICAL_TRANSFER_REQUIRED"]),
+  READY_FOR_ROUTING: new Set(["REVIEW_IN_PROGRESS", "PACKET_PREPARATION", "ROUTING_IN_PROGRESS", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE", "MEDICAL_TRANSFER_REQUIRED"]),
+  ROUTING_IN_PROGRESS: new Set(["REVIEW_IN_PROGRESS", "PACKET_PREPARATION", "READY_FOR_ROUTING", "FACILITY_RESPONSE_PENDING", "CANCELLED", "WITHDRAWN", "NO_PLACEMENT_FOUND", "REFERRED_TO_ALTERNATIVE_LEVEL", "INFORMATION_INCOMPLETE", "MEDICAL_TRANSFER_REQUIRED"]),
+  FACILITY_RESPONSE_PENDING: new Set(["PACKET_PREPARATION", "READY_FOR_ROUTING", "ROUTING_IN_PROGRESS", "ACCEPTED", "CANCELLED", "WITHDRAWN", "NO_PLACEMENT_FOUND", "REFERRED_TO_ALTERNATIVE_LEVEL", "INFORMATION_INCOMPLETE", "MEDICAL_TRANSFER_REQUIRED"]),
+  ACCEPTED: new Set(["READY_FOR_ROUTING", "ROUTING_IN_PROGRESS", "FACILITY_RESPONSE_PENDING", "TRANSPORT_PENDING", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  TRANSPORT_PENDING: new Set(["ROUTING_IN_PROGRESS", "FACILITY_RESPONSE_PENDING", "ACCEPTED", "HANDOFF_IN_PROGRESS", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  HANDOFF_IN_PROGRESS: new Set(["FACILITY_RESPONSE_PENDING", "ACCEPTED", "TRANSPORT_PENDING", "TRANSFER_COMPLETE", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  TRANSFER_COMPLETE: new Set(["ACCEPTED", "TRANSPORT_PENDING", "HANDOFF_IN_PROGRESS", "CLOSED", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  CLOSED: new Set(),
+  INFORMATION_INCOMPLETE: new Set(["DRAFT", "INTAKE_IN_PROGRESS", "DOCUMENTS_PENDING", "DOCUMENTS_RECEIVED", "EVIDENCE_PROCESSING", "EVIDENCE_REVIEW", "REVIEW_IN_PROGRESS", "PACKET_PREPARATION", "READY_FOR_ROUTING", "ROUTING_IN_PROGRESS", "FACILITY_RESPONSE_PENDING", "ACCEPTED", "TRANSPORT_PENDING", "HANDOFF_IN_PROGRESS", "TRANSFER_COMPLETE", "CLOSED", "CANCELLED", "WITHDRAWN"]),
+  NO_PLACEMENT_FOUND: new Set(["READY_FOR_ROUTING", "ROUTING_IN_PROGRESS", "CLOSED", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  REFERRED_TO_ALTERNATIVE_LEVEL: new Set(["READY_FOR_ROUTING", "ROUTING_IN_PROGRESS", "CLOSED", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  MEDICAL_TRANSFER_REQUIRED: new Set(["DRAFT", "INTAKE_IN_PROGRESS", "DOCUMENTS_PENDING", "DOCUMENTS_RECEIVED", "EVIDENCE_PROCESSING", "EVIDENCE_REVIEW", "REVIEW_IN_PROGRESS", "PACKET_PREPARATION", "READY_FOR_ROUTING", "ROUTING_IN_PROGRESS", "FACILITY_RESPONSE_PENDING", "ACCEPTED", "TRANSPORT_PENDING", "HANDOFF_IN_PROGRESS", "TRANSFER_COMPLETE", "CLOSED", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE"]),
+  CLINICAL_REVIEW: new Set(["DOCUMENTS_RECEIVED", "EVIDENCE_PROCESSING", "EVIDENCE_REVIEW", "REVIEW_IN_PROGRESS", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE", "MEDICAL_TRANSFER_REQUIRED"]),
+  LEGAL_REVIEW: new Set(["EVIDENCE_PROCESSING", "EVIDENCE_REVIEW", "REVIEW_IN_PROGRESS", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE", "MEDICAL_TRANSFER_REQUIRED"]),
+  BENEFITS_REVIEW: new Set(["EVIDENCE_REVIEW", "REVIEW_IN_PROGRESS", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE", "MEDICAL_TRANSFER_REQUIRED"]),
+  AUTHORIZATION_PREPARATION: new Set(["REVIEW_IN_PROGRESS", "PACKET_PREPARATION", "CANCELLED", "WITHDRAWN", "INFORMATION_INCOMPLETE", "MEDICAL_TRANSFER_REQUIRED"]),
+  CANCELLED: new Set(),
+  WITHDRAWN: new Set()
+};
 
 export function canTransitionCase(from: CaseStatus, to: CaseStatus): boolean {
   if (from === to) return false;
-  if (TERMINAL.includes(from)) return false; // append-only history; reopen = new case decision
-  if (EXIT_STATES.includes(to)) return true; // any active case can be cancelled/withdrawn
-  if (to === "INFORMATION_INCOMPLETE") return !TERMINAL.includes(from);
-  if (from === "INFORMATION_INCOMPLETE") return ACTIVE_ORDER.includes(to);
-  if (ROUTING_EXCEPTIONS.includes(to))
-    return ["ROUTING_IN_PROGRESS", "FACILITY_RESPONSE_PENDING"].includes(from);
-  if (ROUTING_EXCEPTIONS.includes(from))
-    return ["READY_FOR_ROUTING", "ROUTING_IN_PROGRESS", "CLOSED"].includes(to);
-  // Medical diversion: entered only from the review/routing span, and left to
-  // any pipeline state (ACTIVE_ORDER includes CLOSED) once medically resolved.
-  if (to === "MEDICAL_TRANSFER_REQUIRED") return MEDICAL_DIVERSION_ENTRY.includes(from);
-  if (from === "MEDICAL_TRANSFER_REQUIRED") return ACTIVE_ORDER.includes(to);
-  const fi = ACTIVE_ORDER.indexOf(from);
-  const ti = ACTIVE_ORDER.indexOf(to);
-  if (fi === -1 || ti === -1) return false;
-  // one step forward, or a bounded step back for rework
-  return ti === fi + 1 || (ti < fi && fi - ti <= 3);
+  return TRANSITIONS[from]?.has(to) ?? false;
 }
 
 export interface ClarityCase {
@@ -131,10 +115,10 @@ export interface ClarityCase {
  * rejects everything out of a terminal state. Reopen is an explicitly
  * permitted, role-gated, rationale-required exception path handled by the
  * command service. It may only land on an active (non-terminal,
- * non-exception) state.
+ * non-exception) writable state.
  */
 export function canReopenCase(from: CaseStatus, to: CaseStatus): boolean {
-  return TERMINAL.includes(from) && ACTIVE_ORDER.includes(to) && to !== "CLOSED";
+  return TERMINAL_SET.has(from) && WRITABLE_REOPEN_TARGETS.has(to as WritableCaseStatus);
 }
 
 export function transitionCase(c: ClarityCase, to: CaseStatus): ClarityCase {

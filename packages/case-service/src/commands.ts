@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  CASE_STATUSES,
+  WRITABLE_CASE_STATUSES,
   CommandActorSchema,
   URGENCY_LEVELS,
   WORKSTREAM_STATUSES,
@@ -59,7 +59,7 @@ export const UpdateCaseLocationCommandSchema = z
 export type UpdateCaseLocationCommand = z.input<typeof UpdateCaseLocationCommandSchema>;
 
 export const TransitionCaseCommandSchema = z
-  .object({ ...caseEnvelope, to: z.enum(CASE_STATUSES) })
+  .object({ ...caseEnvelope, to: z.enum(WRITABLE_CASE_STATUSES) })
   .strict();
 export type TransitionCaseCommand = z.input<typeof TransitionCaseCommandSchema>;
 
@@ -88,7 +88,7 @@ export const CloseCaseCommandSchema = z.object({ ...caseEnvelope }).strict();
 export type CloseCaseCommand = z.input<typeof CloseCaseCommandSchema>;
 
 export const ReopenCaseCommandSchema = z
-  .object({ ...caseEnvelope, reopenTo: z.enum(CASE_STATUSES) })
+  .object({ ...caseEnvelope, reopenTo: z.enum(WRITABLE_CASE_STATUSES) })
   .strict();
 export type ReopenCaseCommand = z.input<typeof ReopenCaseCommandSchema>;
 
