@@ -6,8 +6,27 @@
 
 **Baseline:** `origin/main` at `347feba`, 2026-09-19.
 **Companion tests:** [`tests/unit/case-state-reconciliation.test.ts`](../../tests/unit/case-state-reconciliation.test.ts)
-**Owner rulings implemented here:** OD-ACCESS-005 (characterize, do not resolve).
-**Blocked on:** ADR-0023 (not yet written).
+
+**Provenance of the `OD-ACCESS-*` identifiers used below.** They originate in the
+owner's Clarity Access Phase 4C authorization of 2026-09-19, which approved a set of
+architecture directions and authorized this characterization slice (OD-ACCESS-005:
+characterize, do not resolve). **They are not yet recorded in the canonical register
+at [`docs/decisions/OPEN_DECISIONS.md`](../decisions/OPEN_DECISIONS.md), and they are
+not ADRs.** A reader cannot verify them from this repository alone. Until they are
+entered in the canonical register they should be treated as **recorded owner
+direction, not as independently verifiable repository authority**, and they must not
+be cited as constraints on later work in preference to the register or an accepted
+ADR. Entering them in `OPEN_DECISIONS.md` is recommended follow-up and was outside
+the scope of this slice.
+
+The pre-existing identifiers cited here — **OD-6**, **OD-22**, **OD-24** — *are* in
+the canonical register and are verifiable.
+
+**Blocked on:** an accepted architecture decision record for Access progression. That
+ADR is **not yet created and its number is not yet allocated.** Per the allocation
+rules in [`ADR_INDEX.md`](ADR_INDEX.md) a number is permanently reserved on first use,
+so this document deliberately does **not** claim one; the number must be taken from
+the index at creation time.
 
 `CLARITY ACCESS IMPLEMENTATION FREEZE: ACTIVE` ·
 `RUNTIME JOURNEYPHASE IMPLEMENTATION: NOT AUTHORIZED`
@@ -18,10 +37,11 @@
 
 | Source | Where | State |
 |---|---|---|
-| `CaseStatus` | `packages/domain-contracts/src/caseStateMachine.ts:6`; `BehavioralHealthCase.status` | **Implemented runtime state.** 26 values, one per case |
+| `CaseStatus` | `packages/domain-contracts/src/caseStateMachine.ts:6`; `BehavioralHealthCase.status` | **Implemented runtime state, 25 values.** The exported `CASE_STATUSES` array carries **25**; the Prisma `CaseStatus` enum carries **26**. The 26th, `RETURNED_FOR_MORE_INFORMATION`, is **schema-only** and has no TypeScript representation — see §9.4 and OD-22 |
 | `WorkstreamStatuses` | `packages/domain-contracts/src/workstreams.ts`; 8 columns on `BehavioralHealthCase` | **Implemented runtime state.** 8 independent lanes, each a `ParallelWorkstreamStatus` |
 | `PrescreenEncounterStatus` | `prisma/schema.prisma`; `packages/prescreen-service` | **Implemented runtime state.** 12 values, on the prescreen encounter, not the case |
-| Episode / `CaseEpisodeLink` / `EpisodeAuthorization` | `prisma/schema.prisma`; `packages/case-repository` | **Implemented and RLS-tested** (`tests/integration/od6-rls.test.ts`). The most mature artifact chain |
+| `Episode` | `prisma/schema.prisma`; `packages/case-repository` | **Implemented, and the only table with direct RLS test coverage.** `tests/integration/od6-rls.test.ts` exercises tenant-scoped reads, a cross-tenant write attempt, and post-rollback context clearing against `tx.episode` only |
+| `CaseEpisodeLink` / `EpisodeAuthorization` | `prisma/schema.prisma`; `packages/case-repository` | **Implemented, but NOT directly RLS-tested.** The OD-6 suite grants privileges on them during setup and never performs a no-context or cross-tenant operation against either, so a missing or incorrect policy on either table would still pass. Direct coverage is an open gap |
 | `Referral` (+ `ReferralStatus`) | `prisma/schema.prisma` | **Schema-only / unwired.** No runtime writer; no RLS policy. Facility Review engine not implemented |
 | `CustodyEvent` | `prisma/schema.prisma` | **Schema-only / unwired.** No runtime writer; referenced only as `Episode.sourceCustodyEventId`. Transfer/Handoff engine not implemented |
 
@@ -71,8 +91,8 @@ only legal transitions while `workstreams.clinical` and `workstreams.legalReview
 **This is architectural ambiguity and duplication, not corruption.** No invariant is violated,
 no data is damaged, and no current code calls these combinations invalid. Two representations
 of overlapping concepts were introduced independently and no rule was ever written to say
-which one answers the question "has clinical review happened?". That rule is what ADR-0023
-must supply.
+which one answers the question "has clinical review happened?". That rule is what the
+Access-progression ADR must supply.
 
 ## 3. Emergency / fairness invariant
 
@@ -149,7 +169,8 @@ technical/security decision and is **not** decided here.
 
 ## 5. Proposed future precedence model
 
-`PROPOSED — NOT CURRENT RUNTIME CONTRACT.` Documented for ADR-0023; not implemented.
+`PROPOSED — NOT CURRENT RUNTIME CONTRACT.` Documented as input to the Access-progression
+ADR; not implemented.
 
 | Tier | Contents | Proposed weight |
 |---|---|---|
@@ -168,7 +189,7 @@ should decline to advance and emit an explanatory reason.
 `EMERGENT` case (§3); a prescreen `MEDICAL_STABILIZATION_REQUIRED` pathway must never be
 masked by a willingness/orientation-derived position (§4.1).
 
-This model remains **PROPOSED until ADR-0023 is accepted.**
+This model remains **PROPOSED until the Access-progression ADR is accepted.**
 
 ## 6. Future journey projection
 
