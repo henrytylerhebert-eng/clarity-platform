@@ -63,9 +63,25 @@ Specific package conclusions that subsequent reconciliation has **corrected**:
   ledger contention) are resolved in substance, not merely closed.
 - The package proposes a seven-stage Access journey plus `JourneyPhase`,
   `WorkItem`, Scenario/Rule registries, a Role Authority Matrix and a
-  synthetic-data redesign. **None of that is implemented on any ref.** On current
-  `main`, `JourneyPhase` appears in documentation only — in governance documents
-  that state it is *not* implemented. There is no journey model in `main` code.
+  synthetic-data redesign. State this precisely, because "not implemented" is
+  true of `main` but **not** of every ref:
+
+  - **On current `main`:** none of it is implemented. There is no journey model
+    in `main` code at all; `JourneyPhase` appears in documentation only, in
+    governance documents that state it is not implemented.
+  - **On no ref anywhere:** the package's **seven-stage vocabulary**, `WorkItem`,
+    the Scenario and Rule registries as runtime artifacts, and the synthetic-data
+    redesign. `WorkItem` in particular appears in no code on any ref.
+  - **Off-main, and NOT to be discarded:** two prototype journey models exist and
+    are materially divergent from each other —
+    `feat/journey-monitor` and `codex/om/journey-poc`. Both export a
+    `JourneyPhaseId` union of **five** phases (not seven), both are
+    `localStorage`-only browser prototypes with no backend contact, and neither
+    implements this package's design. They nonetheless contain reusable domain
+    logic and product insight.
+
+  A successor reconciling this package **must not** read "not implemented" as
+  permission to discard that off-main work. See "Successor work" below.
 
 ## What must NOT be done with this package
 
