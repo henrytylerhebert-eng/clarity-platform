@@ -58,3 +58,32 @@ The first isolated run applied all migrations and passed its three assertions, t
 ## Decision boundary
 
 No real-source decision follows from this record. The next eligible work is to implement and test the missing synthetic records and controls for AT13–AT16 and the remaining AT34 conditions; source ownership, privacy, program authorization, and tenancy/RLS approvals remain required before any real import.
+
+## Follow-up synthetic-contract validation — 2026-09-19
+
+The operational-record contract was extended and verified with:
+
+```bash
+npm test -- --run tests/unit/iop-operational.test.ts
+```
+
+Result: **1 test file / 3 tests passed.** The scenario retains an ended IOP
+episode, an inpatient interval, an IOP return, and effective-dated 3 → 2 → 1
+plan versions. It also represents two enrolled participants, an active pending
+referral, eleven scheduled visits (8 attended, 1 approved cancellation, 2
+no-shows), one unscheduled person, two sessions/five service units, the
+8-of-10 group planning target, and 12 delivered minus 2 reviewed-nonpayable
+meals.
+
+The contract now rejects a predecessor from another person, plan use outside
+its effective range, inconsistent scheduled/unscheduled outcomes, and services
+that do not reconcile to an attended visit at the same enrollment and date.
+Group units are derived only from positive service lines and are therefore a
+subset of total service units by construction. These are synthetic contract
+controls; they do not determine clinical frequency, eligibility, staffing,
+payment, billing, or source truth.
+
+AT13–AT16 remain **EXECUTED_PENDING_OWNER_ACCEPTANCE**. This follow-up does
+not establish a production attendance grid, controlled operational writeback,
+real-source provenance, or the AT34 documentation/charge/billable review
+controls.
