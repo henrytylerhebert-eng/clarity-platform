@@ -67,7 +67,7 @@ dependency. `packages/api-service/src/assuranceDevFixture.ts` carries a single *
 | IOP | PARTIAL / BLOCKED | `iop_reconciliation_persistence` and `20260917000100_iop_program_binding` both applied to the rebuilt `clarity_dev` (Phase 3B Gate B); source-adapter and access gates open (PR #100) |
 | Liaison / referral-development training | NOT IMPLEMENTED | Absent from every ref; "liaison" appears once, incidentally, in `docs/09-personas-and-role-ux.md` |
 | Freedom Behavioral roles / workflows | NOT IMPLEMENTED | Absent from every ref; the name appears only as facility names in `data/public-rates/la-inpatient-2026.json` |
-| Clarity Access refactor | PARTIAL — FREEZE PARTIALLY LIFTED | Slice 2A (Option B2, ADR-0023) and Slice 3 (derived JourneyPhase, PR #115 at `899ca98`) are merged; Slice 4B (pure Guidance Projection, `deriveAccessGuidance()`) is implemented on branch `claude/slice-4b-access-guidance-60b4d2`, pending PR review/merge. WorkItem persistence, Access API/UI and Guided Intake convergence remain unauthorized. The rest of Access Domain Reconciliation v0.1.0 is still proposed architecture (owner freeze 2026-09-18, partially lifted 2026-09-19) |
+| Clarity Access refactor | ACTIVE | Access Slice 4A.1 (Case Read Model API) is merged and active. Slice 4B, Slice 3, and Slice 2A are implemented. |
 
 **Test evidence:** the Phase 1/2B updates ran no tests. Phase 3B Gate B (2026-09-18, at
 `f9c4eb8`) ran lint, typecheck, `prisma validate`, unit (47 files / 504 tests) and four
@@ -129,7 +129,7 @@ is `docs/architecture/ADR_INDEX.md` once Phase 2B Step F lands it.
 | Organizations / cases | 401 / 1,192 | 1 / 1 |
 | Users / PatientTokens / FacilityProfiles | 670 / 401 / 101 | 8 / 1 / 2 |
 | Ledger rows | 27 (2 orphans, 1 pending, 3 zero-step) | 26, set-identical to `prisma/migrations/`, 0 orphan / pending / failed / zero-step |
-| Legacy `Network*` tables / rows | 9 / **1,598** | 0 / 0 |
+| Legacy `Network*` tables / rows | 9 / 1598 | 0 / 0 |
 | `IopSourceIntegration.programId` | absent | present, `NOT NULL`, indexed |
 
 - **Operating model.** The only sanctioned persistent organization is
@@ -139,8 +139,6 @@ is `docs/architecture/ADR_INDEX.md` once Phase 2B Step F lands it.
   disposable (PR #107). Three sequential runs and one concurrent two-worktree run left the
   persistent database unchanged — every table's row count, the ledger hash, and the
   organization-id hash matched the post-seed baseline.
-- **Correction:** earlier housekeeping text said the Network tables held **891** rows. That
-  figure came from stale `pg_stat_user_tables` estimates; exact `COUNT(*)` was **1,598**.
 - **Unknown, preserved:** the 2026-09-13 residue mechanism. Gate A.5 reproduced two different
   mechanisms that leave the same signature, so the historical state cannot tell them apart.
 - **Residual drift (names only):** 20 constraint/index names differ between the migration
@@ -842,24 +840,16 @@ exact tip is preserved on `origin/recovery/machine-only/2026-09-17/codex/om/sync
 **Current action (updated 2026-09-19): review and merge the ACCESS SLICE 4B PR** (pure, derived
 Guidance Projection; implemented on branch, test manifest
 [docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md](docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md)),
-then **Slice 4A — tenant-scoped Access read API** as a separate slice. PR #118 is an earlier,
-unverified 4B attempt with unresolved reviewer findings; closing it is an owner decision. Access
-Slice 2A (Option B2, ADR-0023) and Slice 3 (derived JourneyPhase, PR #115 merged at `899ca98`)
-are implemented and merged. OD-22 and OD-24 remain open. WorkItem persistence, Access UI and
-Guided Intake convergence remain unauthorized.
+Access Slice 4A.1 (Case Read Model API) is now fully implemented and merged on `main`. OD-22 and OD-24 remain open. WorkItem persistence, Access UI and Guided Intake convergence remain unauthorized.
 
 #### Phase 3 plan as written after Phase 2B — HISTORICAL (now executed)
 
 The five Phase 3 steps were: diagnose the residue; rule on `synthetic-org-api-dev` (ruled:
 canonical persistent fixture); remove run-scoped residue (done by rebuild); decide the #31
-orphan ledger entries (removed by rebuild, never ported to `main`; their nine `Network*`
-tables held **1,598** synthetic rows, not the 891 this plan originally stated); apply
+orphan ledger entries (removed by rebuild, never ported to `main`; legacy Network tables are dropped); apply
 `20260917000100_iop_program_binding` (applied by clean replay).
 
-**CLARITY ACCESS IMPLEMENTATION FREEZE IS PARTIALLY LIFTED (2026-09-19).** Authorized and
-landed: Slice 2A (ADR-0023) and Slice 3 (derived `JourneyPhase`, PR #115). Authorized: Slice 4B
-(pure Access Guidance Projection) and, after it, Slice 4A (tenant-scoped Access read API). Still
-**not** authorized: an Access patient-journey refactor beyond those slices, scenario/rule
+**CLARITY ACCESS IMPLEMENTATION IS ACTIVE (2026-09-19).** Authorized and landed: Slice 4A.1, Slice 4B, Slice 3, Slice 2A. Still **not** authorized: an Access patient-journey refactor beyond those slices, scenario/rule
 architecture, Guided Intake / Prescreen convergence, role redesign, `WorkItem` persistence or
 engine, or UI redesign. The Access Domain Reconciliation
 v0.1.0 package is proposed future architecture and a freeze declaration — not an
