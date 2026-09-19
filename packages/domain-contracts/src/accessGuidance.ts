@@ -139,7 +139,14 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
 
   // Packet-level
   if (input.packetRequirements) {
-    targetReadiness = PRESCREEN_READINESS_TARGETS.map(target => evaluatePacketReadiness(target, input.packetRequirements!));
+    targetReadiness = PRESCREEN_READINESS_TARGETS.map(target => {
+      const result = evaluatePacketReadiness(target, input.packetRequirements!);
+      return {
+        ...result,
+        blockers: [...result.blockers].sort((a, b) => a.requirementCode.localeCompare(b.requirementCode)),
+        warnings: [...result.warnings].sort((a, b) => a.requirementCode.localeCompare(b.requirementCode))
+      };
+    });
 
     for (const result of targetReadiness) {
       for (const blocker of result.blockers) {
