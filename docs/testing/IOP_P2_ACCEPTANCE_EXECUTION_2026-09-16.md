@@ -87,3 +87,21 @@ AT13–AT16 remain **EXECUTED_PENDING_OWNER_ACCEPTANCE**. This follow-up does
 not establish a production attendance grid, controlled operational writeback,
 real-source provenance, or the AT34 documentation/charge/billable review
 controls.
+
+
+## Follow-up AT34 synthetic-control validation — 2026-09-19
+
+The persisted synthetic workflow now stores a distinct stable `auditId` for
+each note-audit record. The import contract requires that audit ID to have its
+own `NOTE_AUDIT` source record/version; it no longer treats a note ID as audit
+source identity. A focused unit run (8 tests) and an isolated migrated
+PostgreSQL run (5 tests) prove that a self-reviewed audit remains an explicit
+`note_audit_not_independent` exception, its author/reviewer/record identities
+are retained, a compliance reviewer can record a reviewed exception, and that
+reviewer cannot import or close. An organization admin can close only after the
+exception review, with the authenticated closer and source cutoff retained.
+
+AT34 remains **EXECUTED_PARTIAL_NOT_ACCEPTED**. The browser test still mocks
+the API client, program-grant authority remains a recorded decision, and no
+real source, connector, provider-backed program grant/RLS proof, clinical
+compliance decision, or billable/payment inference was made.

@@ -56,6 +56,7 @@ export const IopReconciliationSampleSchema = z
           .object({
             attendanceId: token,
             noteId: token,
+            auditId: token,
             authoredBy: token,
             auditStatus: z.enum(["COMPLETE", "PENDING", "FAILED"]),
             reviewedBy: token.optional(),

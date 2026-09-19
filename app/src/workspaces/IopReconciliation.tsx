@@ -55,7 +55,7 @@ function sourceRecordsFor(reconciliation: IopReconciliationSample) {
     ...reconciliation.enrollments.map((e): [string, string] => ["ENROLLMENT", e.enrollmentId]),
     ...reconciliation.treatmentPlans.map((e): [string, string] => ["TREATMENT_PLAN", e.planId]),
     ...reconciliation.attendanceEvents.map((e): [string, string] => ["ATTENDANCE", e.attendanceId]),
-    ...reconciliation.noteAudits.map((e): [string, string] => ["NOTE_AUDIT", e.noteId]),
+    ...reconciliation.noteAudits.map((e): [string, string] => ["NOTE_AUDIT", e.auditId]),
     ...reconciliation.chargeLines.map((e): [string, string] => ["CHARGE_LINE", e.chargeLineId]),
     ...reconciliation.emrBillableLines.map((e): [string, string] => ["EMR_BILLABLE_LINE", e.billableLineId]),
   ];

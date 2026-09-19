@@ -67,7 +67,7 @@ export const IopPersistedImportRequestSchema = z
       ENROLLMENT: request.reconciliation.enrollments.map((entry) => entry.enrollmentId),
       TREATMENT_PLAN: request.reconciliation.treatmentPlans.map((entry) => entry.planId),
       ATTENDANCE: request.reconciliation.attendanceEvents.map((entry) => entry.attendanceId),
-      NOTE_AUDIT: request.reconciliation.noteAudits.map((entry) => entry.noteId),
+      NOTE_AUDIT: request.reconciliation.noteAudits.map((entry) => entry.auditId),
       CHARGE_LINE: request.reconciliation.chargeLines.map((entry) => entry.chargeLineId),
       EMR_BILLABLE_LINE: request.reconciliation.emrBillableLines.map((entry) => entry.billableLineId),
     } as const;
