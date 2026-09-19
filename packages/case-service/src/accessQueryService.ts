@@ -1,5 +1,5 @@
-import type { AuthenticatedPrincipal, PrescreenEncounterStatus, PacketRequirement } from "@clarity/domain-contracts";
-import type { AccessQueryGateway, AuditActor } from "@clarity/case-repository";
+import type { AuthenticatedPrincipal, PrescreenEncounterStatus, PacketRequirement, AuditActor } from "@clarity/domain-contracts";
+import type { AccessQueryGateway } from "@clarity/case-repository";
 import { assertAccessCaseReadPermitted } from "./permissions.js";
 import { deriveAccessGuidance, isTerminalPrescreenEncounterStatus } from "@clarity/domain-contracts";
 import type { AccessCaseReadModel, PacketRequirementEvidenceState } from "@clarity/domain-contracts";
@@ -38,7 +38,7 @@ export class AccessQueryService {
       selectedPrescreenStatus = selectedEncounter.status;
       selectedPrescreenVersion = selectedEncounter.version;
 
-      const filteredReqs = packetRequirements.filter(r => (r as any).encounterId === selectedEncounter.encounterId);
+      const filteredReqs = packetRequirements.filter(r => r.encounterId === selectedEncounter.encounterId);
       guidanceInputPacketRequirements = filteredReqs;
 
       packetRequirementEvidence = filteredReqs.length > 0 ? "LOADED" : "LOADED_EMPTY";
@@ -59,8 +59,10 @@ export class AccessQueryService {
 
     const { journey, ...guidance } = guidanceProjection;
 
-    // caseVersion is strictly required in the DTO per user instruction #20
-    const version = caseRecord.version ?? 0;
+    if (typeof caseRecord.version !== "number") {
+      throw new Error(`BehavioralHealthCase.version is missing on caseKey ${caseRecord.caseKey}`);
+    }
+    const version = caseRecord.version;
 
     return {
       caseKey: caseRecord.caseKey,

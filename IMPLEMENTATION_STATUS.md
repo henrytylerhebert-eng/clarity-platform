@@ -67,7 +67,7 @@ dependency. `packages/api-service/src/assuranceDevFixture.ts` carries a single *
 | IOP | PARTIAL / BLOCKED | `iop_reconciliation_persistence` and `20260917000100_iop_program_binding` both applied to the rebuilt `clarity_dev` (Phase 3B Gate B); source-adapter and access gates open (PR #100) |
 | Liaison / referral-development training | NOT IMPLEMENTED | Absent from every ref; "liaison" appears once, incidentally, in `docs/09-personas-and-role-ux.md` |
 | Freedom Behavioral roles / workflows | NOT IMPLEMENTED | Absent from every ref; the name appears only as facility names in `data/public-rates/la-inpatient-2026.json` |
-| Clarity Access refactor | ACTIVE | Access Slice 4A.1 (Case Read Model API) is merged and active. Slice 4B, Slice 3, and Slice 2A are implemented. |
+| Clarity Access refactor | ACTIVE | Slice 4B merged. ADR-0024 accepted. Slice 4A.1 merged. Access read API implemented. Journey/Guidance derived, not persisted. Access UI not yet implemented. WorkItem not implemented. cross-org Access not implemented. OD-22 / OD-24 open. |
 
 **Test evidence:** the Phase 1/2B updates ran no tests. Phase 3B Gate B (2026-09-18, at
 `f9c4eb8`) ran lint, typecheck, `prisma validate`, unit (47 files / 504 tests) and four
