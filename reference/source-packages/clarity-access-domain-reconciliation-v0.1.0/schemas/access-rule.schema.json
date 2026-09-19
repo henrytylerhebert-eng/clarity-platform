@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Clarity Access Rule",
+  "type": "object",
+  "required": [
+    "ruleId",
+    "version",
+    "name",
+    "status",
+    "scope",
+    "inputs",
+    "outputs",
+    "precedence",
+    "blocks",
+    "createsWork"
+  ],
+  "properties": {
+    "ruleId": {
+      "type": "string",
+      "pattern": "^ACCESS-R-[0-9A-Z-]+$"
+    },
+    "version": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "VERIFIED_REPO_FACT",
+        "PROPOSED_ARCHITECTURE",
+        "SOURCE_HYPOTHESIS",
+        "QUALIFIED_REVIEW_REQUIRED",
+        "OWNER_ACCEPTED"
+      ]
+    },
+    "scope": {
+      "type": "string"
+    },
+    "inputs": {
+      "type": "array"
+    },
+    "outputs": {
+      "type": "array"
+    },
+    "precedence": {
+      "enum": [
+        "HARD_PRECEDENCE",
+        "SOFT_PRECEDENCE",
+        "PARALLEL",
+        "DEPENDENT",
+        "INFORMATIONAL",
+        "HUMAN_RESOLVED_CONFLICT"
+      ]
+    },
+    "blocks": {
+      "type": "array"
+    },
+    "createsWork": {
+      "type": "array"
+    },
+    "authoritySource": {},
+    "qualifiedReviewer": {}
+  },
+  "additionalProperties": true
+}

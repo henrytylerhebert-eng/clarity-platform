@@ -1,0 +1,109 @@
+{
+  "version": "0.1.0",
+  "rules": [
+    {
+      "ruleId": "ACCESS-R-001",
+      "version": "0.1.0",
+      "name": "Unknown is not No",
+      "status": "VERIFIED_REPO_FACT",
+      "scope": "data",
+      "inputs": [
+        "answer_state"
+      ],
+      "outputs": [
+        "preserve_uncertainty"
+      ],
+      "precedence": "PARALLEL",
+      "blocks": [],
+      "createsWork": [],
+      "authoritySource": "existing Clarity doctrine",
+      "qualifiedReviewer": null
+    },
+    {
+      "ruleId": "ACCESS-R-004",
+      "version": "0.1.0",
+      "name": "Financial lane cannot block emergency clinical review",
+      "status": "VERIFIED_REPO_FACT",
+      "scope": "workflow",
+      "inputs": [
+        "urgency",
+        "financial_workstream_state",
+        "clinical_workstream_state"
+      ],
+      "outputs": [
+        "clinical_review_remains_available"
+      ],
+      "precedence": "HARD_PRECEDENCE",
+      "blocks": [],
+      "createsWork": [],
+      "authoritySource": "case state-machine doctrine",
+      "qualifiedReviewer": null
+    },
+    {
+      "ruleId": "ACCESS-R-006",
+      "version": "0.1.0",
+      "name": "Medical stabilization precedence",
+      "status": "VERIFIED_REPO_FACT",
+      "scope": "prescreen",
+      "inputs": [
+        "immediateMedicalStabilizationRequired"
+      ],
+      "outputs": [
+        "MEDICAL_STABILIZATION_REQUIRED"
+      ],
+      "precedence": "HARD_PRECEDENCE",
+      "blocks": [
+        "placement_progression"
+      ],
+      "createsWork": [
+        "medical_review"
+      ],
+      "authoritySource": "existing prescreen/case logic",
+      "qualifiedReviewer": "clinical reviewer before production use"
+    },
+    {
+      "ruleId": "ACCESS-R-011",
+      "version": "0.1.0",
+      "name": "Acceptance is not admission",
+      "status": "PROPOSED_ARCHITECTURE",
+      "scope": "journey",
+      "inputs": [
+        "facility_decision",
+        "admission_confirmation"
+      ],
+      "outputs": [
+        "keep_facility_decision_distinct_from_episode"
+      ],
+      "precedence": "DEPENDENT",
+      "blocks": [
+        "episode_creation_without_admission"
+      ],
+      "createsWork": [
+        "pre_admission_work_if_accepted"
+      ],
+      "authoritySource": "existing object separation + proposed journey model",
+      "qualifiedReviewer": "operational/product owner"
+    },
+    {
+      "ruleId": "ACCESS-R-014",
+      "version": "0.1.0",
+      "name": "Synthetic state must disclose fixture class",
+      "status": "PROPOSED_ARCHITECTURE",
+      "scope": "ux_test",
+      "inputs": [
+        "fixture_class",
+        "runtime_mode"
+      ],
+      "outputs": [
+        "explicit_synthetic_context"
+      ],
+      "precedence": "PARALLEL",
+      "blocks": [
+        "undisclosed_synthetic_operational_display"
+      ],
+      "createsWork": [],
+      "authoritySource": "proposed product integrity rule",
+      "qualifiedReviewer": "product owner"
+    }
+  ]
+}
