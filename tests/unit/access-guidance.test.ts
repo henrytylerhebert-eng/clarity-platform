@@ -97,7 +97,7 @@ describe("case progression signals", () => {
     expect(p.journey.disposition).toBe("BLOCKED");
     expect(signalsIn(p, "CASE_PROGRESSION")).toEqual([
       {
-        signalId: "CASE_PROGRESSION|CASE_STATUS|INFORMATION_INCOMPLETE",
+        signalId: '["CASE_PROGRESSION","CASE_STATUS","INFORMATION_INCOMPLETE"]',
         scope: "CASE_PROGRESSION",
         blockingClass: "HARD_BLOCKER",
         source: { kind: "CASE_STATUS", value: "INFORMATION_INCOMPLETE" },
@@ -105,11 +105,11 @@ describe("case progression signals", () => {
     ]);
     expect(p.nextWork).toEqual([
       {
-        candidateId: "RESOLVE_CASE_INFORMATION",
+        candidateId: '["RESOLVE_CASE_INFORMATION"]',
         kind: "RESOLVE_CASE_INFORMATION",
         scope: "CASE_PROGRESSION",
         nonBinding: true,
-        signalIds: ["CASE_PROGRESSION|CASE_STATUS|INFORMATION_INCOMPLETE"],
+        signalIds: ['["CASE_PROGRESSION","CASE_STATUS","INFORMATION_INCOMPLETE"]'],
       },
     ]);
   });
@@ -150,7 +150,7 @@ describe("prescreen signals", () => {
     const p = deriveAccessGuidance(baseInput({ caseStatus: "REVIEW_IN_PROGRESS", prescreenStatus: "NEEDS_INFORMATION" }));
     expect(signalsIn(p, "PRESCREEN")).toEqual([
       {
-        signalId: "PRESCREEN|PRESCREEN_STATUS|NEEDS_INFORMATION",
+        signalId: '["PRESCREEN","PRESCREEN_STATUS","NEEDS_INFORMATION"]',
         scope: "PRESCREEN",
         blockingClass: "HARD_BLOCKER",
         source: { kind: "PRESCREEN_STATUS", value: "NEEDS_INFORMATION" },
@@ -160,11 +160,11 @@ describe("prescreen signals", () => {
     expect(p.journey.disposition).toBe("ON_TRACK");
     expect(p.nextWork).toEqual([
       {
-        candidateId: "RESOLVE_PRESCREEN_INFORMATION",
+        candidateId: '["RESOLVE_PRESCREEN_INFORMATION"]',
         kind: "RESOLVE_PRESCREEN_INFORMATION",
         scope: "PRESCREEN",
         nonBinding: true,
-        signalIds: ["PRESCREEN|PRESCREEN_STATUS|NEEDS_INFORMATION"],
+        signalIds: ['["PRESCREEN","PRESCREEN_STATUS","NEEDS_INFORMATION"]'],
       },
     ]);
   });
@@ -215,7 +215,7 @@ describe("packet readiness", () => {
     // Warnings are reported, never turned into work.
     expect(p.nextWork).toEqual([
       {
-        candidateId: "RESOLVE_PACKET_REQUIREMENT|SYNTHETIC_REQ_BLOCK|synthetic-rule-1|v1",
+        candidateId: '["RESOLVE_PACKET_REQUIREMENT","SYNTHETIC_REQ_BLOCK","synthetic-rule-1",1]',
         kind: "RESOLVE_PACKET_REQUIREMENT",
         scope: "PRESCREEN_TARGET",
         nonBinding: true,
@@ -225,7 +225,7 @@ describe("packet readiness", () => {
         targets: ["FACILITY_ROUTING"],
         responsibleRoleCode: "SYNTHETIC_ROLE_CODE",
         resolutionWorkspace: "synthetic-workspace",
-        signalIds: ["PRESCREEN_TARGET|FACILITY_ROUTING|PACKET_REQUIREMENT|SYNTHETIC_REQ_BLOCK|synthetic-rule-1|v1|MISSING"],
+        signalIds: ['["PRESCREEN_TARGET","FACILITY_ROUTING","PACKET_REQUIREMENT","SYNTHETIC_REQ_BLOCK","synthetic-rule-1",1,"MISSING"]'],
       },
     ]);
   });
@@ -270,7 +270,7 @@ describe("packet readiness", () => {
       expect(p.suppressed).toEqual([
         {
           kind: "RESOLVE_PACKET_REQUIREMENT",
-          signalId: "PRESCREEN_TARGET|FACILITY_ROUTING|PACKET_REQUIREMENT|SYNTHETIC_REQ_A|synthetic-rule-1|v1|MISSING",
+          signalId: '["PRESCREEN_TARGET","FACILITY_ROUTING","PACKET_REQUIREMENT","SYNTHETIC_REQ_A","synthetic-rule-1",1,"MISSING"]',
           reason: "PRESCREEN_TERMINAL",
         },
       ]);
@@ -326,7 +326,7 @@ describe("workstream attention", () => {
       expect(signalsIn(p, "WORKSTREAM").map((s) => s.blockingClass)).toEqual(["SATISFIED"]);
       expect(p.nextWork).toEqual([]);
       expect(p.suppressed).toEqual([
-        { kind: "START_READY_WORKSTREAM", signalId: "WORKSTREAM|placement|WORKSTREAM_STATUS|READY", reason: "CASE_TERMINAL" },
+        { kind: "START_READY_WORKSTREAM", signalId: '["WORKSTREAM","placement","WORKSTREAM_STATUS","READY"]', reason: "CASE_TERMINAL" },
       ]);
     }
   });
@@ -351,7 +351,7 @@ describe("emergency / fairness protection", () => {
       ["START_READY_WORKSTREAM", "clinical"],
     ]);
     expect(p.nextWork.find((c) => c.workstream === "clinical")?.signalIds).toEqual([
-      "WORKSTREAM|clinical|WORKSTREAM_STATUS|READY",
+      '["WORKSTREAM","clinical","WORKSTREAM_STATUS","READY"]',
     ]);
   });
 
@@ -455,6 +455,37 @@ describe("determinism, deduplication and traceability", () => {
           (s.scope === "WORKSTREAM" && s.source.kind === "WORKSTREAM_STATUS" && s.source.value === "READY"),
       );
       for (const s of actionable) expect(accounted.has(s.signalId)).toBe(true);
+    }
+  });
+
+  it("requirements whose fields contain the old delimiter never collide (regression: PR #120 review)", () => {
+    const left = requirement({ requirementCode: "A|B", sourceRuleId: "C" });
+    const right = requirement({ requirementCode: "A", sourceRuleId: "B|C" });
+    const p = deriveAccessGuidance(baseInput({ packetRequirements: [left, right, { ...left }, { ...right }] }));
+
+    // Both blockers survive in readiness (and exact copies still dedupe).
+    const facility = p.packetReadiness?.find((r) => r.target === "FACILITY_ROUTING");
+    expect(facility?.blockers.map((b) => [b.requirementCode, b.sourceRuleId])).toEqual([
+      ["A", "B|C"],
+      ["A|B", "C"],
+    ]);
+    // Both signals survive with distinct ids.
+    const target = signalsIn(p, "PRESCREEN_TARGET");
+    expect(target).toHaveLength(2);
+    expect(new Set(target.map((s) => s.signalId)).size).toBe(2);
+    // Both candidates survive with distinct ids, each tracing to its own signal.
+    expect(p.nextWork.map((c) => [c.requirementCode, c.sourceRuleId])).toEqual([
+      ["A", "B|C"],
+      ["A|B", "C"],
+    ]);
+    expect(new Set(p.nextWork.map((c) => c.candidateId)).size).toBe(2);
+    for (const c of p.nextWork) {
+      expect(c.signalIds).toHaveLength(1);
+      const [signal] = target.filter((s) => s.signalId === c.signalIds[0]);
+      expect(signal?.source.kind === "PACKET_REQUIREMENT" && [signal.source.requirementCode, signal.source.sourceRuleId]).toEqual([
+        c.requirementCode,
+        c.sourceRuleId,
+      ]);
     }
   });
 

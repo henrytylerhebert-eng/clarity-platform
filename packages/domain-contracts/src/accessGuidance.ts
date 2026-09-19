@@ -228,6 +228,14 @@ const compareTuple = (a: readonly (number | string)[], b: readonly (number | str
   return 0;
 };
 
+/**
+ * The single encoder for every composite identity in this module (signal ids, candidate
+ * ids, suppression and dedupe keys). A canonical JSON tuple is deterministic and injective
+ * for arbitrary strings: requirement codes and rule ids are free text and may contain any
+ * delimiter, so no separator-joined form is safe.
+ */
+const compositeId = (...parts: readonly (string | number | null)[]): string => JSON.stringify(parts);
+
 const requirementKey = (r: { requirementCode: string; sourceRuleId: string; sourceRuleVersion: number }) =>
   [r.requirementCode, r.sourceRuleId, r.sourceRuleVersion] as const;
 
@@ -236,7 +244,7 @@ const fullKey = (r: {
   sourceRuleId: string;
   sourceRuleVersion: number;
   state: PacketRequirementState;
-}): string => JSON.stringify([...requirementKey(r), r.state]);
+}): string => compositeId(...requirementKey(r), r.state);
 
 const signalSortKey = (s: GuidanceSignal): (number | string)[] => [
   scopeRank(s.scope),
@@ -283,7 +291,7 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
     closedBy: GuidanceSuppressionReason | null,
   ): void => {
     if (closedBy !== null) {
-      const key = `${candidate.kind}|${signalId}`;
+      const key = compositeId(candidate.kind, signalId);
       if (!suppressed.has(key)) suppressed.set(key, { kind: candidate.kind, signalId, reason: closedBy });
       return;
     }
@@ -313,7 +321,7 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
   // Case progression
   const caseClass = CASE_STATUS_SIGNAL[input.caseStatus];
   if (caseClass !== undefined) {
-    const signalId = `CASE_PROGRESSION|CASE_STATUS|${input.caseStatus}`;
+    const signalId = compositeId("CASE_PROGRESSION", "CASE_STATUS", input.caseStatus);
     addSignal({
       signalId,
       scope: "CASE_PROGRESSION",
@@ -322,7 +330,7 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
     });
     if (caseClass === "HARD_BLOCKER") {
       offerCandidate(
-        { candidateId: "RESOLVE_CASE_INFORMATION", kind: "RESOLVE_CASE_INFORMATION", scope: "CASE_PROGRESSION" },
+        { candidateId: compositeId("RESOLVE_CASE_INFORMATION"), kind: "RESOLVE_CASE_INFORMATION", scope: "CASE_PROGRESSION" },
         signalId,
         caseClosed,
       );
@@ -333,7 +341,7 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
   if (input.prescreenStatus !== undefined) {
     const prescreenClass = PRESCREEN_STATUS_SIGNAL[input.prescreenStatus];
     if (prescreenClass !== undefined) {
-      const signalId = `PRESCREEN|PRESCREEN_STATUS|${input.prescreenStatus}`;
+      const signalId = compositeId("PRESCREEN", "PRESCREEN_STATUS", input.prescreenStatus);
       addSignal({
         signalId,
         scope: "PRESCREEN",
@@ -343,7 +351,7 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
       if (prescreenClass === "HARD_BLOCKER") {
         offerCandidate(
           {
-            candidateId: "RESOLVE_PRESCREEN_INFORMATION",
+            candidateId: compositeId("RESOLVE_PRESCREEN_INFORMATION"),
             kind: "RESOLVE_PRESCREEN_INFORMATION",
             scope: "PRESCREEN",
           },
@@ -378,15 +386,15 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
         classified.push([toBlockerShape(requirement), residual]);
       }
       for (const [requirement, blockingClass] of classified) {
-        const signalId = [
+        const signalId = compositeId(
           "PRESCREEN_TARGET",
           target,
           "PACKET_REQUIREMENT",
           requirement.requirementCode,
           requirement.sourceRuleId,
-          `v${requirement.sourceRuleVersion}`,
+          requirement.sourceRuleVersion,
           requirement.state,
-        ].join("|");
+        );
         addSignal({
           signalId,
           scope: "PRESCREEN_TARGET",
@@ -403,12 +411,12 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
         if (blockingClass === "HARD_BLOCKER") {
           offerCandidate(
             {
-              candidateId: [
+              candidateId: compositeId(
                 "RESOLVE_PACKET_REQUIREMENT",
                 requirement.requirementCode,
                 requirement.sourceRuleId,
-                `v${requirement.sourceRuleVersion}`,
-              ].join("|"),
+                requirement.sourceRuleVersion,
+              ),
               kind: "RESOLVE_PACKET_REQUIREMENT",
               scope: "PRESCREEN_TARGET",
               requirementCode: requirement.requirementCode,
@@ -434,7 +442,7 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
     const status = input.workstreams[workstream];
     const blockingClass = WORKSTREAM_STATUS_SIGNAL[status];
     if (blockingClass === null) continue;
-    const signalId = `WORKSTREAM|${workstream}|WORKSTREAM_STATUS|${status}`;
+    const signalId = compositeId("WORKSTREAM", workstream, "WORKSTREAM_STATUS", status);
     addSignal({
       signalId,
       scope: "WORKSTREAM",
@@ -444,7 +452,7 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
     });
     const kind = WORKSTREAM_NEXT_WORK[status];
     if (kind !== undefined) {
-      offerCandidate({ candidateId: `${kind}|${workstream}`, kind, scope: "WORKSTREAM", workstream }, signalId, caseClosed);
+      offerCandidate({ candidateId: compositeId(kind, workstream), kind, scope: "WORKSTREAM", workstream }, signalId, caseClosed);
     }
   }
 
@@ -485,13 +493,13 @@ function toBlockerShape(requirement: PacketRequirement): PacketReadinessBlocker 
 function dedupeBlockers(entries: readonly PacketReadinessBlocker[]): PacketReadinessBlocker[] {
   const byKey = new Map<string, PacketReadinessBlocker>();
   for (const entry of entries) {
-    const key = JSON.stringify([
+    const key = compositeId(
       ...requirementKey(entry),
       entry.state,
       entry.label,
       entry.responsibleRoleCode ?? null,
       entry.resolutionWorkspace,
-    ]);
+    );
     if (!byKey.has(key)) byKey.set(key, entry);
   }
   return [...byKey.values()].sort((a, b) => compareBlocker(a, b) || compareText(JSON.stringify(a), JSON.stringify(b)));
