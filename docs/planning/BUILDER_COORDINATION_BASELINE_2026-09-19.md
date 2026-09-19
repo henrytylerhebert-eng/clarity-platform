@@ -29,6 +29,7 @@ Verified by `git fetch origin`, `git worktree list --porcelain`, per-worktree
 | Canonical remote baseline | `origin/main` and the current Access closure both resolve to `dc559e5` | New work starts from a fresh branch at this SHA or a later fetched `origin/main` SHA. |
 | Shared checkout | `claude/slice-2a-closure`, with changes in ADR-0023, `synthetic-seed.test.ts`, untracked `legacy-persistence-compatibility.test.ts`, and `.codex/` files | **Held.** Do not switch, stash, reset, clean, rebase, commit, or incorporate these files without their owner's explicit handoff. |
 | Linked worktrees | 17 registered; the shared checkout is the only observed dirty worktree | Existing clean worktrees are preservation artifacts, not implicit implementation lanes. |
+| Antigravity worktree | `initialize_worktree` at `7afe508`, clean, under the Antigravity/Gemini worktree root | **Parked.** It has no recorded package ownership or authority in this repository. Do not reuse, mutate, or treat its presence as active Antigravity participation without a bounded handoff card. |
 | Munnder branch | `claude/munnder-diffline-familiarize-17e3d9` at `7afe508`, clean and behind the current baseline | **Parked.** It is not evidence of an active shared task, integration, or authority. It needs a bounded work package before reuse. |
 | Historical Codex IOP worktrees | `codex/om/iop-production-readiness` and `codex/om/synthetic-iop-p2-records` remain on older commits | **Reference only.** Do not merge or replay them wholesale; recover a verified, narrowly scoped patch only when an approved package calls for it. |
 | Open pull requests | None returned by `gh pr list --state open` at the snapshot | Recheck before any new package; this is a time-bound observation, not a standing claim. |
@@ -48,7 +49,7 @@ one implementation package may modify a shared choke point at a time.
 | Package implementer (Codex **or** Claude) | Write one approved package in an isolated worktree and branch | Editing another package's worktree, making unscoped changes, direct pushes to `main` |
 | Independent verifier | Inspect the exact candidate SHA, run declared checks, report findings | Repairing, committing, merging, or treating a prior run as current evidence |
 | Continuity maintainer | Reconcile handoffs, branch ledger, status evidence, and decisions through review | Promoting capability claims without runtime or test evidence |
-| Munnder lane | May become a package implementer or verifier only after a package records its role, branch, inputs, outputs, and acceptance checks | Acting as a standing coordinator or parallel owner |
+| External-tool lane (Antigravity or Munnder) | May become a package implementer or verifier only after a package records its role, branch, inputs, outputs, and acceptance checks | Acting as a standing coordinator or parallel owner |
 
 Codex and Claude can both contribute, but they do not concurrently mutate the
 same shared surface. For every package, name exactly one implementer and one
