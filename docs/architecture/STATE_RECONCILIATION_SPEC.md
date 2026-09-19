@@ -1,6 +1,6 @@
 # Case State Reconciliation Specification
 
-**Status:** CHARACTERIZATION + PROPOSED TARGET. This document records what current
+**Status:** PARTIALLY RESOLVED. Slice 2A (Option B2, ADR-0023) is implemented and merged. JourneyPhase is still proposed. This document records what current
 `main` does and what is proposed. It **decides nothing**. Sections marked
 `PROPOSED — NOT CURRENT RUNTIME CONTRACT` are design input only.
 
@@ -10,9 +10,9 @@
 **Provenance of the `OD-ACCESS-*` identifiers used below.** They originate in the
 owner's Clarity Access Phase 4C authorization of 2026-09-19, which approved a set of
 architecture directions and authorized this characterization slice (OD-ACCESS-005:
-characterize, do not resolve). **They are not yet recorded in the canonical register
-at [`docs/decisions/OPEN_DECISIONS.md`](../decisions/OPEN_DECISIONS.md), and they are
-not ADRs.** A reader cannot verify them from this repository alone. Until they are
+characterize, do not resolve). **These identifiers were ratified and formalized in ADR-0023.
+ 
+ 
 entered in the canonical register they should be treated as **recorded owner
 direction, not as independently verifiable repository authority**, and they must not
 be cited as constraints on later work in preference to the register or an accepted
@@ -21,12 +21,6 @@ the scope of this slice.
 
 The pre-existing identifiers cited here — **OD-6**, **OD-22**, **OD-24** — *are* in
 the canonical register and are verifiable.
-
-**Blocked on:** an accepted architecture decision record for Access progression. That
-ADR is **not yet created and its number is not yet allocated.** Per the allocation
-rules in [`ADR_INDEX.md`](ADR_INDEX.md) a number is permanently reserved on first use,
-so this document deliberately does **not** claim one; the number must be taken from
-the index at creation time.
 
 `CLARITY ACCESS IMPLEMENTATION FREEZE: ACTIVE` ·
 `RUNTIME JOURNEYPHASE IMPLEMENTATION: NOT AUTHORIZED`

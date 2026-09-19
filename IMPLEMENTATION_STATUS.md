@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Current-state assertions below were validated against `origin/main` at `5c4c0b9` on
-2026-09-18, then re-validated at `f0cd909` on 2026-09-18 after Housekeeping Phase 2B.**
+**Current-state assertions below were validated against `origin/main` at `dc559e5` on
+2026-09-19 after Access Phase 4E (Gate 1 & Gate 2 — Slice 2A).**
 
 Those SHAs are an **evidence baseline** — the commit the claims were checked against — not a
 claim that either is still the newest commit. `main` moves; this line does not need editing
@@ -836,9 +836,7 @@ proved isolation, and resolved issues #24 and #31. Local `codex/om/sync-main` is
 exact tip is preserved on `origin/recovery/machine-only/2026-09-17/codex/om/sync-main`,
 `origin/codex/om/sync-main` is untouched, and `recovery/machine-only/*` is never deleted.
 
-**The next action is an owner decision: authorize Access Reconciliation against the clean
-baseline.** Until then the freeze below stands. One small follow-up: file an issue for the
-constraint-name drift noted under "Local database".
+**The next action is RUNTIME JOURNEYPHASE.** The Access implementation freeze is partially lifted. Access Slice 2A (Option B2 explicit semantic transition graph and REVIEW_IN_PROGRESS) is implemented and merged via PR #112 / ADR-0023. OD-22 and OD-24 remain open. The known constraint-name drift is resolved incidentally by the Slice 2A migration.
 
 #### Phase 3 plan as written after Phase 2B — HISTORICAL (now executed)
 
@@ -848,7 +846,7 @@ orphan ledger entries (removed by rebuild, never ported to `main`; their nine `N
 tables held **1,598** synthetic rows, not the 891 this plan originally stated); apply
 `20260917000100_iop_program_binding` (applied by clean replay).
 
-**CLARITY ACCESS IMPLEMENTATION FREEZE IS ACTIVE (2026-09-18).** No Access patient-journey
+**CLARITY ACCESS IMPLEMENTATION FREEZE IS PARTIALLY LIFTED (2026-09-19).** No Access patient-journey
 refactor, scenario/rule architecture, Guided Intake / Prescreen convergence, role redesign,
 `JourneyPhase`, `WorkItem`, or UI redesign is authorized. The Access Domain Reconciliation
 v0.1.0 package is proposed future architecture and a freeze declaration — not an
