@@ -489,6 +489,29 @@ describe("determinism, deduplication and traceability", () => {
     }
   });
 
+  it("fails closed when one requirement identity carries conflicting routing or label (regression: PR #120 review)", () => {
+    const base = requirement({ requirementCode: "SYNTHETIC_REQ_ROUTE" });
+    const conflicts: PacketRequirement[] = [
+      { ...base, responsibleRoleCode: "SYNTHETIC_OTHER_ROLE" },
+      { ...base, resolutionWorkspace: "synthetic-other-workspace" },
+      { ...base, label: "Synthetic relabelled requirement" },
+      (({ responsibleRoleCode: _omit, ...rest }) => rest)(base),
+    ];
+    for (const conflict of conflicts) {
+      expect(() => deriveAccessGuidance(baseInput({ packetRequirements: [base, conflict] }))).toThrow(
+        /Conflicting label\/routing metadata/,
+      );
+    }
+    // Same identity differing only in state is not a routing conflict, and exact copies still dedupe.
+    const p = deriveAccessGuidance(
+      baseInput({ packetRequirements: [base, { ...base }, { ...base, state: "STALE" }] }),
+    );
+    expect(p.nextWork).toHaveLength(1);
+    expect(p.nextWork[0]?.responsibleRoleCode).toBe("SYNTHETIC_ROLE_CODE");
+    expect(p.nextWork[0]?.resolutionWorkspace).toBe("synthetic-workspace");
+    expect(p.nextWork[0]?.signalIds).toHaveLength(2);
+  });
+
   it("there is no global primary blocker field", () => {
     const p = deriveAccessGuidance(input([reqA]));
     expect(Object.keys(p).sort()).toEqual(["journey", "nextWork", "packetReadiness", "signals", "suppressed"]);

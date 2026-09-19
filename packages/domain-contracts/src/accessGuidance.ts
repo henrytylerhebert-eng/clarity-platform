@@ -366,6 +366,7 @@ export function deriveAccessGuidance(input: AccessGuidanceInput): AccessGuidance
   let packetReadiness: PacketReadinessResult[] | null = null;
   if (input.packetRequirements !== undefined) {
     const requirements = input.packetRequirements;
+    assertConsistentRequirementMetadata(requirements);
     packetReadiness = PRESCREEN_READINESS_TARGETS.map((target) => {
       const result = evaluatePacketReadiness(target, requirements);
       const blockers = dedupeBlockers(result.blockers);
@@ -487,6 +488,31 @@ function toBlockerShape(requirement: PacketRequirement): PacketReadinessBlocker 
     sourceRuleId: requirement.sourceRuleId,
     sourceRuleVersion: requirement.sourceRuleVersion,
   };
+}
+
+/**
+ * Fail closed on contradictory input: entries that share a requirement identity (code, rule
+ * id, rule version) must agree on label and routing. Signal and candidate ids do not carry
+ * routing, so silently keeping one destination would drop the other. The gateways key
+ * requirements by code, so persisted data cannot produce this.
+ */
+function assertConsistentRequirementMetadata(requirements: readonly PacketRequirement[]): void {
+  const seen = new Map<string, string>();
+  for (const requirement of requirements) {
+    const identity = compositeId(...requirementKey(requirement));
+    const metadata = compositeId(
+      requirement.label,
+      requirement.responsibleRoleCode ?? null,
+      requirement.resolutionWorkspace,
+    );
+    const previous = seen.get(identity);
+    if (previous === undefined) seen.set(identity, metadata);
+    else if (previous !== metadata) {
+      throw new Error(
+        `Conflicting label/routing metadata for packet requirement ${identity} in AccessGuidance`,
+      );
+    }
+  }
 }
 
 /** Sorted and with exact duplicates removed, so input order never changes output. */

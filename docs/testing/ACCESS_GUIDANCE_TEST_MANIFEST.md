@@ -1,7 +1,7 @@
 # Access Guidance Projection — Test Manifest (Access Slice 4B)
 
 **Code:** `packages/domain-contracts/src/accessGuidance.ts` — `deriveAccessGuidance()`
-**Tests:** `tests/unit/access-guidance.test.ts` (31 tests, unit, no database — run at `53d123a`)
+**Tests:** `tests/unit/access-guidance.test.ts` (32 tests, unit, no database — final PR #120 run)
 **Baseline:** branched from `origin/main` at `44c3ec2` (2026-09-19), which contains Slice 3
 (PR #115, `899ca98`).
 
@@ -64,6 +64,7 @@ its signal and the reason.
 | Absent vs empty packet requirements | `absent packet requirements claim nothing; empty requirements report every target ready` |
 | Deterministic ordering | `output is identical for any input order …`; `repeated calls are identical and the input is not mutated` |
 | Duplicate suppression | `duplicate requirements collapse to one signal per target and one candidate per requirement` |
+| Conflicting routing metadata fails closed | `fails closed when one requirement identity carries conflicting routing or label …` |
 | Collision-free identifiers | `requirements whose fields contain the old delimiter never collide (regression: PR #120 review)` |
 | Traceability | `every candidate and suppression traces to emitted signals; every actionable signal is accounted for` |
 | No global primary blocker | `there is no global primary blocker field` |
@@ -80,6 +81,10 @@ its signal and the reason.
   not know whether requirements *should* exist for a target: no requirement-generation policy
   exists, and none is invented here. Callers must pass `undefined` when requirements were not
   loaded.
+- **Conflicting label/routing for one requirement identity throws.** Entries sharing code,
+  rule id and version must agree on `label`, `responsibleRoleCode` and
+  `resolutionWorkspace`; otherwise `deriveAccessGuidance` throws rather than pick a
+  destination. A future caller (Slice 4A) must surface that error, not swallow it.
 - **Duplicate requirement codes with conflicting states.** Both states are reported as
   separate signals. The gateways key requirements by code, so this should not arise from
   persisted data. The projection does not resolve the conflict.
