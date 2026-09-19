@@ -24,7 +24,7 @@ the canonical register and are verifiable.
 
 `CLARITY ACCESS IMPLEMENTATION FREEZE: PARTIALLY LIFTED` ·
 `RUNTIME JOURNEYPHASE IMPLEMENTATION: MERGED (Slice 3, PR #115)` ·
-`ACCESS GUIDANCE PROJECTION: AUTHORIZED (Slice 4B)`
+`ACCESS GUIDANCE PROJECTION: IMPLEMENTED ON BRANCH (Slice 4B, pending merge)`
 
 ---
 
@@ -205,9 +205,19 @@ runtime state.
 
 ## 7. Blocking semantics
 
+`PARTIALLY IMPLEMENTED BY SLICE 4B (Access Guidance Projection).` The vocabulary below now
+exists as `BlockingClass` / `BlockingScope` / `NextWorkKind` in
+`packages/domain-contracts/src/accessGuidance.ts`, derived by the pure
+`deriveAccessGuidance()`; mappings and gaps are in
+[`docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md`](../testing/ACCESS_GUIDANCE_TEST_MANIFEST.md).
+Slice 4B deliberately does **not** implement the primary-blocker precedence below — there is
+no global primary blocker — and it does not implement per-transition (target-relative)
+blocking beyond the five existing `PrescreenReadinessTarget`s. The remainder of this section
+is the original proposal text, kept as design input.
+
 `PROPOSED — NOT CURRENT RUNTIME CONTRACT.` Harvested design input from the off-main prototype
-`codex/om/journey-poc` (OD-ACCESS-004). **The `BlockingClass` contract is not created by this
-slice.**
+`codex/om/journey-poc` (OD-ACCESS-004). **The `BlockingClass` contract was not created by the
+slice that wrote this section.**
 
 Proposed vocabulary: `hard-blocker`, `review-gate`, `external-wait`, `warning`, `satisfied`,
 `not-applicable`.

@@ -67,7 +67,7 @@ dependency. `packages/api-service/src/assuranceDevFixture.ts` carries a single *
 | IOP | PARTIAL / BLOCKED | `iop_reconciliation_persistence` and `20260917000100_iop_program_binding` both applied to the rebuilt `clarity_dev` (Phase 3B Gate B); source-adapter and access gates open (PR #100) |
 | Liaison / referral-development training | NOT IMPLEMENTED | Absent from every ref; "liaison" appears once, incidentally, in `docs/09-personas-and-role-ux.md` |
 | Freedom Behavioral roles / workflows | NOT IMPLEMENTED | Absent from every ref; the name appears only as facility names in `data/public-rates/la-inpatient-2026.json` |
-| Clarity Access refactor | PARTIAL — FREEZE PARTIALLY LIFTED | Slice 2A (Option B2, ADR-0023) and Slice 3 (derived JourneyPhase, PR #115 at `899ca98`) are merged; Slice 4B (pure Guidance Projection) is in progress. WorkItem persistence, Access API/UI and Guided Intake convergence remain unauthorized. The rest of Access Domain Reconciliation v0.1.0 is still proposed architecture (owner freeze 2026-09-18, partially lifted 2026-09-19) |
+| Clarity Access refactor | PARTIAL — FREEZE PARTIALLY LIFTED | Slice 2A (Option B2, ADR-0023) and Slice 3 (derived JourneyPhase, PR #115 at `899ca98`) are merged; Slice 4B (pure Guidance Projection, `deriveAccessGuidance()`) is implemented on branch `claude/slice-4b-access-guidance-60b4d2`, pending PR review/merge. WorkItem persistence, Access API/UI and Guided Intake convergence remain unauthorized. The rest of Access Domain Reconciliation v0.1.0 is still proposed architecture (owner freeze 2026-09-18, partially lifted 2026-09-19) |
 
 **Test evidence:** the Phase 1/2B updates ran no tests. Phase 3B Gate B (2026-09-18, at
 `f9c4eb8`) ran lint, typecheck, `prisma validate`, unit (47 files / 504 tests) and four
@@ -839,8 +839,11 @@ proved isolation, and resolved issues #24 and #31. Local `codex/om/sync-main` is
 exact tip is preserved on `origin/recovery/machine-only/2026-09-17/codex/om/sync-main`,
 `origin/codex/om/sync-main` is untouched, and `recovery/machine-only/*` is never deleted.
 
-**Current action (updated 2026-09-19): ACCESS SLICE 4B — Guidance Projection** (pure, derived,
-no persistence), then **Slice 4A — tenant-scoped Access read API** as a separate slice. Access
+**Current action (updated 2026-09-19): review and merge the ACCESS SLICE 4B PR** (pure, derived
+Guidance Projection; implemented on branch, test manifest
+[docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md](docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md)),
+then **Slice 4A — tenant-scoped Access read API** as a separate slice. PR #118 is an earlier,
+unverified 4B attempt with unresolved reviewer findings; closing it is an owner decision. Access
 Slice 2A (Option B2, ADR-0023) and Slice 3 (derived JourneyPhase, PR #115 merged at `899ca98`)
 are implemented and merged. OD-22 and OD-24 remain open. WorkItem persistence, Access UI and
 Guided Intake convergence remain unauthorized.
