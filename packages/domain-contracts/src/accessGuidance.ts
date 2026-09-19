@@ -238,7 +238,7 @@ const fullKey = (r: {
   state: PacketRequirementState;
 }): string => JSON.stringify([...requirementKey(r), r.state]);
 
-const signalSortKey =(s: GuidanceSignal): (number | string)[] => [
+const signalSortKey = (s: GuidanceSignal): (number | string)[] => [
   scopeRank(s.scope),
   targetRank(s.target),
   workstreamRank(s.workstream),
