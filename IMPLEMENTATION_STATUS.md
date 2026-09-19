@@ -836,7 +836,7 @@ proved isolation, and resolved issues #24 and #31. Local `codex/om/sync-main` is
 exact tip is preserved on `origin/recovery/machine-only/2026-09-17/codex/om/sync-main`,
 `origin/codex/om/sync-main` is untouched, and `recovery/machine-only/*` is never deleted.
 
-**The next action is BLOCKING + NEXT WORK (Slice 4B) or API EXPOSURE (Slice 4A).** The Access implementation freeze is partially lifted. Access Slice 2A (Option B2, ADR-0023) and Slice 3 (JourneyPhase) are implemented and merged. OD-22 and OD-24 remain open. WorkItem/UI/Guided Intake convergence remain unauthorized.
+**The next action is BLOCKING + NEXT WORK (Slice 4B).** The Access implementation freeze is partially lifted. Access Slice 2A (Option B2, ADR-0023) and Slice 3 (JourneyPhase) are implemented and merged. OD-22 and OD-24 remain open. WorkItem/UI/Guided Intake convergence remain unauthorized.
 
 #### Phase 3 plan as written after Phase 2B — HISTORICAL (now executed)
 
@@ -846,8 +846,7 @@ orphan ledger entries (removed by rebuild, never ported to `main`; their nine `N
 tables held **1,598** synthetic rows, not the 891 this plan originally stated); apply
 `20260917000100_iop_program_binding` (applied by clean replay).
 
-**CLARITY ACCESS IMPLEMENTATION FREEZE IS PARTIALLY LIFTED (2026-09-19).** No Access patient-journey
-refactor, scenario/rule architecture, Guided Intake / Prescreen convergence, role redesign,
+**CLARITY ACCESS IMPLEMENTATION FREEZE IS PARTIALLY LIFTED (2026-09-19).** Access Slice 4B (Guidance Projection) is authorized. WorkItem, UI, API, and Guided Intake convergence remain unauthorized.
 `JourneyPhase`, `WorkItem`, or UI redesign is authorized. The Access Domain Reconciliation
 v0.1.0 package is proposed future architecture and a freeze declaration — not an
 implementation mandate.
