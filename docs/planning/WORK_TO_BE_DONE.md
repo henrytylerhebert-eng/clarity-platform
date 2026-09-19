@@ -23,6 +23,8 @@ source_of_truth:
 > (`claude/clarity-marketing-strategy-a135e7 @ 5f22f6e`) is historical; `main` was
 > `5c4c0b9` on 2026-09-18. **Clarity Access feature development is frozen** as of
 > 2026-09-18 by owner direction; no Access item in this queue is authorized to start.
+> The subsequent coordination snapshot is maintained in
+> [Builder coordination baseline](BUILDER_COORDINATION_BASELINE_2026-09-19.md).
 
 This document turns existing roadmap and decision records into an actionable
 queue. It is a planning aid, not a new product decision, implementation approval,
@@ -208,7 +210,8 @@ build-ready.
 
 ## First next action
 
-Start with W0 and produce a reconciled baseline. Then have Tyler select one
-owner-prioritized outcome for the next bounded implementation or discovery
-package. The source records support several authorized lanes, but they do not
-establish which should consume the next unit of effort.
+Use the [Builder coordination baseline](BUILDER_COORDINATION_BASELINE_2026-09-19.md)
+to execute W0. Then have Tyler select one owner-prioritized outcome for the next
+bounded implementation or discovery package. The source records support several
+authorized lanes, but they do not establish which should consume the next unit
+of effort.
