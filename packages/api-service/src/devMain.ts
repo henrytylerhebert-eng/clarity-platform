@@ -12,7 +12,8 @@ import {
   PrismaPrescreenGateway,
 } from "@clarity/case-repository";
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
-import { CaseCommandService } from "@clarity/case-service";
+import { CaseCommandService, AccessQueryService } from "@clarity/case-service";
+import { AccessQueryGateway, PrismaCaseAuditWriter } from "@clarity/case-repository";
 import { PRESCREEN_PRODUCTION_POLICY, PrescreenCommandService } from "@clarity/prescreen-service";
 import {
   AssuranceCommandService,
@@ -192,7 +193,9 @@ async function main(): Promise<void> {
     });
     return row?.assuranceCase.caseKey;
   };
+    const accessQueries = new AccessQueryService(new AccessQueryGateway(prisma, new PrismaCaseAuditWriter()));
   const server = createApiServer({
+    accessQueries,
     revOps: new PrismaRevOpsGateway(prisma),
     operatingWorkbook: new PrismaOperatingWorkbookGateway(prisma),
     iopReconciliation: new PrismaIopReconciliationGateway(prisma),

@@ -4,17 +4,19 @@ import { withTenantContext } from "./tenantContext.js";
 import { rowToDomain as caseRowToDomain, type PersistedCase } from "./mappers.js";
 import { rowToCaseEpisodeLink } from "./episodeMappers.js";
 import { encounterRowToDomain, requirementRowToDomain } from "./prescreenGateway.js";
-import type { AuthenticatedPrincipal, PrescreenEncounter, PacketRequirement, CaseEpisodeRelationship } from "@clarity/domain-contracts";
+import type { PrescreenEncounter, PacketRequirement, CaseEpisodeLink } from "@clarity/domain-contracts";
 import type { CaseAuditWriter } from "./auditWriter.js";
-import { isTerminalPrescreenEncounterStatus } from "@clarity/domain-contracts";
 
 export interface AccessQuerySnapshot {
   caseRecord: PersistedCase;
-  prescreenSelection: "NONE" | "SELECTED" | "AMBIGUOUS";
-  prescreen?: PrescreenEncounter;
-  packetRequirementEvidence: "NOT_AVAILABLE" | "LOADED_EMPTY" | "LOADED";
-  packetRequirements?: PacketRequirement[];
-  episodeRelationships: CaseEpisodeRelationship[];
+  encounters: PrescreenEncounter[];
+  packetRequirements: (PacketRequirement & { encounterId: string })[];
+  episodeLinks: CaseEpisodeLink[];
+}
+
+export interface AuditActor {
+  actorType: "USER" | "SYSTEM";
+  actorId: string;
 }
 
 export class AccessQueryGateway {
@@ -26,7 +28,7 @@ export class AccessQueryGateway {
   async getAccessSnapshot(
     organizationId: string,
     caseKey: string,
-    principal: AuthenticatedPrincipal,
+    actor: AuditActor,
   ): Promise<AccessQuerySnapshot> {
     return withTenantContext(
       this.prisma,
@@ -43,35 +45,21 @@ export class AccessQueryGateway {
         const encounterRows = await tx.prescreenEncounter.findMany({
           where: { organizationId, caseId: caseRow.id },
         });
-
         const encounters = encounterRows.map(encounterRowToDomain);
-        const activeEncounters = encounters.filter((e) => !isTerminalPrescreenEncounterStatus(e.status));
 
-        let prescreenSelection: "NONE" | "SELECTED" | "AMBIGUOUS" = "NONE";
-        let selectedEncounter: PrescreenEncounter | undefined = undefined;
-        let packetRequirementEvidence: "NOT_AVAILABLE" | "LOADED_EMPTY" | "LOADED" = "NOT_AVAILABLE";
-        let packetRequirements: PacketRequirement[] | undefined = undefined;
-
-        if (activeEncounters.length === 1) {
-          prescreenSelection = "SELECTED";
-          selectedEncounter = activeEncounters[0];
-
+        const encounterIds = encounters.map((e) => e.encounterId);
+        let packetRequirements: (PacketRequirement & { encounterId: string })[] = [];
+        if (encounterIds.length > 0) {
           const reqRows = await tx.prescreenPacketRequirement.findMany({
-            where: { organizationId, encounterId: selectedEncounter!.encounterId },
+            where: { organizationId, encounterId: { in: encounterIds } },
           });
-
-          packetRequirements = reqRows.map(requirementRowToDomain);
-          packetRequirementEvidence = packetRequirements.length > 0 ? "LOADED" : "LOADED_EMPTY";
-        } else if (activeEncounters.length > 1) {
-          prescreenSelection = "AMBIGUOUS";
+          packetRequirements = reqRows.map(r => ({ ...requirementRowToDomain(r), encounterId: r.encounterId }));
         }
 
         const episodeRows = await tx.caseEpisodeLink.findMany({
           where: { organizationId, caseId: caseRow.id },
         });
-
         const episodeLinks = episodeRows.map(rowToCaseEpisodeLink);
-        const episodeRelationships = episodeLinks.map(link => link.relationship);
 
         await this.auditWriter.write(tx, {
           action: "ACCESS_CASE_VIEWED",
@@ -79,17 +67,15 @@ export class AccessQueryGateway {
           objectId: caseKey,
           caseId: caseRow.id,
           organizationId: organizationId,
-          actor: { actorType: "USER", actorId: principal.userId },
+          actor: actor,
           occurredAt: new Date(),
         });
 
         return {
           caseRecord: caseRowToDomain(caseRow),
-          prescreenSelection,
-          prescreen: selectedEncounter,
-          packetRequirementEvidence,
+          encounters,
           packetRequirements,
-          episodeRelationships,
+          episodeLinks,
         };
       },
       "RepeatableRead"

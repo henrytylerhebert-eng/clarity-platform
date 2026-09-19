@@ -16,7 +16,7 @@ export type PacketRequirementEvidenceState = typeof PACKET_REQUIREMENT_EVIDENCE_
 
 export interface AccessCaseReadModel {
   readonly caseKey: string;
-  readonly caseVersion?: number;
+  readonly caseVersion: number;
 
   readonly journey: JourneyProjection;
 

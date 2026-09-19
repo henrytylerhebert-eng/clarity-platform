@@ -1,8 +1,8 @@
-import type { AuthenticatedPrincipal } from "@clarity/domain-contracts";
-import type { AccessQueryGateway } from "@clarity/case-repository";
+import type { AuthenticatedPrincipal, PrescreenEncounterStatus, PacketRequirement } from "@clarity/domain-contracts";
+import type { AccessQueryGateway, AuditActor } from "@clarity/case-repository";
 import { assertAccessCaseReadPermitted } from "./permissions.js";
-import { deriveAccessGuidance } from "@clarity/domain-contracts";
-import type { AccessCaseReadModel } from "@clarity/domain-contracts";
+import { deriveAccessGuidance, isTerminalPrescreenEncounterStatus } from "@clarity/domain-contracts";
+import type { AccessCaseReadModel, PacketRequirementEvidenceState } from "@clarity/domain-contracts";
 
 export class AccessQueryService {
   constructor(private readonly gateway: AccessQueryGateway) {}
@@ -13,38 +13,58 @@ export class AccessQueryService {
   ): Promise<AccessCaseReadModel> {
     assertAccessCaseReadPermitted(principal.roles);
 
+    const actor: AuditActor = { actorType: "USER", actorId: principal.userId };
+
     const snapshot = await this.gateway.getAccessSnapshot(
       principal.organizationId,
       caseKey,
-      principal
+      actor
     );
 
-    const { caseRecord, prescreenSelection, prescreen, packetRequirementEvidence, packetRequirements, episodeRelationships } = snapshot;
+    const { caseRecord, encounters, packetRequirements, episodeLinks } = snapshot;
 
-    let guidanceInputPrescreenStatus = undefined;
-    let guidanceInputPacketRequirements = undefined;
+    const activeEncounters = encounters.filter(e => !isTerminalPrescreenEncounterStatus(e.status));
 
-    if (prescreenSelection === "SELECTED" && prescreen) {
-      guidanceInputPrescreenStatus = prescreen.status;
-      if (packetRequirements) {
-        guidanceInputPacketRequirements = packetRequirements;
-      }
+    let prescreenSelection: "NONE" | "SELECTED" | "AMBIGUOUS" = "NONE";
+    let selectedPrescreenStatus: PrescreenEncounterStatus | undefined = undefined;
+    let selectedPrescreenVersion: number | undefined = undefined;
+    let packetRequirementEvidence: PacketRequirementEvidenceState = "NOT_AVAILABLE";
+    let guidanceInputPacketRequirements: PacketRequirement[] | undefined = undefined;
+
+    if (activeEncounters.length === 1) {
+      prescreenSelection = "SELECTED";
+      const selectedEncounter = activeEncounters[0]!;
+      if (!selectedEncounter) throw new Error("Unexpected empty array");
+      selectedPrescreenStatus = selectedEncounter.status;
+      selectedPrescreenVersion = selectedEncounter.version;
+
+      const filteredReqs = packetRequirements.filter(r => (r as any).encounterId === selectedEncounter.encounterId);
+      guidanceInputPacketRequirements = filteredReqs;
+
+      packetRequirementEvidence = filteredReqs.length > 0 ? "LOADED" : "LOADED_EMPTY";
+    } else if (activeEncounters.length > 1) {
+      prescreenSelection = "AMBIGUOUS";
     }
+
+    const episodeRelationships = episodeLinks.map(link => link.relationship);
 
     const guidanceProjection = deriveAccessGuidance({
       caseStatus: caseRecord.status,
       urgency: caseRecord.urgency,
       workstreams: caseRecord.workstreams,
       episodeRelationships: episodeRelationships,
-      prescreenStatus: guidanceInputPrescreenStatus,
+      prescreenStatus: selectedPrescreenStatus,
       packetRequirements: guidanceInputPacketRequirements,
     });
 
     const { journey, ...guidance } = guidanceProjection;
 
+    // caseVersion is strictly required in the DTO per user instruction #20
+    const version = caseRecord.version ?? 0;
+
     return {
       caseKey: caseRecord.caseKey,
-      caseVersion: caseRecord.version,
+      caseVersion: version,
       journey,
       guidance,
       sourceState: {
@@ -53,9 +73,9 @@ export class AccessQueryService {
         workstreams: caseRecord.workstreams,
         prescreenSelection,
         packetRequirementEvidence,
-        prescreen: prescreen ? {
-          status: prescreen.status,
-          version: prescreen.version
+        prescreen: selectedPrescreenStatus !== undefined ? {
+          status: selectedPrescreenStatus,
+          version: selectedPrescreenVersion!
         } : undefined,
         episodeRelationships,
       }
