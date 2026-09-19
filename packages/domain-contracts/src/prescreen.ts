@@ -207,6 +207,10 @@ const PRESCREEN_ENCOUNTER_TRANSITIONS: Record<
   CANCELLED: [],
 };
 
+export function isTerminalPrescreenEncounterStatus(status: PrescreenEncounterStatus): boolean {
+  return PRESCREEN_ENCOUNTER_TRANSITIONS[status].length === 0;
+}
+
 export function canTransitionPrescreenEncounter(
   from: PrescreenEncounterStatus,
   to: PrescreenEncounterStatus,

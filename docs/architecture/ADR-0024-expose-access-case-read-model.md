@@ -11,7 +11,19 @@ The Access projection (Slice 4B) requires a read policy before HTTP exposure. `E
 We authorize the creation of an authenticated, tenant-scoped, audited Access case-detail read endpoint (`GET /api/access/cases/:caseKey`) incorporating the following architectural bounds:
 
 ### 1. Read Authority (Option R3)
-*   **Allowed:** Same-organization operational roles plus `COMPLIANCE_REVIEWER` and `READ_ONLY_AUDITOR`.
+*   **Allowed:** The exact accepted allow-list:
+*   `ORGANIZATION_ADMIN`
+*   `INTAKE_COORDINATOR`
+*   `CLINICAL_REVIEWER`
+*   `PHYSICIAN_REVIEWER`
+*   `UTILIZATION_REVIEWER`
+*   `LEGAL_REVIEWER`
+*   `BENEFITS_VERIFICATION_SPECIALIST`
+*   `AUTHORIZATION_SPECIALIST`
+*   `FACILITY_REVIEWER`
+*   `TRANSPORT_COORDINATOR`
+*   `COMPLIANCE_REVIEWER`
+*   `READ_ONLY_AUDITOR`
 *   **Denied:** `SYSTEM_ADMIN` is explicitly excluded to maintain the boundary between technical platform administration and clinical case operations.
 *   **Scope:** This is **same-organization authority only**. It does not authorize cross-organization Facility Review, receiving-facility access into another tenant, external users, or any new mutation authority.
 
@@ -43,5 +55,5 @@ When `prescreenSelection = AMBIGUOUS`:
 ### 6. Implementation Bounds
 *   **Transaction Isolation:** The repository snapshot must be assembled under `REPEATABLE READ` to prevent torn reads.
 *   **Minimum-Necessary DTO:** Patient identity/chart content must be excluded.
-*   **No API mutations:** The API remains strictly read-only.
+*   **No API mutations:** The endpoint performs no case/workflow/domain mutation. A successful detail read intentionally appends the required access-audit event.
 *   **Current status:** Journey/Guidance remain derived and non-persisted. WorkItem and UI remain unauthorized. OD-22 and OD-24 remain untouched.

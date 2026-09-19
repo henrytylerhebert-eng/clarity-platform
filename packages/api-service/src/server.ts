@@ -26,6 +26,8 @@ import { ZodError } from "zod";
 import { AuthenticationFailedError, LoginRejectedError, type AuthenticationService } from "@clarity/auth-service";
 import { CaseNotFoundError, PermissionDeniedError, type CaseCommandService } from "@clarity/case-service";
 import { PrescreenCommandError, type PrescreenCommandService } from "@clarity/prescreen-service";
+import { registerAccessRoutes } from "./accessRoutes.js";
+import type { AccessQueryService } from "@clarity/case-service";
 
 /**
  * Thin Fastify adapter over the command/query services. Every route file
@@ -47,6 +49,7 @@ const MAX_BODY_BYTES = 64 * 1024;
 
 export interface ApiDeps {
   auth: AuthenticationService;
+  accessQueries?: AccessQueryService;
   caseCommands: CaseCommandService;
   prescreen: PrescreenCommandService;
   revOps?: PrismaRevOpsGateway;
@@ -139,6 +142,9 @@ export function createApiServer(deps: ApiDeps): Server {
     void reply.code(http.status).send({ error: http.code });
   });
   registerAuthRoutes(app, deps.auth, deps.caseCommands);
+  if (deps.accessQueries) {
+    registerAccessRoutes(app, deps.auth, deps.accessQueries);
+  }
   registerPrescreenRoutes(app, deps.auth, deps.prescreen);
   if (deps.revOps) registerRevOpsRoutes(app, deps.auth, deps.revOps);
   if (deps.operatingWorkbook) registerOperatingWorkbookRoutes(app, deps.auth, deps.operatingWorkbook);
