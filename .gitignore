@@ -19,6 +19,9 @@ playwright-report/
 .env.*
 !.env.example
 
+# Local Codex runtime environment registrations; recreate locally, never commit.
+/.codex/environments/
+
 # Prisma generated client
 generated/
 
