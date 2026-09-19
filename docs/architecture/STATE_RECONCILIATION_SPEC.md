@@ -22,8 +22,8 @@ the scope of this slice.
 The pre-existing identifiers cited here — **OD-6**, **OD-22**, **OD-24** — *are* in
 the canonical register and are verifiable.
 
-`CLARITY ACCESS IMPLEMENTATION FREEZE: ACTIVE` ·
-`RUNTIME JOURNEYPHASE IMPLEMENTATION: NOT AUTHORIZED`
+`CLARITY ACCESS IMPLEMENTATION FREEZE: PARTIALLY LIFTED` ·
+`RUNTIME JOURNEYPHASE IMPLEMENTATION: AUTHORIZED (Slice 3)`
 
 ---
 
@@ -183,11 +183,11 @@ should decline to advance and emit an explanatory reason.
 `EMERGENT` case (§3); a prescreen `MEDICAL_STABILIZATION_REQUIRED` pathway must never be
 masked by a willingness/orientation-derived position (§4.1).
 
-This model remains **PROPOSED until the Access-progression ADR is accepted.**
+This model was **RATIFIED by the accepted Access-progression ADR-0023.**
 
 ## 6. Future journey projection
 
-`PROPOSED — NOT CURRENT RUNTIME CONTRACT.` **No TypeScript types are created by this slice.**
+`IMPLEMENTED BY SLICE 3.` **TypeScript types and the deterministic derivation function are created by this slice.**
 
 Target shape: `JourneyPhase` + `Disposition` + `Reason[]`, derived from governed artifacts and
 authoritative domain state, with **no `journeyPhase` column, no migration, and no mutable
