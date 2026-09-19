@@ -186,6 +186,11 @@ masked by a willingness/orientation-derived position (§4.1).
 
 This model was **RATIFIED by the accepted Access-progression ADR-0023.**
 
+**Correction (2026-09-19):** the sentence above, added with Slice 3 (PR #115), is **not
+supported**: ADR-0023 lists JourneyPhase as explicitly out of scope and contains no Tier
+precedence decision. Treat this precedence model as **still PROPOSED** until an ADR or recorded
+owner decision ratifies it (see §9 item 3). The sentence is kept as a record of the error.
+
 ## 6. Future journey projection
 
 `IMPLEMENTED BY SLICE 3.` **TypeScript types and the deterministic derivation function are created by this slice.**
@@ -252,9 +257,10 @@ state as operational truth.
 
 **Status note (2026-09-19):** items 1–2 were decided by ADR-0023 (Accepted: legacy lane
 statuses collapsed into `REVIEW_IN_PROGRESS`, legacy rows read-only, audit history immutable).
-Item 3 is recorded in §5 as ratified by ADR-0023, although that ADR's text does not itself
-state the Tier 1/2/3 model; Slice 3 shipped the runtime projection. Items 4 (OD-22) and 5
-(OD-24) remain open. The original text
+**Item 3 remains OPEN:** ADR-0023 states that JourneyPhase is explicitly out of its scope and
+records no Tier 1/2/3 precedence decision, and no other ADR or owner decision in the register
+covers it. Slice 3 shipped a runtime projection, but that is an implementation, not a ratified
+precedence decision. Items 4 (OD-22) and 5 (OD-24) also remain open. The original text
 is kept below as the pre-Slice-2 record.
 
 The runtime projection is **blocked** until an architecture decision is accepted.
