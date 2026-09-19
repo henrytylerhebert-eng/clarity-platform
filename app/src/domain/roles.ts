@@ -16,7 +16,8 @@ export type WorkspaceId =
   | "training"
   | "mock-admits"
   | "studio"
-  | "iop-reconciliation";
+  | "iop-reconciliation"
+  | "access";
 
 export const allWorkspaceIds: WorkspaceId[] = [
   "queue",
@@ -37,6 +38,7 @@ export const allWorkspaceIds: WorkspaceId[] = [
   "mock-admits",
   "studio",
   "iop-reconciliation",
+  "access",
 ];
 
 export type RoleId =
@@ -84,7 +86,7 @@ export const roles: RoleDefinition[] = [
     label: "Central intake coordinator",
     description: "Owns the pipeline: SLA clocks, packet completeness, routing, escalations.",
     mission: "Keep every case moving; escalate before clocks breach.",
-    workspaces: ["command", "queue", "new", "overview", "intake", "evidence", "medical", "legal", "benefits", "authorization", "packet", "routing", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "queue", "access", "new", "overview", "intake", "evidence", "medical", "legal", "benefits", "authorization", "packet", "routing", "ledger", "training", "mock-admits"],
     defaultWorkspace: "command",
   },
   {

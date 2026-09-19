@@ -39,6 +39,7 @@ import { TrainingSops } from "./workspaces/TrainingSops";
 import { MockAdmitLab } from "./workspaces/MockAdmitLab";
 import { ProductStudio } from "./workspaces/ProductStudio";
 import { IopReconciliation } from "./workspaces/IopReconciliation";
+import { AccessSnapshot } from "./features/access-snapshot/AccessSnapshot";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
 import { appendCustodyLedgerEvent } from "./domain/custodyLedger";
@@ -66,6 +67,7 @@ import type {
 
 const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof LayoutDashboard }> = [
   { id: "queue", label: "Case Queue", icon: LayoutDashboard },
+  { id: "access", label: "Access Snapshot", icon: FileSearch },
   { id: "command", label: "Command Center", icon: Gauge },
   { id: "new", label: "New Case", icon: PlusCircle },
   { id: "overview", label: "Case Overview", icon: ClipboardList },
@@ -706,6 +708,7 @@ export function App() {
           {workspace === "mock-admits" ? <MockAdmitLab /> : null}
           {workspace === "studio" ? <ProductStudio /> : null}
           {workspace === "iop-reconciliation" ? <IopReconciliation /> : null}
+          {workspace === "access" ? <AccessSnapshot /> : null}
         </section>
       </main>
     </div>

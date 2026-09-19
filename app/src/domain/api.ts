@@ -1,3 +1,4 @@
+import type { AccessCaseReadModel } from "@clarity/domain-contracts";
 /**
  * Client for the local API vertical slice (packages/api-service), reached
  * through the Vite dev proxy at /api (see vite.config.ts). This is the one
@@ -312,6 +313,13 @@ export async function apiAssuranceReview(input: {
   });
   return (await response.json()) as AssuranceReviewDecisionDto;
 }
+
+export async function apiAccessGetCase(caseKey: string): Promise<AccessCaseReadModel> {
+  const response = await request(`/api/access/cases/${encodeURIComponent(caseKey)}`, { token: true });
+  return (await response.json()) as AccessCaseReadModel;
+}
+
+/** Human-readable explanations for the API's uniform error codes. */
 
 /** Human-readable explanations for the API's uniform error codes. */
 export function describeApiError(error: unknown): string {
