@@ -55,8 +55,9 @@ Filename convention: `docs/architecture/ADR-NNNN-kebab-case-title.md`.
 | 0021 | **Proposed** | 2026-09-13 | Persisted Louisiana Medicaid rate-release registry (R1) | `main` |
 | 0022 | Accepted | 2026-09-13 | Provider swap — Supabase Postgres replaces Cloud SQL for OD-6 | `main` |
 | 0023 | Accepted | 2026-09-19 | Adopt Explicit State Machine and Neutral Review Span (Option B2) | `main` |
+| 0024 | Accepted | 2026-09-19 | Expose Access Case Read Model with Explicit Read Authorization and Detail-Read Auditing | `main` |
 
-**Next safe number: `ADR-0024`.** Not yet created.
+**Next safe number: `ADR-0025`.** Not yet created.
 
 ## Notes on the two reconciled numbers
 
