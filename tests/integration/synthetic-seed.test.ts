@@ -1,10 +1,13 @@
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaCaseRepository, type PersistedCase } from "@clarity/case-repository";
 import {
   loadSyntheticCases,
   RESTRICTED_AUDIT_FIELDS,
-  type CaseStatus,
+  
   type SyntheticCase,
   type UrgencyLevel,
   type WorkstreamStatuses,
@@ -27,7 +30,7 @@ function fixtureToCase(fixture: SyntheticCase, harness: Harness): PersistedCase 
     caseKey: `${fixture.caseKey}-${harness.runId}`,
     organizationId: harness.tenantA.organizationId,
     patientTokenId: harness.tenantA.patientTokenId,
-    status: fixture.case.status as CaseStatus,
+    status: fixture.case.status,
     urgency: fixture.case.urgency as UrgencyLevel,
     workstreams: {
       clinical: fixture.case.clinicalStatus,
@@ -72,5 +75,41 @@ describe("synthetic seed loading into clarity_dev", () => {
       expect(serialized).not.toContain(`"${restricted.toLowerCase()}"`);
     }
     expect(serialized).not.toMatch(/\b\d{3}-\d{2}-\d{4}\b/); // SSN shape
+  });
+});
+
+describe("loader restrictions", () => {
+  it("rejects legacy case statuses in synthetic fixtures", () => {
+     
+     
+     
+    
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'clarity-fixtures-'));
+    try {
+      const invalidFixture = {
+        caseKey: "legacy-fixture-test",
+        title: "Legacy Fixture",
+        description: "Test legacy rejection",
+        case: {
+          status: "CLINICAL_REVIEW",
+          urgency: "ROUTINE",
+          clinicalStatus: "PENDING",
+          legalReviewStatus: "PENDING",
+          medicalScreeningStatus: "PENDING",
+          benefitsStatus: "PENDING",
+          authorizationStatus: "PENDING",
+          placementStatus: "PENDING",
+          transportationStatus: "PENDING",
+          patientEducationStatus: "PENDING"
+        },
+        auditTrail: []
+      };
+      
+      fs.writeFileSync(path.join(tmpDir, '001-legacy.json'), JSON.stringify(invalidFixture));
+      
+      expect(() => loadSyntheticCases(tmpDir)).toThrow(/failed validation/);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 });

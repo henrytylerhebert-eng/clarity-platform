@@ -25,7 +25,7 @@ We will adopt the **Option B2** explicit semantic transition model and collapse 
     *   `CASE_STATUSES` (26 values) encompasses the full TypeScript domain union.
 *   **Exact Graph Counts:** G0 (187 edges), G1 pure normalized (154 edges), Target-normalized historical transform (173 edges), and complete G2 compatibility runtime graph (181 edges).
 *   **Operational Write Prohibition:** Legacy statuses become read-only historical states; the domain service and public repository methods will structurally reject commands attempting to write, transition, or reopen into them.
-*   **Reopen Targets:** Reopen targets are strictly explicitly mapped to `WRITABLE_CASE_STATUSES` (minus `CLOSED`).
+*   **Reopen Targets:** Reopen targets are strictly explicitly mapped to `WRITABLE_REOPEN_TARGETS`.
 *   **Information Incomplete:** Disposition is mapped mathematically equivalent to current behaviors; it exits to active pipeline states, maintaining the broad-jump.
 *   **Medical-Diversion:** Entry and exit compatibility maps exactly to current normalized equivalents without expanding authority.
 *   **Synthetic Fixture Invariant:** `syntheticCase.ts` enforces `z.enum(WRITABLE_CASE_STATUSES)`. Historical testing utilizes test-only paths outside `data/synthetic-cases/`.

@@ -1,5 +1,9 @@
 # Housekeeping document drift — 2026-09-19
 
+**STATUS: RESOLVED.** The 23 constraint and index names drift was incidentally resolved by the application of the `add_review_in_progress` migration during Access Slice 2A.
+
+# Housekeeping document drift — 2026-09-19
+
 **Scope:** non-product documentation accuracy only. **Not Access architecture.**
 Nothing here blocks Access work, and Access work does not block any of it.
 
