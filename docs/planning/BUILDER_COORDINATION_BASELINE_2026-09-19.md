@@ -2,7 +2,7 @@
 status: active coordination baseline
 owner: Tyler Hebert / product owner
 last_verified: 2026-09-19
-verification_commit: dc559e55ecc86986e8a34a614ac9bb346dc2c2bc
+verification_commit: 8da2f1533e7e36c3fec980ab39b46cf57d4bf613
 scope: repository coordination and handoff discipline only
 ---
 
@@ -26,16 +26,16 @@ Verified by `git fetch origin`, `git worktree list --porcelain`, per-worktree
 
 | Item | Observed state | Required handling |
 |---|---|---|
-| Canonical remote baseline | `origin/main` and the current Access closure both resolve to `dc559e5` | New work starts from a fresh branch at this SHA or a later fetched `origin/main` SHA. |
-| Shared checkout | `claude/slice-2a-closure`, with changes in ADR-0023, `synthetic-seed.test.ts`, untracked `legacy-persistence-compatibility.test.ts`, and `.codex/` files | **Held.** Do not switch, stash, reset, clean, rebase, commit, or incorporate these files without their owner's explicit handoff. |
-| Linked worktrees | 17 registered; the shared checkout is the only observed dirty worktree | Existing clean worktrees are preservation artifacts, not implicit implementation lanes. |
+| Canonical remote baseline | `origin/main` resolves to `8da2f15` after Access closure PR #114 | New work starts from a fresh branch at this SHA or a later fetched `origin/main` SHA. |
+| Shared checkout | `claude/slice-2a-closure` at `6481bbd`; its code/test closure is represented on `main` by PR #114. Only `.codex/` environment files remain untracked. | **Held for configuration disposition.** Do not add, remove, ignore, or commit the environment files without their owner's explicit handoff. |
+| Linked worktrees | 16 registered; the shared checkout is the only observed dirty worktree | Existing clean worktrees are preservation artifacts, not implicit implementation lanes. |
 | Antigravity worktree | `initialize_worktree` at `7afe508`, clean, under the Antigravity/Gemini worktree root | **Parked.** It has no recorded package ownership or authority in this repository. Do not reuse, mutate, or treat its presence as active Antigravity participation without a bounded handoff card. |
 | Munnder branch | `claude/munnder-diffline-familiarize-17e3d9` at `7afe508`, clean and behind the current baseline | **Parked.** It is not evidence of an active shared task, integration, or authority. It needs a bounded work package before reuse. |
 | Historical Codex IOP worktrees | `codex/om/iop-production-readiness` and `codex/om/synthetic-iop-p2-records` remain on older commits | **Reference only.** Do not merge or replay them wholesale; recover a verified, narrowly scoped patch only when an approved package calls for it. |
 | Open pull requests | None returned by `gh pr list --state open` at the snapshot | Recheck before any new package; this is a time-bound observation, not a standing claim. |
 
-The shared checkout's uncommitted status is an ownership fact, not a quality finding.
-No cleanup or branch deletion is authorized by this baseline.
+The shared checkout's untracked environment files are an ownership fact, not a
+quality finding. No cleanup or branch deletion is authorized by this baseline.
 
 ## One-lane working agreement
 
@@ -123,13 +123,18 @@ regressions.
 
 ## Immediate disposition
 
-- **Active work:** the held shared checkout awaits its owner handoff.
+- **Active work:** the shared checkout's code changes are closed on `main` by
+  PR #114; its local environment directory awaits owner disposition.
 - **Next clean package:** return to accepted synthetic workbook-to-platform
   reconciliation and the source-adapter decision packet; do not begin real
   imports or connectors.
 - **Maintenance prerequisite:** before any worktree is removed, archive, prune,
   or branch is deleted, produce a separate owner-reviewed disposition list with
   exact branch, SHA, upstream, PR/merge relationship, and dirty-state proof.
+
+The current inventory and recommended non-destructive disposition for every
+registered worktree is recorded in the
+[Worktree disposition ledger](WORKTREE_DISPOSITION_LEDGER_2026-09-19.md).
 
 ## Acceptance for this coordination baseline
 
