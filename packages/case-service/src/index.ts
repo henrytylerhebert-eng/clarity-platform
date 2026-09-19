@@ -2,3 +2,4 @@ export * from "./commands.js";
 export * from "./permissions.js";
 export * from "./errors.js";
 export * from "./caseCommandService.js";
+export * from "./accessQueryService.js";

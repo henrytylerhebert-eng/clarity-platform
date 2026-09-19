@@ -31,10 +31,13 @@ export async function withTenantContext<T>(
   prisma: PrismaClient,
   organizationId: string,
   work: (tx: Prisma.TransactionClient) => Promise<T>,
+  isolationLevel?: Prisma.TransactionIsolationLevel,
 ): Promise<T> {
   assertOrganizationId(organizationId);
+  const options: { timeout: number; isolationLevel?: Prisma.TransactionIsolationLevel } = { timeout: TENANT_TRANSACTION_TIMEOUT_MS };
+  if (isolationLevel) options.isolationLevel = isolationLevel;
   return prisma.$transaction(async (tx) => {
     await setTenantContext(tx, organizationId);
     return work(tx);
-  }, { timeout: TENANT_TRANSACTION_TIMEOUT_MS });
+  }, options);
 }

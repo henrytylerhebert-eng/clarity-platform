@@ -27,3 +27,4 @@ export * from "./learningPractice.js";
 export * from "./assurance.js";
 export * from "./journeyPhase.js";
 export * from "./accessGuidance.js";
+export * from "./accessReadModel.js";

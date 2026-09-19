@@ -62,3 +62,24 @@ export function assertWorkstreamPermitted(workstream: Workstream, roles: readonl
     throw new PermissionDeniedError(`UpdateWorkstreamStatus(${workstream})`, roles);
   }
 }
+
+export const ACCESS_CASE_READ_POLICY: readonly UserRole[] = [
+  "ORGANIZATION_ADMIN",
+  "INTAKE_COORDINATOR",
+  "CLINICAL_REVIEWER",
+  "PHYSICIAN_REVIEWER",
+  "UTILIZATION_REVIEWER",
+  "LEGAL_REVIEWER",
+  "BENEFITS_VERIFICATION_SPECIALIST",
+  "AUTHORIZATION_SPECIALIST",
+  "FACILITY_REVIEWER",
+  "TRANSPORT_COORDINATOR",
+  "COMPLIANCE_REVIEWER",
+  "READ_ONLY_AUDITOR",
+];
+
+export function assertAccessCaseReadPermitted(roles: readonly UserRole[]): void {
+  if (!roles.some((r) => ACCESS_CASE_READ_POLICY.includes(r))) {
+    throw new PermissionDeniedError("ReadAccessCase", roles);
+  }
+}

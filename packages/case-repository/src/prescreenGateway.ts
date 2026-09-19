@@ -123,7 +123,7 @@ function iso(value: Date): string {
   return value.toISOString();
 }
 
-function encounterRowToDomain(row: PrescreenEncounterRow): PrescreenEncounter {
+export function encounterRowToDomain(row: PrescreenEncounterRow): PrescreenEncounter {
   return {
     encounterId: row.id,
     caseId: row.caseId,
@@ -166,7 +166,7 @@ function assessmentRowToDomain(row: PrescreenAssessmentVersionRow): PrescreenAss
   };
 }
 
-function requirementRowToDomain(row: PrescreenPacketRequirementRow): PacketRequirement {
+export function requirementRowToDomain(row: PrescreenPacketRequirementRow): PacketRequirement {
   return {
     requirementCode: row.requirementCode,
     label: row.label,
