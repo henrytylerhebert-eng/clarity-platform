@@ -48,7 +48,7 @@ describe("case state transitions", () => {
   it("allows cancellation from any active state and information-incomplete detours", () => {
     expect(canTransitionCase("EVIDENCE_REVIEW", "CANCELLED")).toBe(true);
     expect(canTransitionCase("CLINICAL_REVIEW", "INFORMATION_INCOMPLETE")).toBe(true);
-    expect(canTransitionCase("INFORMATION_INCOMPLETE", "CLINICAL_REVIEW")).toBe(true);
+    expect(canTransitionCase("INFORMATION_INCOMPLETE", "REVIEW_IN_PROGRESS")).toBe(true);
   });
 });
 
@@ -84,7 +84,7 @@ describe("medical-stabilization diversion", () => {
   });
 
   it("returns to the pipeline once the medical need is resolved", () => {
-    expect(canTransitionCase("MEDICAL_TRANSFER_REQUIRED", "CLINICAL_REVIEW")).toBe(true);
+    expect(canTransitionCase("MEDICAL_TRANSFER_REQUIRED", "REVIEW_IN_PROGRESS")).toBe(true);
     expect(canTransitionCase("MEDICAL_TRANSFER_REQUIRED", "READY_FOR_ROUTING")).toBe(true);
     // Re-entry is not restricted to the state the case diverted from: the
     // medical episode may change what the case still needs.
@@ -100,7 +100,7 @@ describe("medical-stabilization diversion", () => {
   it("is a diversion, not a terminal state, and not a routing exception", () => {
     // Being non-terminal is what keeps it exitable; if it were ever added to
     // TERMINAL, every assertion above about leaving it would break.
-    expect(canTransitionCase("MEDICAL_TRANSFER_REQUIRED", "CLINICAL_REVIEW")).toBe(true);
+    expect(canTransitionCase("MEDICAL_TRANSFER_REQUIRED", "REVIEW_IN_PROGRESS")).toBe(true);
     // It is off the linear pipeline, so the one-step-forward arithmetic must
     // not treat it as a neighbour of any pipeline state.
     expect(canTransitionCase("MEDICAL_TRANSFER_REQUIRED", "MEDICAL_TRANSFER_REQUIRED")).toBe(false);

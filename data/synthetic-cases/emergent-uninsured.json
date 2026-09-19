@@ -12,7 +12,7 @@
     ]
   },
   "case": {
-    "status": "CLINICAL_REVIEW",
+    "status": "REVIEW_IN_PROGRESS",
     "urgency": "EMERGENT",
     "currentLocation": "Synthetic Parish ED",
     "requestedLevelOfCare": "INPATIENT_PSYCHIATRIC",

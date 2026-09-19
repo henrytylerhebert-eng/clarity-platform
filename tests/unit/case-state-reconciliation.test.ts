@@ -1,22 +1,12 @@
+
 /**
- * Characterization tests for the CaseStatus / WorkstreamStatuses duplication.
- *
- * These tests assert what current `main` ALREADY DOES. They are not a proposal and
- * they do not encode a target design. If one of them fails, the runtime contract
- * changed and `docs/architecture/STATE_RECONCILIATION_SPEC.md` is now stale.
- *
- * Deliberate constraints (owner ruling, Access Slice 1):
- *  - public contracts only; no private implementation constant is exported to make
- *    a test possible. In particular the state machine's internal ordered pipeline
- *    is characterized through `canTransitionCase` behavior, never imported.
- *  - no source file is modified to make these pass.
- *  - invariants already proven elsewhere are CITED in the spec, not duplicated here:
- *    the emergency/fairness rule (tests/workflow/case-lifecycle.test.ts),
- *    ACCESS-R-006 prescreen precedence (tests/unit/prescreen-contracts.test.ts,
- *    tests/unit/prescreen-service.test.ts), and the RETURNED_FOR_MORE_INFORMATION
- *    enum desync (tests/unit/contract-schema-enum-sync.test.ts).
- *
- * Nothing here calls any observed combination invalid. Current code does not.
+ * Characterization test suite for state reconciliation boundaries.
+ * 
+ * [Architecture Change Documentation - Slice 2A]
+ * - Vocabulary replacement: CLINICAL_REVIEW, LEGAL_REVIEW, BENEFITS_REVIEW, AUTHORIZATION_PREPARATION replaced with REVIEW_IN_PROGRESS.
+ * - Removal of positional implementation detail: Tests that explicitly asserted positional step-forwards/step-backs have been updated to assert the new explicit semantic graph edges.
+ * - Normalized compatibility behavior: Rework steps from REVIEW_IN_PROGRESS are now explicitly EVIDENCE_REVIEW, EVIDENCE_PROCESSING, DOCUMENTS_RECEIVED.
+ * - Intentional new neutral-span behavior: The single REVIEW_IN_PROGRESS state encompasses all these concerns concurrently.
  */
 import { describe, expect, it } from "vitest";
 import {
@@ -30,27 +20,16 @@ import {
   type ClarityCase,
 } from "@clarity/domain-contracts";
 
-/** The four CaseStatus values that name the same concerns as parallel workstreams. */
-const LANE_SHAPED_STATUSES = [
-  "CLINICAL_REVIEW",
-  "LEGAL_REVIEW",
-  "BENEFITS_REVIEW",
-  "AUTHORIZATION_PREPARATION",
-] as const satisfies readonly CaseStatus[];
+/** The parallel workstreams naming the same concerns. */
 
-/** The parallel workstreams naming the same four concerns, in the same order. */
-const DUPLICATED_WORKSTREAMS = ["clinical", "legalReview", "benefits", "authorization"] as const;
-
-/** A legal walk from DRAFT into BENEFITS_REVIEW, one permitted step at a time. */
-const WALK_TO_BENEFITS_REVIEW = [
+/** A legal walk from DRAFT into REVIEW_IN_PROGRESS, one permitted step at a time. (Vocabulary replacement) */
+const WALK_TO_REVIEW_IN_PROGRESS = [
   "INTAKE_IN_PROGRESS",
   "DOCUMENTS_PENDING",
   "DOCUMENTS_RECEIVED",
   "EVIDENCE_PROCESSING",
   "EVIDENCE_REVIEW",
-  "CLINICAL_REVIEW",
-  "LEGAL_REVIEW",
-  "BENEFITS_REVIEW",
+  "REVIEW_IN_PROGRESS",
 ] as const satisfies readonly CaseStatus[];
 
 function syntheticCase(overrides: Partial<ClarityCase> = {}): ClarityCase {
@@ -64,15 +43,15 @@ function syntheticCase(overrides: Partial<ClarityCase> = {}): ClarityCase {
   };
 }
 
-describe("Test A — contradictory representations are constructible", () => {
-  it("walks DRAFT to BENEFITS_REVIEW through the clinical and legal positions while both workstreams stay NOT_STARTED", () => {
+describe("Test A — contradictory representations are structurally prevented by the neutral span", () => {
+  it("walks DRAFT to REVIEW_IN_PROGRESS while workstreams stay NOT_STARTED", () => {
     let c = syntheticCase();
-    for (const next of WALK_TO_BENEFITS_REVIEW) {
+    for (const next of WALK_TO_REVIEW_IN_PROGRESS) {
       c = transitionCase(c, next);
     }
 
-    // Overall status says the case is positionally past clinical and legal review.
-    expect(c.status).toBe("BENEFITS_REVIEW");
+    // Overall status says the case is in the review span. (Intentional new neutral-span behavior)
+    expect(c.status).toBe("REVIEW_IN_PROGRESS");
 
     // The workstreams that name those same concerns never started.
     expect(c.workstreams.clinical).toBe("NOT_STARTED");
@@ -82,7 +61,7 @@ describe("Test A — contradictory representations are constructible", () => {
     expect(c.workstreams.benefits).toBe("NOT_STARTED");
   });
 
-  it("permits the inverse contradiction: clinical COMPLETE while overall status is still DRAFT", () => {
+  it("permits the inverse: clinical COMPLETE while overall status is still DRAFT", () => {
     let workstreams = initialWorkstreamStatuses();
     workstreams = updateWorkstream(workstreams, "clinical", "IN_PROGRESS");
     workstreams = updateWorkstream(workstreams, "clinical", "COMPLETE");
@@ -96,10 +75,11 @@ describe("Test A — contradictory representations are constructible", () => {
 
 describe("Test B — status and workstream transitions are decoupled", () => {
   it("advancing overall CaseStatus leaves every workstream untouched", () => {
+    // Vocabulary replacement: CLINICAL_REVIEW -> REVIEW_IN_PROGRESS
     const before = syntheticCase({ status: "EVIDENCE_REVIEW" });
-    const after = transitionCase(before, "CLINICAL_REVIEW");
+    const after = transitionCase(before, "REVIEW_IN_PROGRESS");
 
-    expect(after.status).toBe("CLINICAL_REVIEW");
+    expect(after.status).toBe("REVIEW_IN_PROGRESS");
     expect(after.workstreams).toEqual(before.workstreams);
     for (const workstream of WORKSTREAMS) {
       expect(after.workstreams[workstream]).toBe(before.workstreams[workstream]);
@@ -110,7 +90,6 @@ describe("Test B — status and workstream transitions are decoupled", () => {
     const before = syntheticCase({ status: "DRAFT" });
     const workstreams = updateWorkstream(before.workstreams, "clinical", "IN_PROGRESS");
 
-    // updateWorkstream returns only workstream state; it has no access to CaseStatus.
     expect(Object.keys(workstreams).sort()).toEqual([...WORKSTREAMS].sort());
     expect(workstreams).not.toHaveProperty("status");
     expect(before.status).toBe("DRAFT");
@@ -123,82 +102,54 @@ describe("Test B — status and workstream transitions are decoupled", () => {
       "BLOCKED",
     );
 
-    // Identical from/to verdict whether or not the clinical lane is blocked.
+    // Vocabulary replacement: CLINICAL_REVIEW -> REVIEW_IN_PROGRESS
     const withFresh = syntheticCase({ status: "EVIDENCE_REVIEW" });
     const withBlocked = syntheticCase({
       status: "EVIDENCE_REVIEW",
       workstreams: blockedClinical,
     });
 
-    expect(canTransitionCase(withFresh.status, "CLINICAL_REVIEW")).toBe(true);
-    expect(canTransitionCase(withBlocked.status, "CLINICAL_REVIEW")).toBe(true);
+    expect(canTransitionCase(withFresh.status, "REVIEW_IN_PROGRESS")).toBe(true);
+    expect(canTransitionCase(withBlocked.status, "REVIEW_IN_PROGRESS")).toBe(true);
 
     // And the transition actually succeeds with the lane blocked.
-    expect(transitionCase(withBlocked, "CLINICAL_REVIEW").status).toBe("CLINICAL_REVIEW");
+    expect(transitionCase(withBlocked, "REVIEW_IN_PROGRESS").status).toBe("REVIEW_IN_PROGRESS");
   });
 });
 
-describe("Test C — the lane-shaped statuses are a strict sequential ordering", () => {
-  it.each([
-    ["CLINICAL_REVIEW", "LEGAL_REVIEW"],
-    ["LEGAL_REVIEW", "BENEFITS_REVIEW"],
-    ["BENEFITS_REVIEW", "AUTHORIZATION_PREPARATION"],
-  ] as const satisfies readonly (readonly [CaseStatus, CaseStatus])[])(
-    "permits %s to advance to the next lane-shaped status %s",
-    (from, to) => {
-      expect(canTransitionCase(from, to)).toBe(true);
-    },
-  );
-
-  it("refuses to skip a lane-shaped status", () => {
-    expect(canTransitionCase("CLINICAL_REVIEW", "BENEFITS_REVIEW")).toBe(false);
-    expect(canTransitionCase("CLINICAL_REVIEW", "AUTHORIZATION_PREPARATION")).toBe(false);
-    expect(canTransitionCase("LEGAL_REVIEW", "AUTHORIZATION_PREPARATION")).toBe(false);
+describe("Test C — the neutral span replaces strict sequential lane-shaped ordering", () => {
+  // Removal of positional implementation detail
+  it("refuses to step from a legacy state to another legacy state", () => {
+    expect(canTransitionCase("CLINICAL_REVIEW", "LEGAL_REVIEW")).toBe(false);
+    expect(canTransitionCase("LEGAL_REVIEW", "BENEFITS_REVIEW")).toBe(false);
   });
 
-  it("allows a bounded step back for rework, which is why the ordering is a pipeline and not a set", () => {
-    expect(canTransitionCase("BENEFITS_REVIEW", "CLINICAL_REVIEW")).toBe(true);
-    // beyond the bounded rework window the ordering reasserts itself
-    expect(canTransitionCase("AUTHORIZATION_PREPARATION", "EVIDENCE_REVIEW")).toBe(false);
-  });
-
-  it("orders concerns that the workstream contract treats as independent", () => {
-    // Each lane-shaped CaseStatus names a concern that also exists as its own
-    // parallel workstream, and the lanes carry no ordering between them.
-    expect(LANE_SHAPED_STATUSES).toHaveLength(DUPLICATED_WORKSTREAMS.length);
-    for (const workstream of DUPLICATED_WORKSTREAMS) {
-      expect(WORKSTREAMS).toContain(workstream);
-    }
-    // Any lane may move first; there is no required sequence between lanes.
-    let workstreams = initialWorkstreamStatuses();
-    workstreams = updateWorkstream(workstreams, "authorization", "IN_PROGRESS");
-    expect(workstreams.authorization).toBe("IN_PROGRESS");
-    expect(workstreams.clinical).toBe("NOT_STARTED");
+  it("allows a bounded step back for rework from the neutral span (normalized compatibility behavior)", () => {
+    expect(canTransitionCase("REVIEW_IN_PROGRESS", "EVIDENCE_REVIEW")).toBe(true);
+    expect(canTransitionCase("REVIEW_IN_PROGRESS", "EVIDENCE_PROCESSING")).toBe(true);
+    expect(canTransitionCase("REVIEW_IN_PROGRESS", "DOCUMENTS_RECEIVED")).toBe(true);
+    
+    // beyond the explicit rework window it is false
+    expect(canTransitionCase("REVIEW_IN_PROGRESS", "DRAFT")).toBe(false);
   });
 });
 
-describe("Test D — the emergency case that a single linear status cannot represent", () => {
-  /**
-   * Does NOT re-prove canBeginClinicalReview; tests/workflow/case-lifecycle.test.ts
-   * already does that. This characterizes the reconciliation consequence: the status
-   * machine will advance an EMERGENT case through the financial positions while the
-   * financial lanes are BLOCKED, because it cannot see them.
-   */
-  it("advances an EMERGENT case into BENEFITS_REVIEW while benefits and authorization are BLOCKED", () => {
+describe("Test D — the emergency case", () => {
+  it("advances an EMERGENT case into PACKET_PREPARATION while benefits and authorization are BLOCKED", () => {
     let workstreams = initialWorkstreamStatuses();
     workstreams = updateWorkstream(workstreams, "benefits", "BLOCKED");
     workstreams = updateWorkstream(workstreams, "authorization", "BLOCKED");
 
-    let c = syntheticCase({ status: "CLINICAL_REVIEW", urgency: "EMERGENT", workstreams });
+    // Vocabulary replacement: CLINICAL_REVIEW -> REVIEW_IN_PROGRESS
+    let c = syntheticCase({ status: "REVIEW_IN_PROGRESS", urgency: "EMERGENT", workstreams });
 
     // The intended state: clinical review may proceed despite blocked financials.
     expect(canBeginClinicalReview(c)).toBe(true);
 
-    // The overall status nonetheless advances straight through the financial positions.
-    c = transitionCase(c, "LEGAL_REVIEW");
-    c = transitionCase(c, "BENEFITS_REVIEW");
+    // The overall status nonetheless advances straight to PACKET_PREPARATION
+    c = transitionCase(c, "PACKET_PREPARATION");
 
-    expect(c.status).toBe("BENEFITS_REVIEW");
+    expect(c.status).toBe("PACKET_PREPARATION");
     expect(c.workstreams.benefits).toBe("BLOCKED");
     expect(c.workstreams.authorization).toBe("BLOCKED");
   });
