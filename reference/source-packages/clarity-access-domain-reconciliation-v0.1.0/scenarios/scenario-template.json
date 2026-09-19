@@ -1,0 +1,25 @@
+{
+  "scenarioId": "ACCESS-SC-XXX",
+  "version": "0.1.0",
+  "title": "",
+  "syntheticOnly": true,
+  "fixtureClass": "SCENARIO",
+  "status": "PROPOSED",
+  "startingJourneyPhase": "PRESCREEN",
+  "facts": {},
+  "sources": [],
+  "expected": {
+    "journeyPhase": "",
+    "possiblePathways": [],
+    "blockedTransitions": [],
+    "missingInformation": [],
+    "workItems": [],
+    "roleOwnership": {},
+    "decisionAuthority": [],
+    "prohibitedConclusions": [],
+    "auditEvents": []
+  },
+  "ruleIds": [],
+  "qualifiedReviewRequired": [],
+  "sourceProvenance": []
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Clarity Access Scenario",
+  "type": "object",
+  "required": [
+    "scenarioId",
+    "version",
+    "title",
+    "syntheticOnly",
+    "fixtureClass",
+    "startingJourneyPhase",
+    "facts",
+    "expected",
+    "ruleIds"
+  ],
+  "properties": {
+    "scenarioId": {
+      "type": "string",
+      "pattern": "^ACCESS-SC-[0-9A-Z-]+$"
+    },
+    "version": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "syntheticOnly": {
+      "const": true
+    },
+    "fixtureClass": {
+      "enum": [
+        "SCENARIO",
+        "UX",
+        "TRAINING",
+        "ENGINEERING"
+      ]
+    },
+    "status": {
+      "enum": [
+        "PROPOSED",
+        "SOURCE_HYPOTHESIS",
+        "OWNER_ACCEPTED",
+        "QUALIFIED_REVIEW_REQUIRED"
+      ]
+    },
+    "startingJourneyPhase": {
+      "enum": [
+        "REFERRAL",
+        "PRESCREEN",
+        "QUALIFIED_REVIEW",
+        "FACILITY_REVIEW",
+        "PRE_ADMISSION",
+        "TRANSFER_HANDOFF",
+        "ADMITTED"
+      ]
+    },
+    "facts": {
+      "type": "object"
+    },
+    "sources": {
+      "type": "array"
+    },
+    "expected": {
+      "type": "object"
+    },
+    "ruleIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "qualifiedReviewRequired": {
+      "type": "array"
+    },
+    "sourceProvenance": {
+      "type": "array"
+    }
+  },
+  "additionalProperties": true
+}

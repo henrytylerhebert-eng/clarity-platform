@@ -1,0 +1,179 @@
+{
+  "version": "0.1.0",
+  "baselineCommit": "5c4c0b96b018092af3d1a9372b255139e64c1dd9",
+  "scenarios": [
+    {
+      "scenarioId": "ACCESS-SC-001",
+      "sourceScenarioId": "SYN-01",
+      "title": "Willing Oriented",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "PRESCREEN",
+      "possiblePathway": "POSSIBLE_FORMAL_VOLUNTARY_REVIEW",
+      "expectedDesignBehavior": [
+        "authorized review required",
+        "formal voluntary decision remains human"
+      ],
+      "ruleIds": [
+        "ACCESS-R-005"
+      ],
+      "qualifiedReviewRequired": false
+    },
+    {
+      "scenarioId": "ACCESS-SC-002",
+      "sourceScenarioId": "SYN-02",
+      "title": "Willing Not Oriented",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "PRESCREEN",
+      "possiblePathway": "POSSIBLE_NONCONTESTED_PATHWAY",
+      "expectedDesignBehavior": [
+        "formal voluntary unavailable at prescreen",
+        "noncontested admission not yet authorized"
+      ],
+      "ruleIds": [
+        "ACCESS-R-005"
+      ],
+      "qualifiedReviewRequired": false
+    },
+    {
+      "scenarioId": "ACCESS-SC-003",
+      "sourceScenarioId": "SYN-03",
+      "title": "Nonopposed Unknown Orientation",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "PRESCREEN",
+      "possiblePathway": "POSSIBLE_NONCONTESTED_PATHWAY",
+      "expectedDesignBehavior": [
+        "orientation uncertainty preserved",
+        "authorized hospital review required"
+      ],
+      "ruleIds": [
+        "ACCESS-R-001",
+        "ACCESS-R-005"
+      ],
+      "qualifiedReviewRequired": false
+    },
+    {
+      "scenarioId": "ACCESS-SC-004",
+      "sourceScenarioId": "SYN-04",
+      "title": "Opposed PEC",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "QUALIFIED_REVIEW",
+      "possiblePathway": "EMERGENCY_OR_LEGAL_REVIEW_REQUIRED",
+      "expectedDesignBehavior": [
+        "qualified legal/emergency review",
+        "no automated admission authority"
+      ],
+      "ruleIds": [
+        "ACCESS-R-007"
+      ],
+      "qualifiedReviewRequired": true
+    },
+    {
+      "scenarioId": "ACCESS-SC-005",
+      "sourceScenarioId": "SYN-05",
+      "title": "OPC Law Enforcement Pickup",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "QUALIFIED_REVIEW",
+      "possiblePathway": "EMERGENCY_OR_LEGAL_REVIEW_REQUIRED",
+      "expectedDesignBehavior": [
+        "custody/legal workstream active",
+        "preserve custody events"
+      ],
+      "ruleIds": [
+        "ACCESS-R-007"
+      ],
+      "qualifiedReviewRequired": true
+    },
+    {
+      "scenarioId": "ACCESS-SC-006",
+      "sourceScenarioId": "SYN-06",
+      "title": "CEC Transfer",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "TRANSFER_HANDOFF",
+      "possiblePathway": "EMERGENCY_OR_LEGAL_REVIEW_REQUIRED",
+      "expectedDesignBehavior": [
+        "destination confirmation",
+        "handoff/custody requirements"
+      ],
+      "ruleIds": [
+        "ACCESS-R-007"
+      ],
+      "qualifiedReviewRequired": true
+    },
+    {
+      "scenarioId": "ACCESS-SC-007",
+      "sourceScenarioId": "SYN-07",
+      "title": "Intoxication Reassessment",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "PRESCREEN",
+      "possiblePathway": "UNDETERMINED",
+      "expectedDesignBehavior": [
+        "reassessment work required",
+        "no capacity prediction"
+      ],
+      "ruleIds": [
+        "ACCESS-R-001",
+        "ACCESS-R-012"
+      ],
+      "qualifiedReviewRequired": false
+    },
+    {
+      "scenarioId": "ACCESS-SC-008",
+      "sourceScenarioId": "SYN-08",
+      "title": "Minor Parental Pathway",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "PRESCREEN",
+      "possiblePathway": "UNDETERMINED",
+      "expectedDesignBehavior": [
+        "configured consent rule required",
+        "relationship evidence required"
+      ],
+      "ruleIds": [
+        "ACCESS-R-008"
+      ],
+      "qualifiedReviewRequired": true
+    },
+    {
+      "scenarioId": "ACCESS-SC-009",
+      "sourceScenarioId": "SYN-09",
+      "title": "Minor Sixteen Voluntary",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "PRESCREEN",
+      "possiblePathway": "POSSIBLE_FORMAL_VOLUNTARY_REVIEW",
+      "expectedDesignBehavior": [
+        "age-specific rule required",
+        "authorized practitioner review required"
+      ],
+      "ruleIds": [
+        "ACCESS-R-008"
+      ],
+      "qualifiedReviewRequired": true
+    },
+    {
+      "scenarioId": "ACCESS-SC-010",
+      "sourceScenarioId": "SYN-10",
+      "title": "Missing Packet Items",
+      "syntheticOnly": true,
+      "status": "SOURCE_HYPOTHESIS",
+      "journeyPhase": "FACILITY_REVIEW",
+      "possiblePathway": "POSSIBLE_FORMAL_VOLUNTARY_REVIEW",
+      "expectedDesignBehavior": [
+        "central intake review may be ready",
+        "facility routing blocked by named packet gaps"
+      ],
+      "ruleIds": [
+        "ACCESS-R-009",
+        "ACCESS-R-010"
+      ],
+      "qualifiedReviewRequired": false
+    }
+  ]
+}

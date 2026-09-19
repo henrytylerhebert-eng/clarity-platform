@@ -1,0 +1,12 @@
+{
+  "package": "clarity-access-domain-reconciliation",
+  "version": "0.1.0",
+  "created": "2026-09-18",
+  "status": "design-freeze-package",
+  "repo": "henrytylerhebert-eng/clarity-platform",
+  "baselineCommit": "5c4c0b96b018092af3d1a9372b255139e64c1dd9",
+  "implementationAuthorized": false,
+  "clinicalAuthorityPromoted": false,
+  "legalAuthorityPromoted": false,
+  "productionReadyClaim": false
+}
