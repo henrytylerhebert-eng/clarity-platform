@@ -20,7 +20,7 @@ merged, or safe to remove.
 
 | ID | Location / branch | SHA | Observed state | Disposition and next action |
 |---|---|---|---|---|
-| W01 | Shared checkout — `claude/slice-2a-closure` | `6481bbd` | `.codex/` is untracked; closure code is represented by main PR #114 | **Hold.** Owner must classify `.codex/` as ignored local runtime state, a separately tracked artifact, or intentionally removed local state. |
+| W01 | Shared checkout — `claude/slice-3-journey-phase` | `49dccd2` | `.codex/` contains only local environment registrations (`version`, `name`, and `script`); no repository references or sensitive-pattern matches were observed | **Local runtime state selected.** The narrow `/.codex/environments/` ignore rule prevents it from entering source control. |
 | W02 | Coordination worktree — `codex/om/coordination-baseline` | current PR #113 head | Clean | **Active.** Keep through PR #113 review and merge; remove only by a later explicit cleanup action. |
 | W03 | `/private/tmp/clarity-clpr-post-merge-acceptance` — `codex/om/clpr-post-merge-acceptance` | `7afe508` | Clean, old baseline | **Parked reference.** Verify its PR/merge coverage before any retirement. |
 | W04 | `/private/tmp/clarity-iop-production-readiness` — `codex/om/iop-production-readiness` | `7afe508` | Clean, old baseline | **Parked reference.** Recover only a reviewed patch for an approved synthetic IOP package. |
@@ -37,20 +37,14 @@ merged, or safe to remove.
 | W15 | Product definition reconciliation — `codex/om/product-definition-reconciliation` | `334e90d` | Clean | **Parked reference.** This is a separate product-definition packet and must not be folded into RevOps or Access work without a decision. |
 | W16 | `/Users/tylerhebert/Documents/worktrees/clarity-verify` — detached | `7afe508` | Clean | **Parked verification checkout.** Retain until owner confirms no current verification run depends on it. |
 
-## Required owner decision for W01
+## W01 disposition evidence
 
-The only observed uncommitted state is the three-file `.codex/environments/`
-directory in W01. Before a maintainer changes it, the owner must select one:
-
-1. **Local runtime artifact:** add a reviewed ignore rule only if the files are
-   reproducible and contain no tracked configuration requirement.
-2. **Tracked configuration artifact:** move or document the non-sensitive,
-   reproducible configuration in a separate scoped PR.
-3. **Intentional local residue:** remove it from the shared checkout after the
-   owner confirms no active tool session requires it.
-
-No option is selected by this ledger. The files are not read or copied here,
-because environment artifacts may contain local tool configuration.
+The owner selected the local-runtime-artifact disposition. The three-file
+`.codex/environments/` directory contains only `version`, `name`, and `script`
+keys; no repository references or sensitive-pattern matches were observed. The
+files are intentionally not copied into this ledger. The narrow ignore rule is
+limited to `/.codex/environments/`, so a future repository-owned `.codex/`
+artifact is not silently hidden.
 
 ## Retirement gate
 
