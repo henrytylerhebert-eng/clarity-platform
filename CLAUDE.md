@@ -60,7 +60,7 @@ Adopt these exactly: tenant = `organizationId`; case = `BehavioralHealthCase`; t
 ## Project state (update on every phase change)
 
 ```
-PROJECT STATE: Clarity Platform — updated 2026-09-19 (Access Slice 3 JourneyPhase merged via PR #115 at 899ca98; Slice 4B Guidance Projection implemented on branch `claude/slice-4b-access-guidance-60b4d2`, PR pending)
+PROJECT STATE: Clarity Platform — updated 2026-09-19 (Slice 4B merged. ADR-0024 accepted. Slice 4A.1 merged. Access read API implemented.)
 Baseline: claims in this block were validated against origin/main after Access Phase 4E (Slice 2A).
 Objective: local, synthetic-only, tenant-scoped platform foundation for behavioral-health access, revenue, assurance, and practice workflows.
 Current phase: REPOSITORY HOUSEKEEPING — Phase 1 (preserve local-only documents + repair canonical truth) and Phase 2B (ADR/branch/PR governance cleanup) are COMPLETE. Phase 2A was the read-only decision packet. Access Slice 2A (Option B2, ADR-0023) is implemented and merged. Access Slice 3 (derived JourneyPhase projection) is implemented and merged. Access Slice 4B (pure `deriveAccessGuidance()`) is implemented and merged. Access Slice 4A.1 (Case Read Model API) is implemented and merged. The Access implementation is active. OD-22 and OD-24 remain open.

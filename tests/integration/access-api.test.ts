@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { once } from "node:events";
 import { AuthenticationService, LocalDevIdentityProvider } from "@clarity/auth-service";
 import { PrismaAuthGateway, PrismaCaseCommandGateway, AccessQueryGateway, PrismaCaseAuditWriter } from "@clarity/case-repository";
@@ -92,7 +92,20 @@ describe("Access Read Model API", () => {
   it("AUTHENTICATION TESTS", async () => {
     expect((await request(null, `/api/access/cases/anything`)).status).toBe(401);
     expect((await request("Bearer invalid", `/api/access/cases/anything`)).status).toBe(401);
-    expect((await request("invalid", `/api/access/cases/anything`)).status).toBe(401);
+expect((await request("invalid", `/api/access/cases/anything`)).status).toBe(401);
+    
+    // Revoked session proof
+    const provider = new LocalDevIdentityProvider();
+    const authGateway = new PrismaAuthGateway(h.prisma);
+    const authService = new AuthenticationService(provider, authGateway);
+    
+    const user = await h.prisma.user.create({ data: { id: `user-rev-${h.runId}`, organizationId: h.tenantA.organizationId, email: `rev-${h.runId}@test.com`, displayName: "Rev", roles: ["ORGANIZATION_ADMIN"], status: "ACTIVE" } });
+    provider.register(`rev-${h.runId}`, user.email);
+    const validToken = (await authService.login(`rev-${h.runId}`)).token;
+    
+    expect((await request(validToken, `/api/access/cases/anything`)).status).toBe(404);
+    await authService.logout(validToken);
+    expect((await request(validToken, `/api/access/cases/anything`)).status).toBe(401);
   });
 
   it("TENANT / NOT-FOUND TESTS", async () => {
@@ -111,6 +124,7 @@ describe("Access Read Model API", () => {
     expect((await request(tokenAdmin, `/api/access/cases/${c.id}?organizationId=123`)).status).toBe(400);
     expect((await request(tokenAdmin, `/api/access/cases/${c.id}?roles=ADMIN`)).status).toBe(400);
     expect((await request(tokenAdmin, `/api/access/cases/${c.id}?encounterId=abc`)).status).toBe(400);
+    expect((await request(tokenAdmin, `/api/access/cases/c-123%ZZ`)).status).toBe(400);
   });
 
   it("EXHAUSTIVE R3 ROLE TEST", async () => {
@@ -156,7 +170,9 @@ describe("Access Read Model API", () => {
     expect(res0.body.guidance.packetReadiness).toBeNull();
 
     const c1 = await h.prisma.behavioralHealthCase.create({ data: makePrismaCaseData(h.tenantA, `c-${h.runId}-4b`) });
-    await h.prisma.prescreenEncounter.create({ data: { organizationId: h.tenantA.organizationId, caseId: c1.id, currentLocation: "ER", presentingConcern: "test", createdBy: "sys", createdAt: new Date(), updatedAt: new Date(), id: `enc1-${h.runId}`, status: "DECLINED", version: 1 } });
+    for (const term of ["HANDED_OFF", "REDIRECTED", "DECLINED", "CANCELLED"]) {
+      await h.prisma.prescreenEncounter.create({ data: { organizationId: h.tenantA.organizationId, caseId: c1.id, currentLocation: "ER", presentingConcern: "test", createdBy: "sys", createdAt: new Date(), updatedAt: new Date(), id: `enc-${term}-${h.runId}`, status: term as any, version: 1 } });
+    }
     const res1 = await request(tokenAdmin, `/api/access/cases/${c1.id}`);
     expect(res1.body.sourceState.prescreenSelection).toBe("NONE");
 
@@ -184,6 +200,10 @@ describe("Access Read Model API", () => {
   });
 
   it("EPISODE / ADMISSION MATRIX", async () => {
+    const c0 = await h.prisma.behavioralHealthCase.create({ data: makePrismaCaseData(h.tenantA, `c-${h.runId}-5-0`) });
+    const { body: body0 } = await request(tokenAdmin, `/api/access/cases/${c0.id}`);
+    expect(body0.journey.phase).not.toBe("ADMISSION");
+
     const c = await h.prisma.behavioralHealthCase.create({ data: makePrismaCaseData(h.tenantA, `c-${h.runId}-5`) });
     await h.prisma.episode.create({ data: { id: `ep-${h.runId}`, organizationId: h.tenantA.organizationId, status: "ACTIVE" as any, facilityTimezone: "UTC", timezoneSource: "USER", timezoneSourceReferenceId: "123", admittedAt: new Date(), serviceDate: "2026-09-19", acceptedFacilityResponseId: "resp-1", sourceCase: { connect: { id: c.id } }, facility: { create: { id: `fac-${h.runId}`, organizationId: h.tenantA.organizationId, name: "Fac" } } } });
     await h.prisma.caseEpisodeLink.create({ data: { organizationId: h.tenantA.organizationId, caseId: c.id, episodeId: `ep-${h.runId}`, relationship: "ADMISSION_SOURCE" as any, linkedAt: new Date(), linkedByActorId: "sys", sourceAcceptanceId: "123" } });
@@ -210,6 +230,7 @@ describe("Access Read Model API", () => {
     const c1 = await h.prisma.behavioralHealthCase.create({ data: { ...makePrismaCaseData(h.tenantA, `c-${h.runId}-7a`), status: "CLINICAL_REVIEW" as any } });
     const r1 = await request(tokenAdmin, `/api/access/cases/${c1.id}`);
     expect(r1.status).toBe(200);
+    expect(r1.body.journey.phase).toBe("QUALIFIED_REVIEW");
 
     for (const termStatus of ["CLOSED", "CANCELLED", "WITHDRAWN"]) {
       const ct = await h.prisma.behavioralHealthCase.create({ data: { ...makePrismaCaseData(h.tenantA, `c-${h.runId}-7-${termStatus}`), status: termStatus as any } });
@@ -265,9 +286,14 @@ describe("Access Read Model API", () => {
     failApp.close();
   });
 
-  it("REPEATABLE READ PROOF", async () => {
+it("REPEATABLE READ PROOF", async () => {
     const c = await h.prisma.behavioralHealthCase.create({ data: makePrismaCaseData(h.tenantA, `c-${h.runId}-10`) });
+    const spy = vi.spyOn(h.prisma, "$transaction");
     const { status } = await request(tokenAdmin, `/api/access/cases/${c.id}`);
     expect(status).toBe(200);
+    
+    const txCall = spy.mock.calls.find(call => call[1] && call[1].isolationLevel === "RepeatableRead");
+    expect(txCall).toBeDefined();
+    spy.mockRestore();
   });
 });

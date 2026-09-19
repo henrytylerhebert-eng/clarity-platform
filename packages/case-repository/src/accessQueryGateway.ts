@@ -4,7 +4,7 @@ import { withTenantContext } from "./tenantContext.js";
 import { rowToDomain as caseRowToDomain, type PersistedCase } from "./mappers.js";
 import { rowToCaseEpisodeLink } from "./episodeMappers.js";
 import { encounterRowToDomain, requirementRowToDomain } from "./prescreenGateway.js";
-import type { PrescreenEncounter, PacketRequirement, CaseEpisodeLink } from "@clarity/domain-contracts";
+import type { PrescreenEncounter, PacketRequirement, CaseEpisodeLink, AuditActor } from "@clarity/domain-contracts";
 import type { CaseAuditWriter } from "./auditWriter.js";
 
 export interface AccessQuerySnapshot {
@@ -12,11 +12,6 @@ export interface AccessQuerySnapshot {
   encounters: PrescreenEncounter[];
   packetRequirements: (PacketRequirement & { encounterId: string })[];
   episodeLinks: CaseEpisodeLink[];
-}
-
-export interface AuditActor {
-  actorType: "USER" | "SYSTEM";
-  actorId: string;
 }
 
 export class AccessQueryGateway {
