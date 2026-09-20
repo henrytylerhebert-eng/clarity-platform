@@ -157,11 +157,26 @@ was executed; all 8 `recovery/machine-only/2026-09-17/*` refs exist on origin an
 never be deleted.
 
 **Re-measured 2026-09-20** (after the Access Snapshot work): 65 local branches, 126 remote, 0
-stashes, 19 worktrees, 8 recovery refs. The increase over the 2026-09-18 audit is other
-sessions' branches and worktrees, not unpreserved content. The only branches deleted were the
-three merged Access ones (#127/#128/#129); each was verified by matching its tip to the head
-GitHub squash-merged, because squash merges leave a merged branch looking unmerged to
-`git merge-base --is-ancestor`.
+stashes, 19 worktrees, 8 recovery refs.
+
+**These are counts only. Preservation of the growth is [Unverified]** — no audit comparable to the
+2026-09-18 forensic pass was run. What was measured on 2026-09-20:
+
+- **9 local branch tips exist on no remote ref**: `claude/ai-operating-model-handoff-7c884e`,
+  `codex/om/admission-race-fix-review`, `codex/om/admission-replay-active-check`,
+  `codex/om/directory-crm-prototype`, `codex/om/operations-backbone-review`,
+  `codex/om/prescreen-contract-review`, `codex/om/prescreen-source-package-fix` (all 2026-07-19/29),
+  plus `codex/om/product-definition-reconciliation` and `codex/om/synthetic-iop-p2-records`
+  (both 2026-09-19, i.e. created **after** the 2026-09-18 audit).
+- **None of the 9 was checked for patch-equivalence** to work already on origin. The 2026-09-18
+  audit did perform that check for its 8; this pass did not.
+- **One worktree is dirty**: the main checkout, 7 uncommitted files on `feat/access-snapshot`
+  (the superseded Antigravity leftovers, deliberately preserved).
+
+**Do not delete any branch on the strength of these counts.** Re-run a preservation audit first.
+The only branches deleted on 2026-09-20 were the three merged Access ones (#127/#128/#129), each
+gated on matching its tip to the head GitHub squash-merged — squash merges leave a merged branch
+looking unmerged to `git merge-base --is-ancestor`.
 
 ### Known production-readiness limitations — UNCHANGED
 
