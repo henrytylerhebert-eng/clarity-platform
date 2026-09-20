@@ -8,6 +8,19 @@ and the authority/provenance/correction requirements in IA-001 §5–§6.
 **Outcome:** **6 LOCKED, 4 explicitly BOUNDED.** No gap is left open.
 **Prisma:** untouched. No persistence, command, API, migration or UI change in this pass.
 
+> ## AMENDED 2026-09-20 by the owner-level review
+>
+> This document was re-tested adversarially in
+> [../review/OWNER_DECISION_PACKET_v0.1.md](../review/OWNER_DECISION_PACKET_v0.1.md). The
+> decisions below are preserved as written; the **statuses of four of them changed** and one
+> blanket claim is **withdrawn**. See "Amendments" at the end of this document. Where the table
+> below and the amendment record disagree, **the amendment record governs.**
+>
+> - **WITHDRAWN:** *"None of the four bounds blocks persistence."* Re-tested individually,
+>   **LONG-GAP-03 and LONG-GAP-08 fail** — each can force a schema change.
+> - **LONG-GAP-03 → NOT YET RATIFIABLE.** LONG-GAP-08 → **NOT YET RATIFIABLE.**
+> - **LONG-GAP-04, 05, 06, 10 → RATIFIABLE WITH AMENDMENT.**
+
 ## How to read a BOUNDED decision
 
 A gap is **LOCKED** when the semantics can be settled now from evidence already in hand.
@@ -19,20 +32,23 @@ question: it fixes the shape, the invariants, and the failure mode, and names ex
 remains and who must supply it. Persistence may proceed on a BOUNDED decision **only** where
 the reconciliation shows the bound does not affect the stored shape.
 
+**AMENDED 2026-09-20:** that last condition must be demonstrated **per gap**, never assumed for
+the set. Tested per gap, two of the four failed.
+
 ## Summary
 
 | Gap | Topic | Decision | Status |
 |---|---|---|---|
 | 01 | DischargePlan cardinality | One logical plan per Episode, append-only versions | **LOCKED** |
 | 02 | Destination-attempt identity | Separate append-only attempt records | **LOCKED** |
-| 03 | Clinical readiness authority | Facility-configured policy; no hard-coded role | **BOUNDED** |
-| 04 | Canonical LOC registry | Reuse the existing `LevelOfCare` enum; fix contract drift | **LOCKED** |
-| 05 | Barrier taxonomy | Configurable category + locked non-blame invariant | **BOUNDED** |
-| 06 | Core vs configurable observations | Dependency rule decides; list stays configurable | **BOUNDED** |
+| 03 | Clinical readiness authority | Facility-configured policy; no hard-coded role | ~~BOUNDED~~ → **NOT YET RATIFIABLE** |
+| 04 | Canonical LOC registry | Reuse the existing `LevelOfCare` enum; fix contract drift | **LOCKED, AMENDED** — enum insufficient for continuity |
+| 05 | Barrier taxonomy | Configurable category + locked non-blame invariant | **BOUNDED, AMENDED** — anti-blame moved into structure |
+| 06 | Core vs configurable observations | ~~Dependency rule~~ → **semantic-necessity rule** | **BOUNDED, AMENDED** — rule replaced |
 | 07 | Actual-discharge command contract | Full command shape locked; disposition vocabulary bounded | **LOCKED** (shape) |
-| 08 | Continuity evidence sources | Per-source, per-window coverage declaration | **BOUNDED** |
+| 08 | Continuity evidence sources | Per-source, per-window coverage declaration | ~~BOUNDED~~ → **NOT YET RATIFIABLE** |
 | 09 | DISCHARGED → CLOSED boundary | DISCHARGED is operational; CLOSED is terminal | **LOCKED** |
-| 10 | Projection without parent aggregate | Derivable **within one organization only** | **LOCKED** (with a hard limit) |
+| 10 | Projection without parent aggregate | Derivable **within one organization only** | **LOCKED, AMENDED** — scope must be carried in data |
 
 ---
 
@@ -822,3 +838,126 @@ legal rules — the four BOUNDED gaps are bounded precisely because the remainin
 clinical licensing (OD-3), counsel (OD-2) or real integration contracts (OD-5), none of which this
 repository can supply. The workflow evidence cited is the domain reasoning behind each decision,
 not a citation to an approved clinical source.
+
+---
+
+# Amendments — 2026-09-20 owner-level review
+
+Source: [../review/OWNER_DECISION_PACKET_v0.1.md](../review/OWNER_DECISION_PACKET_v0.1.md),
+reviewing PR #136 head `fc1a706`. The original decisions above are preserved verbatim as the dated
+artifact they are. Where this record and the text above disagree, **this record governs.**
+
+## A-0 — WITHDRAWN: "None of the four bounds blocks persistence"
+
+That line appeared in the summary, in the per-gap status notes and in IA-002 §1. It was a
+generalization over four independent questions and **it does not hold.** Each gap was re-tested
+separately against the question *could the remaining unknown change cardinality, ownership,
+relationships, provenance, authority, correction behavior or lifecycle?*
+
+| Gap | Re-test | Outcome |
+|---|---|---|
+| 03 | Approval of a policy change, delegated/emergency authority, revocation, and invalidation-vs-supersession each change the stored shape | **FAILS** |
+| 05 | Only hierarchy and rename, both absorbable by deliberate design | **PASSES** conditionally |
+| 06 | No effect on Slice A; affects Slices B and C if a core readiness component is added | **PASSES for Slice A only** |
+| 08 | Three coverage states cannot carry the eight required distinctions; needs per-event-type scoping, freshness and ingestion outcome | **FAILS** |
+
+## A-1 — LONG-GAP-03 → NOT YET RATIFIABLE
+
+"Facility-configured" conflated nine layers. Five are unresolved: authority to configure the
+mapping, authority to approve a change to it, delegated/emergency authority, revocation, and
+correction of an improperly authorized decision. Four of the five change the schema.
+`LongitudinalAuthorityPolicy` is the right boundary for the role mapping and the **wrong** boundary
+for approval, delegation and revocation — those are one or two further objects the reconciliation
+did not propose. **"Seeded read-only" is not sufficient**: it defers writes, not the question of
+what the record must carry.
+
+Owner decisions required: **OD-A** (what makes a policy effective — A1 administrative / **A2
+administrative + named clinical approver, recommended** / A3 out-of-band), **OD-B** (does delegated
+or emergency authority exist), **OD-C** (supersede or invalidate an improperly authorized decision).
+
+## A-2 — LONG-GAP-04 → LOCKED, AMENDED
+
+Adoption of the existing `LevelOfCare` enum stands for the five in-episode dimensions and is
+proven sufficient there. It is **not** sufficient for continuity: `NEXT_LEVEL_OF_CARE_STARTED` must
+code community and post-acute destinations — ACT, intensive case management, supported housing,
+crisis respite, peer support, discharge to self-care with no services, forensic/diversion — none of
+which are members. Recording those as `OUTPATIENT` or `UNKNOWN` would be false. The enum also
+conflates level of care, setting and service type, so extending it deepens a existing ontology
+problem. Additionally, **`UNKNOWN` is not a permitted `clinicalRecommendation` value** — a
+recommendation of "unknown" is not a recommendation; it is appropriate only for `actual` and
+`availability`. Owner decision **OD-D**: extend `LevelOfCare`, or introduce a separate
+`CareSettingOrService` vocabulary with a crosswalk.
+
+## A-3 — LONG-GAP-05 → BOUNDED, AMENDED
+
+Configurable categories can encode blame indirectly through label smuggling
+(`"Facility refused — capacity"`), hierarchy (`"External delays"` vs `"Internal delays"`), ranking
+(an ordered list reproduces "primary barrier"), aggregation (average days by `waitingOnPartyRef`
+is a blame league table built from permitted fields), and editorialising resolution codes. The
+guarantee moves from prose into structure:
+
+- A category must reference a **platform-owned `BarrierConditionKind`** (destination,
+  authorization, medication, transport, consent/guardianship, housing, documentation). Facilities
+  configure labels and subcategories *under* a condition kind and cannot mint a top-level category
+  that names a party.
+- `BarrierCategory` carries a nullable `parentCategoryId` from the start, absorbing hierarchy.
+- **No projection may group or rank by `waitingOnPartyRef`, `responsibleRoleCode` or
+  `assignedUserId`** — an acceptance invariant with a negative test, not guidance.
+- No ordered barrier list may be labelled or documented as primacy, priority or root cause.
+
+## A-4 — LONG-GAP-06 → BOUNDED, AMENDED (rule replaced)
+
+The original rule — *core iff a governed decision or projection depends on it* — is **circular**:
+Clarity authors the projections, so it can promote or demote any concept by its own implementation
+choices, and promotion would happen silently when a projection is added. Replaced by:
+
+> A concept is **core** when Clarity must understand its meaning consistently **across
+> organizations** to preserve longitudinal truth, provenance, authority, transition logic or
+> interoperability. Organization-specific observations remain **configurable** when the platform
+> needs only their typed evidence and provenance.
+>
+> **Tie-breaker.** Where the two rules disagree, a concept is core only if a governed **decision** —
+> not merely a projection — would be *wrong* if its meaning differed between organizations.
+> Promotion from configurable to core always requires an ADR and may never happen as a side effect
+> of adding a projection.
+
+Applied to the seven readiness components, the classification is unchanged; the rule now rests on
+a criterion external to Clarity's own choices.
+
+## A-5 — LONG-GAP-08 → NOT YET RATIFIABLE
+
+Eight conditions must be distinguishable before Clarity may say "none observed"; the merged
+contract expresses three, and source-unavailable, stale, failed-ingestion and
+not-authoritative-for-this-event-type all collapse into one overloaded `UNKNOWN`. Coverage must be
+declared per **(source × event type × window)** with an `observedThroughAt` freshness stamp and an
+ingestion outcome, yielding six derived source conditions.
+`NONE_OBSERVED_WITH_COMPLETE_COVERAGE` requires at least one source `AUTHORITATIVE_AND_CURRENT` for
+that exact event type and window. Qualifying events must exclude `SUPERSEDED`, `REJECTED` and
+`QUARANTINED`, and a late-arriving event must not rewrite a prior as-of answer. This is a
+materially different shape from the one proposed for P-9.
+
+## A-6 — LONG-GAP-10 → LOCKED, AMENDED
+
+The decision stands; the implementation cannot express it.
+`LongitudinalCareJourneyProjectionInputSchema` carries **no `organizationId` and no evaluation
+time**, so the projection cannot state its own scope and no downstream surface can inherit it.
+Amendment: `organizationId` and `evaluatedAt` are **required**, and a consumer must treat their
+absence as a hard error rather than defaulting to "complete". Locked terminology:
+"organization-scoped care journey", "episode-of-care history" and "known continuity" are
+permitted; "longitudinal history" only when qualified with the organization scope in the same
+visual unit; **"complete history" is prohibited outright.** Every response must state that records
+held by other organizations are not included and their existence is **unknown**, never absent.
+
+## A-7 — Two defects in merged contract code (#133)
+
+Neither reopens a semantic decision; the semantics were right and the implementation does not
+enforce them. Both were confirmed by executing throwaway probes, since deleted.
+
+- **D-1** — `deriveTransitionReadiness([])` returns `executionState: "READY"`. The function never
+  checks that all seven components are accounted for, so **no evidence yields READY**. Violates
+  LSR-10 and Verification Matrix row 19. Invisible today because both fixtures supply all seven.
+- **D-2** — `qualityState` appears once in `longitudinal.ts` (the schema definition) and is read by
+  **no projection**, so a `SUPERSEDED`, `REJECTED` or `QUARANTINED` continuity event still reports
+  as `OBSERVED`. A retracted readmission still reads as a readmission.
+
+Both become preconditions **C-7** and **C-8** in IA-002.

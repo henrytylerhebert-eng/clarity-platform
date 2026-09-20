@@ -49,7 +49,8 @@ authority, decision, or workflow object merely because it makes implementation e
 | — | [WHOLE_PRODUCT_SPEC.md](WHOLE_PRODUCT_SPEC.md) | The consolidated product specification |
 | — | [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) | Ask Clarity: Query / Trace now, Command later |
 | — | [conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md](conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md) | **Which invariants are actually enforced** — 9 ENFORCED / 6 PARTIAL / 2 MISSING / 4 N/A |
-| — | [gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md](gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md) | **LONG-GAP-01 → 10 decisions** — 6 LOCKED, 4 BOUNDED |
+| — | [gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md](gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md) | **LONG-GAP-01 → 10 decisions**, with the 2026-09-20 amendment record appended |
+| — | [review/OWNER_DECISION_PACKET_v0.1.md](review/OWNER_DECISION_PACKET_v0.1.md) | **Read this before ratifying anything.** Adversarial review: 2 gaps fail re-testing, 2 defects found in merged code, IA-002 and ADR-0026 not ratifiable as written |
 | — | [CANON_RECONSTRUCTION_PASS_01_v0.1.md](CANON_RECONSTRUCTION_PASS_01_v0.1.md) | Source reconstruction pass behind the lock |
 | — | [FIGMA_PATTERN_GAP_ANALYSIS_v0.1.md](FIGMA_PATTERN_GAP_ANALYSIS_v0.1.md) | UI pattern gap analysis |
 
@@ -69,10 +70,11 @@ These documents are **dated artifacts**. They are landed verbatim, not edited to
   `tests/data/longitudinal-day1-day39.ts`, `tests/unit/longitudinal-contracts.test.ts`, and
   `docs/architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md`. IA-001's §2 matrix, §5
   unlock conditions, and §10 HELD/PROHIBITED lists remain in force unchanged.
-- **The open-gap register is no longer open.** All ten LONG-GAP questions were closed or
-  explicitly bounded on 2026-09-20 (6 LOCKED, 4 BOUNDED). The register file preserves the
-  questions verbatim as a dated artifact and carries a status pointer; the decisions live in
-  `gap-closure/`.
+- **The open-gap register is no longer open, but two gaps did not survive review.** All ten
+  LONG-GAP questions were closed or bounded on 2026-09-20; re-testing the same day moved
+  **LONG-GAP-03 and LONG-GAP-08 to NOT YET RATIFIABLE**, and 04, 05, 06 and 10 to ratifiable only
+  with amendment. The register preserves the questions verbatim; the decisions live in
+  `gap-closure/` and the amendments in `review/`.
 - **The persistence gate is still closed.** IA-002 exists only as a **DRAFT** awaiting owner
   ratification; until it is ratified, IA-001's HELD list governs unchanged. Until it is, no
   Prisma change, migration, longitudinal write repository, command service, mutating API,

@@ -183,6 +183,29 @@ that decides who may make clinical decisions is a meta-authority act the reconci
 settle from repository evidence. Until the owner settles it the policy table may be seeded
 read-only.
 
+**AMENDED the same day by an owner-level adversarial review** —
+[docs/canon/review/OWNER_DECISION_PACKET_v0.1.md](docs/canon/review/OWNER_DECISION_PACKET_v0.1.md),
+reviewing PR #136 at `fc1a706`. The review re-tested the four BOUNDED gaps **independently** rather
+than accepting the blanket statement above:
+
+- **The claim "none of the four bounds blocks persistence" is WITHDRAWN.** **LONG-GAP-03 and
+  LONG-GAP-08 fail** — each can force a schema change — and are now **NOT YET RATIFIABLE**.
+  LONG-GAP-04, 05, 06 and 10 are ratifiable **only with amendment**. 01, 02, 07 and 09 stand.
+- **Two defects were found in merged contract code (#133)**, both confirmed by executed probes
+  (since deleted): `deriveTransitionReadiness([])` returns **`READY`** from no evidence at all
+  (violates LSR-10 and Verification Matrix row 19); and `qualityState` is read by **no**
+  projection, so a `SUPERSEDED`/`REJECTED`/`QUARANTINED` continuity event still reports as
+  `OBSERVED`. Both are invisible to the current tests, which only exercise fully-populated
+  happy paths.
+- **IA-002 is NOT ratifiable as written** and **ADR-0026 is BLOCKED.** No persistence slice is
+  authorized; the persistence boundary **stays closed** under IA-001.
+- **Four owner decisions gate everything:** OD-A (what makes a `LongitudinalAuthorityPolicy`
+  effective), OD-B (does delegated/emergency authority exist), OD-C (supersede or invalidate an
+  improperly authorized decision), OD-D (continuity's next-level-of-care vocabulary).
+
+**Next authorized work: Slice 0.5 — executable protection of the locked semantics** (preconditions
+C-1, C-5 … C-10). Entirely within IA-001 §10, needs no new authorization, no Prisma.
+
 **Not claimed:** no Prisma file has been touched. No migration, command, API or UI change exists
 for any of this. Nothing here claims production readiness, HIPAA, PHI readiness, or approved
 clinical or legal rules.

@@ -1,6 +1,29 @@
 # ADR-0026: Persist the longitudinal decision spine — authority policy and the two append-only clinical decisions
 
-**Status:** Proposed — awaiting owner ratification
+**Status:** **Proposed — NOT RATIFIABLE AS WRITTEN.** Blocked by the 2026-09-20 owner-level
+review (`docs/canon/review/OWNER_DECISION_PACKET_v0.1.md`) pending owner decisions OD-A, OD-B and
+OD-C.
+
+> ## BLOCKED — 2026-09-20
+>
+> Re-tested as a persistence boundary rather than as a document, **Slice A is not the smallest
+> coherent first slice and none of its three objects is independently persistable today.**
+>
+> - `LongitudinalAuthorityPolicy` — approval, delegation and revocation are unresolved, and each
+>   changes its columns. It carries `effectiveAt` but **no recorded time**, and has no revocation
+>   or approval chain. Creating it "seeded read-only" defers writes, not the question of what the
+>   record must carry.
+> - `LevelOfCareRecommendation` — depends on the LOC vocabulary, which the review found
+>   **incomplete for continuity** and which must bar `UNKNOWN` as a clinical recommendation.
+>   Moves to a later Slice A.2.
+> - `ClinicalDischargeReadinessDecision` — **nearly independent**, and the best candidate for a
+>   genuine first slice. Still blocked on OD-C (supersede vs invalidate an improperly authorized
+>   decision), which determines whether it needs an invalidation state.
+>
+> **Amendment if ratified later:** narrow Slice A to `ClinicalDischargeReadinessDecision` plus the
+> minimum authority record it requires, and move `LevelOfCareRecommendation` to Slice A.2 behind
+> the LOC vocabulary amendment. Until OD-A/OD-B/OD-C are answered, the honest conclusion is that
+> **no persistence slice is ready.**
 **Date:** 2026-09-20
 **Scope:** Slice A of IA-002. `LongitudinalAuthorityPolicy`, `LevelOfCareRecommendation`,
 `ClinicalDischargeReadinessDecision`.

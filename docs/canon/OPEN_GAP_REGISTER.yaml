@@ -1,9 +1,11 @@
 register: Clarity Open-Gap Register
 version: '0.1'
 scope: Longitudinal pre-schema questions
-status: CLOSED_OR_BOUNDED
+status: PARTIALLY_RESOLVED_TWO_NOT_YET_RATIFIABLE
 resolved_by: docs/canon/gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md
 resolved_on: 2026-09-20
+amended_by: docs/canon/review/OWNER_DECISION_PACKET_v0.1.md
+amended_on: 2026-09-20
 recognized_gap_count: 10
 new_gap_policy: Do not add new semantic questions unless reconciliation exposes a
   documented contradiction, repo conflict, missing workflow/authority requirement,
@@ -19,7 +21,7 @@ gaps:
   topic: Destination-attempt identity
   question: Does each CareTransition need separate destination-attempt records?
 - id: LONG-GAP-03
-  status: BOUNDED
+  status: NOT_YET_RATIFIABLE
   topic: Clinical discharge-readiness authority
   question: Which facility-configured roles may record or supersede clinical discharge
     readiness?
@@ -44,7 +46,7 @@ gaps:
   question: What exact command, source, disposition, and correction contract governs
     actual discharge?
 - id: LONG-GAP-08
-  status: BOUNDED
+  status: NOT_YET_RATIFIABLE
   topic: Continuity evidence sources
   question: Which sources can establish follow-up, medication events, next level of
     care, ED use, and readmission?

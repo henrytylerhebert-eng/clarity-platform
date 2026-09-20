@@ -10,6 +10,28 @@ authorization owner, migration effect, and rollback plan.
 **Audited against:** `main` at `6b1d91f`.
 **Prisma:** untouched. This document proposes; it does not authorize. IA-002 authorizes.
 
+> ## AMENDED 2026-09-20 by the owner-level review
+>
+> [review/OWNER_DECISION_PACKET_v0.1.md](../review/OWNER_DECISION_PACKET_v0.1.md) re-tested the
+> proposals. **Two are reshaped and one conclusion is withdrawn.**
+>
+> - **P-10 `LongitudinalAuthorityPolicy` is not one object.** Approval of a policy change,
+>   delegated/emergency authority and revocation each need shape this proposal does not carry, and
+>   two of them are separate objects. "Seeded read-only" is **not** sufficient — it defers writes,
+>   not the question of what the record must carry. Blocked on owner decisions OD-A, OD-B, OD-C.
+> - **P-9 continuity is materially reshaped.** Coverage must be declared per
+>   **(source × event type × window)** with a freshness stamp and an ingestion outcome, yielding
+>   six derived source conditions — not one completeness value. See review §6.
+> - **P-6 `LevelOfCareRecommendation`** must bar `UNKNOWN` as a clinical recommendation, and the
+>   adopted enum is **incomplete for continuity's next-level-of-care** (OD-D).
+> - **P-4 `TransitionBarrier`** gains a platform-owned `BarrierConditionKind` reference, and P-5
+>   `BarrierCategory` gains a nullable `parentCategoryId`, so blame cannot enter through labels or
+>   hierarchy. No projection may group or rank by party.
+> - **WITHDRAWN:** the cross-cutting claim that each BOUNDED gap's bound does not affect stored
+>   shape. Two of four do.
+>
+> **No object in this document is ready to persist today.**
+
 ## Reconciliation summary
 
 **9 objects proposed for persistence. 7 objects explicitly refused.**

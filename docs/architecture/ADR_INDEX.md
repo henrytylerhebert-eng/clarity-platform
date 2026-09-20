@@ -58,7 +58,7 @@ Filename convention: `docs/architecture/ADR-NNNN-kebab-case-title.md`.
 | 0024 | Accepted | 2026-09-19 | Expose Access Case Read Model with Explicit Read Authorization and Detail-Read Auditing | `main` |
 | 0025 | Accepted | 2026-09-20 | Adopt the Clarity Canon package as the governing semantic base, and IA-001 as the implementation gate | `main` |
 
-| 0026 | **Proposed** | 2026-09-20 | Persist the longitudinal decision spine — authority policy and the two append-only clinical decisions (IA-002 Slice A) | `docs/longitudinal-gap-closure` |
+| 0026 | **Proposed — BLOCKED** | 2026-09-20 | Persist the longitudinal decision spine — authority policy and the two append-only clinical decisions (IA-002 Slice A). Blocked by the 2026-09-20 owner review pending OD-A/OD-B/OD-C | `docs/longitudinal-gap-closure` |
 
 **Next safe number: `ADR-0027`.** Not yet created.
 

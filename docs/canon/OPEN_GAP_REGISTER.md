@@ -2,7 +2,7 @@
 
 **Scope:** Longitudinal pre-schema questions only  
 **Status (as written, 2026-09-20 package):** OPEN  
-**Status (current):** CLOSED OR BOUNDED — see the status update below  
+**Status (current):** PARTIALLY RESOLVED — 03 and 08 are NOT YET RATIFIABLE; see below  
 **Count:** 10  
 
 > **STATUS UPDATE — 2026-09-20.** All ten questions below have been **closed or explicitly
@@ -14,6 +14,12 @@
 > real integration contract (OD-5) can supply. **Do not re-open a question below without the
 > documented contradicting evidence required by the admission rule at the end of this file.**
 > The questions are preserved verbatim as the dated artifact they are.
+>
+> **AMENDED 2026-09-20 by the owner-level review**
+> ([review/OWNER_DECISION_PACKET_v0.1.md](review/OWNER_DECISION_PACKET_v0.1.md)): re-testing each
+> bound independently moved **LONG-GAP-03 and LONG-GAP-08 to NOT YET RATIFIABLE** — each can force
+> a schema change — and moved 04, 05, 06 and 10 to ratifiable only with amendment. The claim that
+> no bound blocks persistence is **withdrawn**. LONG-GAP-01, 02, 07 and 09 stand as written.
 
 **Freeze rule:** These are the only recognized longitudinal pre-schema questions for this pass. Do not add new semantic questions unless reconciliation exposes a documented contradiction or missing semantic requirement.
 
