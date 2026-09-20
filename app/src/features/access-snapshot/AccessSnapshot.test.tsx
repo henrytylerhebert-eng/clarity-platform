@@ -470,7 +470,7 @@ describe("AccessSnapshot — what needs attention", () => {
     await openCase(readModel({ guidance: { signals, packetReadiness: readiness } }));
 
     const attention = region("What needs attention");
-    for (const title of ["Case progression", "Prescreen", "Packet readiness", "Workstream signals"]) {
+    for (const title of ["Case progression", "Intake", "Packet readiness", "Workstreams"]) {
       expect(attention.getByRole("heading", { name: title })).toBeInTheDocument();
     }
     expect(attention.getByText("Information incomplete")).toBeInTheDocument();
