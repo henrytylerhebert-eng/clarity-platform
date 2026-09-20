@@ -95,6 +95,19 @@ const navigationGroups: ReadonlyArray<{ id: string; label: string; workspaces: r
   { id: "more", label: "More", workspaces: ["ledger", "iop-reconciliation", "training", "mock-admits", "studio"] },
 ];
 
+const caseScopedWorkspaces = new Set<WorkspaceId>([
+  "overview",
+  "intake",
+  "evidence",
+  "medical",
+  "legal",
+  "benefits",
+  "authorization",
+  "packet",
+  "routing",
+  "ledger",
+]);
+
 export function App() {
   const [state, setState] = useState<AppState | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState("case-004");
@@ -566,7 +579,18 @@ export function App() {
   const isMockAdmitLab = workspace === "mock-admits";
   const isProductStudio = workspace === "studio";
   const isIopReconciliation = workspace === "iop-reconciliation";
+  const isCaseScopedWorkspace = caseScopedWorkspaces.has(workspace);
   const focusChips = getRoleFocus(roleId, state, activeCase.id, new Date().toISOString());
+
+  const surfaceHeading =
+    workspace === "command" ? { label: "Operations", title: "Command Center" } :
+    workspace === "queue" ? { label: "Cases", title: "Case Queue" } :
+    workspace === "new" ? { label: "Intake", title: "New Case" } :
+    workspace === "bedboard" ? { label: "Placement", title: "Milieu Bedboard" } :
+    isMockAdmitLab ? { label: "Training workspace", title: "Mock Admit Lab" } :
+    isProductStudio ? { label: "Internal product control", title: "Clarity Product Studio" } :
+    isIopReconciliation ? { label: "Synthetic operations review", title: "IOP Attendance Reconciliation" } :
+    { label: "Prototype case", title: activeCase.patientToken.displayName };
 
   return (
     <div className="app-shell">
@@ -661,8 +685,8 @@ export function App() {
           <>
             <header className="topbar">
               <div>
-                <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isIopReconciliation ? "Synthetic operations review" : "Prototype case"}</span>
-                <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : isIopReconciliation ? "IOP Attendance Reconciliation" : activeCase.patientToken.displayName}</h2>
+                <span className="label">{surfaceHeading.label}</span>
+                <h2>{surfaceHeading.title}</h2>
               </div>
               <div className="topbar-badges">
                 {isMockAdmitLab ? (
@@ -680,17 +704,19 @@ export function App() {
                     <StatusBadge tone="danger">Synthetic only</StatusBadge>
                     <StatusBadge tone="warn">Review-gated</StatusBadge>
                   </>
-                ) : (
+                ) : isCaseScopedWorkspace ? (
                   <>
                     <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
                     <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
                     <StatusBadge tone="warn">Draft workflow</StatusBadge>
                   </>
+                ) : (
+                  <StatusBadge tone="neutral">Prototype data</StatusBadge>
                 )}
               </div>
             </header>
 
-            {!isMockAdmitLab && !isProductStudio && !isIopReconciliation && focusChips.length ? (
+            {isCaseScopedWorkspace && focusChips.length ? (
               <div className="focus-strip" aria-label="Role focus summary">
                 {focusChips.map((chip) => (
                   <div className="focus-chip" key={chip.label}>
