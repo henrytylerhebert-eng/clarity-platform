@@ -26,7 +26,8 @@
     "regulatory:fr": "tsx scripts/regulatory-corpus/cli.ts federal-register",
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:integration": "npm run test:ephemeral -- node node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts",
-    "verify": "npm run lint && npm run typecheck && npm run prisma:validate && npm run test:unit && npm run test:integration"
+    "verify": "npm run lint && npm run typecheck && npm run prisma:validate && npm run test:unit && npm run test:integration",
+    "test:crisis-e2e": "npx playwright test --config app/playwright.config.ts smoke/clarity-v01.spec.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
