@@ -251,8 +251,12 @@ describe("App smoke", () => {
     expect(await screen.findByRole("button", { name: "Open case" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Packet Ready Demo D" })).not.toBeInTheDocument();
 
-    // Leaving Access restores the demo case chrome.
+    // Aggregate Case Queue intentionally omits selected-case chrome; opening Case Overview restores it.
     await openWorkspace(user, "Cases", "Case Queue");
+    expect(screen.getByRole("heading", { name: "Case Queue" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Packet Ready Demo D" })).not.toBeInTheDocument();
+
+    await openWorkspace(user, "Cases", "Case Overview");
     expect(screen.getByRole("heading", { name: "Packet Ready Demo D" })).toBeInTheDocument();
   });
 });
