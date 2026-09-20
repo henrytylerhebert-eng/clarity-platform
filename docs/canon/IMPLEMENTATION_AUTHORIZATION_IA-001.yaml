@@ -1,0 +1,43 @@
+authorization_id: IA-001
+date: '2026-09-20'
+repo: henrytylerhebert-eng/clarity-platform
+main_sha: 43028c7acf2196c492ce81835753423814d0c03a
+status: PARTIAL_AUTHORIZATION_PRE_PERSISTENCE
+authorized:
+- canon_and_architecture_docs
+- typescript_contracts_without_persistence
+- pure_projection_functions
+- synthetic_day1_day39_fixture
+- semantic_acceptance_tests
+- tree5_ui_over_existing_governed_read_models
+- current_target_repo_wiring_analysis
+- read_only_projection_design
+conditional:
+- existing_read_model_extensions
+- read_only_longitudinal_query_api_after_vertical_slice_contract
+- ai_query_trace
+- ai_candidate_proposals
+- read_only_2d_explore
+held:
+- prisma_longitudinal_changes
+- database_migrations
+- persisted_discharge_plan
+- persisted_transition_barrier
+- persisted_care_transition
+- persisted_level_of_care_recommendation
+- persisted_clinical_discharge_readiness_decision
+- mutating_longitudinal_apis
+- discharge_recorded_command
+- governed_longitudinal_ui_mutations
+- ai_command_execution
+prohibited:
+- redefine_episode_as_longitudinal_parent
+- monolithic_continuity_entity
+- persist_pending_discharge
+- persist_master_transition_readiness
+- persist_longitudinal_care_journey_in_first_slice
+- universal_health_recovery_readiness_continuity_score
+- collapse_loc_authorities
+- ai_direct_canonical_clinical_truth
+next_gate: IA-002 Longitudinal Persistence Authorization
+next_required_artifact: Longitudinal Vertical Slice Contract v0.1

@@ -1,0 +1,129 @@
+register: Clarity Decision Register
+version: '0.1'
+scope: Longitudinal Semantic Reconciliation v0.2
+status: LOCKED
+schema_authorized: false
+decisions:
+- id: LSR-01
+  status: LOCKED
+  domain: longitudinal
+  title: Preserve current Episode meaning
+  decision: Preserve the current Episode as the admission-anchored inpatient Episode.
+  implementation_effect: Do not broaden Episode into the longitudinal parent container.
+- id: LSR-02
+  status: LOCKED
+  domain: longitudinal
+  title: Longitudinal Care Journey is projection-first
+  decision: LongitudinalCareJourney is a derived projection first.
+  implementation_effect: Do not add a durable parent aggregate unless later evidence
+    proves independent identity/lifecycle is required.
+- id: LSR-03
+  status: LOCKED
+  domain: longitudinal
+  title: DischargePlan is a target entity
+  decision: DischargePlan is a true target entity.
+  implementation_effect: Future persistence is semantically justified; schema remains
+    gated.
+- id: LSR-04
+  status: LOCKED
+  domain: longitudinal
+  title: TransitionBarrier is a target entity
+  decision: TransitionBarrier is a true target entity.
+  implementation_effect: Barrier identity, lifecycle, provenance, responsibility,
+    and resolution history are preserved.
+- id: LSR-05
+  status: LOCKED
+  domain: longitudinal
+  title: CareTransition is a target entity
+  decision: CareTransition is a true target entity; destination-attempt modeling remains
+    a pre-schema dependency.
+  implementation_effect: Do not implement the schema until destination-attempt semantics
+    are resolved.
+- id: LSR-06
+  status: LOCKED
+  domain: clinical_decision
+  title: Clinical LOC is append-only decision history
+  decision: Clinical level-of-care is represented by append-only LevelOfCareRecommendation
+    decisions.
+  implementation_effect: Do not use a single mutable master LevelOfCare field to represent
+    clinical recommendation.
+- id: LSR-07
+  status: LOCKED
+  domain: payer_authority
+  title: Payer LOC remains payer/UR truth
+  decision: Payer level-of-care decisions stay within payer / utilization-review authority.
+  implementation_effect: Do not collapse payer authorization into clinical recommendation.
+- id: LSR-08
+  status: LOCKED
+  domain: clinical_decision
+  title: Clinical discharge readiness is a human decision
+  decision: Clinical discharge readiness is an append-only qualified-human decision.
+  implementation_effect: Do not model readiness as a mutable boolean on Episode.
+- id: LSR-09
+  status: LOCKED
+  domain: derived_state
+  title: PendingDischarge is derived
+  decision: PendingDischarge is derived, not an EpisodeStatus.
+  implementation_effect: Derive from applicable readiness plus absence of actual discharge.
+- id: LSR-10
+  status: LOCKED
+  domain: derived_state
+  title: TransitionReadiness is derived
+  decision: TransitionReadiness is derived from independently governed components.
+  implementation_effect: No single readiness flag may silently substitute for clinical,
+    medication, destination, follow-up, transport, support, or handoff readiness.
+- id: LSR-11
+  status: LOCKED
+  domain: event
+  title: Actual discharge requires governed command/event
+  decision: Actual discharge requires a human-governed source command/event.
+  implementation_effect: Do not infer discharge from target date, payer end date,
+    vacancy, readiness, or transport activity.
+- id: LSR-12
+  status: LOCKED
+  domain: continuity
+  title: Continuity is events plus projections
+  decision: Continuity is a typed-event family plus derived projections.
+  implementation_effect: Do not create one monolithic Continuity entity or score.
+- id: LSR-13
+  status: LOCKED
+  domain: plan
+  title: Target discharge is plan/forecast only
+  decision: Expected/target discharge is a plan/forecast input only.
+  implementation_effect: Never treat planned discharge as actual discharge.
+- id: LSR-14
+  status: LOCKED
+  domain: preference
+  title: Patient preference remains separate
+  decision: Patient preference remains separate from clinical, payer, legal, and actual-care
+    truth.
+  implementation_effect: Preference may influence decisions where applicable but does
+    not become another authority's decision.
+- id: LSR-15
+  status: LOCKED
+  domain: no_collapse
+  title: No universal score
+  decision: No universal health, recovery, readiness, or continuity score.
+  implementation_effect: Maintain independent longitudinal dimensions and profiles.
+- id: LSR-16
+  status: LOCKED
+  domain: relationship_semantics
+  title: Relationships carry governance
+  decision: Relationships inherit provenance, timing, and authorization requirements.
+  implementation_effect: Graph edges/relationships must not be treated as context-free
+    links.
+- id: LSR-17
+  status: LOCKED
+  domain: epistemic_safety
+  title: Missing continuity data remains unknown
+  decision: Absence of continuity data means unknown/no observation unless source
+    completeness proves otherwise.
+  implementation_effect: No observed event must not be presented as proof that the
+    event did not occur.
+- id: LSR-18
+  status: LOCKED
+  domain: causal_safety
+  title: No causal blame from chronology
+  decision: Clarity does not infer causal blame from chronology, barrier location,
+    or waiting state.
+  implementation_effect: Operational waiting state and causal attribution remain distinct.
