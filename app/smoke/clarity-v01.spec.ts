@@ -66,19 +66,15 @@ test('packet-ready case shows review gates and accepts mock routing updates', as
   await expect(page.getByRole('cell', { name: 'Request more info' })).toBeVisible();
 });
 
-test('command center shows lanes, clocks, and an escalated delay', async ({ page }) => {
+test('command center shows lanes, clocks, and an escalated delay without product-planning content', async ({ page }) => {
   await openWorkspace(page, 'Home', 'Command Center');
-  await expect(page.getByRole('heading', { name: 'Central Intake Command Center' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Intake overview' })).toBeVisible();
   await expect(page.getByText('Insurance verification (parallel lane)')).toBeVisible();
   await expect(page.getByText('Breached').first()).toBeVisible();
   await expect(page.getByText('Escalated')).toBeVisible();
   await expect(page.getByText('below 95% target').first()).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'POC Feature Map' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Product Roadmap Feedback Board' })).toBeVisible();
-  await expect(page.getByText('What it does:').first()).toBeVisible();
-  await expect(page.getByText('Problem solved:').first()).toBeVisible();
-  await expect(page.getByText('Correlated workflow:').first()).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'MVP 0.3' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'POC Feature Map' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Product Roadmap Feedback Board' })).toHaveCount(0);
 });
 
 test('bedboard flags the risky recommendation and requires an override reason', async ({ page }) => {
