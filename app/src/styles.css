@@ -1667,3 +1667,35 @@ textarea {
 .clarity-shell-identity small { display: block; color: #8ca0a8; }
 .clarity-shell-signout, .clarity-shell-signed-out { background: none; border: none; color: inherit; font: inherit; }
 .clarity-shell-signout { cursor: pointer; text-decoration: underline; padding: 0; }
+
+
+/* Shared platform bar stays usable above the stacked Crisis Ops shell on narrow screens. */
+@media (max-width: 720px) {
+  .clarity-shell-bar {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 9px 12px;
+  }
+
+  .clarity-shell-areas {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .clarity-shell-area {
+    flex: 0 0 auto;
+  }
+
+  .clarity-shell-identity {
+    margin-left: auto;
+    max-width: 62%;
+  }
+
+  .clarity-shell-identity span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
