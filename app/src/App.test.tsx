@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { CrisisOpsRoute } from "./App";
@@ -178,5 +178,37 @@ describe("App smoke", () => {
     expect(signedInNotice).toHaveTextContent("Synthetic Physician Reviewer");
     expect(screen.queryByLabelText("Development assertion")).not.toBeInTheDocument();
     expect(apiLogin).toHaveBeenCalledOnce();
+  });
+
+  it("removes the local demo patient identity from the parent shell while Access Snapshot is active", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click((await screen.findAllByRole("button", { name: /Packet Ready Demo D/i }))[0]!);
+    expect(screen.getByRole("heading", { name: "Packet Ready Demo D" })).toBeInTheDocument();
+    expect(screen.getByText("Selected case")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByRole("combobox"), "central");
+    await user.click(screen.getByRole("button", { name: "Access Snapshot" }));
+
+    // The workspace title is stable whether or not a session exists.
+    expect(await screen.findByRole("heading", { name: "Access Snapshot" })).toBeInTheDocument();
+
+    // The demo case chrome is absent from the DOM, not merely hidden.
+    expect(screen.queryByRole("heading", { name: "Packet Ready Demo D" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Selected case")).not.toBeInTheDocument();
+
+    // Signed out: the shared sign-in form is offered and no case can be requested.
+    expect(screen.queryByRole("button", { name: "Open case" })).not.toBeInTheDocument();
+    // Scoped to the workspace: the app shell has its own sign-in control.
+    await user.click(within(screen.getByRole("main")).getByRole("button", { name: "Sign in" }));
+
+    // Signed in: the governed lookup appears and the demo identity is still absent.
+    expect(await screen.findByRole("button", { name: "Open case" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Packet Ready Demo D" })).not.toBeInTheDocument();
+
+    // Leaving Access restores the demo case chrome.
+    await user.click(screen.getByRole("button", { name: /Case Queue/i }));
+    expect(screen.getByRole("heading", { name: "Packet Ready Demo D" })).toBeInTheDocument();
   });
 });

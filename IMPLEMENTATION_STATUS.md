@@ -67,12 +67,14 @@ dependency. `packages/api-service/src/assuranceDevFixture.ts` carries a single *
 | IOP | PARTIAL / BLOCKED | `iop_reconciliation_persistence` and `20260917000100_iop_program_binding` both applied to the rebuilt `clarity_dev` (Phase 3B Gate B); source-adapter and access gates open (PR #100) |
 | Liaison / referral-development training | NOT IMPLEMENTED | Absent from every ref; "liaison" appears once, incidentally, in `docs/09-personas-and-role-ux.md` |
 | Freedom Behavioral roles / workflows | NOT IMPLEMENTED | Absent from every ref; the name appears only as facility names in `data/public-rates/la-inpatient-2026.json` |
-| Clarity Access refactor | ACTIVE | Slice 4B merged. ADR-0024 accepted. Slice 4A.1 merged. Access read API implemented. Journey/Guidance derived, not persisted. Access UI not yet implemented. WorkItem not implemented. cross-org Access not implemented. OD-22 / OD-24 open. |
+| Clarity Access refactor | ACTIVE | Slice 4B merged. ADR-0024 accepted. Slice 4A.1 merged. Access read API implemented. Journey/Guidance derived, not persisted. Access Snapshot UI (PR #127; a read-only view of the read model, no patient identity, nothing assigned) is implemented in `app/src/features/access-snapshot/`; its dated verification evidence is under "Test evidence" above and its gaps are in [docs/testing/ACCESS_SNAPSHOT_UI_TEST_MANIFEST.md](docs/testing/ACCESS_SNAPSHOT_UI_TEST_MANIFEST.md). WorkItem not implemented. cross-org Access not implemented. OD-22 / OD-24 open. |
 
 **Test evidence:** the Phase 1/2B updates ran no tests. Phase 3B Gate B (2026-09-18, at
 `f9c4eb8`) ran lint, typecheck, `prisma validate`, unit (47 files / 504 tests) and four
 ephemeral integration runs (32 files / 276 tests each). Those are dated evidence, not a standing
 claim. Every count in "Verification history" below is **HISTORICAL**.
+
+**Access Snapshot UI evidence (2026-09-19, branch off `c00dabd`; dated, not a standing claim):** `npm run verify` exit 0 (unit 51 files / 565 tests; integration on a throwaway database 34 files / 295 tests); `npm run test:app` exit 0 (25 files / 215 tests); app build exit 0. Playwright smoke specs were not run. Gaps are listed in the UI test manifest.
 
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
@@ -837,10 +839,7 @@ proved isolation, and resolved issues #24 and #31. Local `codex/om/sync-main` is
 exact tip is preserved on `origin/recovery/machine-only/2026-09-17/codex/om/sync-main`,
 `origin/codex/om/sync-main` is untouched, and `recovery/machine-only/*` is never deleted.
 
-**Current action (updated 2026-09-19): review and merge the ACCESS SLICE 4B PR** (pure, derived
-Guidance Projection; implemented on branch, test manifest
-[docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md](docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md)),
-Access Slice 4A.1 (Case Read Model API) is now fully implemented and merged on `main`. OD-22 and OD-24 remain open. WorkItem persistence, Access UI and Guided Intake convergence remain unauthorized.
+**Current action (updated 2026-09-19, with the Access Snapshot UI): no Access step is queued; the next one is whatever the owner directs** (project `CLAUDE.md`: proceed "as directed by the user"). Access Slice 4B (pure Guidance Projection; manifest [docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md](docs/testing/ACCESS_GUIDANCE_TEST_MANIFEST.md)), Slice 4A.1 (Case Read Model API) and the read-only Access Snapshot UI (PR #127; manifest [docs/testing/ACCESS_SNAPSHOT_UI_TEST_MANIFEST.md](docs/testing/ACCESS_SNAPSHOT_UI_TEST_MANIFEST.md)) are on `main`. OD-22 and OD-24 remain open. WorkItem persistence and Guided Intake convergence remain unauthorized, and so does any Access UI beyond this snapshot.
 
 #### Phase 3 plan as written after Phase 2B — HISTORICAL (now executed)
 
