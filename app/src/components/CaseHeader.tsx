@@ -1,11 +1,10 @@
-import { StatusBadge } from "./StatusBadge";
-import type { BadgeTone } from "../features/access-snapshot/accessPresentation";
+import { StatusBadge, type StatusBadgeTone } from "./StatusBadge";
 
 export interface CaseHeaderProps {
   readonly caseKey: string;
   readonly phase: string;
   readonly disposition: string;
-  readonly dispositionTone: BadgeTone;
+  readonly dispositionTone: StatusBadgeTone;
   readonly version: number;
   readonly loading: boolean;
   readonly onRefresh: () => void;
