@@ -47,6 +47,7 @@ export function AccessSnapshot() {
 
   return (
     <div className="access-snapshot">
+      <h2 className="visually-hidden">Case status</h2>
       {principal ? (
         <p className="snapshot-session">Verified session · {principal.displayName} · {principal.organizationId}</p>
       ) : null}
@@ -174,7 +175,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
 
   return (
     <div className="snapshot-content">
-      <section className="journey-rail" aria-labelledby="journey-heading">
+      <section className="journey-rail" aria-label="Current journey position">
         <h3 id="journey-heading">Journey</h3>
 
         <ol className="phases-visual-rail" aria-label="Journey phases">
@@ -230,7 +231,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
 
         </section>
 
-        <section className="candidate-work" aria-labelledby="next-work-heading">
+        <section className="candidate-work" aria-label="Candidate next work">
           <h3 id="next-work-heading">Suggested next steps</h3>
           {guidance.nextWork.length === 0 ? (
             <EmptyState title="No suggested next steps">There are no suggested next steps from the recorded statuses.</EmptyState>
@@ -267,7 +268,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
           ) : null}
         </section>
 
-        <section className="workstreams-panel" aria-labelledby="workstreams-heading">
+        <section className="workstreams-panel" aria-label="Workstreams">
           <h3 id="workstreams-heading">Parallel lanes</h3>
           <p className="help-text">A blocked lane does not necessarily mean the patient journey is blocked.</p>
           <div className="workstream-list">
@@ -282,7 +283,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
           </div>
         </section>
 
-        <section className="prescreen-source" aria-labelledby="prescreen-heading">
+        <section className="prescreen-source" aria-label="Prescreen source state">
           <h3 id="prescreen-heading">Intake &amp; packet status</h3>
           <div className="prescreen-selection">
             {sourceState.prescreenSelection === "NONE" ? (
