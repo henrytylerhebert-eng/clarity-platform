@@ -4,6 +4,15 @@ import { apiAccessGetCase, describeApiError } from "../../domain/api";
 import type { AccessCaseReadModel } from "@clarity/domain-contracts";
 import { EmptyState, StatusBadge } from "../../components/StatusBadge";
 import { SignInForm } from "../../components/SignInForm";
+import { 
+  phaseLabel, 
+  dispositionLabel, 
+  blockingClassLabel, 
+  workstreamLabel, 
+  nextWorkLabel, 
+  prescreenTargetLabel, 
+  describeAccessSignal 
+} from "./accessPresentation";
 import "./AccessSnapshot.css";
 
 const ALL_PHASES = [
@@ -14,7 +23,7 @@ const ALL_PHASES = [
   "PRE_ADMISSION",
   "TRANSFER_HANDOFF",
   "ADMISSION"
-];
+] as const;
 
 export function AccessSnapshot() {
   const { busy, principal } = useAuth();
@@ -28,7 +37,19 @@ export function AccessSnapshot() {
       <div className="access-snapshot signed-out">
         <h2>Authentication Required</h2>
         <p>You must be signed in to access the governed Access read model.</p>
-        <SignInForm placeholder="Enter access role ID (e.g. admin-123)" />
+        <SignInForm 
+          placeholder="Development assertion" 
+          defaultValue="syn-assert-api-intake-dev" 
+          helpText="Development-only synthetic assertion." 
+        />
+      </div>
+    );
+  }
+
+  if (busy && !principal) {
+    return (
+      <div className="access-snapshot signing-in">
+        <p>Signing in…</p>
       </div>
     );
   }
@@ -38,43 +59,24 @@ export function AccessSnapshot() {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiAccessGetCase(caseKey);
-      setSnapshot(data);
-    } catch (err: any) {
-      if (err.status === 403) {
-        setError("Your verified role does not have access to this case view.");
-      } else if (err.status === 404) {
-        setError("This case is not available to your organization.");
-      } else if (err.status === 500) {
-        setError("The case could not be loaded.");
-      } else {
-        setError(describeApiError(err));
-      }
+      const result = await apiAccessGetCase(caseKey);
+      setSnapshot(result);
+    } catch (e) {
+      setError(describeApiError(e));
       setSnapshot(null);
     } finally {
       setLoading(false);
     }
   }
 
-  const handleRefresh = () => {
-    loadCase();
-  };
-
-  
-
-
   return (
     <div className="access-snapshot">
       <header className="snapshot-header">
         <div className="header-info">
           <h2>Access Snapshot</h2>
-          {snapshot && (
-            <>
-              <span className="case-id">Case {snapshot.caseKey}</span>
-              <span className="case-version">Version {snapshot.caseVersion}</span>
-            </>
-          )}
-          <StatusBadge tone="info">Governed read model</StatusBadge>
+          {snapshot && <span className="case-id">Case {snapshot.caseKey}</span>}
+          {snapshot && <span className="case-version">Version {snapshot.caseVersion}</span>}
+          <span className="badge badge-info">Governed read model</span>
         </div>
         <div className="session-info">
           Verified session {principal?.displayName} ({principal?.organizationId})
@@ -83,10 +85,10 @@ export function AccessSnapshot() {
 
       <div className="lookup-bar">
         <label htmlFor="case-key-lookup">Case key</label>
-        <input
-          id="case-key-lookup"
-          type="text"
-          value={caseKey}
+        <input 
+          id="case-key-lookup" 
+          type="text" 
+          value={caseKey} 
           onChange={(e) => setCaseKey(e.target.value)}
           placeholder="Enter case key..."
         />
@@ -95,57 +97,51 @@ export function AccessSnapshot() {
         </button>
         {snapshot && (
           <div className="refresh-actions">
-            <button onClick={handleRefresh} disabled={loading}>Refresh case</button>
+            <button onClick={loadCase} disabled={loading}>Refresh case</button>
             <span className="refresh-help">This view is refreshed on request; case-detail access is audited.</span>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="error-banner">
-          {error}
+        <div className="snapshot-error">
+          <h3>Failed to load governed case</h3>
+          <p>{error}</p>
         </div>
       )}
 
-      {snapshot && !error && (
+      {snapshot && (
         <div className="snapshot-content">
-
           <section className="journey-rail">
             <h3>Current journey position</h3>
             
-            <div className="phases-visual-rail" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-              {ALL_PHASES.map((p, idx) => {
-                const currentIdx = snapshot.journey.phase ? ALL_PHASES.indexOf(snapshot.journey.phase) : -1;
-                const isActive = p === snapshot.journey.phase;
-                const isPast = currentIdx !== -1 && idx < currentIdx;
+            <div className="phases-visual-rail">
+              {ALL_PHASES.map((p) => {
+                const currentIdx = snapshot.journey.phase ? ALL_PHASES.indexOf(snapshot.journey.phase as any) : -1;
+                const thisIdx = ALL_PHASES.indexOf(p);
+                const isActive = thisIdx === currentIdx;
+                const isPast = thisIdx < currentIdx && currentIdx !== -1;
                 
                 return (
-                  <div key={p} style={{ 
-                    padding: '0.5rem', 
-                    border: '1px solid #ccc', 
-                    borderRadius: '4px',
-                    backgroundColor: isActive ? '#0f172a' : (isPast ? '#e2e8f0' : '#fff'),
-                    color: isActive ? '#fff' : '#000'
-                  }}>
-                    {p.replace(/_/g, " ")}
+                  <div key={p} className={`phase-node ${isActive ? 'active' : ''} ${isPast ? 'preceding' : ''}`}>
+                    {phaseLabel(p)}
                   </div>
                 );
               })}
             </div>
 
             {snapshot.journey.phase ? (
-
               <div className="phase-display">
-                <span className="phase-label">{snapshot.journey.phase}</span>
+                <span className="phase-label">{phaseLabel(snapshot.journey.phase)}</span>
                 <span className={`disposition-badge disp-${snapshot.journey.disposition}`}>
-                  {snapshot.journey.disposition.replace("_", " ")}
+                  {dispositionLabel(snapshot.journey.disposition)}
                 </span>
                 <details className="evidence-explanation">
                   <summary>Why this phase?</summary>
                   <ul>
                     {snapshot.journey.evidence.map((ev, i) => (
                       <li key={i}>
-                        <strong>{ev.source}:</strong> {ev.sourceValue} &rarr; {ev.supportsPhase}
+                        <strong>{ev.source}:</strong> {ev.sourceValue} &rarr; {phaseLabel(ev.supportsPhase)}
                         {ev.legacyCompatibility ? " (legacy compatibility)" : ""}
                       </li>
                     ))}
@@ -169,30 +165,25 @@ export function AccessSnapshot() {
                 <EmptyState title="All clear">No attention signals found.</EmptyState>
               ) : (
                 <div className="signals-grouped">
-                  {["CASE_PROGRESSION", "PRESCREEN", "PRESCREEN_TARGET", "WORKSTREAM"].map((scope) => {
-                    const scopeSignals = snapshot.guidance.signals.filter(s => s.scope === scope);
+                  {[
+                    { id: "CASE_PROGRESSION", label: "Case progression" },
+                    { id: "PRESCREEN", label: "Prescreen" },
+                    { id: "PRESCREEN_TARGET", label: "Packet readiness" },
+                    { id: "WORKSTREAM", label: "Workstreams" }
+                  ].map((scope) => {
+                    const scopeSignals = snapshot.guidance.signals.filter(s => s.scope === scope.id);
                     if (scopeSignals.length === 0) return null;
                     
-
-
-  return (
-                      <div key={scope} className="signal-group">
-                        <h4>{scope.replace("_", " ")}</h4>
+                    return (
+                      <div key={scope.id} className="signal-group">
+                        <h4>{scope.label}</h4>
                         <ul>
                           {scopeSignals.map((sig, i) => {
-                            const label = 
-                              sig.blockingClass === "HARD_BLOCKER" ? "Blocked" :
-                              sig.blockingClass === "REVIEW_GATE" ? "Review needed" :
-                              sig.blockingClass === "EXTERNAL_WAIT" ? "Waiting externally" :
-                              sig.blockingClass === "WARNING" ? "Attention" :
-                              sig.blockingClass === "SATISFIED" ? "Satisfied" : "Not applicable";
-                            
-
-
-  return (
+                            const label = blockingClassLabel(sig.blockingClass);
+                            return (
                               <li key={i}>
                                 <StatusBadge tone={sig.blockingClass === "HARD_BLOCKER" ? "danger" : "warn"}>{label}</StatusBadge>
-                                <span className="signal-reason">{sig.source.kind}: {sig.source.value}</span>
+                                <span className="signal-reason">{describeAccessSignal(sig)}</span>
                               </li>
                             );
                           })}
@@ -213,10 +204,9 @@ export function AccessSnapshot() {
                   {snapshot.guidance.nextWork.map((work, i) => (
                     <li key={i} className="work-item">
                       <span className="work-label">
-                        {work.kind.replace(/_/g, " ")}
+                        {nextWorkLabel(work.kind)}
                       </span>
                       <span className="candidate-badge">Candidate / Not assigned</span>
-                      <p>Candidate ID: {work.candidateId}</p>
                     </li>
                   ))}
                 </ul>
@@ -228,7 +218,7 @@ export function AccessSnapshot() {
                   <ul>
                     {snapshot.guidance.suppressed.map((sup, i) => (
                       <li key={i}>
-                        {sup.kind.replace(/_/g, " ")} (Reason: {sup.reason})
+                        {nextWorkLabel(sup.kind)} (Reason: {sup.reason})
                       </li>
                     ))}
                   </ul>
@@ -242,7 +232,7 @@ export function AccessSnapshot() {
               <div className="workstream-list">
                 {Object.entries(snapshot.sourceState.workstreams).map(([key, state]) => (
                   <div key={key} className="workstream-row">
-                    <span className="ws-name">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                    <span className="ws-name">{workstreamLabel(key as any) || key}</span>
                     <StatusBadge tone={state === "BLOCKED" ? "danger" : state === "COMPLETE" ? "good" : "info"}>
                       {state.replace("_", " ")}
                     </StatusBadge>
@@ -285,7 +275,7 @@ export function AccessSnapshot() {
                   <div className="packet-readiness">
                     {snapshot.guidance.packetReadiness?.map((target, i) => (
                       <div key={i}>
-                        Target: {target.target} - {target.ready ? "Ready" : "Not ready"}
+                        Target: {prescreenTargetLabel(target.target)} - {target.ready ? "Ready" : "Not ready"}
                       </div>
                     ))}
                   </div>

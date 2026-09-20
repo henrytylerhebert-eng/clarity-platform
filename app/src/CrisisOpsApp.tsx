@@ -631,7 +631,9 @@ export function App() {
       </aside>
 
       <main className="main-surface">
-        <header className="topbar">
+        {workspace !== "access" && (
+          <>
+            <header className="topbar">
           <div>
             <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isIopReconciliation ? "Synthetic operations review" : "Selected case"}</span>
             <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : isIopReconciliation ? "IOP Attendance Reconciliation" : activeCase.patientToken.displayName}</h2>
@@ -672,6 +674,8 @@ export function App() {
             ))}
           </div>
         ) : null}
+          </>
+        )}
 
         <section className="content-region">
           {workspace === "queue" ? <CaseQueue state={state} selectedCaseId={activeCase.id} onSelect={(id) => { setSelectedCaseId(id); setWorkspace("overview"); }} /> : null}

@@ -1,16 +1,20 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AccessSnapshot } from "./AccessSnapshot";
-import * as api from "../../domain/api";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import * as auth from "../../domain/AuthContext";
+import * as api from "../../domain/api";
+import { AccessSnapshot } from "./AccessSnapshot";
 
 vi.mock("../../domain/api", () => ({
   apiAccessGetCase: vi.fn(),
-  describeApiError: vi.fn().mockReturnValue("Mock error message"),
-  ApiError: class ApiError extends Error {
+  ApiError: class extends Error {
     constructor(public status: number, public code: string) {
       super(code);
     }
+  },
+  describeApiError: (err: any) => {
+    if (err.status === 403) return "Your verified role does not have access to this case view.";
+    if (err.status === 404) return "This case is not available to your organization.";
+    return "Error";
   }
 }));
 
@@ -29,7 +33,7 @@ const mockCase = {
   guidance: {
     signals: [
       { scope: "CASE_PROGRESSION", blockingClass: "HARD_BLOCKER", source: { kind: "CASE_STATUS", value: "Wait" } },
-      { scope: "WORKSTREAM", blockingClass: "WARNING", source: { kind: "WORKSTREAM_STATUS", value: "Warn" } }
+      { scope: "WORKSTREAM", blockingClass: "WARNING", workstream: "clinical", source: { kind: "WORKSTREAM_STATUS", value: "Warn" } }
     ],
     nextWork: [
       { kind: "RESOLVE_CASE_INFORMATION", candidateId: "Need info" }
@@ -52,10 +56,19 @@ describe("AccessSnapshot", () => {
     vi.resetAllMocks();
   });
 
-  it("proves signed-out state", () => {
+  it("proves signed-out state presents a dev assertion", () => {
     vi.mocked(auth.useAuth).mockReturnValue({ busy: false, principal: null } as any);
     render(<AccessSnapshot />);
     expect(screen.getByText(/You must be signed in/)).toBeInTheDocument();
+    // Test that the form correctly presents dev sign-in helper
+    expect(screen.getByPlaceholderText("Development assertion")).toBeInTheDocument();
+    expect(screen.getByText("Development-only synthetic assertion.")).toBeInTheDocument();
+  });
+
+  it("proves loading state while signed in", () => {
+    vi.mocked(auth.useAuth).mockReturnValue({ busy: true, principal: null } as any);
+    render(<AccessSnapshot />);
+    expect(screen.getByText("Signing in…")).toBeInTheDocument();
   });
 
   it("proves verified case load and no patient identity fields rendered", async () => {
@@ -71,21 +84,30 @@ describe("AccessSnapshot", () => {
     
     const html = document.body.innerHTML.toLowerCase();
     expect(screen.queryByText(/dob|date of birth|patient name/i)).not.toBeInTheDocument();
-    
-    
     expect(html).not.toContain("patienttoken");
+    expect(html).not.toContain("candidate id");
   });
 
-  it("proves Journey phase rendering and each disposition", async () => {
-    vi.mocked(auth.useAuth).mockReturnValue({ busy: false, principal: {} } as any);
-    vi.mocked(api.apiAccessGetCase).mockResolvedValue({
-      ...mockCase,
-      journey: { phase: "PRESCREEN", disposition: "BLOCKED", evidence: [] }
-    } as any);
-    render(<AccessSnapshot />);
-    fireEvent.click(screen.getByText("Open case"));
-    await waitFor(() => expect(screen.getAllByText("BLOCKED").length).toBeGreaterThan(0));
-    expect(screen.getAllByText("PRESCREEN").length).toBeGreaterThan(0);
+  const dispositions = [
+    { raw: "ON_TRACK", label: "On track" },
+    { raw: "BLOCKED", label: "Blocked" },
+    { raw: "DIVERTED", label: "Diverted" },
+    { raw: "EXCEPTION", label: "Exception" },
+    { raw: "CLOSED", label: "Closed" }
+  ];
+
+  dispositions.forEach(disp => {
+    it(`proves Journey phase rendering and disposition ${disp.raw}`, async () => {
+      vi.mocked(auth.useAuth).mockReturnValue({ busy: false, principal: {} } as any);
+      vi.mocked(api.apiAccessGetCase).mockResolvedValue({
+        ...mockCase,
+        journey: { phase: "PRESCREEN", disposition: disp.raw, evidence: [] }
+      } as any);
+      render(<AccessSnapshot />);
+      fireEvent.click(screen.getByText("Open case"));
+      await waitFor(() => expect(screen.getAllByText(disp.label).length).toBeGreaterThan(0));
+      expect(screen.getAllByText("Prescreen").length).toBeGreaterThan(0);
+    });
   });
 
   it("proves null phase state", async () => {
@@ -99,14 +121,34 @@ describe("AccessSnapshot", () => {
     await waitFor(() => expect(screen.getByText("Current phase cannot be determined from available governed evidence.")).toBeInTheDocument());
   });
 
-  it("proves scope separation for signals", async () => {
+  it("proves scope separation for signals and that signals are human-readable", async () => {
     vi.mocked(auth.useAuth).mockReturnValue({ busy: false, principal: {} } as any);
-    vi.mocked(api.apiAccessGetCase).mockResolvedValue(mockCase as any);
+    vi.mocked(api.apiAccessGetCase).mockResolvedValue({
+      ...mockCase,
+      guidance: {
+        ...mockCase.guidance,
+        signals: [
+          { scope: "CASE_PROGRESSION", blockingClass: "HARD_BLOCKER", source: { kind: "CASE_STATUS", value: "Case information incomplete" } },
+          { scope: "WORKSTREAM", blockingClass: "HARD_BLOCKER", workstream: "benefits", source: { kind: "WORKSTREAM_STATUS", value: "Wait" } },
+          { scope: "WORKSTREAM", blockingClass: "REVIEW_GATE", workstream: "clinical", source: { kind: "WORKSTREAM_STATUS", value: "Wait" } },
+          { scope: "PRESCREEN_TARGET", blockingClass: "HARD_BLOCKER", target: "FACILITY_ROUTING", source: { kind: "PACKET_REQUIREMENT", requirementCode: "Psychiatric evaluation" } },
+          { scope: "PRESCREEN_TARGET", blockingClass: "HARD_BLOCKER", target: "MEDICAL_CLEARANCE", source: { kind: "PACKET_REQUIREMENT", requirementCode: "Labs" } }
+        ]
+      }
+    } as any);
     render(<AccessSnapshot />);
     fireEvent.click(screen.getByText("Open case"));
     await waitFor(() => {
-      expect(screen.getByText("CASE PROGRESSION")).toBeInTheDocument();
-      expect(screen.getByText("WORKSTREAM")).toBeInTheDocument();
+      expect(screen.getByText("Case progression")).toBeInTheDocument();
+      expect(screen.getByText("Workstreams")).toBeInTheDocument();
+      expect(screen.getByText("Packet readiness")).toBeInTheDocument();
+      
+      // Test signal format 
+      expect(screen.getByText("Case information incomplete")).toBeInTheDocument();
+      expect(screen.getByText("Benefits — Blocked")).toBeInTheDocument();
+      expect(screen.getByText("Clinical — Review needed")).toBeInTheDocument();
+      expect(screen.getByText("Facility Routing · Psychiatric evaluation — Blocked")).toBeInTheDocument();
+      expect(screen.getByText("Medical Clearance · Labs — Blocked")).toBeInTheDocument();
     });
   });
 
@@ -116,7 +158,7 @@ describe("AccessSnapshot", () => {
     render(<AccessSnapshot />);
     fireEvent.click(screen.getByText("Open case"));
     await waitFor(() => {
-      expect(screen.getByText("ON TRACK")).toBeInTheDocument();
+      expect(screen.getByText("On track")).toBeInTheDocument(); // because journey is ON_TRACK
     });
   });
 
@@ -127,6 +169,7 @@ describe("AccessSnapshot", () => {
     fireEvent.click(screen.getByText("Open case"));
     await waitFor(() => {
       expect(screen.getByText("Candidate / Not assigned")).toBeInTheDocument();
+      expect(screen.getByText("Resolve case information")).toBeInTheDocument();
     });
   });
 
@@ -166,10 +209,10 @@ describe("AccessSnapshot", () => {
     // LOADED
     vi.mocked(api.apiAccessGetCase).mockResolvedValueOnce({
       ...mockCase, sourceState: { ...mockCase.sourceState, packetRequirementEvidence: "LOADED" },
-      guidance: { ...mockCase.guidance, packetReadiness: [{ target: "T1", ready: true, blockers: [], warnings: [] }] }
+      guidance: { ...mockCase.guidance, packetReadiness: [{ target: "TARGET_ONE", ready: true, blockers: [], warnings: [] }] }
     } as any);
     fireEvent.click(screen.getByText("Refresh case"));
-    await waitFor(() => expect(screen.getByText("Target: T1 - Ready")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Target: Target One - Ready")).toBeInTheDocument());
   });
 
   it("proves 403 state", async () => {

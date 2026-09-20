@@ -176,3 +176,29 @@
   padding: 1rem;
   border-radius: 4px;
 }
+
+/* Journey Rail Styles */
+.phases-visual-rail {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.phase-node {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #000;
+}
+
+.phase-node.active {
+  background-color: #0f172a;
+  color: #fff;
+}
+
+.phase-node.preceding {
+  background-color: #e2e8f0;
+  color: #000;
+}

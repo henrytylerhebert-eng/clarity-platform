@@ -180,3 +180,34 @@ describe("App smoke", () => {
     expect(apiLogin).toHaveBeenCalledOnce();
   });
 });
+
+  it("proves actual parent-workspace boundary isolating local demo patient identity when Access Snapshot is active", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    
+    // Select the first case (Packet Ready Demo D)
+    const firstCaseButton = (await screen.findAllByRole("button", { name: /Packet Ready Demo D/i }))[0];
+    await user.click(firstCaseButton);
+    
+    // Ensure demo identity is visible in normal workspaces
+    expect(screen.getByRole("heading", { name: "Packet Ready Demo D" })).toBeInTheDocument();
+    
+    // Select central demo role to make Access Snapshot visible
+    await user.selectOptions(screen.getByRole("combobox"), "central");
+    
+    // Navigate to Access Snapshot
+    await user.click(screen.getByRole("button", { name: "Access Snapshot" }));
+    
+    // Wait for the Access Snapshot to be visible
+    expect(await screen.findByRole("heading", { name: "Access Snapshot" })).toBeInTheDocument();
+    
+    // Verify the isolation: the demo case header and chips must be completely gone
+    expect(screen.queryByRole("heading", { name: "Packet Ready Demo D" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Selected case")).not.toBeInTheDocument();
+    
+    // The Access Snapshot does its own rendering from governed API.
+    // Ensure we can sign in and open a governed case.
+    await user.type(screen.getByLabelText("Development assertion"), "syn-assert-api-intake-dev");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(await screen.findByRole("button", { name: "Sign out" })).toBeInTheDocument();
+  });
