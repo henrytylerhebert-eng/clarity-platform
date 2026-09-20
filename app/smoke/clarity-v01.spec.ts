@@ -121,7 +121,7 @@ test('role switching scopes grouped navigation to each stakeholder segment', asy
   await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveCount(0);
 
   await selectPersona(page, 'central');
-  await expect(page.getByRole('heading', { name: 'Central Intake Command Center' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Intake overview' })).toBeVisible();
 
   await selectPersona(page, 'all');
   await openWorkspace(page, 'Intake', 'Guided Intake');
@@ -143,16 +143,11 @@ test('training workspace shows SOP onboarding for every role', async ({ page }) 
   await expect(page.getByText('Counsel validation required').first()).toBeVisible();
 });
 
-test('personas get adapted focus strips and field mode simplifies intake', async ({ page }) => {
+test('aggregate surfaces omit selected-case focus and field mode simplifies intake', async ({ page }) => {
   await selectPersona(page, 'central');
-  await expect(page.getByText('Breached clocks')).toBeVisible();
-  await expect(page.getByText('Packets below 95%')).toBeVisible();
-
-  await selectPersona(page, 'nurse');
-  await expect(page.getByText('Units over acuity ceiling')).toBeVisible();
-
-  await selectPersona(page, 'executive');
-  await expect(page.getByText('No measurements found').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Intake overview' })).toBeVisible();
+  await expect(page.getByText('Breached clocks')).toHaveCount(0);
+  await expect(page.getByText('Packets below 95%')).toHaveCount(0);
 
   await selectPersona(page, 'field');
   await expect(page.getByRole('heading', { name: 'New Case' })).toBeVisible();
