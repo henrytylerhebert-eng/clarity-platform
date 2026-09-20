@@ -56,8 +56,9 @@ Filename convention: `docs/architecture/ADR-NNNN-kebab-case-title.md`.
 | 0022 | Accepted | 2026-09-13 | Provider swap — Supabase Postgres replaces Cloud SQL for OD-6 | `main` |
 | 0023 | Accepted | 2026-09-19 | Adopt Explicit State Machine and Neutral Review Span (Option B2) | `main` |
 | 0024 | Accepted | 2026-09-19 | Expose Access Case Read Model with Explicit Read Authorization and Detail-Read Auditing | `main` |
+| 0025 | Accepted | 2026-09-20 | Adopt the Clarity Canon package as the governing semantic base, and IA-001 as the implementation gate | `main` |
 
-**Next safe number: `ADR-0025`.** Not yet created.
+**Next safe number: `ADR-0026`.** Not yet created.
 
 ## Notes on the two reconciled numbers
 

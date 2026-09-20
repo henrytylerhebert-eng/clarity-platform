@@ -21,6 +21,30 @@ Build sequence (agreed): case repository → case command service → documents 
 4. **Not claimed, ever:** production readiness, HIPAA compliance, malware protection, working external integrations, or approved clinical/legal rules. Final reports carry an honesty statement listing what is NOT claimed.
 5. Migrations: smallest possible, applied to local `clarity_dev` only, justified in an ADR.
 
+## Semantic canon and the implementation gate (read before longitudinal work)
+
+`docs/canon/` is the governing semantic base — start at [docs/canon/README.md](docs/canon/README.md)
+(adopted by ADR-0025). Two things in it control what you may build:
+
+- **[IMPLEMENTATION_AUTHORIZATION_IA-001.md](docs/canon/IMPLEMENTATION_AUTHORIZATION_IA-001.md) is the gate.**
+  Authorized now: canon/docs work, contract-only types, pure deterministic projections, synthetic
+  fixtures, semantic acceptance tests, Tree 5 UX over *existing governed read models*, read-only
+  design work. **Held until IA-002 is issued:** Prisma changes, migrations, longitudinal write
+  repositories, command services, mutating longitudinal APIs, the actual-discharge command,
+  persistence-backed longitudinal UI mutation, and AI command execution. IA-002 does not exist yet.
+- **[DECISION_REGISTER.md](docs/canon/DECISION_REGISTER.md) (LSR-01 → LSR-18) is locked** and
+  [OPEN_GAP_REGISTER.md](docs/canon/OPEN_GAP_REGISTER.md) (LONG-GAP-01 → 10) is the complete list of
+  open longitudinal pre-schema questions. Do not raise a new one, and do not reopen a locked one,
+  without documented contradicting evidence and a new gap ID.
+
+Prohibited by canon regardless of convenience: redefining `Episode` as the longitudinal parent; a
+monolithic `Continuity` entity; persisted `PendingDischarge`; a persisted master
+`TransitionReadiness`; any universal health/readiness/recovery/continuity score; collapsing clinical
+recommendation, payer authorization, availability, patient preference and actual level of care into
+one value; AI establishing clinical truth or decision authority.
+
+> **Semantics authorize schema. Schema does not invent semantics.**
+
 ## Architecture invariants (do not violate; propose changes via ADR)
 
 - **One Prisma package:** only `packages/case-repository` imports `@prisma/client`. Services (`case-service`, `document-service`, `evidence-service`) go through their gateway adapters.

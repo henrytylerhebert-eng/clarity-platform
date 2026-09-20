@@ -13,6 +13,20 @@
 - Do not invent requirements, user needs, constraints, or outcomes. Mark unknowns as `[Unknown]` or `[Unverified]`.
 - Before promoting product, implementation, roadmap, release, or measurement status, apply `docs/governance/PRODUCT_EVIDENCE_AND_DECISION_PROTOCOL.md`: output is not evidence; speed is not progress; automation is not understanding; polish is not trust.
 
+## Semantic canon and the implementation gate
+
+- `docs/canon/` is the governing semantic base; start at `docs/canon/README.md` (adopted by ADR-0025).
+- `docs/canon/IMPLEMENTATION_AUTHORIZATION_IA-001.md` states what is authorized now and what is
+  **held**. The persistence and write boundary is closed until **IA-002** is issued: no Prisma
+  change, migration, longitudinal write repository, command service, mutating longitudinal API,
+  actual-discharge command, persistence-backed longitudinal UI mutation, or AI command execution.
+- `docs/canon/DECISION_REGISTER.md` (LSR-01 → LSR-18) is locked. `docs/canon/OPEN_GAP_REGISTER.md`
+  (LONG-GAP-01 → 10) is the complete set of open longitudinal pre-schema questions. Recognize an
+  existing gap rather than inventing a new question.
+- Governing rule: **semantics authorize schema; schema does not invent semantics.** Do not add a
+  persisted status, score, aggregate, relationship, authority, decision, or workflow object because
+  it makes implementation easier.
+
 ## Scope for this repo
 
 - **Verified implemented surface**: `app/`, `packages/*-service`, `packages/domain-contracts`, `prisma/schema.prisma`.

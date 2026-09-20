@@ -76,6 +76,32 @@ claim. Every count in "Verification history" below is **HISTORICAL**.
 
 **Access Snapshot UI evidence (2026-09-19, branch off `c00dabd`, merged to `main` as `41cef95` on 2026-09-20; dated, not a standing claim):** LOCAL unless marked CI; exact commands: `npm run verify` = `eslint .` + `tsc --noEmit && tsc -b app/tsconfig.json` + `prisma validate` + `vitest run --config vitest.unit.config.ts` (51 files / 565 tests) + `vitest run --config vitest.integration.config.ts` on an ephemeral database (34 files / 295 tests); then `npm run test:app` (= `npm --workspace app test`; Vitest under `app/` excluding `node_modules`/`dist`/`smoke`, so `app/src/**` only and NO browser tests — 25 files / 215 tests, the pre-#129 figure; the per-persona suite later took it to 225) and `npm --workspace app run build`. CI re-ran lint, typecheck, root tests (as `npm test`, one pass over `vitest.config.ts` rather than the split unit/integration commands), `test:app`, the build and `test:oa-e2e` in its single `verify` job, green on the merged head `555e820`. Playwright, with provenance (per `AGENTS.md`, never inferred from an aggregate check): CI's `verify` job runs `npm run test:oa-e2e`, whose config `testMatch` selects `operating-assurance.spec.ts` only — that spec ran in CI on the merged head. The Crisis Ops suite `app/smoke/clarity-v01.spec.ts` runs under the default config, which **no** CI step invokes; it was run locally post-merge on 2026-09-20 (20/20, desktop + mobile) as a shell regression check, and it asserts nothing about `access`. **No Access-specific E2E spec exists.** Gaps are listed in the UI test manifest.
 
+### Semantic canon and the implementation gate — CURRENT, VERIFIED (2026-09-20, at `4307093`)
+
+The Longitudinal Vertical Slice Contract v0.1 is **merged** — PR #133, `4307093`:
+`packages/domain-contracts/src/longitudinal.ts`, `tests/data/longitudinal-day1-day39.ts`,
+`tests/unit/longitudinal-contracts.test.ts`, `docs/architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md`.
+Contract-only: no Prisma, migration, API or UI mutation.
+
+The Clarity Canon package v1.0 is landed under `docs/canon/` (ADR-0025
+**Accepted**, owner ratified 2026-09-20). It carries the
+Semantic Decision Base Lock, the Decision Register (LSR-01 → LSR-18, **locked**), the Open-Gap
+Register (LONG-GAP-01 → 10, **open**), the Constitution, Tree 5, the experience/longitudinal/AI
+models, the implementation and migration plans, the verification matrix, ship acceptance, the
+developer handoff, and Implementation Authorization **IA-001**. Documents landed verbatim as
+dated artifacts; staleness notes live in `docs/canon/README.md`.
+
+**The persistence and write boundary is CLOSED.** IA-001 holds — and **IA-002 has not been
+issued** — Prisma changes, migrations, longitudinal write repositories, longitudinal command
+services, mutating longitudinal APIs, the actual-discharge command, persistence-backed
+longitudinal UI mutation, and AI command execution. Authorized now: canon/docs work,
+contract-only types, pure deterministic projections, synthetic fixtures, semantic acceptance
+tests, Tree 5 UX over *existing governed read models*, and read-only design work.
+
+**Not claimed:** no row in `docs/canon/VERIFICATION_MATRIX.md` is asserted to have an automated
+test behind it. Which invariants are actually covered has not been established. Landing the canon
+authorizes documentation only — no production readiness, HIPAA, PHI, clinical or legal approval.
+
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
 **Open PRs: 0** as of 2026-09-20. (0 as of 2026-09-18 after Housekeeping Phase 2B; #127, #128
