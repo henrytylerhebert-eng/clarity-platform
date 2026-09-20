@@ -74,7 +74,7 @@ dependency. `packages/api-service/src/assuranceDevFixture.ts` carries a single *
 ephemeral integration runs (32 files / 276 tests each). Those are dated evidence, not a standing
 claim. Every count in "Verification history" below is **HISTORICAL**.
 
-**Access Snapshot UI evidence (2026-09-19, branch off `c00dabd`; dated, not a standing claim):** `npm run verify` exit 0 (unit 51 files / 565 tests; integration on a throwaway database 34 files / 295 tests); `npm run test:app` exit 0 (25 files / 215 tests); app build exit 0. Playwright smoke specs were not run. Gaps are listed in the UI test manifest.
+**Access Snapshot UI evidence (2026-09-19, branch off `c00dabd`, merged to `main` as `41cef95` on 2026-09-20; dated, not a standing claim):** `npm run verify` exit 0 (unit 51 files / 565 tests; integration on a throwaway database 34 files / 295 tests); `npm run test:app` exit 0 (25 files / 215 tests); app build exit 0. Playwright smoke specs were not run. Gaps are listed in the UI test manifest.
 
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
