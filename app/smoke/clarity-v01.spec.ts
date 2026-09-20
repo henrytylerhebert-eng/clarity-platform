@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -6,11 +6,16 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
 });
 
+async function openWorkspace(page: Page, group: string, workspace: string) {
+  await page.getByRole('button', { name: group, exact: true }).click();
+  await page.getByRole('button', { name: workspace, exact: true }).click();
+}
+
 test('case queue and custody verification render across viewports', async ({ page }, testInfo) => {
   await expect(page.getByRole('heading', { name: 'Case Queue' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Adult Demo A' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Custody Ledger' }).click();
+  await openWorkspace(page, 'More', 'Custody Ledger');
   await page.getByRole('button', { name: 'Verify custody chain' }).click();
   await expect(page.getByText('Verified', { exact: true })).toBeVisible();
 
@@ -21,13 +26,13 @@ test('case queue and custody verification render across viewports', async ({ pag
 });
 
 test('reviewer can create a case and carry a source-linked finding into the packet', async ({ page }) => {
-  await page.getByRole('button', { name: 'New Case' }).click();
+  await openWorkspace(page, 'Intake', 'New Case');
   await page.getByLabel('Patient token').fill(`DEMO-${Date.now()}`);
   await page.getByLabel('Referral source').fill('ED crisis referral');
   await page.getByRole('button', { name: 'Create case' }).click();
   await expect(page.getByRole('heading', { name: 'Case Overview' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Guided Intake' }).click();
+  await openWorkspace(page, 'Intake', 'Guided Intake');
   await page.getByLabel('Presenting problem').fill('ED crisis referral with safety concerns and collateral pending.');
   await page.getByRole('button', { name: 'Add source-linked risk' }).click();
   await expect(page.locator('.risk-row span', { hasText: 'Source-linked risk finding needs clinician review.' })).toBeVisible();
@@ -36,25 +41,25 @@ test('reviewer can create a case and carry a source-linked finding into the pack
 test('packet-ready case shows review gates and accepts mock routing updates', async ({ page }) => {
   await page.getByRole('button', { name: 'Packet Ready Demo D' }).click();
 
-  await page.getByRole('button', { name: 'Medical Necessity' }).click();
+  await openWorkspace(page, 'Review', 'Medical Necessity');
   await expect(page.getByText('Needs clinician review', { exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Legal Status' }).click();
+  await openWorkspace(page, 'Review', 'Legal Status');
   await expect(page.locator('.legal-warning')).toContainText('require counsel validation before enforcement');
 
-  await page.getByRole('button', { name: 'Packet Preview' }).click();
+  await openWorkspace(page, 'Placement', 'Packet Preview');
   await expect(page.getByRole('heading', { name: 'Assessment summary' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Risk findings' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Legal status draft' })).toBeVisible();
   await expect(page.getByText('Custody hash')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Routing Response' }).click();
+  await openWorkspace(page, 'Placement', 'Routing Response');
   await page.getByRole('button', { name: 'Record mock response' }).click();
   await expect(page.getByRole('cell', { name: 'Request more info' })).toBeVisible();
 });
 
 test('command center shows lanes, clocks, and an escalated delay', async ({ page }) => {
-  await page.getByRole('button', { name: 'Command Center' }).click();
+  await openWorkspace(page, 'Home', 'Command Center');
   await expect(page.getByRole('heading', { name: 'Central Intake Command Center' })).toBeVisible();
   await expect(page.getByText('Insurance verification (parallel lane)')).toBeVisible();
   await expect(page.getByText('Breached').first()).toBeVisible();
@@ -69,7 +74,7 @@ test('command center shows lanes, clocks, and an escalated delay', async ({ page
 });
 
 test('bedboard flags the risky recommendation and requires an override reason', async ({ page }) => {
-  await page.getByRole('button', { name: 'Milieu Bedboard' }).click();
+  await openWorkspace(page, 'Placement', 'Milieu Bedboard');
   await expect(page.getByRole('heading', { name: 'Milieu Bedboard' })).toBeVisible();
   await expect(page.getByText('Aggression-risk mix in Room 102')).toBeVisible();
   await expect(page.getByText('elopement High')).toBeVisible();
@@ -82,58 +87,60 @@ test('bedboard flags the risky recommendation and requires an override reason', 
   await expect(page.getByText('Reason: Holding for 101-A discharge; acuity mix unsafe tonight.')).toBeVisible();
 });
 
-test('role switching scopes workspaces to each stakeholder segment', async ({ page }) => {
-  await expect(page.getByRole('button', { name: 'Guided Intake' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Training & SOPs' })).toBeVisible();
+test('role switching scopes grouped navigation to each stakeholder segment', async ({ page }) => {
+  for (const group of ['Home', 'Cases', 'Intake', 'Review', 'Placement', 'More']) {
+    await expect(page.getByRole('button', { name: group, exact: true })).toBeVisible();
+  }
 
-  await page.getByLabel('Viewing as').selectOption('facility');
-  await expect(page.getByRole('button', { name: 'Guided Intake' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Milieu Bedboard' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Training & SOPs' })).toBeVisible();
+  await page.getByLabel('Prototype persona').selectOption('facility');
+  await expect(page.getByRole('button', { name: 'Intake', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Review', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Placement', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Record mock response' })).toBeVisible();
 
-  await page.getByLabel('Viewing as').selectOption('nurse');
+  await page.getByLabel('Prototype persona').selectOption('nurse');
   await expect(page.getByRole('heading', { name: 'Milieu Bedboard' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Command Center' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveCount(0);
 
-  await page.getByLabel('Viewing as').selectOption('central');
+  await page.getByLabel('Prototype persona').selectOption('central');
   await expect(page.getByRole('heading', { name: 'Central Intake Command Center' })).toBeVisible();
 
-  await page.getByLabel('Viewing as').selectOption('all');
-  await expect(page.getByRole('button', { name: 'Guided Intake' })).toBeVisible();
+  await page.getByLabel('Prototype persona').selectOption('all');
+  await openWorkspace(page, 'Intake', 'Guided Intake');
+  await expect(page.getByRole('heading', { name: 'Guided Intake' })).toBeVisible();
 });
 
 test('training workspace shows SOP onboarding for every role', async ({ page }) => {
-  await page.getByRole('button', { name: 'Training & SOPs' }).click();
+  await openWorkspace(page, 'More', 'Training & SOPs');
   await expect(page.getByRole('heading', { name: 'Training & SOPs' })).toBeVisible();
   await expect(page.getByText('Pre-assessment procedure')).toBeVisible();
   await expect(page.getByText('PEC chain-of-custody practice path')).toBeVisible();
   await expect(page.getByText('Annual competency evidence')).toBeVisible();
   await expect(page.getByRole('cell', { name: /Field responder/ })).toBeVisible();
 
-  await page.getByLabel('Viewing as').selectOption('compliance');
-  await page.getByRole('button', { name: 'Training & SOPs' }).click();
+  await page.getByLabel('Prototype persona').selectOption('compliance');
+  await openWorkspace(page, 'More', 'Training & SOPs');
   await expect(page.getByRole('heading', { name: 'Compliance / legal officer onboarding' })).toBeVisible();
   await expect(page.locator('article').filter({ hasText: 'Compliance / legal officer onboarding' }).getByText('Prove custody, review status, and counsel-validation boundaries.')).toBeVisible();
   await expect(page.getByText('Counsel validation required').first()).toBeVisible();
 });
 
 test('personas get adapted focus strips and field mode simplifies intake', async ({ page }) => {
-  await page.getByLabel('Viewing as').selectOption('central');
+  await page.getByLabel('Prototype persona').selectOption('central');
   await expect(page.getByText('Breached clocks')).toBeVisible();
   await expect(page.getByText('Packets below 95%')).toBeVisible();
 
-  await page.getByLabel('Viewing as').selectOption('nurse');
+  await page.getByLabel('Prototype persona').selectOption('nurse');
   await expect(page.getByText('Units over acuity ceiling')).toBeVisible();
 
-  await page.getByLabel('Viewing as').selectOption('executive');
+  await page.getByLabel('Prototype persona').selectOption('executive');
   await expect(page.getByText('No measurements found').first()).toBeVisible();
 
-  await page.getByLabel('Viewing as').selectOption('field');
+  await page.getByLabel('Prototype persona').selectOption('field');
   await expect(page.getByRole('heading', { name: 'New Case' })).toBeVisible();
   await expect(page.getByText('Pitfall guards', { exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Guided Intake' }).click();
+  await openWorkspace(page, 'Intake', 'Guided Intake');
   await page.getByRole('button', { name: 'Field mode' }).click();
   await expect(page.getByText('Field mode captures scene facts')).toBeVisible();
   await expect(page.getByLabel('Risk formulation')).toHaveCount(0);
@@ -145,7 +152,7 @@ test('personas get adapted focus strips and field mode simplifies intake', async
 
 test('intake case can generate and send a packet with custody events', async ({ page }) => {
   await page.getByRole('button', { name: 'Adult Demo A' }).click();
-  await page.getByRole('button', { name: 'Packet Preview' }).click();
+  await openWorkspace(page, 'Placement', 'Packet Preview');
   await expect(page.getByRole('heading', { name: 'Packet completeness checklist' })).toBeVisible();
   await expect(page.getByText('Missing').first()).toBeVisible();
 
@@ -155,7 +162,7 @@ test('intake case can generate and send a packet with custody events', async ({ 
   await page.getByRole('button', { name: 'Send packet to facilities' }).click();
   await expect(page.getByText('Sent', { exact: true }).first()).toBeVisible();
 
-  await page.getByRole('button', { name: 'Custody Ledger' }).click();
+  await openWorkspace(page, 'More', 'Custody Ledger');
   await expect(page.getByText('PACKET_HASH_SEALED').first()).toBeVisible();
   await expect(page.getByText('PACKET_SENT').first()).toBeVisible();
   await page.getByRole('button', { name: 'Verify custody chain' }).click();
@@ -163,7 +170,7 @@ test('intake case can generate and send a packet with custody events', async ({ 
 });
 
 test('mock admit lab filters the synthetic cohort and preserves review gates', async ({ page }) => {
-  await page.getByRole('button', { name: 'Mock Admit Lab' }).click();
+  await openWorkspace(page, 'More', 'Mock Admit Lab');
   await expect(page.getByRole('heading', { name: 'Mock Inpatient Admit Lab' })).toBeVisible();
   await expect(page.getByText('Synthetic mock-use only')).toBeVisible();
 
