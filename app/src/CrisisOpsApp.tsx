@@ -666,7 +666,7 @@ export function App() {
           <summary>Demo view · {role.label}</summary>
           <label className="role-select">
             Prototype persona
-            <select value={roleId} onChange={(event) => handleRoleChange(event.target.value as RoleId)}>
+            <select aria-label="Prototype persona" value={roleId} onChange={(event) => handleRoleChange(event.target.value as RoleId)}>
               {roles.map((item) => (
                 <option key={item.id} value={item.id}>{item.label}</option>
               ))}
