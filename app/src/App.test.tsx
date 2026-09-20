@@ -39,6 +39,25 @@ describe("App smoke", () => {
     await resetAppState();
   });
 
+  it("uses six primary Crisis Ops sections instead of a flat workspace list", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole("heading", { name: "Case Queue" });
+
+    for (const section of ["Home", "Cases", "Intake", "Review", "Placement", "More"]) {
+      expect(screen.getByRole("button", { name: section, exact: true })).toBeInTheDocument();
+    }
+
+    expect(screen.getByRole("button", { name: "Case queue" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Case status" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Guided Intake" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Intake", exact: true }));
+    expect(screen.getByRole("button", { name: "New Case" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Guided Intake" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Case status" })).not.toBeInTheDocument();
+  });
+
   it("loads seed cases and creates a new local case", async () => {
     const user = userEvent.setup();
     render(<App />);
