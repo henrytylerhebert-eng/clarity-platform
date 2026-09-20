@@ -26,7 +26,6 @@ import { CaseOverview } from "./workspaces/CaseOverview";
 import { GuidedIntake } from "./workspaces/GuidedIntake";
 import { MedicalNecessity } from "./workspaces/MedicalNecessity";
 import { LegalStatus } from "./workspaces/LegalStatus";
-import { DEFAULT_SESSION_TTL_MS, describeDemoSession } from "./domain/services";
 import { useAuth } from "./domain/AuthContext";
 import { SignInForm } from "./components/SignInForm";
 import { EvidenceReview } from "./workspaces/EvidenceReview";
@@ -105,9 +104,6 @@ export function App() {
   }, []);
 
   const role = getRole(roleId);
-  const visibleWorkspaceItems = workspaceItems.filter((item) => role.workspaces.includes(item.id));
-  const demoSession = describeDemoSession(role.label);
-
   function handleRoleChange(nextRoleId: RoleId) {
     setRoleId(nextRoleId);
     const nextRole = getRole(nextRoleId);
