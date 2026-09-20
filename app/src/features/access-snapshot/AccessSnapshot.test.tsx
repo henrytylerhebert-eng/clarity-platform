@@ -363,7 +363,7 @@ describe("AccessSnapshot — journey position", () => {
     await openCase(readModel({ journey: { phase: null, disposition: "DIVERTED", evidence: [] } }));
 
     const journey = region("Where this case is");
-    expect(journey.getByText("Current phase cannot be determined from available governed evidence.")).toBeInTheDocument();
+    expect(journey.getByText("Current phase cannot be determined from the available case evidence.")).toBeInTheDocument();
     expect(journey.getByText("Diverted")).toBeInTheDocument();
     expect(journey.queryByText("Why am I seeing this?")).not.toBeInTheDocument();
     for (const item of within(screen.getByRole("list", { name: "Journey phases" })).getAllByRole("listitem")) {
@@ -400,7 +400,7 @@ describe("AccessSnapshot — journey position", () => {
       }),
     );
 
-    expect(screen.getByText("Admission phase is based on recorded case-to-episode linkage.")).toBeInTheDocument();
+    expect(screen.getByText("Admission is shown because this case is linked to a recorded admission episode.")).toBeInTheDocument();
     expect(screen.getByText("Episode link: Admission source — supports Admission")).toBeInTheDocument();
   });
 });
@@ -705,8 +705,8 @@ describe("AccessSnapshot — Intake status", () => {
     await openCase(readModel({ sourceState: { prescreenSelection: "AMBIGUOUS" } }));
 
     const warning = screen.getByRole("alert");
-    expect(warning).toHaveTextContent("Multiple active Prescreen encounters exist.");
-    expect(warning).toHaveTextContent("Do not guess which encounter is current.");
+    expect(warning).toHaveTextContent("Multiple active intake reviews exist.");
+    expect(warning).toHaveTextContent("Do not guess which review is current.");
     expect(region("Intake status").queryByText(/^Status:/)).not.toBeInTheDocument();
   });
 
