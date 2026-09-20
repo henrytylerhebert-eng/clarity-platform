@@ -45,19 +45,19 @@ describe("App smoke", () => {
     await screen.findByRole("heading", { name: "Case Queue" });
 
     for (const section of ["Home", "Cases", "Intake", "Review", "Placement", "More"]) {
-      expect(screen.getByRole("button", { name: section, exact: true })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: section })).toBeInTheDocument();
     }
 
     expect(screen.getByRole("button", { name: "Case queue" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Case status" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Guided Intake" })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Intake", exact: true }));
+    await user.click(screen.getByRole("button", { name: "Intake" }));
     expect(screen.getByRole("button", { name: "New Case" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Guided Intake" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Case status" })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Home", exact: true }));
+    await user.click(screen.getByRole("button", { name: "Home" }));
     expect(screen.getByRole("heading", { name: "Intake overview" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "POC Feature Map" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Product Roadmap Feedback Board" })).not.toBeInTheDocument();
