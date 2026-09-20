@@ -194,7 +194,7 @@ describe("App smoke", () => {
 
     await user.click((await screen.findAllByRole("button", { name: /Packet Ready Demo D/i }))[0]!);
     expect(screen.getByRole("heading", { name: "Packet Ready Demo D" })).toBeInTheDocument();
-    expect(screen.getByText("Selected case")).toBeInTheDocument();
+    expect(screen.getByText("Prototype case")).toBeInTheDocument();
 
     await user.selectOptions(screen.getByRole("combobox"), "central");
     await user.click(screen.getByRole("button", { name: "Case status" }));
@@ -204,7 +204,7 @@ describe("App smoke", () => {
 
     // The demo case chrome is absent from the DOM, not merely hidden.
     expect(screen.queryByRole("heading", { name: "Packet Ready Demo D" })).not.toBeInTheDocument();
-    expect(screen.queryByText("Selected case")).not.toBeInTheDocument();
+    expect(screen.queryByText("Prototype case")).not.toBeInTheDocument();
 
     // Signed out: the shared sign-in form is offered and no case can be requested.
     expect(screen.queryByRole("button", { name: "Open case" })).not.toBeInTheDocument();
@@ -217,7 +217,8 @@ describe("App smoke", () => {
 
     // Leaving Access restores the demo case chrome.
     await user.click(screen.getByRole("button", { name: /Case queue/i }));
-    expect(screen.getByRole("heading", { name: "Packet Ready Demo D" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Cases" })).toBeInTheDocument();
+    expect(screen.getAllByText("Packet Ready Demo D").length).toBeGreaterThan(0);
   });
 });
 
