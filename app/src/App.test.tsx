@@ -56,6 +56,13 @@ describe("App smoke", () => {
     expect(screen.getByRole("button", { name: "New Case" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Guided Intake" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Case status" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Home", exact: true }));
+    expect(screen.getByRole("heading", { name: "Intake overview" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "POC Feature Map" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Product Roadmap Feedback Board" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Demo view")).toBeInTheDocument();
+    expect(screen.getByText("Prototype navigation only · not authorization")).toBeInTheDocument();
   });
 
   it("loads seed cases and creates a new local case", async () => {
