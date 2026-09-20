@@ -63,13 +63,14 @@ describe("App smoke", () => {
       expect(screen.getByRole("button", { name: group })).toBeInTheDocument();
     }
 
-    expect(screen.getByRole("button", { name: "Case Queue" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Case Queue" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Guided Intake" })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Home" }));
     expect(screen.getByRole("heading", { name: "Command Center" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Command Center" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Case Queue" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Guided Intake" })).not.toBeInTheDocument();
     expect(screen.queryByText("Prototype case")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Cases" }));
+    expect(screen.getByRole("button", { name: "Case Queue" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Intake" }));
     expect(screen.getByRole("button", { name: "New Case" })).toBeInTheDocument();
