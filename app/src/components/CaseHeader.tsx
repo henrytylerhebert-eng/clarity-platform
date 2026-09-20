@@ -23,8 +23,8 @@ export function CaseHeader({
   return (
     <section className="case-status-header" aria-label="Case status summary">
       <div>
-        <span className="label">Case</span>
-        <h3>{caseKey}</h3>
+        <span className="label">Case status</span>
+        <h3>Case {caseKey}</h3>
         <div className="case-status-summary">
           <span>{phase}</span>
           <StatusBadge tone={dispositionTone}>{disposition}</StatusBadge>
@@ -33,7 +33,7 @@ export function CaseHeader({
       <div className="case-status-actions">
         <span className="subtext">Version {version}</span>
         <button className="secondary-button" type="button" disabled={loading} onClick={onRefresh}>
-          Refresh
+          Refresh case
         </button>
       </div>
     </section>
