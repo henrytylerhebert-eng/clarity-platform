@@ -69,6 +69,7 @@ describe("App smoke", () => {
     render(<App />);
     expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
 
+    await user.click(screen.getByRole("button", { name: "Intake" }));
     await user.click(screen.getByRole("button", { name: /New Case/i }));
     await user.clear(screen.getByLabelText(/Patient token/i));
     await user.type(screen.getByLabelText(/Patient token/i), "Legal Flow Demo");
