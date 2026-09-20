@@ -50,7 +50,8 @@ button {
   color: #eff6f7;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  overflow-y: auto;
 }
 
 .brand-block {
@@ -148,7 +149,61 @@ button {
 
 .nav-list {
   display: grid;
-  gap: 6px;
+  gap: 8px;
+}
+
+.nav-group {
+  display: grid;
+  gap: 4px;
+}
+
+.nav-group-button {
+  width: 100%;
+  border: 0;
+  border-radius: 7px;
+  padding: 9px 11px;
+  background: transparent;
+  color: #9eb1bf;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav-group-button:hover,
+.nav-group-button.active {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.nav-sublist {
+  display: grid;
+  gap: 3px;
+  padding: 2px 0 5px 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  margin-left: 8px;
+}
+
+.nav-sublist .nav-item {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.demo-view-panel {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 10px;
+}
+
+.demo-view-panel summary {
+  cursor: pointer;
+  color: #9eb1bf;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.demo-view-panel .role-select {
+  margin-top: 10px;
 }
 
 .nav-item,
@@ -1069,7 +1124,14 @@ textarea {
   }
 
   .nav-list {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-sublist {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-left: 0;
+    margin-left: 0;
+    padding-left: 0;
   }
 
   .topbar,
@@ -1605,3 +1667,35 @@ textarea {
 .clarity-shell-identity small { display: block; color: #8ca0a8; }
 .clarity-shell-signout, .clarity-shell-signed-out { background: none; border: none; color: inherit; font: inherit; }
 .clarity-shell-signout { cursor: pointer; text-decoration: underline; padding: 0; }
+
+
+/* Shared platform bar stays usable above the stacked Crisis Ops shell on narrow screens. */
+@media (max-width: 720px) {
+  .clarity-shell-bar {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 9px 12px;
+  }
+
+  .clarity-shell-areas {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .clarity-shell-area {
+    flex: 0 0 auto;
+  }
+
+  .clarity-shell-identity {
+    margin-left: auto;
+    max-width: 62%;
+  }
+
+  .clarity-shell-identity span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

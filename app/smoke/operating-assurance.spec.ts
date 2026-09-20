@@ -44,7 +44,7 @@ function capabilityRow(page: Page, label: string) {
 
 async function openAssuranceCase(page: Page, assertion: string) {
   await page.goto("/");
-  await page.getByRole("button", { name: "Operating Assurance" }).click();
+  await page.getByRole("link", { name: "Operating Assurance" }).click();
   await page.getByLabel("Development assertion").fill(assertion);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(sessionPanel(page).getByRole("button", { name: "Sign out" })).toBeVisible();

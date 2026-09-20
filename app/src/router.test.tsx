@@ -111,7 +111,7 @@ describe("canonical router", () => {
     const router = renderApp(["/"]);
     await screen.findAllByText("Packet Ready Demo D");
 
-    await user.click(screen.getByText("Session & identity"));
+    await user.click(screen.getByText("Verified session"));
     await user.type(screen.getByLabelText("Development assertion"), "syn-assert-api-physician-dev");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
     await waitFor(() => expect(screen.queryByLabelText("Development assertion")).not.toBeInTheDocument());
@@ -143,7 +143,7 @@ describe("canonical router", () => {
     const user = userEvent.setup();
     const router = renderApp(["/"]);
     await screen.findAllByText("Packet Ready Demo D");
-    await user.click(screen.getByText("Session & identity"));
+    await user.click(screen.getByText("Verified session"));
     await user.type(screen.getByLabelText("Development assertion"), "syn-assert-api-physician-dev");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
     await waitFor(() => expect(screen.queryByLabelText("Development assertion")).not.toBeInTheDocument());

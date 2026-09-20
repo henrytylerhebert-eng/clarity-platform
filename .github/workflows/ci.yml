@@ -64,6 +64,9 @@ jobs:
       - name: App build
         run: npm --workspace app run build
 
+      - name: Crisis Ops navigation E2E
+        run: npm run test:crisis-e2e
+
       - name: Operating Assurance replay E2E
         run: npm run test:oa-e2e
 

@@ -26,7 +26,6 @@ import { CaseOverview } from "./workspaces/CaseOverview";
 import { GuidedIntake } from "./workspaces/GuidedIntake";
 import { MedicalNecessity } from "./workspaces/MedicalNecessity";
 import { LegalStatus } from "./workspaces/LegalStatus";
-import { DEFAULT_SESSION_TTL_MS, describeDemoSession } from "./domain/services";
 import { useAuth } from "./domain/AuthContext";
 import { SignInForm } from "./components/SignInForm";
 import { EvidenceReview } from "./workspaces/EvidenceReview";
@@ -67,7 +66,7 @@ import type {
 
 const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof LayoutDashboard }> = [
   { id: "queue", label: "Case Queue", icon: LayoutDashboard },
-  { id: "access", label: "Access Snapshot", icon: FileSearch },
+  { id: "access", label: "Case Status", icon: FileSearch },
   { id: "command", label: "Command Center", icon: Gauge },
   { id: "new", label: "New Case", icon: PlusCircle },
   { id: "overview", label: "Case Overview", icon: ClipboardList },
@@ -87,10 +86,32 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "iop-reconciliation", label: "IOP Reconciliation", icon: ClipboardCheck },
 ];
 
+const navigationGroups: ReadonlyArray<{ id: string; label: string; workspaces: readonly WorkspaceId[] }> = [
+  { id: "home", label: "Home", workspaces: ["command"] },
+  { id: "cases", label: "Cases", workspaces: ["queue", "access", "overview"] },
+  { id: "intake", label: "Intake", workspaces: ["new", "intake", "evidence"] },
+  { id: "review", label: "Review", workspaces: ["medical", "legal", "benefits", "authorization"] },
+  { id: "placement", label: "Placement", workspaces: ["packet", "routing", "bedboard"] },
+  { id: "more", label: "More", workspaces: ["ledger", "iop-reconciliation", "training", "mock-admits", "studio"] },
+];
+
+const caseScopedWorkspaces = new Set<WorkspaceId>([
+  "overview",
+  "intake",
+  "evidence",
+  "medical",
+  "legal",
+  "benefits",
+  "authorization",
+  "packet",
+  "routing",
+  "ledger",
+]);
+
 export function App() {
   const [state, setState] = useState<AppState | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState("case-004");
-  const [workspace, setWorkspace] = useState<WorkspaceId>("queue");
+  const [workspace, setWorkspace] = useState<WorkspaceId>("command");
   const [roleId, setRoleId] = useState<RoleId>("all");
   const [nowIso, setNowIso] = useState(() => new Date().toISOString());
   // Verified backend session, shared with every other application area via
@@ -105,7 +126,17 @@ export function App() {
 
   const role = getRole(roleId);
   const visibleWorkspaceItems = workspaceItems.filter((item) => role.workspaces.includes(item.id));
-  const demoSession = describeDemoSession(role.label);
+  const visibleNavigationGroups = navigationGroups
+    .map((group) => ({
+      ...group,
+      items: group.workspaces
+        .map((id) => visibleWorkspaceItems.find((item) => item.id === id))
+        .filter((item): item is (typeof workspaceItems)[number] => item !== undefined),
+    }))
+    .filter((group) => group.items.length > 0);
+  const activeNavigationGroup =
+    visibleNavigationGroups.find((group) => group.items.some((item) => item.id === workspace)) ??
+    visibleNavigationGroups[0];
 
   function handleRoleChange(nextRoleId: RoleId) {
     setRoleId(nextRoleId);
@@ -541,14 +572,25 @@ export function App() {
     const reset = await resetAppState();
     setState(reset);
     setSelectedCaseId("case-004");
-    setWorkspace("queue");
+    setWorkspace("command");
   }
 
   const activeCase = selectedCase ?? state.cases[0];
   const isMockAdmitLab = workspace === "mock-admits";
   const isProductStudio = workspace === "studio";
   const isIopReconciliation = workspace === "iop-reconciliation";
+  const isCaseScopedWorkspace = caseScopedWorkspaces.has(workspace);
   const focusChips = getRoleFocus(roleId, state, activeCase.id, new Date().toISOString());
+
+  const surfaceHeading =
+    workspace === "command" ? { label: "Operations", title: "Command Center" } :
+    workspace === "queue" ? { label: "Cases", title: "Case Queue" } :
+    workspace === "new" ? { label: "Intake", title: "New Case" } :
+    workspace === "bedboard" ? { label: "Placement", title: "Milieu Bedboard" } :
+    isMockAdmitLab ? { label: "Training workspace", title: "Mock Admit Lab" } :
+    isProductStudio ? { label: "Internal product control", title: "Clarity Product Studio" } :
+    isIopReconciliation ? { label: "Synthetic operations review", title: "IOP Attendance Reconciliation" } :
+    { label: "Prototype case", title: activeCase.patientToken.displayName };
 
   return (
     <div className="app-shell">
@@ -556,34 +598,18 @@ export function App() {
         <div className="brand-block">
           <span className="brand-mark">C</span>
           <div>
-            <h1>Clarity</h1>
-            <p>Crisis Ops v0.2</p>
+            <h1>Crisis Ops</h1>
+            <p>Behavioral health operations</p>
           </div>
         </div>
-        <a className="role-note" href="./rev-ops">Rev Ops · verified sign-in</a>
-        <label className="role-select">
-          Viewing as
-          <select value={roleId} onChange={(event) => handleRoleChange(event.target.value as RoleId)}>
-            {roles.map((item) => (
-              <option key={item.id} value={item.id}>{item.label}</option>
-            ))}
-          </select>
-          <span className="role-mission">{role.mission}</span>
-          <span className="role-note">Demo role scoping only — not authentication.</span>
-        </label>
-        <details className="session-panel">
-          <summary>Session &amp; identity{apiPrincipal ? " — verified" : ""}</summary>
+        <details className="session-panel" open={apiPrincipal !== null}>
+          <summary>Verified session{apiPrincipal ? " — active" : ""}</summary>
           {apiPrincipal ? (
             <>
-              <p>
-                Signed in against the local API. Roles below were loaded from the database by the
-                authentication service — the demo role selector above has no effect on this session.
-              </p>
               <dl>
-                <dt>Principal</dt><dd>{apiPrincipal.displayName} ({apiPrincipal.userId})</dd>
+                <dt>User</dt><dd>{apiPrincipal.displayName}</dd>
                 <dt>Organization</dt><dd>{apiPrincipal.organizationId}</dd>
-                <dt>Verified roles</dt><dd>{apiPrincipal.roles.join(", ") || "none"}</dd>
-                <dt>Session expires</dt><dd>{new Date(apiPrincipal.expiresAt).toLocaleTimeString()}</dd>
+                <dt>Roles</dt><dd>{apiPrincipal.roles.join(", ") || "none"}</dd>
               </dl>
               <button className="secondary-button" type="button" onClick={handleApiLogout}>
                 Sign out
@@ -591,40 +617,64 @@ export function App() {
             </>
           ) : (
             <>
-              <p>
-                The selector above is unverified local display scoping — roles there are asserted,
-                not proven. To act through the real backend, sign in with a synthetic dev assertion
-                (start the API with <code>npm run api:dev</code>; it prints the assertions). Signing
-                in here also signs in IOP Reconciliation, Operating Assurance, and RevOps.
-              </p>
+              <p className="role-note">Sign in for governed API-backed work. Demo view settings below never grant authority.</p>
               <SignInForm
                 placeholder="syn-assert-api-physician-dev"
-                helpText={
-                  <dl>
-                    <dt>Demo principal</dt><dd>{demoSession.displayName} ({demoSession.userId})</dd>
-                    <dt>Session TTL</dt><dd>{DEFAULT_SESSION_TTL_MS / 3600000}h (one nursing shift)</dd>
-                  </dl>
-                }
+                helpText={<span className="role-note">Synthetic development assertion.</span>}
               />
             </>
           )}
         </details>
-        <nav className="nav-list" aria-label="Workspace navigation">
-          {visibleWorkspaceItems.map((item) => {
-            const Icon = item.icon;
+
+        <nav className="nav-list" aria-label="Crisis Ops navigation">
+          {visibleNavigationGroups.map((group) => {
+            const isActiveGroup = group.id === activeNavigationGroup?.id;
             return (
-              <button
-                className={workspace === item.id ? "nav-item active" : "nav-item"}
-                key={item.id}
-                type="button"
-                onClick={() => setWorkspace(item.id)}
-              >
-                <Icon size={17} />
-                {item.label}
-              </button>
+              <div className="nav-group" key={group.id}>
+                <button
+                  className={isActiveGroup ? "nav-group-button active" : "nav-group-button"}
+                  type="button"
+                  onClick={() => setWorkspace(group.items[0]!.id)}
+                  aria-expanded={isActiveGroup}
+                >
+                  {group.label}
+                </button>
+                {isActiveGroup ? (
+                  <div className="nav-sublist">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          className={workspace === item.id ? "nav-item active" : "nav-item"}
+                          key={item.id}
+                          type="button"
+                          onClick={() => setWorkspace(item.id)}
+                        >
+                          <Icon size={16} />
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
             );
           })}
         </nav>
+
+        <details className="demo-view-panel">
+          <summary>Demo view · {role.label}</summary>
+          <label className="role-select">
+            Prototype persona
+            <select aria-label="Prototype persona" value={roleId} onChange={(event) => handleRoleChange(event.target.value as RoleId)}>
+              {roles.map((item) => (
+                <option key={item.id} value={item.id}>{item.label}</option>
+              ))}
+            </select>
+            <span className="role-mission">{role.mission}</span>
+            <span className="role-note">Navigation preview only — not authentication.</span>
+          </label>
+        </details>
         <button className="reset-button" type="button" onClick={handleReset}>
           <RotateCcw size={16} /> Reset demo data
         </button>
@@ -635,8 +685,8 @@ export function App() {
           <>
             <header className="topbar">
               <div>
-                <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isIopReconciliation ? "Synthetic operations review" : "Selected case"}</span>
-                <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : isIopReconciliation ? "IOP Attendance Reconciliation" : activeCase.patientToken.displayName}</h2>
+                <span className="label">{surfaceHeading.label}</span>
+                <h2>{surfaceHeading.title}</h2>
               </div>
               <div className="topbar-badges">
                 {isMockAdmitLab ? (
@@ -654,17 +704,19 @@ export function App() {
                     <StatusBadge tone="danger">Synthetic only</StatusBadge>
                     <StatusBadge tone="warn">Review-gated</StatusBadge>
                   </>
-                ) : (
+                ) : isCaseScopedWorkspace ? (
                   <>
                     <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
                     <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
                     <StatusBadge tone="warn">Draft workflow</StatusBadge>
                   </>
+                ) : (
+                  <StatusBadge tone="neutral">Prototype data</StatusBadge>
                 )}
               </div>
             </header>
 
-            {!isMockAdmitLab && !isProductStudio && !isIopReconciliation && focusChips.length ? (
+            {isCaseScopedWorkspace && focusChips.length ? (
               <div className="focus-strip" aria-label="Role focus summary">
                 {focusChips.map((chip) => (
                   <div className="focus-chip" key={chip.label}>

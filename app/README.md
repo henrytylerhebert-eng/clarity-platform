@@ -18,22 +18,22 @@ npm run build    # typecheck + production build
 - **Legal clocks are configurable demo values, not statutory truth.** Louisiana PEC/OPC/CEC language and timing require counsel validation before any enforcement in software.
 - **Clinical outputs are review-gated drafts.** The prohibited-language guard blocks claims like "meets InterQual" or "admission is medically necessary" without qualified human review.
 - **Bed availability is not safe placement.** Bedboard compatibility rules are demo heuristics pending clinical validation; the charge nurse decision is final and overrides require a documented reason.
-- No authentication, backend, or integrations — deliberately out of scope for the prototype (see `../docs/04-build-roadmap.md` parking lot).
+- Crisis Ops remains a mixed prototype: most workspaces use synthetic local state, while Case Status, Legal Status actions, and IOP Reconciliation can cross a verified API boundary. The demo persona control is navigation-only and never grants backend authority.
 
 ## Stakeholder segments
 
-The sidebar "Viewing as" selector scopes workspaces per stakeholder role, defined in `src/domain/roles.ts`: field responder, central intake coordinator, clinician reviewer, receiving facility, and charge nurse (plus an unscoped demo view). Adding or reshaping a segment is a config change in that one file — workspaces are self-contained components, so no workspace code changes are needed. This is demo role modeling per the handoff spec, **not** authentication; production RBAC/RLS stays in the parking lot.
+The sidebar **Demo view** control scopes navigation for stakeholder walkthroughs, defined in `src/domain/roles.ts`: field responder, central intake coordinator, clinician reviewer, receiving facility, charge nurse, UR/benefits, compliance, and executive (plus an unscoped demo view). This is prototype persona modeling, **not** authentication. Verified backend identity is shown separately and backend permissions remain authoritative.
 
 Every role also sees **Training & SOPs**. That workspace turns the read-only SOP/context docs into synthetic onboarding paths, SOP checklists, competency evidence, PEC chain-of-custody practice, and source-boundary warnings for each position. It is training guidance only: clinical, legal, HR, credentialing, statutory, and production-policy approvals remain out of scope until reviewed by qualified humans.
 
-## POC command center review
+## Command center
 
-The **Command Center** is now both an operational dashboard and a stakeholder walkthrough surface. It includes a POC feature map explaining what each tool does, what problem it solves, who it serves, and the correlated workflow, plus a roadmap feedback board that stakeholders can mark as must-have, helpful, confusing, missing, or later.
+The **Command Center** is an operational synthetic overview of case stage, clinical and financial lanes, packet state, clocks, and escalations. Product feature maps and roadmap-feedback content live in documentation rather than competing with the operational Home surface.
 
-Supporting artifacts:
+Supporting planning artifacts remain available outside the runtime:
 
-- `../docs/developer-handoff/COMMAND_CENTER_MVP_PROMPT.md` — paste-ready continuation prompt for future Codex work.
-- `../docs/roadmap/POC_STAKEHOLDER_FEEDBACK_ROADMAP.md` — stakeholder-readable roadmap and feedback guide.
+- `../docs/developer-handoff/COMMAND_CENTER_MVP_PROMPT.md`
+- `../docs/roadmap/POC_STAKEHOLDER_FEEDBACK_ROADMAP.md`
 
 ## Layout
 
