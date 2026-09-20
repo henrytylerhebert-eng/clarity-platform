@@ -67,7 +67,7 @@ import type {
 
 const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof LayoutDashboard }> = [
   { id: "queue", label: "Case Queue", icon: LayoutDashboard },
-  { id: "access", label: "Access Snapshot", icon: FileSearch },
+  { id: "access", label: "Case Status", icon: FileSearch },
   { id: "command", label: "Command Center", icon: Gauge },
   { id: "new", label: "New Case", icon: PlusCircle },
   { id: "overview", label: "Case Overview", icon: ClipboardList },
@@ -85,6 +85,15 @@ const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof Layou
   { id: "mock-admits", label: "Mock Admit Lab", icon: FlaskConical },
   { id: "studio", label: "Product Studio", icon: PanelTop },
   { id: "iop-reconciliation", label: "IOP Reconciliation", icon: ClipboardCheck },
+];
+
+const navigationGroups: ReadonlyArray<{ id: string; label: string; workspaces: readonly WorkspaceId[] }> = [
+  { id: "home", label: "Home", workspaces: ["command"] },
+  { id: "cases", label: "Cases", workspaces: ["queue", "access", "overview"] },
+  { id: "intake", label: "Intake", workspaces: ["new", "intake", "evidence"] },
+  { id: "review", label: "Review", workspaces: ["medical", "legal", "benefits", "authorization"] },
+  { id: "placement", label: "Placement", workspaces: ["packet", "routing", "bedboard"] },
+  { id: "more", label: "More", workspaces: ["ledger", "iop-reconciliation", "training", "mock-admits", "studio"] },
 ];
 
 export function App() {
@@ -105,6 +114,17 @@ export function App() {
 
   const role = getRole(roleId);
   const visibleWorkspaceItems = workspaceItems.filter((item) => role.workspaces.includes(item.id));
+  const visibleNavigationGroups = navigationGroups
+    .map((group) => ({
+      ...group,
+      items: group.workspaces
+        .map((id) => visibleWorkspaceItems.find((item) => item.id === id))
+        .filter((item): item is (typeof workspaceItems)[number] => item !== undefined),
+    }))
+    .filter((group) => group.items.length > 0);
+  const activeNavigationGroup =
+    visibleNavigationGroups.find((group) => group.items.some((item) => item.id === workspace)) ??
+    visibleNavigationGroups[0];
   const demoSession = describeDemoSession(role.label);
 
   function handleRoleChange(nextRoleId: RoleId) {
@@ -557,33 +577,17 @@ export function App() {
           <span className="brand-mark">C</span>
           <div>
             <h1>Clarity</h1>
-            <p>Crisis Ops v0.2</p>
+            <p>Crisis Ops</p>
           </div>
         </div>
-        <a className="role-note" href="./rev-ops">Rev Ops · verified sign-in</a>
-        <label className="role-select">
-          Viewing as
-          <select value={roleId} onChange={(event) => handleRoleChange(event.target.value as RoleId)}>
-            {roles.map((item) => (
-              <option key={item.id} value={item.id}>{item.label}</option>
-            ))}
-          </select>
-          <span className="role-mission">{role.mission}</span>
-          <span className="role-note">Demo role scoping only — not authentication.</span>
-        </label>
-        <details className="session-panel">
-          <summary>Session &amp; identity{apiPrincipal ? " — verified" : ""}</summary>
+        <details className="session-panel" open={apiPrincipal !== null}>
+          <summary>Verified session{apiPrincipal ? " — active" : ""}</summary>
           {apiPrincipal ? (
             <>
-              <p>
-                Signed in against the local API. Roles below were loaded from the database by the
-                authentication service — the demo role selector above has no effect on this session.
-              </p>
               <dl>
-                <dt>Principal</dt><dd>{apiPrincipal.displayName} ({apiPrincipal.userId})</dd>
+                <dt>User</dt><dd>{apiPrincipal.displayName}</dd>
                 <dt>Organization</dt><dd>{apiPrincipal.organizationId}</dd>
-                <dt>Verified roles</dt><dd>{apiPrincipal.roles.join(", ") || "none"}</dd>
-                <dt>Session expires</dt><dd>{new Date(apiPrincipal.expiresAt).toLocaleTimeString()}</dd>
+                <dt>Roles</dt><dd>{apiPrincipal.roles.join(", ") || "none"}</dd>
               </dl>
               <button className="secondary-button" type="button" onClick={handleApiLogout}>
                 Sign out
@@ -591,40 +595,64 @@ export function App() {
             </>
           ) : (
             <>
-              <p>
-                The selector above is unverified local display scoping — roles there are asserted,
-                not proven. To act through the real backend, sign in with a synthetic dev assertion
-                (start the API with <code>npm run api:dev</code>; it prints the assertions). Signing
-                in here also signs in IOP Reconciliation, Operating Assurance, and RevOps.
-              </p>
+              <p className="role-note">Sign in for governed API-backed work. Demo view settings below never grant authority.</p>
               <SignInForm
                 placeholder="syn-assert-api-physician-dev"
-                helpText={
-                  <dl>
-                    <dt>Demo principal</dt><dd>{demoSession.displayName} ({demoSession.userId})</dd>
-                    <dt>Session TTL</dt><dd>{DEFAULT_SESSION_TTL_MS / 3600000}h (one nursing shift)</dd>
-                  </dl>
-                }
+                helpText={<span className="role-note">Synthetic development assertion.</span>}
               />
             </>
           )}
         </details>
-        <nav className="nav-list" aria-label="Workspace navigation">
-          {visibleWorkspaceItems.map((item) => {
-            const Icon = item.icon;
+
+        <nav className="nav-list" aria-label="Crisis Ops navigation">
+          {visibleNavigationGroups.map((group) => {
+            const isActiveGroup = group.id === activeNavigationGroup?.id;
             return (
-              <button
-                className={workspace === item.id ? "nav-item active" : "nav-item"}
-                key={item.id}
-                type="button"
-                onClick={() => setWorkspace(item.id)}
-              >
-                <Icon size={17} />
-                {item.label}
-              </button>
+              <div className="nav-group" key={group.id}>
+                <button
+                  className={isActiveGroup ? "nav-group-button active" : "nav-group-button"}
+                  type="button"
+                  onClick={() => setWorkspace(group.items[0]!.id)}
+                  aria-expanded={isActiveGroup}
+                >
+                  {group.label}
+                </button>
+                {isActiveGroup ? (
+                  <div className="nav-sublist">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          className={workspace === item.id ? "nav-item active" : "nav-item"}
+                          key={item.id}
+                          type="button"
+                          onClick={() => setWorkspace(item.id)}
+                        >
+                          <Icon size={16} />
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
             );
           })}
         </nav>
+
+        <details className="demo-view-panel">
+          <summary>Demo view · {role.label}</summary>
+          <label className="role-select">
+            Prototype persona
+            <select value={roleId} onChange={(event) => handleRoleChange(event.target.value as RoleId)}>
+              {roles.map((item) => (
+                <option key={item.id} value={item.id}>{item.label}</option>
+              ))}
+            </select>
+            <span className="role-mission">{role.mission}</span>
+            <span className="role-note">Navigation preview only — not authentication.</span>
+          </label>
+        </details>
         <button className="reset-button" type="button" onClick={handleReset}>
           <RotateCcw size={16} /> Reset demo data
         </button>
