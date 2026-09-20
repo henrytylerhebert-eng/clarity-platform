@@ -19,7 +19,10 @@ async function selectPersona(page: Page, persona: string) {
   await page.getByLabel('Prototype persona').selectOption(persona);
 }
 
-test('case queue and custody verification render across viewports', async ({ page }, testInfo) => {
+test('home, case queue, and custody verification render across viewports', async ({ page }, testInfo) => {
+  await expect(page.getByRole('heading', { name: 'Intake overview' })).toBeVisible();
+
+  await openWorkspace(page, 'Cases', 'Case Queue');
   await expect(page.getByRole('heading', { name: 'Case Queue' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Adult Demo A' })).toBeVisible();
 
