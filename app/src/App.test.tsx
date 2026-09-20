@@ -54,6 +54,28 @@ describe("App smoke", () => {
     await resetAppState();
   });
 
+  it("groups Crisis Ops into six primary destinations instead of a flat workspace list", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
+
+    for (const group of ["Home", "Cases", "Intake", "Review", "Placement", "More"]) {
+      expect(screen.getByRole("button", { name: group })).toBeInTheDocument();
+    }
+
+    expect(screen.getByRole("button", { name: "Case Queue" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Guided Intake" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Intake" }));
+    expect(screen.getByRole("button", { name: "New Case" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Guided Intake" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Evidence Review" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Case Queue" })).not.toBeInTheDocument();
+
+    expect(screen.getByText(/Demo view ·/)).toBeInTheDocument();
+    expect(screen.queryByText("Viewing as")).not.toBeInTheDocument();
+  });
+
   it("loads seed cases and creates a new local case", async () => {
     const user = userEvent.setup();
     render(<App />);
