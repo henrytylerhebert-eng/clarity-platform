@@ -28,3 +28,4 @@ export * from "./assurance.js";
 export * from "./journeyPhase.js";
 export * from "./accessGuidance.js";
 export * from "./accessReadModel.js";
+export * from "./longitudinal.js";
