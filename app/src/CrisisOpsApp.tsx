@@ -47,7 +47,7 @@ import { executeCec, executePec, issueOpc, type CecInput, type OpcInput, type Pe
 import { getEpecRuleSet } from "./domain/epecRuleSets";
 import { buildPacketForCase } from "./domain/packets";
 import { getRole, roles, type RoleId, type WorkspaceId } from "./domain/roles";
-import { CRISIS_NAV_SECTIONS, WORKSPACE_LABELS, navSectionForWorkspace, visibleNavSections, visibleWorkspacesForSection, type CrisisNavSectionId } from "./domain/crisisNavigation";
+import { CRISIS_NAV_SECTIONS, navSectionForWorkspace, visibleNavSections, visibleWorkspacesForSection, type CrisisNavSectionId } from "./domain/crisisNavigation";
 import { getRoleFocus } from "./domain/roleFocus";
 import { getCaseBundle } from "./domain/selectors";
 import { loadAppState, resetAppState, saveAppState } from "./domain/storage";
@@ -571,13 +571,6 @@ export function App() {
     if (!visible.includes(workspace)) setWorkspace(visible[0]);
   }
 
-  const workspaceTitle = workspace === "access"
-    ? "Case status"
-    : workspace === "queue"
-      ? "Cases"
-      : workspace === "command"
-        ? "Home"
-        : WORKSPACE_LABELS[workspace];
 
   return (
     <div className="app-shell crisis-ops-shell">
@@ -680,7 +673,7 @@ export function App() {
                 ? "Case status"
                 : isPrototypeCaseWorkspace
                   ? activeCase.patientToken.displayName
-                  : workspaceTitle}
+                  : activeSection.label}
             </h2>
           </div>
           <div className="topbar-badges">
