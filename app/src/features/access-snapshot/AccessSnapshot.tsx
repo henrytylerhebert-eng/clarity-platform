@@ -31,9 +31,9 @@ const DEFAULT_CASE_KEY = "SYN-API-CASE-0001";
 
 const SIGNAL_GROUPS: ReadonlyArray<{ scope: BlockingScope; title: string }> = [
   { scope: "CASE_PROGRESSION", title: "Case progression" },
-  { scope: "PRESCREEN", title: "Prescreen" },
+  { scope: "PRESCREEN", title: "Intake" },
   { scope: "PRESCREEN_TARGET", title: "Packet readiness" },
-  { scope: "WORKSTREAM", title: "Workstream signals" },
+  { scope: "WORKSTREAM", title: "Workstreams" },
 ];
 
 /**
@@ -48,8 +48,8 @@ export function AccessSnapshot() {
     <div className="access-snapshot">
       <header className="snapshot-header">
         <div className="header-info">
-          <h2>Access Snapshot</h2>
-          <StatusBadge tone="info">Governed read model</StatusBadge>
+          <h2>Case Status</h2>
+          <span className="snapshot-kicker">Verified case state</span>
         </div>
         {principal ? (
           <div className="session-info">
@@ -67,7 +67,7 @@ export function AccessSnapshot() {
       ) : (
         <div className="signed-out">
           <h3>Authentication required</h3>
-          <p>You must be signed in to access the governed Access read model.</p>
+          <p>Sign in to view governed case status.</p>
           <SignInForm
             placeholder="Development assertion"
             defaultValue="syn-assert-api-intake-dev"
@@ -104,7 +104,7 @@ function AccessCaseView() {
   return (
     <>
       <form
-        className="lookup-bar"
+        className={snapshot ? "lookup-bar loaded" : "lookup-bar"}
         onSubmit={(event) => {
           event.preventDefault();
           void load(caseKeyInput.trim());
@@ -136,7 +136,7 @@ function AccessCaseView() {
 
       {error ? (
         <div className="snapshot-error" role="alert">
-          <h3>Failed to load governed case</h3>
+          <h3>Case could not be loaded</h3>
           <p>{error}</p>
         </div>
       ) : null}
@@ -183,7 +183,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
       </div>
 
       <section className="journey-rail" aria-labelledby="journey-heading">
-        <h3 id="journey-heading">Current journey position</h3>
+        <h3 id="journey-heading">Where this case is</h3>
 
         <ol className="phases-visual-rail" aria-label="Journey phases">
           {JOURNEY_PHASE_ORDER.map((phase, position) => {
@@ -214,7 +214,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
 
         {journey.evidence.length > 0 ? (
           <details className="evidence-explanation">
-            <summary>Why this phase?</summary>
+            <summary>Why am I seeing this?</summary>
             <ul>
               {journey.evidence.map((evidence, index) => (
                 // Index in the key: two episode links may legitimately carry the same relationship.
@@ -260,7 +260,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
         </section>
 
         <section className="candidate-work" aria-labelledby="next-work-heading">
-          <h3 id="next-work-heading">Candidate next work</h3>
+          <h3 id="next-work-heading">Suggested next steps</h3>
           {guidance.nextWork.length === 0 ? (
             <EmptyState title="No next work">There are no candidate actions at this time.</EmptyState>
           ) : (
@@ -276,7 +276,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
                       {requirementLabels.get(candidate.requirementCode) ?? candidate.requirementCode}
                     </span>
                   ) : null}
-                  <span className="candidate-badge">Candidate / Not assigned</span>
+                  <span className="candidate-badge">Not assigned</span>
                 </li>
               ))}
             </ul>
@@ -312,10 +312,10 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
         </section>
 
         <section className="prescreen-source" aria-labelledby="prescreen-heading">
-          <h3 id="prescreen-heading">Prescreen source state</h3>
+          <h3 id="prescreen-heading">Intake status</h3>
           <div className="prescreen-selection">
             {sourceState.prescreenSelection === "NONE" ? (
-              <p>No active Prescreen encounter selected from governed data.</p>
+              <p>No active intake review is selected from governed data.</p>
             ) : null}
             {sourceState.prescreenSelection === "SELECTED" && sourceState.prescreen ? (
               <div className="selected-prescreen">
@@ -331,16 +331,16 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
             ) : null}
           </div>
 
-          <h4>Packet evidence</h4>
+          <h4>Packet status</h4>
           <div className="packet-evidence">
             {sourceState.packetRequirementEvidence === "NOT_AVAILABLE" ? (
-              <p>Packet requirement evidence was not supplied to this projection.</p>
+              <p>Packet requirement data is not available for this view.</p>
             ) : null}
             {sourceState.packetRequirementEvidence === "LOADED_EMPTY" ? (
               <p>
-                The selected Prescreen encounter currently has zero persisted packet requirement rows.
+                The selected intake review currently has no configured packet requirements.
                 <br />
-                <small>This does not prove all real-world required documents are present.</small>
+                <small>This does not mean the real-world packet is complete.</small>
               </p>
             ) : null}
             {sourceState.packetRequirementEvidence === "LOADED" && guidance.packetReadiness !== null ? (
