@@ -8,6 +8,24 @@ integration suites were executed; one throwaway probe was run to settle a strict
 and then deleted. **No test was written to turn a row green**, and no semantics, persistence,
 command, API or migration was created.
 
+> ## CORRECTED 2026-09-20 — two rows this baseline rated ENFORCED were defective
+>
+> Rows **7** (TransitionReadiness is derived) and **8** (missing continuity data remains unknown)
+> were rated ENFORCED and "proves". Adversarial probing afterwards found both projections produced
+> a positive answer from absent or retracted evidence:
+>
+> - `deriveTransitionReadiness([])` returned **`READY`** — readiness from no evidence at all.
+> - `qualityState` was read by **no** projection, so a `SUPERSEDED` / `REJECTED` / `QUARANTINED` /
+>   `CORRECTED` continuity event still reported as **`OBSERVED`**.
+>
+> Both were repaired in **Slice 0.5** with failing-test-first regression coverage, and the two rows
+> below are corrected in place. Row 19's "best-covered invariant" claim is qualified accordingly.
+>
+> **The method lesson matters more than the defects.** This baseline audited *which tests exist*
+> against *which invariants*. It did not ask what the tests would do with **absent, partial or
+> retracted input**, and both fixtures supply fully-populated happy paths. A conformance audit that
+> only inventories coverage cannot find a hole the coverage never reaches.
+
 ## Verdict in one paragraph
 
 Of 21 invariants: **9 ENFORCED**, **6 PARTIAL**, **2 MISSING**, **4 NOT YET APPLICABLE**. The
@@ -132,10 +150,21 @@ would make a check fail. Evidence that merely exercises the happy path *resemble
 - **Negative evidence:** no persisted master readiness field in `prisma/schema.prisma`. (The
   `PrescreenReadinessTarget` enum at `schema.prisma:1554` is prescreen packet readiness, a
   different and legitimately scoped concept — not a transition-readiness master state.)
-- **Level reached:** L1. **Status: ENFORCED.**
-- **Proves or resembles:** **Proves** the component decomposition, including a distinct
-  `unknownComponents` channel so unknown cannot masquerade as satisfied. No test yet exercises a
-  non-empty `unknownComponents`; that is a coverage gap, not a design gap.
+- **Level reached:** L1. **Status: ~~ENFORCED~~ → ENFORCED as of 2026-09-20 (was defective).**
+- **Proves or resembles:** **CORRECTED 2026-09-20.** This row originally read "Proves … No test
+  yet exercises a non-empty `unknownComponents`; that is a coverage gap, not a design gap." **That
+  was wrong on both counts.** It was a design gap: `deriveTransitionReadiness([])` returned
+  `READY`, because the function classified only the components it was *given* and never checked
+  that all seven were accounted for. No evidence at all produced readiness. The missing coverage
+  was what concealed it — both fixtures supply all seven components.
+  Fixed in Slice 0.5: a component nobody reported is now `UNKNOWN`, never implicitly satisfied.
+  A second pass closed a related hole — the repair's own `Map` was last-write-wins, so a component
+  reported twice with **conflicting** states resolved by array order
+  (`[BLOCKED, READY]` → `UNKNOWN`, `[READY, BLOCKED]` → `BLOCKED`). A component is now settled only
+  when every report agrees; repeats of one state deduplicate, and a contradiction is `UNKNOWN`
+  because a contradiction is not an answer. Nine regression tests cover empty, partial, duplicate-
+  agreeing, duplicate-conflicting, order-independence, all-present, `NOT_APPLICABLE`,
+  blocked-plus-missing, and contradicted-while-otherwise-complete.
 
 ### 8. Missing continuity data remains unknown under partial coverage
 
@@ -143,10 +172,18 @@ would make a check fail. Evidence that merely exercises the happy path *resemble
 - **Tests:** three, covering both directions — `PARTIAL` → `UNKNOWN` with empty
   `observedEventIds`; `COMPLETE_FOR_WINDOW` → `NONE_OBSERVED_WITH_COMPLETE_COVERAGE`;
   `OBSERVED` with the event id and `"score" in projection === false`.
-- **Level reached:** L1. **Status: ENFORCED.**
-- **Proves or resembles:** **Proves.** Both directions are covered, which is what LSR-17
-  requires: the implementation cannot claim absence without explicit coverage, and cannot refuse
-  to claim it when coverage is complete.
+- **Level reached:** L1. **Status: ~~ENFORCED~~ → ENFORCED as of 2026-09-20 (was defective).**
+- **Proves or resembles:** **CORRECTED 2026-09-20.** This row originally read "Proves. Both
+  directions are covered." Both directions were covered **for coverage completeness**, and neither
+  was covered for *evidence quality*: `qualityState` appeared exactly once in `longitudinal.ts`
+  — the schema definition — and was read by **no projection**. A `SUPERSEDED`, `REJECTED`,
+  `QUARANTINED` or `CORRECTED` continuity event still reported as `OBSERVED`, so a retracted
+  readmission still read as a readmission.
+  Fixed in Slice 0.5: only `VALID` and `VALID_WITH_WARNINGS` stand as current evidence — the rule
+  already established for analytics by `requiredQualityStates` in `analytics.ts`, reused rather
+  than re-invented. A window whose only matching evidence was retracted, untrusted or unreviewed
+  now returns `UNKNOWN` rather than claiming complete-coverage absence, because a retraction is
+  not proof the event did not occur (LSR-17).
 
 ### 9. No causal blame from waiting state
 
@@ -289,7 +326,10 @@ would make a check fail. Evidence that merely exercises the happy path *resemble
   fabricate a phase when the contract reports none".
 - **Level reached:** L1 + L3 + L4. **Status: ENFORCED.**
 - **Proves or resembles:** **Proves**, and this is the best-covered invariant in the matrix —
-  the only one defended at contract, API and UI levels simultaneously.
+  the only one defended at contract, API and UI levels simultaneously. **Qualified 2026-09-20:**
+  two L1 breaches of this same invariant were nevertheless found in the longitudinal projections
+  (rows 7 and 8) and fixed in Slice 0.5. Breadth of coverage did not imply absence of holes —
+  both breaches sat in paths the happy-path fixtures never exercised.
 
 ### 20. UI does not present candidate as assignment
 
