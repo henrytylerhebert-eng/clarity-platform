@@ -148,7 +148,7 @@ describe("AccessSnapshot — signed out and signing in", () => {
 
     expect(screen.getByRole("heading", { name: "Case Status" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Authentication required" })).toBeInTheDocument();
-    expect(screen.getByText(/You must be signed in/)).toBeInTheDocument();
+    expect(screen.getByText("Sign in to view governed case status.")).toBeInTheDocument();
     expect(screen.getByLabelText("Development assertion")).toHaveValue("syn-assert-api-intake-dev");
     expect(screen.getByText("Development-only synthetic assertion.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Open case" })).not.toBeInTheDocument();
