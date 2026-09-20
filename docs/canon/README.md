@@ -40,7 +40,9 @@ authority, decision, or workflow object merely because it makes implementation e
 | 11 | [../architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md](../architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md) | The executable contract for that model (already merged) |
 | 12 | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Slice 0 → Slice 11 |
 | 13 | [MIGRATION_DEPRECATION_PLAN.md](MIGRATION_DEPRECATION_PLAN.md) | Keep / extend / derive / migrate / deprecate / remove-later |
-| 14 | [IMPLEMENTATION_AUTHORIZATION_IA-001.md](IMPLEMENTATION_AUTHORIZATION_IA-001.md) | **The gate.** What may be built now and what is held |
+| 14 | [IMPLEMENTATION_AUTHORIZATION_IA-001.md](IMPLEMENTATION_AUTHORIZATION_IA-001.md) | **The gate in force.** What may be built now and what is held |
+| 14b | [IMPLEMENTATION_AUTHORIZATION_IA-002.md](IMPLEMENTATION_AUTHORIZATION_IA-002.md) | **DRAFT, not in force.** Proposed three-slice opening of the persistence boundary |
+| 14c | [reconciliation/CURRENT_TARGET_LONGITUDINAL_SCHEMA_RECONCILIATION_v0.1.md](reconciliation/CURRENT_TARGET_LONGITUDINAL_SCHEMA_RECONCILIATION_v0.1.md) | 9 objects proposed, 7 refused, per IA-001 §5.3 |
 | 15 | [VERIFICATION_MATRIX.md](VERIFICATION_MATRIX.md) | Invariant → proof target → automated evidence |
 | 16 | [SHIP_ACCEPTANCE.md](SHIP_ACCEPTANCE.md) | What "shippable" means (it does **not** mean PHI-ready) |
 | 17 | [DEVELOPER_HANDOFF.md](DEVELOPER_HANDOFF.md) | Read order and classification rules for a developer or agent |
@@ -71,7 +73,8 @@ These documents are **dated artifacts**. They are landed verbatim, not edited to
   explicitly bounded on 2026-09-20 (6 LOCKED, 4 BOUNDED). The register file preserves the
   questions verbatim as a dated artifact and carries a status pointer; the decisions live in
   `gap-closure/`.
-- **The persistence gate is still closed.** IA-002 has **not** been issued. Until it is, no
+- **The persistence gate is still closed.** IA-002 exists only as a **DRAFT** awaiting owner
+  ratification; until it is ratified, IA-001's HELD list governs unchanged. Until it is, no
   Prisma change, migration, longitudinal write repository, command service, mutating API,
   actual-discharge command, persistence-backed longitudinal UI mutation, or AI command
   execution is authorized — regardless of what any design document depicts.

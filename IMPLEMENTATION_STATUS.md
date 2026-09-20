@@ -138,6 +138,55 @@ projections, CI tooling). None requires Prisma, migrations, commands, APIs or AI
 canon and this baseline authorizes documentation and tests only — no production readiness, HIPAA,
 PHI, clinical or legal approval.
 
+### Longitudinal gap closure, reconciliation and IA-002 draft — CURRENT, VERIFIED (2026-09-20, at `6b1d91f`)
+
+**All ten longitudinal gaps are closed or explicitly bounded** —
+[docs/canon/gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md](docs/canon/gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md):
+**6 LOCKED** (01 DischargePlan cardinality, 02 destination-attempt identity, 04 LOC registry,
+07 actual-discharge command shape, 09 DISCHARGED→CLOSED boundary, 10 projection derivability) and
+**4 BOUNDED** (03 readiness authority, 05 barrier taxonomy, 06 core-vs-configurable observations,
+08 continuity evidence sources). A BOUNDED gap fixes shape, invariants and failure mode; what
+remains needs clinical licensing (OD-3), counsel (OD-2) or a real integration contract (OD-5).
+**None of the four bounds blocks persistence.**
+
+Two findings from that pass matter beyond their own gaps:
+
+- **LONG-GAP-04 exposed a contradiction in merged work.** `enum LevelOfCare`
+  (`prisma/schema.prisma:94`) already exists, is mirrored in
+  `packages/domain-contracts/src/authorization.ts` and is enum-sync tested — yet the longitudinal
+  slice merged in #133 types `recommendedLevelCode` as an open string and its fixture uses
+  `"INPATIENT"` / `"IOP"`, neither of which is a member. The decision adopts the existing enum;
+  correcting the drift is a **breaking change to merged work** and a prerequisite to persistence.
+- **LONG-GAP-10 exposed a hard limit.** `PatientToken` carries `organizationId` and has no
+  cross-organization identity, so the longitudinal journey is derivable **within one organization
+  and not across organizations**. That scope is part of the decision: no surface may present a
+  within-org journey as a person's complete history.
+
+**Current → Target reconciliation produced** per IA-001 §5.3 —
+[docs/canon/reconciliation/CURRENT_TARGET_LONGITUDINAL_SCHEMA_RECONCILIATION_v0.1.md](docs/canon/reconciliation/CURRENT_TARGET_LONGITUDINAL_SCHEMA_RECONCILIATION_v0.1.md):
+**9 objects proposed, 7 refused.** Refused and not revisitable: `PendingDischarge`,
+`TransitionReadiness`, `LongitudinalCareJourney`, the three profiles, a monolithic `Continuity`
+entity, and any score column (`grep -in "score" prisma/*.prisma` returns zero hits today).
+
+**IA-002 is DRAFT, NOT IN FORCE** —
+[docs/canon/IMPLEMENTATION_AUTHORIZATION_IA-002.md](docs/canon/IMPLEMENTATION_AUTHORIZATION_IA-002.md).
+Until the owner ratifies it, **IA-001's HELD list governs unchanged and the persistence boundary
+remains closed.** The draft opens persistence in three ordered slices, each with its own ADR and
+gates, conditioned on five prerequisites (C-1 LOC enum typing, C-2 destination-attempt extraction,
+C-3 derived continuity coverage, C-5 rejection-form no-collapse tests, C-6 schema-conformance
+tripwire) — **all five already authorized under IA-001 §10 and none requiring IA-002.**
+ADR-0026 (Slice A — authority policy plus the two append-only clinical decisions) is **Proposed**.
+ADRs for Slices B and C are not drafted and their numbers are not allocated.
+
+**One item genuinely open:** who may *write* a `LongitudinalAuthorityPolicy`. Writing the policy
+that decides who may make clinical decisions is a meta-authority act the reconciliation could not
+settle from repository evidence. Until the owner settles it the policy table may be seeded
+read-only.
+
+**Not claimed:** no Prisma file has been touched. No migration, command, API or UI change exists
+for any of this. Nothing here claims production readiness, HIPAA, PHI readiness, or approved
+clinical or legal rules.
+
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
 **Open PRs: 0** as of 2026-09-20. (0 as of 2026-09-18 after Housekeeping Phase 2B; #127, #128
