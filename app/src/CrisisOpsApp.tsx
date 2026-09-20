@@ -594,7 +594,7 @@ export function App() {
           </div>
         </div>
 
-        <details className="session-panel compact-session" open={Boolean(apiPrincipal)}>
+        <details className="session-panel compact-session">
           <summary>Verified session{apiPrincipal ? " — active" : " — not signed in"}</summary>
           {apiPrincipal ? (
             <>
