@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { DATA_QUALITY_STATES } from "./analytics.js";
+
+type DataQualityStateName = (typeof DATA_QUALITY_STATES)[number];
 import {
   DATE_ONLY_SCHEMA,
   DOMAIN_ID_SCHEMA,
@@ -554,16 +556,25 @@ export interface TransitionReadinessProjection {
   readonly unknownComponents: readonly TransitionReadinessSliceComponent[];
 }
 
+/**
+ * LSR-10: no single flag may substitute for the seven independently governed
+ * components. A component nobody reported is **unknown**, never implicitly
+ * satisfied — absence of evidence is not readiness.
+ */
 export function deriveTransitionReadiness(
   components: readonly TransitionReadinessComponent[],
 ): TransitionReadinessProjection {
   const parsed = components.map((component) => TransitionReadinessComponentSchema.parse(component));
-  const blockedComponents = parsed
-    .filter((component) => component.state === "BLOCKED")
-    .map((component) => component.component);
-  const unknownComponents = parsed
-    .filter((component) => component.state === "UNKNOWN")
-    .map((component) => component.component);
+  const reported = new Map(parsed.map((component) => [component.component, component.state]));
+  const blockedComponents = TRANSITION_READINESS_SLICE_COMPONENTS.filter(
+    (component) => reported.get(component) === "BLOCKED",
+  );
+  const unknownComponents = TRANSITION_READINESS_SLICE_COMPONENTS.filter((component) => {
+    const state = reported.get(component);
+    // Unreported and explicitly UNKNOWN are the same answer: we do not know.
+    // NOT_APPLICABLE is an answer, so it is neither blocked nor unknown.
+    return state === undefined || state === "UNKNOWN";
+  });
 
   return {
     executionState: blockedComponents.length > 0 ? "BLOCKED" : unknownComponents.length > 0 ? "UNKNOWN" : "READY",
@@ -623,6 +634,18 @@ export interface ContinuityWindowProjection {
   readonly sourceCoverageCompleteness: SourceCoverageCompleteness;
 }
 
+/**
+ * Quality states that may stand as current evidence. This mirrors the metric
+ * rule already established for analytics — `requiredQualityStates` in
+ * `analytics.ts` — rather than introducing a second, divergent notion of what
+ * counts. Everything else is either retracted (CORRECTED, SUPERSEDED),
+ * untrusted (QUARANTINED, REJECTED) or not yet adjudicated (PENDING_REVIEW).
+ */
+const ACTIVE_CONTINUITY_QUALITY_STATES: readonly DataQualityStateName[] = [
+  "VALID",
+  "VALID_WITH_WARNINGS",
+];
+
 export function deriveContinuityWindow(input: {
   events: readonly ContinuityEvent[];
   eventType: ContinuityEventType;
@@ -634,12 +657,17 @@ export function deriveContinuityWindow(input: {
   const end = isoMs(ISO_DATETIME_SCHEMA.parse(input.windowEndAt));
   if (start > end) throw new Error("Continuity window must start on or before it ends");
 
-  const observedEventIds = input.events
+  const inWindow = input.events
+    .map((event) => ContinuityEventSchema.parse(event))
     .filter((event) => {
-      const parsed = ContinuityEventSchema.parse(event);
-      const effective = isoMs(parsed.effectiveAt);
-      return parsed.eventType === input.eventType && effective >= start && effective <= end;
-    })
+      const effective = isoMs(event.effectiveAt);
+      return event.eventType === input.eventType && effective >= start && effective <= end;
+    });
+
+  const observedEventIds = inWindow
+    .filter((event) =>
+      ACTIVE_CONTINUITY_QUALITY_STATES.includes(event.qualityState as DataQualityStateName),
+    )
     .map((event) => event.eventId);
 
   if (observedEventIds.length > 0) {
@@ -651,10 +679,15 @@ export function deriveContinuityWindow(input: {
     };
   }
 
+  // LSR-17: a retracted, untrusted or unreviewed observation is not proof that
+  // the event did not occur. It is proof that we no longer know, so it must not
+  // license a complete-coverage claim of absence.
+  const hasInactiveEvidence = inWindow.length > 0;
+
   return {
     eventType: input.eventType,
     status:
-      input.sourceCoverageCompleteness === "COMPLETE_FOR_WINDOW"
+      input.sourceCoverageCompleteness === "COMPLETE_FOR_WINDOW" && !hasInactiveEvidence
         ? "NONE_OBSERVED_WITH_COMPLETE_COVERAGE"
         : "UNKNOWN",
     observedEventIds: [],

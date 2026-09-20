@@ -197,3 +197,129 @@ describe("longitudinal vertical slice v0.1", () => {
     expect("status" in journey).toBe(false);
   });
 });
+
+/**
+ * Slice 0.5 regression suite.
+ *
+ * These reproduce two defects found by the 2026-09-20 owner-level review of the
+ * contract layer merged in PR #133. Both are absence-of-evidence failures: the
+ * projections produced a positive answer from missing or retracted input.
+ *
+ * D-1  deriveTransitionReadiness([]) returned "READY" — readiness from no evidence.
+ * D-2  deriveContinuityWindow counted a SUPERSEDED/REJECTED/QUARANTINED/CORRECTED
+ *      event as OBSERVED, because no projection read `qualityState`.
+ */
+describe("longitudinal unknown semantics (Slice 0.5 regression)", () => {
+  const ALL_COMPONENTS = [
+    "CLINICAL",
+    "MEDICATION",
+    "DESTINATION",
+    "FOLLOW_UP",
+    "TRANSPORTATION",
+    "SUPPORT_ENVIRONMENT",
+    "HANDOFF_DOCUMENTATION",
+  ] as const;
+
+  const component = (name: (typeof ALL_COMPONENTS)[number], state: string) => ({
+    component: name,
+    state,
+    sourceRefs: [],
+  });
+
+  describe("D-1 — transition readiness never reads READY from absent evidence", () => {
+    it("treats no components at all as UNKNOWN, not READY", () => {
+      const projection = deriveTransitionReadiness([]);
+      expect(projection.executionState).toBe("UNKNOWN");
+      expect(projection.unknownComponents).toEqual([...ALL_COMPONENTS]);
+      expect(projection.blockedComponents).toEqual([]);
+    });
+
+    it("treats a component that was never reported as UNKNOWN", () => {
+      const projection = deriveTransitionReadiness([
+        component("CLINICAL", "READY") as never,
+      ]);
+      expect(projection.executionState).toBe("UNKNOWN");
+      expect(projection.unknownComponents).toEqual(
+        ALL_COMPONENTS.filter((name) => name !== "CLINICAL"),
+      );
+    });
+
+    it("does not let repeated reports of one component stand in for the rest", () => {
+      const projection = deriveTransitionReadiness(
+        ALL_COMPONENTS.map(() => component("CLINICAL", "READY")) as never,
+      );
+      expect(projection.executionState).toBe("UNKNOWN");
+      expect(projection.unknownComponents).toHaveLength(ALL_COMPONENTS.length - 1);
+    });
+
+    it("still reports READY when every component is accounted for", () => {
+      const projection = deriveTransitionReadiness(
+        ALL_COMPONENTS.map((name) => component(name, "READY")) as never,
+      );
+      expect(projection).toEqual({
+        executionState: "READY",
+        blockedComponents: [],
+        unknownComponents: [],
+      });
+    });
+
+    it("preserves NOT_APPLICABLE as explicitly answered, not unknown", () => {
+      const projection = deriveTransitionReadiness(
+        ALL_COMPONENTS.map((name) =>
+          component(name, name === "TRANSPORTATION" ? "NOT_APPLICABLE" : "READY"),
+        ) as never,
+      );
+      expect(projection.executionState).toBe("READY");
+      expect(projection.unknownComponents).toEqual([]);
+    });
+
+    it("still reports BLOCKED when a component is blocked and others are missing", () => {
+      const projection = deriveTransitionReadiness([
+        component("DESTINATION", "BLOCKED") as never,
+      ]);
+      expect(projection.executionState).toBe("BLOCKED");
+      expect(projection.blockedComponents).toEqual(["DESTINATION"]);
+      expect(projection.unknownComponents).toHaveLength(ALL_COMPONENTS.length - 1);
+    });
+  });
+
+  describe("D-2 — continuity never counts retracted evidence as observed", () => {
+    const base = DAY_1_TO_39.continuityEvents[0]!;
+    const windowed = (qualityState: string) =>
+      deriveContinuityWindow({
+        events: [{ ...base, qualityState } as never],
+        eventType: "NEXT_LEVEL_OF_CARE_STARTED",
+        windowStartAt: DAY_1_TO_39.day9,
+        windowEndAt: DAY_1_TO_39.day16,
+        sourceCoverageCompleteness: "COMPLETE_FOR_WINDOW",
+      });
+
+    it.each(["SUPERSEDED", "REJECTED", "QUARANTINED", "CORRECTED"])(
+      "does not report a %s event as observed",
+      (qualityState) => {
+        const projection = windowed(qualityState);
+        expect(projection.status).not.toBe("OBSERVED");
+        expect(projection.observedEventIds).toEqual([]);
+      },
+    );
+
+    it.each(["VALID", "VALID_WITH_WARNINGS"])(
+      "still reports a %s event as observed",
+      (qualityState) => {
+        const projection = windowed(qualityState);
+        expect(projection.status).toBe("OBSERVED");
+        expect(projection.observedEventIds).toEqual([base.eventId]);
+      },
+    );
+
+    it("does not claim complete-coverage absence once every event was retracted", () => {
+      // The window really is empty of valid evidence, but a retracted event is not
+      // proof that nothing happened — it is proof that we no longer know.
+      expect(windowed("SUPERSEDED").status).toBe("UNKNOWN");
+    });
+
+    it("treats an unreviewed event as unknown rather than observed or absent", () => {
+      expect(windowed("PENDING_REVIEW").status).toBe("UNKNOWN");
+    });
+  });
+});
