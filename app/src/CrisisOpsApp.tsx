@@ -39,6 +39,7 @@ import { TrainingSops } from "./workspaces/TrainingSops";
 import { MockAdmitLab } from "./workspaces/MockAdmitLab";
 import { ProductStudio } from "./workspaces/ProductStudio";
 import { IopReconciliation } from "./workspaces/IopReconciliation";
+import { AccessSnapshot } from "./features/access-snapshot/AccessSnapshot";
 import { EmptyState, StatusBadge } from "./components/StatusBadge";
 import { createAnalyticsEvent } from "./domain/analyticsEvents";
 import { appendCustodyLedgerEvent } from "./domain/custodyLedger";
@@ -66,6 +67,7 @@ import type {
 
 const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof LayoutDashboard }> = [
   { id: "queue", label: "Case Queue", icon: LayoutDashboard },
+  { id: "access", label: "Access Snapshot", icon: FileSearch },
   { id: "command", label: "Command Center", icon: Gauge },
   { id: "new", label: "New Case", icon: PlusCircle },
   { id: "overview", label: "Case Overview", icon: ClipboardList },
@@ -629,47 +631,51 @@ export function App() {
       </aside>
 
       <main className="main-surface">
-        <header className="topbar">
-          <div>
-            <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isIopReconciliation ? "Synthetic operations review" : "Selected case"}</span>
-            <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : isIopReconciliation ? "IOP Attendance Reconciliation" : activeCase.patientToken.displayName}</h2>
-          </div>
-          <div className="topbar-badges">
-            {isMockAdmitLab ? (
-              <>
-                <StatusBadge tone="danger">Synthetic only</StatusBadge>
-                <StatusBadge tone="warn">Human review required</StatusBadge>
-              </>
-            ) : isProductStudio ? (
-              <>
-                <StatusBadge tone="info">Synthetic registry</StatusBadge>
-                <StatusBadge tone="warn">Review-gated</StatusBadge>
-              </>
-            ) : isIopReconciliation ? (
-              <>
-                <StatusBadge tone="danger">Synthetic only</StatusBadge>
-                <StatusBadge tone="warn">Review-gated</StatusBadge>
-              </>
-            ) : (
-              <>
-                <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
-                <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
-                <StatusBadge tone="warn">Draft workflow</StatusBadge>
-              </>
-            )}
-          </div>
-        </header>
-
-        {!isMockAdmitLab && !isProductStudio && !isIopReconciliation && focusChips.length ? (
-          <div className="focus-strip" aria-label="Role focus summary">
-            {focusChips.map((chip) => (
-              <div className="focus-chip" key={chip.label}>
-                <span className="label">{chip.label}</span>
-                <StatusBadge tone={chip.tone}>{chip.value}</StatusBadge>
+        {workspace !== "access" && (
+          <>
+            <header className="topbar">
+              <div>
+                <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isIopReconciliation ? "Synthetic operations review" : "Selected case"}</span>
+                <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : isIopReconciliation ? "IOP Attendance Reconciliation" : activeCase.patientToken.displayName}</h2>
               </div>
-            ))}
-          </div>
-        ) : null}
+              <div className="topbar-badges">
+                {isMockAdmitLab ? (
+                  <>
+                    <StatusBadge tone="danger">Synthetic only</StatusBadge>
+                    <StatusBadge tone="warn">Human review required</StatusBadge>
+                  </>
+                ) : isProductStudio ? (
+                  <>
+                    <StatusBadge tone="info">Synthetic registry</StatusBadge>
+                    <StatusBadge tone="warn">Review-gated</StatusBadge>
+                  </>
+                ) : isIopReconciliation ? (
+                  <>
+                    <StatusBadge tone="danger">Synthetic only</StatusBadge>
+                    <StatusBadge tone="warn">Review-gated</StatusBadge>
+                  </>
+                ) : (
+                  <>
+                    <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
+                    <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
+                    <StatusBadge tone="warn">Draft workflow</StatusBadge>
+                  </>
+                )}
+              </div>
+            </header>
+
+            {!isMockAdmitLab && !isProductStudio && !isIopReconciliation && focusChips.length ? (
+              <div className="focus-strip" aria-label="Role focus summary">
+                {focusChips.map((chip) => (
+                  <div className="focus-chip" key={chip.label}>
+                    <span className="label">{chip.label}</span>
+                    <StatusBadge tone={chip.tone}>{chip.value}</StatusBadge>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </>
+        )}
 
         <section className="content-region">
           {workspace === "queue" ? <CaseQueue state={state} selectedCaseId={activeCase.id} onSelect={(id) => { setSelectedCaseId(id); setWorkspace("overview"); }} /> : null}
@@ -706,6 +712,7 @@ export function App() {
           {workspace === "mock-admits" ? <MockAdmitLab /> : null}
           {workspace === "studio" ? <ProductStudio /> : null}
           {workspace === "iop-reconciliation" ? <IopReconciliation /> : null}
+          {workspace === "access" ? <AccessSnapshot /> : null}
         </section>
       </main>
     </div>

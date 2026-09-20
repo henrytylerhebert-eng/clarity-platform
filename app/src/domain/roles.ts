@@ -16,7 +16,8 @@ export type WorkspaceId =
   | "training"
   | "mock-admits"
   | "studio"
-  | "iop-reconciliation";
+  | "iop-reconciliation"
+  | "access";
 
 export const allWorkspaceIds: WorkspaceId[] = [
   "queue",
@@ -37,6 +38,7 @@ export const allWorkspaceIds: WorkspaceId[] = [
   "mock-admits",
   "studio",
   "iop-reconciliation",
+  "access",
 ];
 
 export type RoleId =
@@ -84,7 +86,7 @@ export const roles: RoleDefinition[] = [
     label: "Central intake coordinator",
     description: "Owns the pipeline: SLA clocks, packet completeness, routing, escalations.",
     mission: "Keep every case moving; escalate before clocks breach.",
-    workspaces: ["command", "queue", "new", "overview", "intake", "evidence", "medical", "legal", "benefits", "authorization", "packet", "routing", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "queue", "access", "new", "overview", "intake", "evidence", "medical", "legal", "benefits", "authorization", "packet", "routing", "ledger", "training", "mock-admits"],
     defaultWorkspace: "command",
   },
   {
@@ -92,7 +94,7 @@ export const roles: RoleDefinition[] = [
     label: "Clinician reviewer",
     description: "Reviews assessments, risk formulations, and medical-necessity drafts.",
     mission: "Turn drafts into clinically defensible documentation.",
-    workspaces: ["queue", "overview", "intake", "evidence", "medical", "legal", "ledger", "training", "mock-admits"],
+    workspaces: ["queue", "access", "overview", "intake", "evidence", "medical", "legal", "ledger", "training", "mock-admits"],
     defaultWorkspace: "queue",
   },
   {
@@ -100,7 +102,7 @@ export const roles: RoleDefinition[] = [
     label: "UR / benefits specialist",
     description: "Runs the financial lane in parallel: verification, payer documentation gaps.",
     mission: "Clear the financial lane without ever blocking the clinical lane.",
-    workspaces: ["command", "queue", "overview", "medical", "benefits", "authorization", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "queue", "access", "overview", "medical", "benefits", "authorization", "ledger", "training", "mock-admits"],
     defaultWorkspace: "benefits",
   },
   {
@@ -124,7 +126,7 @@ export const roles: RoleDefinition[] = [
     label: "Compliance / legal officer",
     description: "Watches custody integrity, counsel-validation queue, and clock breaches.",
     mission: "Prove the chain of custody; flag anything counsel has not validated.",
-    workspaces: ["command", "queue", "evidence", "legal", "ledger", "training", "mock-admits"],
+    workspaces: ["command", "queue", "access", "evidence", "legal", "ledger", "training", "mock-admits"],
     defaultWorkspace: "ledger",
   },
   {
@@ -132,7 +134,7 @@ export const roles: RoleDefinition[] = [
     label: "Executive / program director",
     description: "Read-focused pipeline oversight. Full metrics dashboard arrives in v0.3.",
     mission: "See throughput and risk at a glance; measure before claiming improvement.",
-    workspaces: ["command", "queue", "ledger", "training", "mock-admits", "studio", "iop-reconciliation"],
+    workspaces: ["command", "queue", "access", "ledger", "training", "mock-admits", "studio", "iop-reconciliation"],
     defaultWorkspace: "command",
   },
 ];
