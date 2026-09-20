@@ -49,7 +49,7 @@ Every contract enum reaches the user as a translated label. The label maps in
 | Refresh reloads the case on screen, not the edited field; no polling | `refreshes the case on screen even after the key field has been edited`; `loads once per explicit action and never polls` |
 | One session's case never shown to the next session | `AccessSnapshot — session isolation` (2) |
 
-## Evidence (run 2026-09-19 in this worktree)
+## Evidence (run 2026-09-19 pre-merge, plus one post-merge run dated 2026-09-20)
 
 | Check | Result |
 |---|---|
@@ -57,11 +57,27 @@ Every contract enum reaches the user as a translated label. The label maps in
 | `npm run test:app` | exit 0 — 25 files / 215 tests (63 in `features/access-snapshot`, 1 in `App.test.tsx` for this feature) |
 | `npm --workspace app run build` | exit 0 |
 | Mutation check of the tests themselves | 6 distinct deliberate regressions in 7 runs (dropped session key; refresh uses the typed key; raw case status, run twice because the first run exposed a weak guard; raw prescreen status; raw suppression reason; stale case kept on error) — each failed the intended test; source restored byte-for-byte |
+| `npx playwright test --config app/playwright.config.ts smoke/clarity-v01.spec.ts` (2026-09-20, post-merge) | 20/20 passed, desktop + mobile projects. This is a **general shell regression check only** — it proves the nav and `roles.ts` change did not break existing persona scoping. It is **not** Access coverage: the suite never references `access`, so deleting the grant from all five personas would leave it green. No CI step runs this suite |
 | Live run: `npm run api:dev` + Vite against local `clarity_dev` | signed-out view; sign-in with the synthetic intake assertion; `SYN-API-CASE-0001` returned `200` and rendered; a nonexistent key returned `404` and rendered the non-revealing alert with the previous case removed; exactly one `ACCESS_CASE_VIEWED` audit row was written, none for the `404` |
 
 The mutation check found and fixed a weak guard in this suite's own raw-enum test:
 `textContent` concatenates adjacent elements, which hid a raw token from a word-boundary
 match. The test now joins text nodes with spaces.
+
+## Coverage provenance
+
+Per `AGENTS.md`, a coverage claim names the command, the scope that command selects, and whether
+the evidence is local or CI — never inferred from a green aggregate check.
+
+| Claim | Source | Command / workflow step | Scope selector | Evidence |
+|---|---|---|---|---|
+| Root unit + integration passed | Local; CI re-ran as one pass | Local: `npm run verify` (`vitest.unit.config.ts`, then `vitest.integration.config.ts` on an ephemeral database). CI: `npm test` (`vitest.config.ts`, single pass) | `tests/**`, `packages/**` — **excludes `app/**`** | 565 unit / 295 integration |
+| App tests passed | Local + CI | `npm run test:app` (= `npm --workspace app test` → `vitest run`) | Vitest default include under `app/`, with `exclude: ["node_modules", "dist", "smoke"]` (`app/vite.config.ts`) — in practice `app/src/**` only. **The Playwright specs in `app/smoke/` are excluded**, so this number contains no browser tests | 215 tests (63 for this feature) |
+| App build | Local + CI | `npm --workspace app run build` | `app/` | exit 0 |
+| OA Playwright passed | CI | `npm run test:oa-e2e` | `playwright.assurance.config.ts`, `testMatch: operating-assurance.spec.ts` | green on the merged head |
+| Crisis Ops smoke passed | Local only | default `playwright.config.ts` | `clarity-v01.spec.ts`, desktop + mobile | 20/20; no CI step runs it |
+| Access workspace reachable per persona | Local + CI | `npm run test:app` | `App.test.tsx` boundary test, `central` persona only | 1 of the 5 granted personas |
+| Access-specific E2E | — | — | none exists | **Not covered** |
 
 ## Honest gaps
 
@@ -74,14 +90,25 @@ match. The test now joins text nodes with spaces.
   are covered by typed-fixture component tests, not against a live API holding such data.
 - **The live `403` path (a `SYSTEM_ADMIN` session) was not exercised.** It is covered by a test that
   uses the real `describeApiError`.
-- No Playwright smoke or end-to-end spec was added, and the existing ones (`app/smoke`,
-  `test:oa-e2e`) were not run.
-- Visual review was one desktop viewport (1360 px). The narrow-width breakpoint, keyboard
+- **No Access-specific Playwright spec exists.** `clarity-v01.spec.ts` never opens the `access`
+  workspace, so nothing end-to-end exercises this view. Stated precisely, because the blanket
+  claim that "Playwright was not run" was wrong: CI's `verify` job **does** run `test:oa-e2e`,
+  but that config's `testMatch` limits it to `operating-assurance.spec.ts`. The Crisis Ops suite
+  `clarity-v01.spec.ts` is run by **no** CI step; it was run locally post-merge (20/20, desktop +
+  mobile) and is the evidence that this change did not break the existing shell, not evidence
+  about the Access view itself.
+- Visual review of **this view** was one desktop viewport (1360 px). The smoke suite's mobile
+  project exercises the shell at narrow width but never opens `access`, so the Access Snapshot's
+  own `@media (max-width: 768px)` single-column layout is still unverified at runtime. Keyboard
   navigation and screen-reader behaviour were not reviewed beyond the semantics the markup uses
   (regions, lists, `aria-current`, `role="alert"`).
-- `roles.ts` lists the `access` workspace for five demo personas. Demo personas are not an
-  authorization boundary: the API decides by the verified principal's roles
-  (`ACCESS_CASE_READ_POLICY`).
+- **Four of the five persona grants are untested.** `roles.ts` grants `access` to `central`,
+  `clinician`, `ur`, `compliance` and `executive`. Only `central` is asserted anywhere (the
+  `App.test.tsx` boundary test selects it and opens the workspace); removing the grant from the
+  other four would not fail any test. `roles.test.ts` checks structural invariants only.
+  Demo personas are not an authorization boundary — the API decides by the verified principal's
+  roles (`ACCESS_CASE_READ_POLICY`) — so this is a navigation-visibility gap, not a security one.
+  PR #129 is open to close it; this bullet and the provenance row above must be updated when it lands.
 - `graphify update .` was not run: from a worktree it rewrites the tracked, absolute-path-keyed
   manifest (issue #40).
 - Pre-existing, not from this change: 15 `no-explicit-any` lint warnings in
