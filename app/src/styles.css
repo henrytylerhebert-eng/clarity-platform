@@ -46,6 +46,7 @@ button {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
   padding: 20px 16px;
   background: #13202b;
   color: #eff6f7;
@@ -1158,6 +1159,7 @@ textarea {
   .sidebar {
     position: relative;
     height: auto;
+    overflow-y: visible;
   }
 
   .primary-nav-list {
@@ -1675,7 +1677,8 @@ textarea {
 .clarity-shell-bar {
   display: flex;
   align-items: center;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 12px 20px;
   padding: 8px 16px;
   background: #13202b;
   color: #eff6f7;
@@ -1686,7 +1689,7 @@ textarea {
   letter-spacing: 0.08em;
   font-size: 12px;
 }
-.clarity-shell-areas { display: flex; gap: 4px; }
+.clarity-shell-areas { display: flex; gap: 4px; flex-wrap: wrap; }
 .clarity-shell-area {
   color: #b7c6cc;
   text-decoration: none;
@@ -1705,3 +1708,22 @@ textarea {
 .clarity-shell-identity small { display: block; color: #8ca0a8; }
 .clarity-shell-signout, .clarity-shell-signed-out { background: none; border: none; color: inherit; font: inherit; }
 .clarity-shell-signout { cursor: pointer; text-decoration: underline; padding: 0; }
+
+
+@media (max-width: 640px) {
+  .clarity-shell-identity {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .clarity-shell-areas {
+    order: 3;
+    width: 100%;
+  }
+
+  .clarity-shell-area {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
