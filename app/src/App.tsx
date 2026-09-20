@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { App as CrisisOpsApp } from "./CrisisOpsApp";
 import { StatusBadge } from "./components/StatusBadge";
 import { useAuth } from "./domain/AuthContext";
@@ -12,20 +12,7 @@ import { OperatingAssurance } from "./workspaces/OperatingAssurance";
  * the boundary is a real URL.
  */
 export function CrisisOpsRoute() {
-  const navigate = useNavigate();
-  return (
-    <>
-      <button
-        className="secondary-button"
-        type="button"
-        onClick={() => navigate("/assurance")}
-        style={{ position: "fixed", right: 18, top: 14, zIndex: 50, display: "inline-flex", gap: 7, alignItems: "center" }}
-      >
-        <ShieldCheck size={16} /> Operating Assurance
-      </button>
-      <CrisisOpsApp />
-    </>
-  );
+  return <CrisisOpsApp />;
 }
 
 export function AssuranceRoute() {
