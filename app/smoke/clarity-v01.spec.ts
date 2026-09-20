@@ -129,21 +129,12 @@ test('training workspace shows SOP onboarding for every role', async ({ page }) 
   await expect(page.getByText('Counsel validation required').first()).toBeVisible();
 });
 
-test('personas get adapted focus strips and field mode simplifies intake', async ({ page }) => {
-  await page.getByLabel('Demo view').selectOption('central');
-  await expect(page.getByText('Breached clocks')).toBeVisible();
-  await expect(page.getByText('Packets below 95%')).toBeVisible();
-
-  await page.getByLabel('Demo view').selectOption('nurse');
-  await expect(page.getByText('Units over acuity ceiling')).toBeVisible();
-
-  await page.getByLabel('Demo view').selectOption('executive');
-  await expect(page.getByText('No measurements found').first()).toBeVisible();
-
+test('demo view stays secondary while field mode still simplifies intake', async ({ page }) => {
   await page.getByLabel('Demo view').selectOption('field');
   await expect(page.getByRole('heading', { name: 'New Case' })).toBeVisible();
-  await expect(page.getByText('Pitfall guards', { exact: true })).toBeVisible();
+  await expect(page.getByText('Prototype navigation only · not authorization')).toBeVisible();
 
+  await page.getByRole('button', { name: 'Intake', exact: true }).click();
   await page.getByRole('button', { name: 'Guided Intake' }).click();
   await page.getByRole('button', { name: 'Field mode' }).click();
   await expect(page.getByText('Field mode captures scene facts')).toBeVisible();
@@ -156,7 +147,8 @@ test('personas get adapted focus strips and field mode simplifies intake', async
 
 test('intake case can generate and send a packet with custody events', async ({ page }) => {
   await page.getByRole('button', { name: 'Adult Demo A' }).click();
-  await page.getByRole('button', { name: 'Packet Preview' }).click();
+  await page.getByRole('button', { name: 'Placement', exact: true }).click();
+  await page.getByRole('button', { name: 'Packet' }).click();
   await expect(page.getByRole('heading', { name: 'Packet completeness checklist' })).toBeVisible();
   await expect(page.getByText('Missing').first()).toBeVisible();
 
