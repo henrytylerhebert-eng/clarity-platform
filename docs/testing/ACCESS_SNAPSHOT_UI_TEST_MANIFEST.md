@@ -49,7 +49,7 @@ Every contract enum reaches the user as a translated label. The label maps in
 | Refresh reloads the case on screen, not the edited field; no polling | `refreshes the case on screen even after the key field has been edited`; `loads once per explicit action and never polls` |
 | One session's case never shown to the next session | `AccessSnapshot — session isolation` (2) |
 
-## Evidence (run 2026-09-19 in this worktree)
+## Evidence (run 2026-09-19 pre-merge, plus one post-merge run dated 2026-09-20)
 
 | Check | Result |
 |---|---|
@@ -57,6 +57,7 @@ Every contract enum reaches the user as a translated label. The label maps in
 | `npm run test:app` | exit 0 — 25 files / 215 tests (63 in `features/access-snapshot`, 1 in `App.test.tsx` for this feature) |
 | `npm --workspace app run build` | exit 0 |
 | Mutation check of the tests themselves | 6 distinct deliberate regressions in 7 runs (dropped session key; refresh uses the typed key; raw case status, run twice because the first run exposed a weak guard; raw prescreen status; raw suppression reason; stale case kept on error) — each failed the intended test; source restored byte-for-byte |
+| `npx playwright test --config app/playwright.config.ts smoke/clarity-v01.spec.ts` (2026-09-20, post-merge) | 20/20 passed across the desktop and mobile projects, including `role switching scopes workspaces to each stakeholder segment`, which covers the `roles.ts` change. No CI step runs this suite |
 | Live run: `npm run api:dev` + Vite against local `clarity_dev` | signed-out view; sign-in with the synthetic intake assertion; `SYN-API-CASE-0001` returned `200` and rendered; a nonexistent key returned `404` and rendered the non-revealing alert with the previous case removed; exactly one `ACCESS_CASE_VIEWED` audit row was written, none for the `404` |
 
 The mutation check found and fixed a weak guard in this suite's own raw-enum test:
@@ -74,9 +75,16 @@ match. The test now joins text nodes with spaces.
   are covered by typed-fixture component tests, not against a live API holding such data.
 - **The live `403` path (a `SYSTEM_ADMIN` session) was not exercised.** It is covered by a test that
   uses the real `describeApiError`.
-- No Playwright smoke or end-to-end spec was added, and the existing ones (`app/smoke`,
-  `test:oa-e2e`) were not run.
-- Visual review was one desktop viewport (1360 px). The narrow-width breakpoint, keyboard
+- **No Access-specific Playwright spec exists.** `clarity-v01.spec.ts` never opens the `access`
+  workspace, so nothing end-to-end exercises this view. Stated precisely, because the blanket
+  claim that "Playwright was not run" was wrong: CI's `verify` job **does** run `test:oa-e2e`,
+  but that config's `testMatch` limits it to `operating-assurance.spec.ts`. The Crisis Ops suite
+  `clarity-v01.spec.ts` is run by **no** CI step; it was run locally post-merge (20/20, desktop +
+  mobile) and is the evidence that this change did not break the existing shell, not evidence
+  about the Access view itself.
+- Visual review of **this view** was one desktop viewport (1360 px). The smoke suite's mobile
+  project exercises the shell at narrow width but never opens `access`, so the Access Snapshot's
+  own `@media (max-width: 768px)` single-column layout is still unverified at runtime. Keyboard
   navigation and screen-reader behaviour were not reviewed beyond the semantics the markup uses
   (regions, lists, `aria-current`, `role="alert"`).
 - `roles.ts` lists the `access` workspace for five demo personas. Demo personas are not an
