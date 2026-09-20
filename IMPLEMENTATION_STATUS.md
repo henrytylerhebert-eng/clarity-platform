@@ -98,9 +98,45 @@ longitudinal UI mutation, and AI command execution. Authorized now: canon/docs w
 contract-only types, pure deterministic projections, synthetic fixtures, semantic acceptance
 tests, Tree 5 UX over *existing governed read models*, and read-only design work.
 
-**Not claimed:** no row in `docs/canon/VERIFICATION_MATRIX.md` is asserted to have an automated
-test behind it. Which invariants are actually covered has not been established. Landing the canon
-authorizes documentation only — no production readiness, HIPAA, PHI, clinical or legal approval.
+### Verification Matrix conformance baseline — CURRENT, VERIFIED (2026-09-20, at `6b1d91f`)
+
+All 21 rows of `docs/canon/VERIFICATION_MATRIX.md` were interrogated against the repository.
+Result, recorded in
+[docs/canon/conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md](docs/canon/conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md):
+**9 ENFORCED, 6 PARTIAL, 2 MISSING, 4 NOT YET APPLICABLE.** No test was written to turn a row
+green and no remediation was performed; this is an evidence baseline only.
+
+Findings that matter for the persistence gate:
+
+- All 24 longitudinal Zod schemas are `.strict()`, so the no-collapse rules (no `causedBy`, no
+  `score`) are enforced **by construction** — confirmed empirically with a throwaway probe. The
+  tests, however, assert `"field" in parsed === false`, which proves only that the fixture lacked
+  the field. The schemas are stronger than their tests.
+- **Nothing structurally prevents a prohibited Prisma model.** `prisma/schema.prisma` is clean
+  today (no `score`, no persisted readiness, no journey aggregate — all verified by direct
+  search), and `EpisodeStatus` inflation is caught incidentally by
+  `tests/unit/contract-schema-enum-sync.test.ts`. But a `LongitudinalCareJourney` model could be
+  added and no check would fail.
+- **Longitudinal has no tenancy or correction/supersession evidence**, because it has no
+  repository. Rows 18 and 21 — two of the strongest existing protections — do not extend to the
+  layer IA-002 would open. Every object in the forthcoming reconciliation must carry an explicit
+  tenancy clause and correction/supersession clause.
+- Rows 12 and 20 ("Work uses governed truth", "UI does not present candidate as assignment") hold
+  for the **Access workspace only**; the matrix states them as global properties and they are
+  false elsewhere by design.
+- The browser regression suite the matrix relies on for "Tree 4 preserved"
+  (`app/smoke/clarity-v01.spec.ts`) is run by **no CI step**.
+- Rows 14–17 (Explore, Ask Clarity, AI authority, AI command gateway) are **vacuously true** —
+  no Explore surface and no AI runtime exist (`grep -rlE "\bllm\b|anthropic|openai|claude-|gpt-"`
+  over `packages/*/src` and `app/src` returns zero matches). Absence is not enforcement; when
+  those surfaces are built the rows begin at MISSING.
+
+All remediation identified is AUTHORIZED NOW under IA-001 §10 (semantic acceptance tests, pure
+projections, CI tooling). None requires Prisma, migrations, commands, APIs or AI execution.
+
+**Not claimed:** no row reaches L5 (human usability) or L6 (production evidence). Landing the
+canon and this baseline authorizes documentation and tests only — no production readiness, HIPAA,
+PHI, clinical or legal approval.
 
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
