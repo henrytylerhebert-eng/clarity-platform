@@ -181,7 +181,7 @@ describe("App smoke", () => {
     render(<App />);
     expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
 
-    await user.click(screen.getByText("Session & identity"));
+    await user.click(screen.getByText("Verified session"));
     await user.type(screen.getByLabelText("Development assertion"), "syn-assert-api-physician-dev");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
     expect(await screen.findByRole("button", { name: "Sign out" })).toBeInTheDocument();
@@ -196,7 +196,7 @@ describe("App smoke", () => {
     expect(apiLogin).toHaveBeenCalledOnce();
   });
 
-  it("removes the local demo patient identity from the parent shell while Access Snapshot is active", async () => {
+  it("removes the local demo patient identity from the parent shell while Case Status is active", async () => {
     const user = userEvent.setup();
     render(<App />);
 
