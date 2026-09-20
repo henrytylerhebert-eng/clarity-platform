@@ -11,6 +11,14 @@ async function openWorkspace(page: Page, group: string, workspace: string) {
   await page.getByRole('button', { name: workspace, exact: true }).click();
 }
 
+async function selectPersona(page: Page, persona: string) {
+  const details = page.locator('details.demo-view-panel');
+  if (!(await details.getAttribute('open'))) {
+    await details.locator('summary').click();
+  }
+  await page.getByLabel('Prototype persona').selectOption(persona);
+}
+
 test('case queue and custody verification render across viewports', async ({ page }, testInfo) => {
   await expect(page.getByRole('heading', { name: 'Case Queue' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Adult Demo A' })).toBeVisible();
@@ -92,20 +100,20 @@ test('role switching scopes grouped navigation to each stakeholder segment', asy
     await expect(page.getByRole('button', { name: group, exact: true })).toBeVisible();
   }
 
-  await page.getByLabel('Prototype persona').selectOption('facility');
+  await selectPersona(page, 'facility');
   await expect(page.getByRole('button', { name: 'Intake', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Review', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Placement', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Record mock response' })).toBeVisible();
 
-  await page.getByLabel('Prototype persona').selectOption('nurse');
+  await selectPersona(page, 'nurse');
   await expect(page.getByRole('heading', { name: 'Milieu Bedboard' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveCount(0);
 
-  await page.getByLabel('Prototype persona').selectOption('central');
+  await selectPersona(page, 'central');
   await expect(page.getByRole('heading', { name: 'Central Intake Command Center' })).toBeVisible();
 
-  await page.getByLabel('Prototype persona').selectOption('all');
+  await selectPersona(page, 'all');
   await openWorkspace(page, 'Intake', 'Guided Intake');
   await expect(page.getByRole('heading', { name: 'Guided Intake' })).toBeVisible();
 });
@@ -118,7 +126,7 @@ test('training workspace shows SOP onboarding for every role', async ({ page }) 
   await expect(page.getByText('Annual competency evidence')).toBeVisible();
   await expect(page.getByRole('cell', { name: /Field responder/ })).toBeVisible();
 
-  await page.getByLabel('Prototype persona').selectOption('compliance');
+  await selectPersona(page, 'compliance');
   await openWorkspace(page, 'More', 'Training & SOPs');
   await expect(page.getByRole('heading', { name: 'Compliance / legal officer onboarding' })).toBeVisible();
   await expect(page.locator('article').filter({ hasText: 'Compliance / legal officer onboarding' }).getByText('Prove custody, review status, and counsel-validation boundaries.')).toBeVisible();
@@ -126,17 +134,17 @@ test('training workspace shows SOP onboarding for every role', async ({ page }) 
 });
 
 test('personas get adapted focus strips and field mode simplifies intake', async ({ page }) => {
-  await page.getByLabel('Prototype persona').selectOption('central');
+  await selectPersona(page, 'central');
   await expect(page.getByText('Breached clocks')).toBeVisible();
   await expect(page.getByText('Packets below 95%')).toBeVisible();
 
-  await page.getByLabel('Prototype persona').selectOption('nurse');
+  await selectPersona(page, 'nurse');
   await expect(page.getByText('Units over acuity ceiling')).toBeVisible();
 
-  await page.getByLabel('Prototype persona').selectOption('executive');
+  await selectPersona(page, 'executive');
   await expect(page.getByText('No measurements found').first()).toBeVisible();
 
-  await page.getByLabel('Prototype persona').selectOption('field');
+  await selectPersona(page, 'field');
   await expect(page.getByRole('heading', { name: 'New Case' })).toBeVisible();
   await expect(page.getByText('Pitfall guards', { exact: true })).toBeVisible();
 
