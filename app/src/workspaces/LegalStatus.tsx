@@ -131,8 +131,8 @@ function VerifiedRationalePanel({ principal }: { principal: VerifiedPrincipal | 
       </p>
       {!principal ? (
         <p className="inline-warning">
-          Sign in via the <b>Session &amp; identity</b> panel in the sidebar to enable this action.
-          The demo role selector cannot enable it — only a verified session can.
+          Sign in via the <b>Verified session</b> panel in the sidebar to enable this action.
+          Demo view settings cannot enable it — only a verified session can.
         </p>
       ) : (
         <>
