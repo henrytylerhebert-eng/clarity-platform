@@ -589,8 +589,8 @@ export function App() {
         <div className="brand-block">
           <span className="brand-mark">C</span>
           <div>
-            <h1>Clarity</h1>
-            <p>Crisis Ops</p>
+            <h1>Crisis Ops</h1>
+            <p>Intake · review · placement</p>
           </div>
         </div>
 
