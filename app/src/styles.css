@@ -37,7 +37,7 @@ button {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 248px 1fr;
   min-height: 100vh;
 }
 
@@ -50,7 +50,7 @@ button {
   color: #eff6f7;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 .brand-block {
@@ -149,6 +149,97 @@ button {
 .nav-list {
   display: grid;
   gap: 6px;
+}
+
+.primary-nav-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.primary-nav-item {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  padding: 9px 8px;
+  background: transparent;
+  color: #afc0cc;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.primary-nav-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.primary-nav-item.active {
+  border-color: #d9f0ef;
+  background: #d9f0ef;
+  color: #13202b;
+}
+
+.secondary-nav {
+  display: grid;
+  gap: 7px;
+}
+
+.secondary-nav-label {
+  color: #7e93a3;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.demo-view-control {
+  display: grid;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.demo-view-control label {
+  color: #9eb1bf;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.demo-view-control select {
+  margin-top: 3px;
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #1b2b38;
+  color: #eff6f7;
+  padding: 8px 9px;
+}
+
+.compact-session {
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.compact-session summary {
+  cursor: pointer;
+  color: #dbe7ec;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.compact-session p {
+  margin: 8px 0;
+}
+
+.session-summary {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.crisis-sidebar .reset-button {
+  margin-top: 0;
 }
 
 .nav-item,
@@ -1068,8 +1159,16 @@ textarea {
     height: auto;
   }
 
+  .primary-nav-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .nav-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .demo-view-control {
+    max-width: 360px;
   }
 
   .topbar,
