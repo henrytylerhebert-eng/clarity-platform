@@ -42,6 +42,13 @@ async function openWorkspace(user: TestUser, group: string, workspace: string) {
   await user.click(screen.getByRole("button", { name: workspace }));
 }
 
+async function selectPersona(user: TestUser, persona: string) {
+  const summary = screen.getByText(/Demo view ·/);
+  const details = summary.closest("details");
+  if (details && !details.open) await user.click(summary);
+  await user.selectOptions(screen.getByLabelText("Prototype persona"), persona);
+}
+
 describe("App smoke", () => {
   beforeEach(async () => {
     await resetAppState();
@@ -148,7 +155,7 @@ describe("App smoke", () => {
     render(<App />);
     expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
 
-    await user.selectOptions(screen.getByRole("combobox"), "executive");
+    await selectPersona(user, "executive");
     await openWorkspace(user, "More", "Product Studio");
     expect(await screen.findByRole("heading", { name: "Make the product inspectable." })).toBeInTheDocument();
     expect(screen.getByText(/Read-only prototype\. Demo role scoping is not authentication/)).toBeInTheDocument();
@@ -163,7 +170,7 @@ describe("App smoke", () => {
     render(<App />);
     expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
 
-    await user.selectOptions(screen.getByRole("combobox"), "executive");
+    await selectPersona(user, "executive");
     await openWorkspace(user, "More", "IOP Reconciliation");
     expect(await screen.findByRole("heading", { name: "Attendance reconciliation review" })).toBeInTheDocument();
     expect(screen.getByText(/does not determine clinical compliance or billing eligibility/)).toBeInTheDocument();
@@ -180,7 +187,7 @@ describe("App smoke", () => {
     expect(await screen.findByRole("button", { name: "Sign out" })).toBeInTheDocument();
     expect(apiLogin).toHaveBeenCalledExactlyOnceWith("syn-assert-api-physician-dev");
 
-    await user.selectOptions(screen.getByRole("combobox"), "executive");
+    await selectPersona(user, "executive");
     await openWorkspace(user, "More", "IOP Reconciliation");
 
     const signedInNotice = await screen.findByText(/Signed in as/);
@@ -197,7 +204,7 @@ describe("App smoke", () => {
     expect(screen.getByRole("heading", { name: "Packet Ready Demo D" })).toBeInTheDocument();
     expect(screen.getByText("Prototype case")).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByRole("combobox"), "central");
+    await selectPersona(user, "central");
     await openWorkspace(user, "Cases", "Case Status");
 
     // The workspace title is stable whether or not a session exists.
@@ -244,7 +251,8 @@ describe("Case Status workspace visibility per demo persona", () => {
     const user = userEvent.setup();
     render(<App />);
     // The shell loads its seed state asynchronously; the role picker appears with it.
-    await user.selectOptions(await screen.findByRole("combobox"), persona);
+    await screen.findByText(/Demo view ·/);
+    await selectPersona(user, persona);
 
     await user.click(screen.getByRole("button", { name: "Cases" }));
     const navButton = screen.getByRole("button", { name: "Case Status" });
@@ -259,7 +267,8 @@ describe("Case Status workspace visibility per demo persona", () => {
     const user = userEvent.setup();
     render(<App />);
     // The shell loads its seed state asynchronously; the role picker appears with it.
-    await user.selectOptions(await screen.findByRole("combobox"), persona);
+    await screen.findByText(/Demo view ·/);
+    await selectPersona(user, persona);
 
     const casesGroup = screen.queryByRole("button", { name: "Cases" });
     if (casesGroup) await user.click(casesGroup);
