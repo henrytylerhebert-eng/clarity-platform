@@ -33,6 +33,17 @@ test('case queue and custody verification render across viewports', async ({ pag
   });
 });
 
+test('case status is isolated from local demo case chrome', async ({ page }) => {
+  await page.getByRole('button', { name: 'Packet Ready Demo D' }).click();
+  await expect(page.getByRole('heading', { name: 'Packet Ready Demo D' })).toBeVisible();
+
+  await openWorkspace(page, 'Cases', 'Case Status');
+  await expect(page.getByRole('heading', { name: 'Case Status' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Authentication required' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Packet Ready Demo D' })).toHaveCount(0);
+  await expect(page.getByText('Prototype case')).toHaveCount(0);
+});
+
 test('reviewer can create a case and carry a source-linked finding into the packet', async ({ page }) => {
   await openWorkspace(page, 'Intake', 'New Case');
   await page.getByLabel('Patient token').fill(`DEMO-${Date.now()}`);
