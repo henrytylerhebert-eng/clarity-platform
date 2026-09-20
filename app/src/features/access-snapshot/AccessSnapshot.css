@@ -1,7 +1,7 @@
 .access-snapshot {
-  padding: 1.5rem;
-  max-width: 1200px;
+  max-width: 1180px;
   margin: 0 auto;
+  padding: 0.25rem 0 2rem;
 }
 
 .snapshot-header {
@@ -10,9 +10,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
 .header-info {
@@ -23,6 +21,14 @@
 
 .header-info h2 {
   margin: 0;
+  font-size: 1.7rem;
+  letter-spacing: -0.02em;
+}
+
+.snapshot-kicker {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .session-info,
@@ -52,9 +58,21 @@
 .lookup-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
   align-items: center;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.lookup-bar.loaded {
+  background: #f8fafc;
+}
+
+.lookup-bar.loaded .refresh-help {
+  max-width: 34ch;
 }
 
 .lookup-bar input {
@@ -108,13 +126,35 @@
   .snapshot-grid {
     grid-template-columns: 1fr;
   }
+
+  .phases-visual-rail {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+  }
+
+  .phase-node {
+    flex: 0 0 auto;
+  }
+
+  .lookup-bar,
+  .snapshot-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .lookup-bar input,
+  .lookup-bar button {
+    width: 100%;
+  }
 }
 
 .journey-rail {
-  margin-bottom: 1.5rem;
-  padding: 1.5rem;
-  background-color: #f8fafc;
-  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  padding: 1.35rem;
+  background: #ffffff;
+  border: 1px solid #dbe4ea;
+  border-radius: 10px;
 }
 
 .phases-visual-rail {
@@ -179,9 +219,10 @@
 .workstreams-panel,
 .attention-summary,
 .candidate-work {
-  padding: 1.5rem;
+  padding: 1.25rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 10px;
+  background: #ffffff;
 }
 
 .signal-group {
