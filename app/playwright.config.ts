@@ -2,7 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './smoke',
-  testIgnore: 'rev-ops.spec.ts', // Dedicated config requires the isolated Rev Ops API.
+  // Both exclusions exist because those suites need API servers this config does
+  // not start, and each has a dedicated config that does. They prove different
+  // things: this suite is the general Work/prototype shell regression.
+  testIgnore: [
+    'rev-ops.spec.ts', // playwright.revops.config.ts — isolated Rev Ops API
+    'operating-assurance.spec.ts', // playwright.assurance.config.ts — api:dev + governed OA
+  ],
   timeout: 30_000,
   use: {
     baseURL: 'http://127.0.0.1:5173',
