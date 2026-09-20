@@ -157,9 +157,14 @@ would make a check fail. Evidence that merely exercises the happy path *resemble
   `READY`, because the function classified only the components it was *given* and never checked
   that all seven were accounted for. No evidence at all produced readiness. The missing coverage
   was what concealed it — both fixtures supply all seven components.
-  Fixed in Slice 0.5: a component nobody reported is now `UNKNOWN`, never implicitly satisfied,
-  and six regression tests cover the empty, partial, duplicate, all-present, `NOT_APPLICABLE` and
-  blocked-plus-missing cases.
+  Fixed in Slice 0.5: a component nobody reported is now `UNKNOWN`, never implicitly satisfied.
+  A second pass closed a related hole — the repair's own `Map` was last-write-wins, so a component
+  reported twice with **conflicting** states resolved by array order
+  (`[BLOCKED, READY]` → `UNKNOWN`, `[READY, BLOCKED]` → `BLOCKED`). A component is now settled only
+  when every report agrees; repeats of one state deduplicate, and a contradiction is `UNKNOWN`
+  because a contradiction is not an answer. Nine regression tests cover empty, partial, duplicate-
+  agreeing, duplicate-conflicting, order-independence, all-present, `NOT_APPLICABLE`,
+  blocked-plus-missing, and contradicted-while-otherwise-complete.
 
 ### 8. Missing continuity data remains unknown under partial coverage
 
