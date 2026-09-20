@@ -643,7 +643,7 @@ describe("AccessSnapshot — candidate next work", () => {
     );
 
     const work = region("Candidate next work");
-    expect(work.getByText("Work not currently actionable")).toBeInTheDocument();
+    expect(work.getByText("Suggestions not currently actionable")).toBeInTheDocument();
     expect(work.getByText("Resolve workstream block — The case is in a terminal status")).toBeInTheDocument();
     expect(work.getByText("Resolve packet requirement — The Prescreen encounter is in a terminal status")).toBeInTheDocument();
   });
@@ -853,6 +853,6 @@ describe("AccessSnapshot — session isolation", () => {
 
     expect(screen.queryByText("Case SYN-API-CASE-0001")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Open case" })).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Authentication required" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Sign in to view case status" })).toBeInTheDocument();
   });
 });
