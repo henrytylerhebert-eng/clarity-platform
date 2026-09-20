@@ -273,6 +273,48 @@ describe("longitudinal unknown semantics (Slice 0.5 regression)", () => {
       expect(projection.unknownComponents).toEqual([]);
     });
 
+    it("does not let array order resolve a contradiction about one component", () => {
+      // CLINICAL is reported BLOCKED and then READY. Last-write-wins would silently
+      // return READY; first-write-wins would silently return BLOCKED. Neither is honest.
+      const blockedFirst = deriveTransitionReadiness([
+        component("CLINICAL", "BLOCKED") as never,
+        component("CLINICAL", "READY") as never,
+      ]);
+      const readyFirst = deriveTransitionReadiness([
+        component("CLINICAL", "READY") as never,
+        component("CLINICAL", "BLOCKED") as never,
+      ]);
+
+      expect(blockedFirst).toEqual(readyFirst);
+      expect(blockedFirst.blockedComponents).not.toContain("CLINICAL");
+      expect(blockedFirst.unknownComponents).toContain("CLINICAL");
+      expect(blockedFirst.executionState).toBe("UNKNOWN");
+    });
+
+    it("deduplicates a component reported twice with the same state", () => {
+      const projection = deriveTransitionReadiness(
+        ALL_COMPONENTS.flatMap((name) => [
+          component(name, "READY"),
+          component(name, "READY"),
+        ]) as never,
+      );
+      expect(projection).toEqual({
+        executionState: "READY",
+        blockedComponents: [],
+        unknownComponents: [],
+      });
+    });
+
+    it("keeps a contradicted component out of READY even when every component is reported", () => {
+      const projection = deriveTransitionReadiness([
+        ...ALL_COMPONENTS.map((name) => component(name, "READY")),
+        component("MEDICATION", "BLOCKED"),
+      ] as never);
+      expect(projection.executionState).toBe("UNKNOWN");
+      expect(projection.unknownComponents).toEqual(["MEDICATION"]);
+      expect(projection.blockedComponents).toEqual([]);
+    });
+
     it("still reports BLOCKED when a component is blocked and others are missing", () => {
       const projection = deriveTransitionReadiness([
         component("DESTINATION", "BLOCKED") as never,

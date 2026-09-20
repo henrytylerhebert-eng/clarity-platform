@@ -565,14 +565,32 @@ export function deriveTransitionReadiness(
   components: readonly TransitionReadinessComponent[],
 ): TransitionReadinessProjection {
   const parsed = components.map((component) => TransitionReadinessComponentSchema.parse(component));
-  const reported = new Map(parsed.map((component) => [component.component, component.state]));
+
+  // Collect every state reported for each component. Reducing to a single value
+  // by array order would let the caller decide the answer by ordering its input:
+  // [BLOCKED, READY] and [READY, BLOCKED] must not disagree.
+  const reported = new Map<TransitionReadinessSliceComponent, Set<TransitionReadinessComponentState>>();
+  for (const component of parsed) {
+    const states = reported.get(component.component) ?? new Set<TransitionReadinessComponentState>();
+    states.add(component.state);
+    reported.set(component.component, states);
+  }
+
+  // One distinct state is the answer; repeats of the same state are safely deduplicated.
+  // Conflicting states are a contradiction, and a contradiction is not an answer.
+  const settled = (component: TransitionReadinessSliceComponent) => {
+    const states = reported.get(component);
+    if (states === undefined || states.size !== 1) return undefined;
+    return [...states][0];
+  };
+
   const blockedComponents = TRANSITION_READINESS_SLICE_COMPONENTS.filter(
-    (component) => reported.get(component) === "BLOCKED",
+    (component) => settled(component) === "BLOCKED",
   );
   const unknownComponents = TRANSITION_READINESS_SLICE_COMPONENTS.filter((component) => {
-    const state = reported.get(component);
-    // Unreported and explicitly UNKNOWN are the same answer: we do not know.
-    // NOT_APPLICABLE is an answer, so it is neither blocked nor unknown.
+    const state = settled(component);
+    // Unreported, explicitly UNKNOWN, and contradicted are the same answer: we do
+    // not know. NOT_APPLICABLE is an answer, so it is neither blocked nor unknown.
     return state === undefined || state === "UNKNOWN";
   });
 
