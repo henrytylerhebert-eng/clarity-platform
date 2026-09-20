@@ -78,7 +78,8 @@ claim. Every count in "Verification history" below is **HISTORICAL**.
 
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
-**Open PRs: 0** as of 2026-09-18, after Housekeeping Phase 2B.
+**Open PRs: 0** as of 2026-09-20. (0 as of 2026-09-18 after Housekeeping Phase 2B; #127, #128
+and #129 landed 2026-09-19/20 and #126 was closed as superseded.)
 
 Phase 2B landed #81, #89, #100, #102, #103, #104, #105 and closed #63, #73, #82, #88, #91,
 #92, #93, #94, #95 with per-PR evidence. **No branch was deleted for any closure** — each
@@ -154,6 +155,28 @@ stashes, 10 worktrees, and **zero unpreserved committed content** — the 8 loca
 were patch-equivalent to work already on origin. The 2026-09-17 machine-only recovery plan
 was executed; all 8 `recovery/machine-only/2026-09-17/*` refs exist on origin and must
 never be deleted.
+
+**Re-measured 2026-09-20** (after the Access Snapshot work): 65 local branches, 126 remote, 0
+stashes, 19 worktrees, 8 recovery refs.
+
+**These are counts only. Preservation of the growth is [Unverified]** — no audit comparable to the
+2026-09-18 forensic pass was run. What was measured on 2026-09-20:
+
+- **9 local branch tips exist on no remote ref**: `claude/ai-operating-model-handoff-7c884e`,
+  `codex/om/admission-race-fix-review`, `codex/om/admission-replay-active-check`,
+  `codex/om/directory-crm-prototype`, `codex/om/operations-backbone-review`,
+  `codex/om/prescreen-contract-review`, `codex/om/prescreen-source-package-fix` (all 2026-07-19/29),
+  plus `codex/om/product-definition-reconciliation` and `codex/om/synthetic-iop-p2-records`
+  (both 2026-09-19, i.e. created **after** the 2026-09-18 audit).
+- **None of the 9 was checked for patch-equivalence** to work already on origin. The 2026-09-18
+  audit did perform that check for its 8; this pass did not.
+- **One worktree is dirty**: the main checkout, 7 uncommitted files on `feat/access-snapshot`
+  (the superseded Antigravity leftovers, deliberately preserved).
+
+**Do not delete any branch on the strength of these counts.** Re-run a preservation audit first.
+The only branches deleted on 2026-09-20 were the three merged Access ones (#127/#128/#129), each
+gated on matching its tip to the head GitHub squash-merged — squash merges leave a merged branch
+looking unmerged to `git merge-base --is-ancestor`.
 
 ### Known production-readiness limitations — UNCHANGED
 
