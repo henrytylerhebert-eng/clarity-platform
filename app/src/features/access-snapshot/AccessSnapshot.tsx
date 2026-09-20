@@ -174,7 +174,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
 
   return (
     <div className="snapshot-content">
-      <section className="journey-rail" aria-label="Current journey position">
+      <section className="journey-rail" aria-label="Journey">
         <h3 id="journey-heading">Journey</h3>
 
         <ol className="phases-visual-rail" aria-label="Journey phases">
@@ -230,7 +230,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
 
         </section>
 
-        <section className="candidate-work" aria-label="Candidate next work">
+        <section className="candidate-work" aria-label="Suggested next steps">
           <h3 id="next-work-heading">Suggested next steps</h3>
           {guidance.nextWork.length === 0 ? (
             <EmptyState title="No suggested next steps">There are no suggested next steps from the recorded statuses.</EmptyState>
@@ -267,7 +267,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
           ) : null}
         </section>
 
-        <section className="workstreams-panel" aria-label="Workstreams">
+        <section className="workstreams-panel" aria-label="Parallel lanes">
           <h3 id="workstreams-heading">Parallel lanes</h3>
           <p className="help-text">A blocked lane does not necessarily mean the patient journey is blocked.</p>
           <div className="workstream-list">
@@ -282,7 +282,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
           </div>
         </section>
 
-        <section className="prescreen-source" aria-label="Prescreen source state">
+        <section className="prescreen-source" aria-label="Intake & packet status">
           <h3 id="prescreen-heading">Intake &amp; packet status</h3>
           <div className="prescreen-selection">
             {sourceState.prescreenSelection === "NONE" ? (
