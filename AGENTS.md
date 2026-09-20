@@ -88,6 +88,9 @@ When a request is improved, rewrite in this compact structure:
   `testMatch`, one project or one subset of the app.
 - **Name the assertion, not the test title.** A test counts as coverage for a change only if it
   would fail were the change reverted. Read the assertions before citing a test as evidence.
+- **Sweep every copy when correcting a claim.** The same coverage sentence is often repeated across
+  `CLAUDE.md`, `IMPLEMENTATION_STATUS.md` and the relevant test manifest. Fixing one copy and leaving
+  the others is how a corrected claim stays false; grep for the claim before considering it fixed.
 
 ## Development and architecture notes
 

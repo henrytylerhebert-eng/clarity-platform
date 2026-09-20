@@ -74,7 +74,7 @@ dependency. `packages/api-service/src/assuranceDevFixture.ts` carries a single *
 ephemeral integration runs (32 files / 276 tests each). Those are dated evidence, not a standing
 claim. Every count in "Verification history" below is **HISTORICAL**.
 
-**Access Snapshot UI evidence (2026-09-19, branch off `c00dabd`, merged to `main` as `41cef95` on 2026-09-20; dated, not a standing claim):** `npm run verify` exit 0 (unit 51 files / 565 tests; integration on a throwaway database 34 files / 295 tests); `npm run test:app` exit 0 (25 files / 215 tests); app build exit 0. Playwright smoke specs were not run. Gaps are listed in the UI test manifest.
+**Access Snapshot UI evidence (2026-09-19, branch off `c00dabd`, merged to `main` as `41cef95` on 2026-09-20; dated, not a standing claim):** `npm run verify` exit 0 (unit 51 files / 565 tests; integration on a throwaway database 34 files / 295 tests); `npm run test:app` exit 0 (25 files / 215 tests); app build exit 0. Playwright, with provenance (per `AGENTS.md`, never inferred from an aggregate check): CI's `verify` job runs `npm run test:oa-e2e`, whose config `testMatch` selects `operating-assurance.spec.ts` only — that spec ran in CI on the merged head. The Crisis Ops suite `app/smoke/clarity-v01.spec.ts` runs under the default config, which **no** CI step invokes; it was run locally post-merge on 2026-09-20 (20/20, desktop + mobile) as a shell regression check, and it asserts nothing about `access`. **No Access-specific E2E spec exists.** Gaps are listed in the UI test manifest.
 
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 

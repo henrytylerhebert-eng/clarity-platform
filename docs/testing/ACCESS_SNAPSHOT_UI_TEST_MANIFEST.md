@@ -108,6 +108,7 @@ the evidence is local or CI — never inferred from a green aggregate check.
   other four would not fail any test. `roles.test.ts` checks structural invariants only.
   Demo personas are not an authorization boundary — the API decides by the verified principal's
   roles (`ACCESS_CASE_READ_POLICY`) — so this is a navigation-visibility gap, not a security one.
+  PR #129 is open to close it; this bullet and the provenance row above must be updated when it lands.
 - `graphify update .` was not run: from a worktree it rewrites the tracked, absolute-path-keyed
   manifest (issue #40).
 - Pre-existing, not from this change: 15 `no-explicit-any` lint warnings in
