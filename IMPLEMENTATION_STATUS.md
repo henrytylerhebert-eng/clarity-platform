@@ -78,7 +78,8 @@ claim. Every count in "Verification history" below is **HISTORICAL**.
 
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
-**Open PRs: 0** as of 2026-09-18, after Housekeeping Phase 2B.
+**Open PRs: 0** as of 2026-09-20. (0 as of 2026-09-18 after Housekeeping Phase 2B; #127, #128
+and #129 landed 2026-09-19/20 and #126 was closed as superseded.)
 
 Phase 2B landed #81, #89, #100, #102, #103, #104, #105 and closed #63, #73, #82, #88, #91,
 #92, #93, #94, #95 with per-PR evidence. **No branch was deleted for any closure** — each
@@ -154,6 +155,13 @@ stashes, 10 worktrees, and **zero unpreserved committed content** — the 8 loca
 were patch-equivalent to work already on origin. The 2026-09-17 machine-only recovery plan
 was executed; all 8 `recovery/machine-only/2026-09-17/*` refs exist on origin and must
 never be deleted.
+
+**Re-measured 2026-09-20** (after the Access Snapshot work): 65 local branches, 126 remote, 0
+stashes, 19 worktrees, 8 recovery refs. The increase over the 2026-09-18 audit is other
+sessions' branches and worktrees, not unpreserved content. The only branches deleted were the
+three merged Access ones (#127/#128/#129); each was verified by matching its tip to the head
+GitHub squash-merged, because squash merges leave a merged branch looking unmerged to
+`git merge-base --is-ancestor`.
 
 ### Known production-readiness limitations — UNCHANGED
 
