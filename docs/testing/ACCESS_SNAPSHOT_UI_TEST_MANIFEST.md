@@ -1,13 +1,13 @@
-# Access Snapshot UI — Test Manifest
+# Case Status UI — Test Manifest (internal feature: Access Snapshot)
 
 **Code:** `app/src/features/access-snapshot/` — `AccessSnapshot.tsx`, `accessPresentation.ts`, `AccessSnapshot.css`
 **Wiring:** `app/src/CrisisOpsApp.tsx` (workspace `access`), `app/src/domain/roles.ts`, `app/src/domain/api.ts` (`apiAccessGetCase`)
 **Tests:** `AccessSnapshot.test.tsx`, `accessPresentation.test.ts`, and in `app/src/App.test.tsx` the
 parent-shell boundary test plus the per-persona visibility suite (10 tests)
-**Baseline:** branched from `origin/main` at `c00dabd` (2026-09-19), which contains Access Slice 4A.1
+**Product label:** the governed workspace is presented to users as **Case Status**; `AccessSnapshot` remains the internal component/feature name.\n\n**Baseline:** branched from `origin/main` at `c00dabd` (2026-09-19), which contains Access Slice 4A.1
 (`GET /api/access/cases/:caseKey`, ADR-0024) and Slice 4B (`deriveAccessGuidance()`).
 
-This is a **read-only view** of the governed Access case read model. It renders what the API
+This is the **Case Status** presentation of the read-only governed Access case read model. It renders what the API
 returned for the verified session and nothing else. It shows no patient identity, does not touch
 the local demo case state, assigns nothing, and re-derives no policy: what is blocked, waiting or
 a candidate is decided by the contract, never by this UI.
@@ -19,9 +19,9 @@ a candidate is decided by the contract, never by this UI.
 | Journey rail + disposition | `journey.phase`, `journey.disposition`, `journey.evidence` | Phase `null` is shown as "cannot be determined", never guessed; disposition is always shown |
 | What needs attention | `guidance.signals` where class is not `SATISFIED` / `NOT_APPLICABLE` | Grouped by `scope`; badge tone follows `blockingClass`; an empty list says "not a clearance" |
 | Satisfied or not applicable | the remaining `guidance.signals` | Collapsed; recorded facts are not attention items |
-| Candidate next work | `guidance.nextWork`, `guidance.suppressed` | Every item is "Candidate / Not assigned"; `responsibleRoleCode` is deliberately **not** shown |
+| Suggested next steps | `guidance.nextWork`, `guidance.suppressed` | Every item is explicitly "Not assigned"; `responsibleRoleCode` is deliberately **not** shown |
 | Workstreams | `sourceState.workstreams` | All eight lanes in contract order; a blocked lane is not a blocked journey |
-| Prescreen source state | `sourceState.prescreen*`, `packetRequirementEvidence`, `guidance.packetReadiness` | `NOT_AVAILABLE`, `LOADED_EMPTY` and `LOADED` are three different statements; `AMBIGUOUS` warns instead of choosing |
+| Intake status | `sourceState.prescreen*`, `packetRequirementEvidence`, `guidance.packetReadiness` | `NOT_AVAILABLE`, `LOADED_EMPTY` and `LOADED` are three different statements; `AMBIGUOUS` warns instead of choosing |
 
 Every contract enum reaches the user as a translated label. The label maps in
 `accessPresentation.ts` are `Record<Enum, string>`, so a value added to the contract fails
@@ -49,7 +49,7 @@ Every contract enum reaches the user as a translated label. The label maps in
 | Fail closed: a failed refresh removes the previous case | `fails closed: a failed refresh removes the previous case …` |
 | Refresh reloads the case on screen, not the edited field; no polling | `refreshes the case on screen even after the key field has been edited`; `loads once per explicit action and never polls` |
 | One session's case never shown to the next session | `AccessSnapshot — session isolation` (2) |
-| Every demo persona granted `access` can open the workspace, and no other persona is offered it | `App.test.tsx` › `Access Snapshot workspace visibility per demo persona` (10: 6 granted incl. `all`, 3 not granted, 1 exhaustiveness guard) |
+| Every demo persona granted `access` can open the workspace, and no other persona is offered it | `App.test.tsx` › `Case Status workspace visibility per demo persona` (10: 6 granted incl. `all`, 3 not granted, 1 exhaustiveness guard) |
 
 ## Evidence (run 2026-09-19 pre-merge, plus one post-merge run dated 2026-09-20)
 
@@ -79,7 +79,7 @@ the evidence is local or CI — never inferred from a green aggregate check.
 | App build | Local + CI | `npm --workspace app run build` | `app/` | exit 0 |
 | OA Playwright passed | CI | `npm run test:oa-e2e` | `playwright.assurance.config.ts`, `testMatch: operating-assurance.spec.ts` | green on the merged head |
 | Crisis Ops smoke passed | Local only | default `playwright.config.ts` | `clarity-v01.spec.ts`, desktop + mobile | 20/20; no CI step runs it |
-| Access workspace reachable per persona | Local + CI | `npm run test:app` | `App.test.tsx` › `Access Snapshot workspace visibility per demo persona` | all 9 personas: 6 granted (incl. `all`) asserted to open it, 3 asserted not to see it, plus an exhaustiveness guard against the real `roles` export |
+| Access workspace reachable per persona | Local + CI | `npm run test:app` | `App.test.tsx` › `Case Status workspace visibility per demo persona` | all 9 personas: 6 granted (incl. `all`) asserted to open it, 3 asserted not to see it, plus an exhaustiveness guard against the real `roles` export |
 | Access-specific E2E | — | — | none exists | **Not covered** |
 
 ## Honest gaps
