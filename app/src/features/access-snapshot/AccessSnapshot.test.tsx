@@ -147,7 +147,7 @@ describe("AccessSnapshot — signed out and signing in", () => {
     render(<AccessSnapshot />);
 
     expect(screen.getByRole("heading", { name: "Sign in to view case status" })).toBeInTheDocument();
-    expect(screen.getByText(/You must be signed in/)).toBeInTheDocument();
+    expect(screen.getByText(/verified backend session/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Development assertion")).toHaveValue("syn-assert-api-intake-dev");
     expect(screen.getByText("Development-only synthetic assertion.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Open case" })).not.toBeInTheDocument();
@@ -167,7 +167,7 @@ describe("AccessSnapshot — loading a case", () => {
   it("names the verified session and requests the default synthetic case once", async () => {
     authAs(intake);
     render(<AccessSnapshot />);
-    expect(screen.getByText("Verified session Synthetic Intake Coordinator (synthetic-org-api-dev)")).toBeInTheDocument();
+    expect(screen.getByText("Verified session · Synthetic Intake Coordinator · synthetic-org-api-dev")).toBeInTheDocument();
     expect(screen.queryByText(/case-detail access is audited/)).not.toBeInTheDocument();
 
     vi.mocked(apiAccessGetCase).mockResolvedValue(readModel());
@@ -175,7 +175,7 @@ describe("AccessSnapshot — loading a case", () => {
 
     expect(await screen.findByText("Case SYN-API-CASE-0001")).toBeInTheDocument();
     expect(screen.getByText("Version 2")).toBeInTheDocument();
-    expect(screen.getByText("Governed read model")).toBeInTheDocument();
+    expect(screen.queryByText("Governed read model")).not.toBeInTheDocument();
     expect(screen.getByText(/case-detail access is audited/)).toBeInTheDocument();
     expect(apiAccessGetCase).toHaveBeenCalledExactlyOnceWith("SYN-API-CASE-0001");
   });
@@ -840,7 +840,7 @@ describe("AccessSnapshot — session isolation", () => {
 
     expect(screen.queryByText("Case SYN-API-CASE-0001")).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Journey" })).not.toBeInTheDocument();
-    expect(screen.getByText("Verified session Synthetic Physician Reviewer (synthetic-org-api-dev)")).toBeInTheDocument();
+    expect(screen.getByText("Verified session · Synthetic Physician Reviewer · synthetic-org-api-dev")).toBeInTheDocument();
     expect(apiAccessGetCase).toHaveBeenCalledTimes(callsBefore);
   });
 
