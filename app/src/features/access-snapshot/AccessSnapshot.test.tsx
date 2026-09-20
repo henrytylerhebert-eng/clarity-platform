@@ -168,7 +168,7 @@ describe("AccessSnapshot — loading a case", () => {
     authAs(intake);
     render(<AccessSnapshot />);
     expect(screen.getByText("Verified session · Synthetic Intake Coordinator · synthetic-org-api-dev")).toBeInTheDocument();
-    expect(screen.queryByText(/case-detail access is audited/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/case-detail access is audited/i)).not.toBeInTheDocument();
 
     vi.mocked(apiAccessGetCase).mockResolvedValue(readModel());
     await userEvent.click(screen.getByRole("button", { name: "Open case" }));
@@ -176,7 +176,7 @@ describe("AccessSnapshot — loading a case", () => {
     expect(await screen.findByText("Case SYN-API-CASE-0001")).toBeInTheDocument();
     expect(screen.getByText("Version 2")).toBeInTheDocument();
     expect(screen.queryByText("Governed read model")).not.toBeInTheDocument();
-    expect(screen.getByText(/case-detail access is audited/)).toBeInTheDocument();
+    expect(screen.getByText(/case-detail access is audited/i)).toBeInTheDocument();
     expect(apiAccessGetCase).toHaveBeenCalledExactlyOnceWith("SYN-API-CASE-0001");
   });
 
@@ -399,7 +399,7 @@ describe("AccessSnapshot — journey position", () => {
       }),
     );
 
-    expect(screen.getByText("Admission phase is based on recorded case-to-episode linkage.")).toBeInTheDocument();
+    expect(screen.getByText("Admission is based on recorded case-to-episode linkage.")).toBeInTheDocument();
     expect(screen.getByText("Episode link: Admission source — supports Admission")).toBeInTheDocument();
   });
 });
@@ -529,11 +529,12 @@ describe("AccessSnapshot — what needs attention", () => {
     expect(within(groups as HTMLElement).queryByText("Clinical — Ready")).not.toBeInTheDocument();
     expect(within(groups as HTMLElement).queryByText("Transportation — Not applicable")).not.toBeInTheDocument();
 
-    const recorded = attention.getByText("Satisfied or not applicable (2)").closest("details");
-    expect(recorded).not.toBeNull();
-    expect(within(recorded as HTMLElement).getByText("Clinical — Ready")).toBeInTheDocument();
-    expect(within(recorded as HTMLElement).getByText("Transportation — Not applicable")).toBeInTheDocument();
-    expect(within(recorded as HTMLElement).getByText("Satisfied")).toHaveClass("badge-good");
+    const sourceDetails = screen.getByText("Details & source evidence").closest("details");
+    expect(sourceDetails).not.toBeNull();
+    expect(within(sourceDetails as HTMLElement).getByText("Recorded satisfied / not applicable facts")).toBeInTheDocument();
+    expect(within(sourceDetails as HTMLElement).getByText("Clinical — Ready")).toBeInTheDocument();
+    expect(within(sourceDetails as HTMLElement).getByText("Transportation — Not applicable")).toBeInTheDocument();
+    expect(within(sourceDetails as HTMLElement).getByText("Satisfied")).toHaveClass("badge-good");
   });
 
   it("does not present an empty attention list as a clearance", async () => {
@@ -705,7 +706,7 @@ describe("AccessSnapshot — Prescreen source state", () => {
 
     const warning = screen.getByRole("alert");
     expect(warning).toHaveTextContent("Multiple active Prescreen encounters exist.");
-    expect(warning).toHaveTextContent("Do not guess which encounter is current.");
+    expect(warning).toHaveTextContent("Intake and packet readiness are withheld until the ambiguity is resolved.");
     expect(region("Intake & packet status").queryByText(/^Status:/)).not.toBeInTheDocument();
   });
 
