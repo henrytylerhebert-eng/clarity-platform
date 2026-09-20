@@ -576,8 +576,8 @@ export function App() {
         <div className="brand-block">
           <span className="brand-mark">C</span>
           <div>
-            <h1>Clarity</h1>
-            <p>Crisis Ops</p>
+            <h1>Crisis Ops</h1>
+            <p>Behavioral health operations</p>
           </div>
         </div>
         <details className="session-panel" open={apiPrincipal !== null}>
@@ -663,7 +663,7 @@ export function App() {
           <>
             <header className="topbar">
               <div>
-                <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isIopReconciliation ? "Synthetic operations review" : "Selected case"}</span>
+                <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isIopReconciliation ? "Synthetic operations review" : "Prototype case"}</span>
                 <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : isIopReconciliation ? "IOP Attendance Reconciliation" : activeCase.patientToken.displayName}</h2>
               </div>
               <div className="topbar-badges">
