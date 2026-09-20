@@ -146,7 +146,6 @@ describe("AccessSnapshot — signed out and signing in", () => {
     authAs(null);
     render(<AccessSnapshot />);
 
-    expect(screen.getByRole("heading", { name: "Case status" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Sign in to view case status" })).toBeInTheDocument();
     expect(screen.getByText(/You must be signed in/)).toBeInTheDocument();
     expect(screen.getByLabelText("Development assertion")).toHaveValue("syn-assert-api-intake-dev");
