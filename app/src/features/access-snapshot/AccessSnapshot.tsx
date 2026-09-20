@@ -206,7 +206,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
             <span className="phase-label">{phaseLabel(journey.phase)}</span>
           ) : (
             <span className="phase-label unknown">
-              Current phase cannot be determined from available governed evidence.
+              Current phase cannot be determined from the available case evidence.
             </span>
           )}
           <StatusBadge tone={dispositionTone(journey.disposition)}>{dispositionLabel(journey.disposition)}</StatusBadge>
@@ -225,7 +225,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
         ) : null}
 
         {journey.phase === "ADMISSION" ? (
-          <p className="admission-source-note">Admission phase is based on recorded case-to-episode linkage.</p>
+          <p className="admission-source-note">Admission is shown because this case is linked to a recorded admission episode.</p>
         ) : null}
       </section>
 
@@ -234,7 +234,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
           <h3 id="attention-heading">What needs attention</h3>
           {attention.length === 0 ? (
             <EmptyState title="Nothing flagged">
-              No blocked, waiting or review-gated items were derived from the recorded statuses. This is not a clearance.
+              No blocked, waiting, or review-needed items are recorded in this view. This is not a clearance.
             </EmptyState>
           ) : (
             <div className="signals-grouped">
@@ -325,8 +325,8 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
             ) : null}
             {sourceState.prescreenSelection === "AMBIGUOUS" ? (
               <div className="ambiguous-warning" role="alert">
-                <strong>Warning:</strong> Multiple active Prescreen encounters exist. Prescreen evidence is excluded from
-                this projection until the ambiguity is resolved. Do not guess which encounter is current.
+                <strong>Warning:</strong> Multiple active intake reviews exist. Intake evidence is excluded from
+                this view until the ambiguity is resolved. Do not guess which review is current.
               </div>
             ) : null}
           </div>
