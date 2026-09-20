@@ -56,10 +56,11 @@ Every contract enum reaches the user as a translated label. The label maps in
 | Check | Result |
 |---|---|
 | `npm run verify` (lint, typecheck, `prisma validate`, unit, integration on a throwaway database) | exit 0 — unit 51 files / 565 tests; integration 34 files / 295 tests |
-| `npm run test:app` | exit 0 — 25 files / 215 tests (63 in `features/access-snapshot`, 1 in `App.test.tsx` for this feature) |
+| `npm run test:app` | exit 0 — 25 files / 215 tests (63 in `features/access-snapshot`, 1 in `App.test.tsx` for this feature). **Pre-#129 count**; the per-persona suite added 10, so the current total is 225 |
 | `npm --workspace app run build` | exit 0 |
 | Mutation check of the tests themselves | 6 distinct deliberate regressions in 7 runs (dropped session key; refresh uses the typed key; raw case status, run twice because the first run exposed a weak guard; raw prescreen status; raw suppression reason; stale case kept on error) — each failed the intended test; source restored byte-for-byte |
 | `npx playwright test --config app/playwright.config.ts smoke/clarity-v01.spec.ts` (2026-09-20, post-merge) | 20/20 passed, desktop + mobile projects. This is a **general shell regression check only** — it proves the nav and `roles.ts` change did not break existing persona scoping. It is **not** Access coverage: the suite never references `access`, so deleting the grant from all five personas would leave it green. No CI step runs this suite |
+| `npm run test:app` after the per-persona suite (2026-09-20, PR #129) | exit 0 — 25 files / 225 tests; the 10 new tests are mutation-verified (remove a grant, add a grant, add a persona) |
 | Live run: `npm run api:dev` + Vite against local `clarity_dev` | signed-out view; sign-in with the synthetic intake assertion; `SYN-API-CASE-0001` returned `200` and rendered; a nonexistent key returned `404` and rendered the non-revealing alert with the previous case removed; exactly one `ACCESS_CASE_VIEWED` audit row was written, none for the `404` |
 
 The mutation check found and fixed a weak guard in this suite's own raw-enum test:
@@ -74,7 +75,7 @@ the evidence is local or CI — never inferred from a green aggregate check.
 | Claim | Source | Command / workflow step | Scope selector | Evidence |
 |---|---|---|---|---|
 | Root unit + integration passed | Local; CI re-ran as one pass | Local: `npm run verify` (`vitest.unit.config.ts`, then `vitest.integration.config.ts` on an ephemeral database). CI: `npm test` (`vitest.config.ts`, single pass) | `tests/**`, `packages/**` — **excludes `app/**`** | 565 unit / 295 integration |
-| App tests passed | Local + CI | `npm run test:app` (= `npm --workspace app test` → `vitest run`) | Vitest default include under `app/`, with `exclude: ["node_modules", "dist", "smoke"]` (`app/vite.config.ts`) — in practice `app/src/**` only. **The Playwright specs in `app/smoke/` are excluded**, so this number contains no browser tests | 215 tests (63 for this feature) |
+| App tests passed | Local + CI | `npm run test:app` (= `npm --workspace app test` → `vitest run`) | Vitest default include under `app/`, with `exclude: ["node_modules", "dist", "smoke"]` (`app/vite.config.ts`) — in practice `app/src/**` only. **The Playwright specs in `app/smoke/` are excluded**, so this number contains no browser tests | 225 tests; 73 for this feature (63 in `features/access-snapshot` + 10 per-persona in `App.test.tsx`) |
 | App build | Local + CI | `npm --workspace app run build` | `app/` | exit 0 |
 | OA Playwright passed | CI | `npm run test:oa-e2e` | `playwright.assurance.config.ts`, `testMatch: operating-assurance.spec.ts` | green on the merged head |
 | Crisis Ops smoke passed | Local only | default `playwright.config.ts` | `clarity-v01.spec.ts`, desktop + mobile | 20/20; no CI step runs it |
