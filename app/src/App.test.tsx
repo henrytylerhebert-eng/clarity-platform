@@ -37,9 +37,9 @@ function App() {
 type TestUser = ReturnType<typeof userEvent.setup>;
 
 async function openWorkspace(user: TestUser, group: string, workspace: string) {
-  const groupButton = screen.getByRole("button", { name: group });
+  const groupButton = screen.getByRole("button", { name: group, exact: true });
   await user.click(groupButton);
-  await user.click(screen.getByRole("button", { name: workspace }));
+  await user.click(screen.getByRole("button", { name: workspace, exact: true }));
 }
 
 async function selectPersona(user: TestUser, persona: string) {
