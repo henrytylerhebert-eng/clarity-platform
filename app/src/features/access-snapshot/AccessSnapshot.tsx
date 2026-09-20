@@ -47,7 +47,6 @@ export function AccessSnapshot() {
 
   return (
     <div className="access-snapshot">
-      <h2 className="visually-hidden">Case status</h2>
       {principal ? (
         <p className="snapshot-session">Verified session · {principal.displayName} · {principal.organizationId}</p>
       ) : null}
