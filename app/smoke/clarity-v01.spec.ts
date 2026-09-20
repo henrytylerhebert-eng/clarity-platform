@@ -62,7 +62,6 @@ test('packet-ready case shows review gates and accepts mock routing updates', as
 
 test('command center shows lanes, clocks, and an escalated delay', async ({ page }) => {
   await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await page.getByRole('button', { name: 'Command Center' }).click();
   await expect(page.getByRole('heading', { name: 'Intake overview' })).toBeVisible();
   await expect(page.getByText('Insurance verification (parallel lane)')).toBeVisible();
   await expect(page.getByText('Breached').first()).toBeVisible();
