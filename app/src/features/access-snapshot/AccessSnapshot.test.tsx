@@ -146,8 +146,8 @@ describe("AccessSnapshot — signed out and signing in", () => {
     authAs(null);
     render(<AccessSnapshot />);
 
-    expect(screen.getByRole("heading", { name: "Access Snapshot" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Authentication required" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Case status" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Sign in to view case status" })).toBeInTheDocument();
     expect(screen.getByText(/You must be signed in/)).toBeInTheDocument();
     expect(screen.getByLabelText("Development assertion")).toHaveValue("syn-assert-api-intake-dev");
     expect(screen.getByText("Development-only synthetic assertion.")).toBeInTheDocument();
@@ -612,7 +612,7 @@ describe("AccessSnapshot — candidate next work", () => {
     );
 
     const work = region("Candidate next work");
-    expect(work.getAllByText("Candidate / Not assigned")).toHaveLength(3);
+    expect(work.getAllByText("Not assigned")).toHaveLength(3);
     expect(work.getByText("Resolve case information")).toBeInTheDocument();
     expect(work.getByText("Review workstream")).toBeInTheDocument();
     expect(work.getByText("Clinical")).toBeInTheDocument();
@@ -627,7 +627,7 @@ describe("AccessSnapshot — candidate next work", () => {
   it("says so when there is no candidate work", async () => {
     await openCase(readModel());
 
-    expect(region("Candidate next work").getByRole("heading", { name: "No next work" })).toBeInTheDocument();
+    expect(region("Candidate next work").getByRole("heading", { name: "No suggested next steps" })).toBeInTheDocument();
   });
 
   it("explains suppressed work in plain language", async () => {
@@ -688,7 +688,7 @@ describe("AccessSnapshot — Prescreen source state", () => {
   it("says so when no active encounter is selected", async () => {
     await openCase(readModel());
 
-    expect(region("Prescreen source state").getByText("No active Prescreen encounter selected from governed data.")).toBeInTheDocument();
+    expect(region("Prescreen source state").getByText("No active Prescreen encounter is selected.")).toBeInTheDocument();
   });
 
   it("shows the selected encounter's status and version", async () => {
@@ -712,11 +712,11 @@ describe("AccessSnapshot — Prescreen source state", () => {
 
   it("distinguishes packet evidence that was not supplied from evidence that is empty", async () => {
     const { unmount } = await openCase(readModel({ sourceState: { packetRequirementEvidence: "NOT_AVAILABLE" } }));
-    expect(screen.getByText("Packet requirement evidence was not supplied to this projection.")).toBeInTheDocument();
+    expect(screen.getByText("Packet requirements are not available for this view.")).toBeInTheDocument();
     unmount();
 
     await openCase(readModel({ sourceState: { packetRequirementEvidence: "LOADED_EMPTY" } }));
-    expect(screen.getByText(/currently has zero persisted packet requirement rows/)).toBeInTheDocument();
+    expect(screen.getByText(/No packet requirements are configured/)).toBeInTheDocument();
     expect(screen.getByText("This does not prove all real-world required documents are present.")).toBeInTheDocument();
   });
 
