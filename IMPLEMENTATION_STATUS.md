@@ -83,8 +83,8 @@ The Longitudinal Vertical Slice Contract v0.1 is **merged** — PR #133, `430709
 `tests/unit/longitudinal-contracts.test.ts`, `docs/architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md`.
 Contract-only: no Prisma, migration, API or UI mutation.
 
-The Clarity Canon package v1.0 is landed under `docs/canon/` (branch
-`docs/canon-package-v1.0`, ADR-0025 **Proposed**, awaiting owner ratification). It carries the
+The Clarity Canon package v1.0 is landed under `docs/canon/` (ADR-0025
+**Accepted**, owner ratified 2026-09-20). It carries the
 Semantic Decision Base Lock, the Decision Register (LSR-01 → LSR-18, **locked**), the Open-Gap
 Register (LONG-GAP-01 → 10, **open**), the Constitution, Tree 5, the experience/longitudinal/AI
 models, the implementation and migration plans, the verification matrix, ship acceptance, the

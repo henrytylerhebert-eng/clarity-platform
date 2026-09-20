@@ -1,6 +1,6 @@
 # ADR-0025: Adopt the Clarity Canon package as the governing semantic base, and IA-001 as the implementation gate
 
-**Status:** Proposed — awaiting owner ratification
+**Status:** Accepted — owner ratified 2026-09-20
 **Date:** 2026-09-20
 
 ## Context
