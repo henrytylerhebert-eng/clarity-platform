@@ -46,6 +46,8 @@ authority, decision, or workflow object merely because it makes implementation e
 | 17 | [DEVELOPER_HANDOFF.md](DEVELOPER_HANDOFF.md) | Read order and classification rules for a developer or agent |
 | — | [WHOLE_PRODUCT_SPEC.md](WHOLE_PRODUCT_SPEC.md) | The consolidated product specification |
 | — | [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) | Ask Clarity: Query / Trace now, Command later |
+| — | [conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md](conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md) | **Which invariants are actually enforced** — 9 ENFORCED / 6 PARTIAL / 2 MISSING / 4 N/A |
+| — | [gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md](gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md) | **LONG-GAP-01 → 10 decisions** — 6 LOCKED, 4 BOUNDED |
 | — | [CANON_RECONSTRUCTION_PASS_01_v0.1.md](CANON_RECONSTRUCTION_PASS_01_v0.1.md) | Source reconstruction pass behind the lock |
 | — | [FIGMA_PATTERN_GAP_ANALYSIS_v0.1.md](FIGMA_PATTERN_GAP_ANALYSIS_v0.1.md) | UI pattern gap analysis |
 
@@ -65,6 +67,10 @@ These documents are **dated artifacts**. They are landed verbatim, not edited to
   `tests/data/longitudinal-day1-day39.ts`, `tests/unit/longitudinal-contracts.test.ts`, and
   `docs/architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md`. IA-001's §2 matrix, §5
   unlock conditions, and §10 HELD/PROHIBITED lists remain in force unchanged.
+- **The open-gap register is no longer open.** All ten LONG-GAP questions were closed or
+  explicitly bounded on 2026-09-20 (6 LOCKED, 4 BOUNDED). The register file preserves the
+  questions verbatim as a dated artifact and carries a status pointer; the decisions live in
+  `gap-closure/`.
 - **The persistence gate is still closed.** IA-002 has **not** been issued. Until it is, no
   Prisma change, migration, longitudinal write repository, command service, mutating API,
   actual-discharge command, persistence-backed longitudinal UI mutation, or AI command

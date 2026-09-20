@@ -1,8 +1,20 @@
 # Clarity Open-Gap Register v0.1
 
 **Scope:** Longitudinal pre-schema questions only  
-**Status:** OPEN  
+**Status (as written, 2026-09-20 package):** OPEN  
+**Status (current):** CLOSED OR BOUNDED — see the status update below  
 **Count:** 10  
+
+> **STATUS UPDATE — 2026-09-20.** All ten questions below have been **closed or explicitly
+> bounded** by
+> [gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md](gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md):
+> **6 LOCKED** (01, 02, 04, 07, 09, 10) and **4 BOUNDED** (03, 05, 06, 08). A BOUNDED gap is not
+> an open question — its shape, invariants and failure mode are fixed, and what remains is a
+> value list or authority assignment that only clinical licensing (OD-3), counsel (OD-2) or a
+> real integration contract (OD-5) can supply. **Do not re-open a question below without the
+> documented contradicting evidence required by the admission rule at the end of this file.**
+> The questions are preserved verbatim as the dated artifact they are.
+
 **Freeze rule:** These are the only recognized longitudinal pre-schema questions for this pass. Do not add new semantic questions unless reconciliation exposes a documented contradiction or missing semantic requirement.
 
 | Gap ID | Status | Topic | Question |
