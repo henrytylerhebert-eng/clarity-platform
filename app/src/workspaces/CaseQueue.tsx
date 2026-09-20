@@ -15,16 +15,12 @@ export function CaseQueue({ state, selectedCaseId, onSelect }: { state: AppState
           <thead>
             <tr>
               <th>Case</th>
-              <th>Patient token</th>
-              <th>Age</th>
               <th>Stage</th>
+              <th>Priority</th>
               <th>Risk</th>
-              <th>Medical necessity</th>
-              <th>Legal</th>
               <th>Packet</th>
               <th>Routing</th>
-              <th>Custody</th>
-              <th>Missing flags</th>
+              <th>Attention</th>
             </tr>
           </thead>
           <tbody>
@@ -34,7 +30,6 @@ export function CaseQueue({ state, selectedCaseId, onSelect }: { state: AppState
               const medicalNecessity = state.medicalNecessitySnapshots.find((item) => item.caseId === caseRecord.id);
               const legalInstrument = state.legalInstruments.find((item) => item.caseId === caseRecord.id);
               const guards = evaluatePitfallGuards({ caseRecord, assessment, riskFindings, medicalNecessity, legalInstrument });
-              const ledgerEvents = state.custodyLedgerEvents.filter((item) => item.caseId === caseRecord.id);
               return (
                 <tr
                   className={caseRecord.id === selectedCaseId ? "selected-row" : ""}
@@ -45,23 +40,23 @@ export function CaseQueue({ state, selectedCaseId, onSelect }: { state: AppState
                     <button className="link-button" type="button">{caseRecord.patientToken.displayName}</button>
                     <span className="subtext">{caseRecord.id}</span>
                   </td>
-                  <td>{caseRecord.patientToken.id}</td>
-                  <td>{caseRecord.patientToken.ageBand}</td>
                   <td><StatusBadge tone="info">{caseRecord.currentStage}</StatusBadge></td>
-                  <td>{riskFindings.length ? `${riskFindings.length} finding(s)` : "Unknown"}</td>
-                  <td>{medicalNecessity?.reviewStatus ?? "Draft"}</td>
-                  <td>{caseRecord.legalStatus}</td>
+                  <td>
+                    <StatusBadge tone={caseRecord.priority === "Emergent" ? "danger" : caseRecord.priority === "Urgent" ? "warn" : "neutral"}>
+                      {caseRecord.priority}
+                    </StatusBadge>
+                  </td>
+                  <td>{riskFindings.length ? `${riskFindings.length} finding(s)` : "None recorded"}</td>
                   <td>{caseRecord.packetCompleteness}%</td>
                   <td>{caseRecord.routingStatus}</td>
-                  <td>{ledgerEvents.length ? "Hash chain present" : "No custody events"}</td>
-                  <td>{guards.length}</td>
+                  <td>{guards.length ? <StatusBadge tone="warn">{guards.length} item(s)</StatusBadge> : <span className="subtext">None</span>}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-      <footer className="panel-footer">Insurance and benefits status is visible in case detail, but does not block clinical workflow.</footer>
+      <footer className="panel-footer">Demo queue only. Open a case for detail; governed case status is available separately when signed in.</footer>
     </section>
   );
 }
