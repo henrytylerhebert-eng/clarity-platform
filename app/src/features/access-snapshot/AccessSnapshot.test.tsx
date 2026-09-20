@@ -146,9 +146,8 @@ describe("AccessSnapshot — signed out and signing in", () => {
     authAs(null);
     render(<AccessSnapshot />);
 
-    expect(screen.getByRole("heading", { name: "Access Snapshot" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Authentication required" })).toBeInTheDocument();
-    expect(screen.getByText(/You must be signed in/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Sign in to view case status" })).toBeInTheDocument();
+    expect(screen.getByText(/verified backend session/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Development assertion")).toHaveValue("syn-assert-api-intake-dev");
     expect(screen.getByText("Development-only synthetic assertion.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Open case" })).not.toBeInTheDocument();
@@ -168,16 +167,16 @@ describe("AccessSnapshot — loading a case", () => {
   it("names the verified session and requests the default synthetic case once", async () => {
     authAs(intake);
     render(<AccessSnapshot />);
-    expect(screen.getByText("Verified session Synthetic Intake Coordinator (synthetic-org-api-dev)")).toBeInTheDocument();
-    expect(screen.queryByText(/case-detail access is audited/)).not.toBeInTheDocument();
+    expect(screen.getByText("Verified session · Synthetic Intake Coordinator · synthetic-org-api-dev")).toBeInTheDocument();
+    expect(screen.queryByText(/case-detail access is audited/i)).not.toBeInTheDocument();
 
     vi.mocked(apiAccessGetCase).mockResolvedValue(readModel());
     await userEvent.click(screen.getByRole("button", { name: "Open case" }));
 
     expect(await screen.findByText("Case SYN-API-CASE-0001")).toBeInTheDocument();
     expect(screen.getByText("Version 2")).toBeInTheDocument();
-    expect(screen.getByText("Governed read model")).toBeInTheDocument();
-    expect(screen.getByText(/case-detail access is audited/)).toBeInTheDocument();
+    expect(screen.queryByText("Governed read model")).not.toBeInTheDocument();
+    expect(screen.getByText(/case-detail access is audited/i)).toBeInTheDocument();
     expect(apiAccessGetCase).toHaveBeenCalledExactlyOnceWith("SYN-API-CASE-0001");
   });
 
@@ -330,7 +329,7 @@ describe("AccessSnapshot — journey position", () => {
   ])("shows the %s disposition as %s", async (disposition, expected) => {
     await openCase(readModel({ journey: { phase: "PRESCREEN", disposition, evidence: [] } }));
 
-    const journey = region("Current journey position");
+    const journey = region("Journey");
     expect(journey.getByText(expected)).toBeInTheDocument();
     expect(journey.getAllByText("Prescreen").length).toBeGreaterThan(0);
   });
@@ -362,7 +361,7 @@ describe("AccessSnapshot — journey position", () => {
   it("does not fabricate a phase when the contract reports none, but still shows the disposition", async () => {
     await openCase(readModel({ journey: { phase: null, disposition: "DIVERTED", evidence: [] } }));
 
-    const journey = region("Current journey position");
+    const journey = region("Journey");
     expect(journey.getByText("Current phase cannot be determined from available governed evidence.")).toBeInTheDocument();
     expect(journey.getByText("Diverted")).toBeInTheDocument();
     expect(journey.queryByText("Why this phase?")).not.toBeInTheDocument();
@@ -400,7 +399,7 @@ describe("AccessSnapshot — journey position", () => {
       }),
     );
 
-    expect(screen.getByText("Admission phase is based on recorded case-to-episode linkage.")).toBeInTheDocument();
+    expect(screen.getByText("Admission is based on recorded case-to-episode linkage.")).toBeInTheDocument();
     expect(screen.getByText("Episode link: Admission source — supports Admission")).toBeInTheDocument();
   });
 });
@@ -530,11 +529,12 @@ describe("AccessSnapshot — what needs attention", () => {
     expect(within(groups as HTMLElement).queryByText("Clinical — Ready")).not.toBeInTheDocument();
     expect(within(groups as HTMLElement).queryByText("Transportation — Not applicable")).not.toBeInTheDocument();
 
-    const recorded = attention.getByText("Satisfied or not applicable (2)").closest("details");
-    expect(recorded).not.toBeNull();
-    expect(within(recorded as HTMLElement).getByText("Clinical — Ready")).toBeInTheDocument();
-    expect(within(recorded as HTMLElement).getByText("Transportation — Not applicable")).toBeInTheDocument();
-    expect(within(recorded as HTMLElement).getByText("Satisfied")).toHaveClass("badge-good");
+    const sourceDetails = screen.getByText("Details & source evidence").closest("details");
+    expect(sourceDetails).not.toBeNull();
+    expect(within(sourceDetails as HTMLElement).getByText("Recorded satisfied / not applicable facts")).toBeInTheDocument();
+    expect(within(sourceDetails as HTMLElement).getByText("Clinical — Ready")).toBeInTheDocument();
+    expect(within(sourceDetails as HTMLElement).getByText("Transportation — Not applicable")).toBeInTheDocument();
+    expect(within(sourceDetails as HTMLElement).getByText("Satisfied")).toHaveClass("badge-good");
   });
 
   it("does not present an empty attention list as a clearance", async () => {
@@ -564,11 +564,11 @@ describe("AccessSnapshot — what needs attention", () => {
       }),
     );
 
-    const journey = region("Current journey position");
+    const journey = region("Journey");
     expect(journey.getByText("On track")).toBeInTheDocument();
     expect(journey.queryByText("Blocked")).not.toBeInTheDocument();
 
-    const lanes = region("Workstreams");
+    const lanes = region("Parallel lanes");
     expect(lanes.getByText("A blocked lane does not necessarily mean the patient journey is blocked.")).toBeInTheDocument();
     expect(lanes.getByText("Benefits").parentElement).toHaveTextContent("Blocked");
   });
@@ -611,8 +611,8 @@ describe("AccessSnapshot — candidate next work", () => {
       }),
     );
 
-    const work = region("Candidate next work");
-    expect(work.getAllByText("Candidate / Not assigned")).toHaveLength(3);
+    const work = region("Suggested next steps");
+    expect(work.getAllByText("Not assigned")).toHaveLength(3);
     expect(work.getByText("Resolve case information")).toBeInTheDocument();
     expect(work.getByText("Review workstream")).toBeInTheDocument();
     expect(work.getByText("Clinical")).toBeInTheDocument();
@@ -627,7 +627,7 @@ describe("AccessSnapshot — candidate next work", () => {
   it("says so when there is no candidate work", async () => {
     await openCase(readModel());
 
-    expect(region("Candidate next work").getByRole("heading", { name: "No next work" })).toBeInTheDocument();
+    expect(region("Suggested next steps").getByRole("heading", { name: "No suggested next steps" })).toBeInTheDocument();
   });
 
   it("explains suppressed work in plain language", async () => {
@@ -642,8 +642,8 @@ describe("AccessSnapshot — candidate next work", () => {
       }),
     );
 
-    const work = region("Candidate next work");
-    expect(work.getByText("Work not currently actionable")).toBeInTheDocument();
+    const work = region("Suggested next steps");
+    expect(work.getByText("Suggestions not currently actionable")).toBeInTheDocument();
     expect(work.getByText("Resolve workstream block — The case is in a terminal status")).toBeInTheDocument();
     expect(work.getByText("Resolve packet requirement — The Prescreen encounter is in a terminal status")).toBeInTheDocument();
   });
@@ -668,7 +668,7 @@ describe("AccessSnapshot — workstreams", () => {
       }),
     );
 
-    const rows = region("Workstreams")
+    const rows = region("Parallel lanes")
       .getAllByText(/^(Clinical|Legal review|Medical screening|Benefits|Authorization|Placement|Transportation|Patient education)$/)
       .map((node) => node.parentElement?.textContent);
     expect(rows).toEqual([
@@ -688,7 +688,7 @@ describe("AccessSnapshot — Prescreen source state", () => {
   it("says so when no active encounter is selected", async () => {
     await openCase(readModel());
 
-    expect(region("Prescreen source state").getByText("No active Prescreen encounter selected from governed data.")).toBeInTheDocument();
+    expect(region("Intake & packet status").getByText("No active Prescreen encounter is selected.")).toBeInTheDocument();
   });
 
   it("shows the selected encounter's status and version", async () => {
@@ -696,7 +696,7 @@ describe("AccessSnapshot — Prescreen source state", () => {
       readModel({ sourceState: { prescreenSelection: "SELECTED", prescreen: { status: "CENTRAL_INTAKE_REVIEW", version: 3 } } }),
     );
 
-    const prescreen = region("Prescreen source state");
+    const prescreen = region("Intake & packet status");
     expect(prescreen.getByText("Status: Central intake review")).toBeInTheDocument();
     expect(prescreen.getByText("Version: 3")).toBeInTheDocument();
   });
@@ -706,17 +706,17 @@ describe("AccessSnapshot — Prescreen source state", () => {
 
     const warning = screen.getByRole("alert");
     expect(warning).toHaveTextContent("Multiple active Prescreen encounters exist.");
-    expect(warning).toHaveTextContent("Do not guess which encounter is current.");
-    expect(region("Prescreen source state").queryByText(/^Status:/)).not.toBeInTheDocument();
+    expect(warning).toHaveTextContent("Intake and packet readiness are withheld until the ambiguity is resolved.");
+    expect(region("Intake & packet status").queryByText(/^Status:/)).not.toBeInTheDocument();
   });
 
   it("distinguishes packet evidence that was not supplied from evidence that is empty", async () => {
     const { unmount } = await openCase(readModel({ sourceState: { packetRequirementEvidence: "NOT_AVAILABLE" } }));
-    expect(screen.getByText("Packet requirement evidence was not supplied to this projection.")).toBeInTheDocument();
+    expect(screen.getByText("Packet requirements are not available for this view.")).toBeInTheDocument();
     unmount();
 
     await openCase(readModel({ sourceState: { packetRequirementEvidence: "LOADED_EMPTY" } }));
-    expect(screen.getByText(/currently has zero persisted packet requirement rows/)).toBeInTheDocument();
+    expect(screen.getByText(/No packet requirements are configured/)).toBeInTheDocument();
     expect(screen.getByText("This does not prove all real-world required documents are present.")).toBeInTheDocument();
   });
 
@@ -747,7 +747,7 @@ describe("AccessSnapshot — Prescreen source state", () => {
       }),
     );
 
-    const prescreen = region("Prescreen source state");
+    const prescreen = region("Intake & packet status");
     const ready = prescreen.getByText("Central intake review").parentElement;
     expect(ready).toHaveTextContent("Ready");
     expect(ready).toHaveTextContent("0 blocking, 0 warning");
@@ -798,7 +798,7 @@ describe("AccessSnapshot — errors", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("not permitted");
     expect(screen.queryByText("Case SYN-API-CASE-0001")).not.toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "Current journey position" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Journey" })).not.toBeInTheDocument();
   });
 });
 
@@ -840,8 +840,8 @@ describe("AccessSnapshot — session isolation", () => {
     rerender(<AccessSnapshot />);
 
     expect(screen.queryByText("Case SYN-API-CASE-0001")).not.toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "Current journey position" })).not.toBeInTheDocument();
-    expect(screen.getByText("Verified session Synthetic Physician Reviewer (synthetic-org-api-dev)")).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Journey" })).not.toBeInTheDocument();
+    expect(screen.getByText("Verified session · Synthetic Physician Reviewer · synthetic-org-api-dev")).toBeInTheDocument();
     expect(apiAccessGetCase).toHaveBeenCalledTimes(callsBefore);
   });
 
@@ -853,6 +853,6 @@ describe("AccessSnapshot — session isolation", () => {
 
     expect(screen.queryByText("Case SYN-API-CASE-0001")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Open case" })).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Authentication required" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Sign in to view case status" })).toBeInTheDocument();
   });
 });

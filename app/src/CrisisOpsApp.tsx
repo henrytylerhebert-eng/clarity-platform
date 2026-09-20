@@ -26,7 +26,6 @@ import { CaseOverview } from "./workspaces/CaseOverview";
 import { GuidedIntake } from "./workspaces/GuidedIntake";
 import { MedicalNecessity } from "./workspaces/MedicalNecessity";
 import { LegalStatus } from "./workspaces/LegalStatus";
-import { DEFAULT_SESSION_TTL_MS, describeDemoSession } from "./domain/services";
 import { useAuth } from "./domain/AuthContext";
 import { SignInForm } from "./components/SignInForm";
 import { EvidenceReview } from "./workspaces/EvidenceReview";
@@ -48,6 +47,7 @@ import { executeCec, executePec, issueOpc, type CecInput, type OpcInput, type Pe
 import { getEpecRuleSet } from "./domain/epecRuleSets";
 import { buildPacketForCase } from "./domain/packets";
 import { getRole, roles, type RoleId, type WorkspaceId } from "./domain/roles";
+import { CRISIS_NAV_SECTIONS, navSectionForWorkspace, visibleNavSections, visibleWorkspacesForSection, type CrisisNavSectionId } from "./domain/crisisNavigation";
 import { getRoleFocus } from "./domain/roleFocus";
 import { getCaseBundle } from "./domain/selectors";
 import { loadAppState, resetAppState, saveAppState } from "./domain/storage";
@@ -66,21 +66,21 @@ import type {
 } from "./domain/types";
 
 const workspaceItems: Array<{ id: WorkspaceId; label: string; icon: typeof LayoutDashboard }> = [
-  { id: "queue", label: "Case Queue", icon: LayoutDashboard },
-  { id: "access", label: "Access Snapshot", icon: FileSearch },
-  { id: "command", label: "Command Center", icon: Gauge },
+  { id: "queue", label: "Case queue", icon: LayoutDashboard },
+  { id: "access", label: "Case status", icon: FileSearch },
+  { id: "command", label: "Command center", icon: Gauge },
   { id: "new", label: "New Case", icon: PlusCircle },
-  { id: "overview", label: "Case Overview", icon: ClipboardList },
+  { id: "overview", label: "Case overview", icon: ClipboardList },
   { id: "intake", label: "Guided Intake", icon: FileText },
   { id: "evidence", label: "Evidence Review", icon: FileSearch },
   { id: "medical", label: "Medical Necessity", icon: FileCheck2 },
   { id: "legal", label: "Legal Status", icon: Scale },
   { id: "benefits", label: "Benefits Verification", icon: BadgeCheck },
   { id: "authorization", label: "Authorization Readiness", icon: ClipboardCheck },
-  { id: "packet", label: "Packet Preview", icon: ShieldCheck },
+  { id: "packet", label: "Packet", icon: ShieldCheck },
   { id: "routing", label: "Routing Response", icon: Network },
-  { id: "bedboard", label: "Milieu Bedboard", icon: BedDouble },
-  { id: "ledger", label: "Custody Ledger", icon: ShieldCheck },
+  { id: "bedboard", label: "Bedboard", icon: BedDouble },
+  { id: "ledger", label: "History & custody", icon: ShieldCheck },
   { id: "training", label: "Training & SOPs", icon: BookOpenCheck },
   { id: "mock-admits", label: "Mock Admit Lab", icon: FlaskConical },
   { id: "studio", label: "Product Studio", icon: PanelTop },
@@ -104,9 +104,6 @@ export function App() {
   }, []);
 
   const role = getRole(roleId);
-  const visibleWorkspaceItems = workspaceItems.filter((item) => role.workspaces.includes(item.id));
-  const demoSession = describeDemoSession(role.label);
-
   function handleRoleChange(nextRoleId: RoleId) {
     setRoleId(nextRoleId);
     const nextRole = getRole(nextRoleId);
@@ -545,137 +542,167 @@ export function App() {
   }
 
   const activeCase = selectedCase ?? state.cases[0];
+  const activeSection = navSectionForWorkspace(workspace);
+  const availableSections = visibleNavSections(role.workspaces);
+  const sectionWorkspaces = visibleWorkspacesForSection(activeSection, role.workspaces);
   const isMockAdmitLab = workspace === "mock-admits";
   const isProductStudio = workspace === "studio";
   const isIopReconciliation = workspace === "iop-reconciliation";
+  const caseLevelWorkspaces: readonly WorkspaceId[] = [
+    "overview",
+    "intake",
+    "evidence",
+    "medical",
+    "legal",
+    "benefits",
+    "authorization",
+    "packet",
+    "routing",
+    "ledger",
+  ];
+  const isPrototypeCaseWorkspace = caseLevelWorkspaces.includes(workspace);
   const focusChips = getRoleFocus(roleId, state, activeCase.id, new Date().toISOString());
 
+  function handleSectionChange(sectionId: CrisisNavSectionId) {
+    const section = CRISIS_NAV_SECTIONS.find((candidate) => candidate.id === sectionId);
+    if (!section) return;
+    const visible = visibleWorkspacesForSection(section, role.workspaces);
+    if (visible.length === 0) return;
+    if (!visible.includes(workspace)) setWorkspace(visible[0]);
+  }
+
+
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
+    <div className="app-shell crisis-ops-shell">
+      <aside className="sidebar crisis-sidebar">
         <div className="brand-block">
           <span className="brand-mark">C</span>
           <div>
-            <h1>Clarity</h1>
-            <p>Crisis Ops v0.2</p>
+            <h1>Crisis Ops</h1>
+            <p>Intake · review · placement</p>
           </div>
         </div>
-        <a className="role-note" href="./rev-ops">Rev Ops · verified sign-in</a>
-        <label className="role-select">
-          Viewing as
-          <select value={roleId} onChange={(event) => handleRoleChange(event.target.value as RoleId)}>
-            {roles.map((item) => (
-              <option key={item.id} value={item.id}>{item.label}</option>
-            ))}
-          </select>
-          <span className="role-mission">{role.mission}</span>
-          <span className="role-note">Demo role scoping only — not authentication.</span>
-        </label>
-        <details className="session-panel">
-          <summary>Session &amp; identity{apiPrincipal ? " — verified" : ""}</summary>
+
+        <details className="session-panel compact-session">
+          <summary>Verified session{apiPrincipal ? " — active" : " — not signed in"}</summary>
           {apiPrincipal ? (
             <>
-              <p>
-                Signed in against the local API. Roles below were loaded from the database by the
-                authentication service — the demo role selector above has no effect on this session.
-              </p>
-              <dl>
-                <dt>Principal</dt><dd>{apiPrincipal.displayName} ({apiPrincipal.userId})</dd>
-                <dt>Organization</dt><dd>{apiPrincipal.organizationId}</dd>
-                <dt>Verified roles</dt><dd>{apiPrincipal.roles.join(", ") || "none"}</dd>
-                <dt>Session expires</dt><dd>{new Date(apiPrincipal.expiresAt).toLocaleTimeString()}</dd>
-              </dl>
+              <p className="session-summary">{apiPrincipal.displayName}</p>
+              <p className="role-note">{apiPrincipal.organizationId} · {apiPrincipal.roles.join(", ") || "no verified role"}</p>
               <button className="secondary-button" type="button" onClick={handleApiLogout}>
                 Sign out
               </button>
             </>
           ) : (
             <>
-              <p>
-                The selector above is unverified local display scoping — roles there are asserted,
-                not proven. To act through the real backend, sign in with a synthetic dev assertion
-                (start the API with <code>npm run api:dev</code>; it prints the assertions). Signing
-                in here also signs in IOP Reconciliation, Operating Assurance, and RevOps.
-              </p>
+              <p className="role-note">Backend actions use this verified identity. Demo view selection below does not grant access.</p>
               <SignInForm
                 placeholder="syn-assert-api-physician-dev"
-                helpText={
-                  <dl>
-                    <dt>Demo principal</dt><dd>{demoSession.displayName} ({demoSession.userId})</dd>
-                    <dt>Session TTL</dt><dd>{DEFAULT_SESSION_TTL_MS / 3600000}h (one nursing shift)</dd>
-                  </dl>
-                }
+                helpText={<span className="role-note">Synthetic development sign-in only.</span>}
               />
             </>
           )}
         </details>
-        <nav className="nav-list" aria-label="Workspace navigation">
-          {visibleWorkspaceItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                className={workspace === item.id ? "nav-item active" : "nav-item"}
-                key={item.id}
-                type="button"
-                onClick={() => setWorkspace(item.id)}
-              >
-                <Icon size={17} />
-                {item.label}
-              </button>
-            );
-          })}
+
+        <nav className="primary-nav-list" aria-label="Crisis Ops sections">
+          {availableSections.map((section) => (
+            <button
+              key={section.id}
+              className={activeSection.id === section.id ? "primary-nav-item active" : "primary-nav-item"}
+              type="button"
+              onClick={() => handleSectionChange(section.id)}
+            >
+              {section.label}
+            </button>
+          ))}
         </nav>
+
+        {sectionWorkspaces.length > 1 ? (
+          <div className="secondary-nav">
+            <span className="secondary-nav-label">{activeSection.label}</span>
+            <nav className="nav-list" aria-label={`${activeSection.label} workspaces`}>
+              {sectionWorkspaces.map((workspaceId) => {
+                const item = workspaceItems.find((candidate) => candidate.id === workspaceId);
+                if (!item) return null;
+                const Icon = item.icon;
+                return (
+                  <button
+                    className={workspace === workspaceId ? "nav-item active" : "nav-item"}
+                    key={workspaceId}
+                    type="button"
+                    onClick={() => setWorkspace(workspaceId)}
+                  >
+                    <Icon size={16} />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        ) : null}
+
+        <div className="demo-view-control">
+          <label>
+            Demo view
+            <select value={roleId} onChange={(event) => handleRoleChange(event.target.value as RoleId)}>
+              {roles.map((item) => (
+                <option key={item.id} value={item.id}>{item.label}</option>
+              ))}
+            </select>
+          </label>
+          <span className="role-note">Prototype navigation only · not authorization</span>
+        </div>
+
         <button className="reset-button" type="button" onClick={handleReset}>
           <RotateCcw size={16} /> Reset demo data
         </button>
       </aside>
 
       <main className="main-surface">
-        {workspace !== "access" && (
-          <>
-            <header className="topbar">
-              <div>
-                <span className="label">{isMockAdmitLab ? "Training workspace" : isProductStudio ? "Internal product control" : isIopReconciliation ? "Synthetic operations review" : "Selected case"}</span>
-                <h2>{isMockAdmitLab ? "Mock Admit Lab" : isProductStudio ? "Clarity Product Studio" : isIopReconciliation ? "IOP Attendance Reconciliation" : activeCase.patientToken.displayName}</h2>
-              </div>
-              <div className="topbar-badges">
-                {isMockAdmitLab ? (
-                  <>
-                    <StatusBadge tone="danger">Synthetic only</StatusBadge>
-                    <StatusBadge tone="warn">Human review required</StatusBadge>
-                  </>
-                ) : isProductStudio ? (
-                  <>
-                    <StatusBadge tone="info">Synthetic registry</StatusBadge>
-                    <StatusBadge tone="warn">Review-gated</StatusBadge>
-                  </>
-                ) : isIopReconciliation ? (
-                  <>
-                    <StatusBadge tone="danger">Synthetic only</StatusBadge>
-                    <StatusBadge tone="warn">Review-gated</StatusBadge>
-                  </>
-                ) : (
-                  <>
-                    <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
-                    <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
-                    <StatusBadge tone="warn">Draft workflow</StatusBadge>
-                  </>
-                )}
-              </div>
-            </header>
-
-            {!isMockAdmitLab && !isProductStudio && !isIopReconciliation && focusChips.length ? (
-              <div className="focus-strip" aria-label="Role focus summary">
-                {focusChips.map((chip) => (
-                  <div className="focus-chip" key={chip.label}>
-                    <span className="label">{chip.label}</span>
-                    <StatusBadge tone={chip.tone}>{chip.value}</StatusBadge>
-                  </div>
-                ))}
-              </div>
+        <header className="topbar">
+          <div>
+            <span className="label">
+              {workspace === "access"
+                ? "Governed case view"
+                : isPrototypeCaseWorkspace
+                  ? "Prototype case"
+                  : "Crisis Ops"}
+            </span>
+            <h2>
+              {workspace === "access"
+                ? "Case status"
+                : isPrototypeCaseWorkspace
+                  ? activeCase.patientToken.displayName
+                  : activeSection.label}
+            </h2>
+          </div>
+          <div className="topbar-badges">
+            {workspace === "access" ? (
+              apiPrincipal ? <StatusBadge tone="good">Verified session</StatusBadge> : <StatusBadge tone="warn">Sign in required</StatusBadge>
+            ) : isMockAdmitLab ? (
+              <StatusBadge tone="danger">Synthetic only</StatusBadge>
+            ) : isProductStudio || isIopReconciliation ? (
+              <StatusBadge tone="warn">Prototype / review-gated</StatusBadge>
+            ) : isPrototypeCaseWorkspace ? (
+              <>
+                <StatusBadge tone="info">{activeCase.currentStage}</StatusBadge>
+                <StatusBadge tone={activeCase.priority === "Emergent" ? "danger" : "warn"}>{activeCase.priority}</StatusBadge>
+                <StatusBadge tone="neutral">Demo data</StatusBadge>
+              </>
             ) : null}
-          </>
-        )}
+          </div>
+        </header>
+
+        {isPrototypeCaseWorkspace && focusChips.length ? (
+          <div className="focus-strip" aria-label="Role focus summary">
+            {focusChips.map((chip) => (
+              <div className="focus-chip" key={chip.label}>
+                <span className="label">{chip.label}</span>
+                <StatusBadge tone={chip.tone}>{chip.value}</StatusBadge>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         <section className="content-region">
           {workspace === "queue" ? <CaseQueue state={state} selectedCaseId={activeCase.id} onSelect={(id) => { setSelectedCaseId(id); setWorkspace("overview"); }} /> : null}

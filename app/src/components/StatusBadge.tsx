@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-type Tone = "neutral" | "good" | "warn" | "danger" | "info";
+export type StatusBadgeTone = "neutral" | "good" | "warn" | "danger" | "info";
 
-export function StatusBadge({ children, tone = "neutral" }: { children: ReactNode; tone?: Tone }) {
+export function StatusBadge({ children, tone = "neutral" }: { children: ReactNode; tone?: StatusBadgeTone }) {
   return <span className={`badge badge-${tone}`}>{children}</span>;
 }
 

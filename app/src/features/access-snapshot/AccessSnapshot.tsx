@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { AccessCaseReadModel, BlockingScope, GuidanceSignal } from "@clarity/domain-contracts";
 import { SignInForm } from "../../components/SignInForm";
+import { CaseHeader } from "../../components/CaseHeader";
 import { EmptyState, StatusBadge } from "../../components/StatusBadge";
 import { useAuth } from "../../domain/AuthContext";
 import { apiAccessGetCase, describeApiError } from "../../domain/api";
@@ -46,34 +47,24 @@ export function AccessSnapshot() {
 
   return (
     <div className="access-snapshot">
-      <header className="snapshot-header">
-        <div className="header-info">
-          <h2>Access Snapshot</h2>
-          <StatusBadge tone="info">Governed read model</StatusBadge>
-        </div>
-        {principal ? (
-          <div className="session-info">
-            Verified session {principal.displayName} ({principal.organizationId})
-          </div>
-        ) : null}
-      </header>
+      {principal ? (
+        <p className="snapshot-session">Verified session · {principal.displayName} · {principal.organizationId}</p>
+      ) : null}
 
       {principal ? (
-        // Keyed by session: signing out and in as someone else must never inherit
-        // the previous session's loaded case.
         <AccessCaseView key={principal.sessionId} />
       ) : busy ? (
         <p className="signing-in">Signing in…</p>
       ) : (
-        <div className="signed-out">
-          <h3>Authentication required</h3>
-          <p>You must be signed in to access the governed Access read model.</p>
+        <section className="signed-out panel">
+          <h3>Sign in to view case status</h3>
+          <p>Case status uses the verified backend session. The prototype persona selector does not grant access.</p>
           <SignInForm
             placeholder="Development assertion"
             defaultValue="syn-assert-api-intake-dev"
             helpText={<p className="help-text">Development-only synthetic assertion.</p>}
           />
-        </div>
+        </section>
       )}
     </div>
   );
@@ -103,36 +94,28 @@ function AccessCaseView() {
 
   return (
     <>
-      <form
-        className="lookup-bar"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void load(caseKeyInput.trim());
-        }}
-      >
-        <label htmlFor="case-key-lookup">Case key</label>
-        <input
-          id="case-key-lookup"
-          type="text"
-          value={caseKeyInput}
-          onChange={(event) => setCaseKeyInput(event.target.value)}
-          placeholder="Enter case key..."
-        />
-        <button type="submit" disabled={loading || caseKeyInput.trim() === ""}>
-          {loading ? "Loading..." : "Open case"}
-        </button>
-        {snapshot ? (
-          <div className="refresh-actions">
-            {/* Reloads the case on screen, not whatever has since been typed above. */}
-            <button type="button" disabled={loading} onClick={() => void load(snapshot.caseKey)}>
-              Refresh case
-            </button>
-            <span className="refresh-help">
-              This view is refreshed on request; case-detail access is audited.
-            </span>
-          </div>
-        ) : null}
-      </form>
+      <details className="case-lookup" open={!snapshot}>
+        <summary>{snapshot ? "Change case" : "Open a case"}</summary>
+        <form
+          className="lookup-bar"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void load(caseKeyInput.trim());
+          }}
+        >
+          <label htmlFor="case-key-lookup">Case key</label>
+          <input
+            id="case-key-lookup"
+            type="text"
+            value={caseKeyInput}
+            onChange={(event) => setCaseKeyInput(event.target.value)}
+            placeholder="Enter case key..."
+          />
+          <button type="submit" disabled={loading || caseKeyInput.trim() === ""}>
+            {loading ? "Loading..." : "Open case"}
+          </button>
+        </form>
+      </details>
 
       {error ? (
         <div className="snapshot-error" role="alert">
@@ -141,7 +124,21 @@ function AccessCaseView() {
         </div>
       ) : null}
 
-      {snapshot ? <SnapshotBody snapshot={snapshot} /> : null}
+      {snapshot ? (
+        <>
+          <CaseHeader
+            caseKey={snapshot.caseKey}
+            phase={snapshot.journey.phase === null ? "Phase unavailable" : phaseLabel(snapshot.journey.phase)}
+            disposition={dispositionLabel(snapshot.journey.disposition)}
+            dispositionTone={dispositionTone(snapshot.journey.disposition)}
+            version={snapshot.caseVersion}
+            loading={loading}
+            onRefresh={() => void load(snapshot.caseKey)}
+          />
+          <p className="refresh-help">This case view refreshes only when requested. Case-detail access is audited.</p>
+          <SnapshotBody snapshot={snapshot} />
+        </>
+      ) : null}
     </>
   );
 }
@@ -177,13 +174,8 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
 
   return (
     <div className="snapshot-content">
-      <div className="case-identity">
-        <span className="case-id">Case {snapshot.caseKey}</span>
-        <span className="case-version">Version {snapshot.caseVersion}</span>
-      </div>
-
-      <section className="journey-rail" aria-labelledby="journey-heading">
-        <h3 id="journey-heading">Current journey position</h3>
+      <section className="journey-rail" aria-label="Journey">
+        <h3 id="journey-heading">Journey</h3>
 
         <ol className="phases-visual-rail" aria-label="Journey phases">
           {JOURNEY_PHASE_ORDER.map((phase, position) => {
@@ -212,21 +204,6 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
           <StatusBadge tone={dispositionTone(journey.disposition)}>{dispositionLabel(journey.disposition)}</StatusBadge>
         </div>
 
-        {journey.evidence.length > 0 ? (
-          <details className="evidence-explanation">
-            <summary>Why this phase?</summary>
-            <ul>
-              {journey.evidence.map((evidence, index) => (
-                // Index in the key: two episode links may legitimately carry the same relationship.
-                <li key={`${evidence.source}:${evidence.sourceValue}:${index}`}>{describeJourneyEvidence(evidence)}</li>
-              ))}
-            </ul>
-          </details>
-        ) : null}
-
-        {journey.phase === "ADMISSION" ? (
-          <p className="admission-source-note">Admission phase is based on recorded case-to-episode linkage.</p>
-        ) : null}
       </section>
 
       <div className="snapshot-grid">
@@ -251,18 +228,12 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
             </div>
           )}
 
-          {recorded.length > 0 ? (
-            <details className="recorded-signals">
-              <summary>Satisfied or not applicable ({recorded.length})</summary>
-              <SignalList signals={recorded} requirementLabels={requirementLabels} />
-            </details>
-          ) : null}
         </section>
 
-        <section className="candidate-work" aria-labelledby="next-work-heading">
-          <h3 id="next-work-heading">Candidate next work</h3>
+        <section className="candidate-work" aria-label="Suggested next steps">
+          <h3 id="next-work-heading">Suggested next steps</h3>
           {guidance.nextWork.length === 0 ? (
-            <EmptyState title="No next work">There are no candidate actions at this time.</EmptyState>
+            <EmptyState title="No suggested next steps">There are no suggested next steps from the recorded statuses.</EmptyState>
           ) : (
             <ul className="next-work-list">
               {guidance.nextWork.map((candidate) => (
@@ -276,7 +247,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
                       {requirementLabels.get(candidate.requirementCode) ?? candidate.requirementCode}
                     </span>
                   ) : null}
-                  <span className="candidate-badge">Candidate / Not assigned</span>
+                  <span className="candidate-badge">Not assigned</span>
                 </li>
               ))}
             </ul>
@@ -284,7 +255,7 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
 
           {guidance.suppressed.length > 0 ? (
             <details className="suppressed-work">
-              <summary>Work not currently actionable</summary>
+              <summary>Suggestions not currently actionable</summary>
               <ul>
                 {guidance.suppressed.map((suppression) => (
                   <li key={`${suppression.kind}:${suppression.signalId}`}>
@@ -296,8 +267,8 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
           ) : null}
         </section>
 
-        <section className="workstreams-panel" aria-labelledby="workstreams-heading">
-          <h3 id="workstreams-heading">Workstreams</h3>
+        <section className="workstreams-panel" aria-label="Parallel lanes">
+          <h3 id="workstreams-heading">Parallel lanes</h3>
           <p className="help-text">A blocked lane does not necessarily mean the patient journey is blocked.</p>
           <div className="workstream-list">
             {WORKSTREAM_ORDER.map((workstream) => (
@@ -311,11 +282,11 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
           </div>
         </section>
 
-        <section className="prescreen-source" aria-labelledby="prescreen-heading">
-          <h3 id="prescreen-heading">Prescreen source state</h3>
+        <section className="prescreen-source" aria-label="Intake & packet status">
+          <h3 id="prescreen-heading">Intake &amp; packet status</h3>
           <div className="prescreen-selection">
             {sourceState.prescreenSelection === "NONE" ? (
-              <p>No active Prescreen encounter selected from governed data.</p>
+              <p>No active Prescreen encounter is selected.</p>
             ) : null}
             {sourceState.prescreenSelection === "SELECTED" && sourceState.prescreen ? (
               <div className="selected-prescreen">
@@ -325,20 +296,19 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
             ) : null}
             {sourceState.prescreenSelection === "AMBIGUOUS" ? (
               <div className="ambiguous-warning" role="alert">
-                <strong>Warning:</strong> Multiple active Prescreen encounters exist. Prescreen evidence is excluded from
-                this projection until the ambiguity is resolved. Do not guess which encounter is current.
+                <strong>Needs review:</strong> Multiple active Prescreen encounters exist. Intake and packet readiness are withheld until the ambiguity is resolved.
               </div>
             ) : null}
           </div>
 
-          <h4>Packet evidence</h4>
+          <h4>Packet status</h4>
           <div className="packet-evidence">
             {sourceState.packetRequirementEvidence === "NOT_AVAILABLE" ? (
-              <p>Packet requirement evidence was not supplied to this projection.</p>
+              <p>Packet requirements are not available for this view.</p>
             ) : null}
             {sourceState.packetRequirementEvidence === "LOADED_EMPTY" ? (
               <p>
-                The selected Prescreen encounter currently has zero persisted packet requirement rows.
+                No packet requirements are configured for the selected Prescreen encounter.
                 <br />
                 <small>This does not prove all real-world required documents are present.</small>
               </p>
@@ -361,6 +331,31 @@ function SnapshotBody({ snapshot }: { snapshot: AccessCaseReadModel }) {
           </div>
         </section>
       </div>
+
+      <details className="source-details">
+        <summary>Details &amp; source evidence</summary>
+        {journey.evidence.length > 0 ? (
+          <section>
+            <h4>Why am I seeing this journey position?</h4>
+            <ul>
+              {journey.evidence.map((evidence, index) => (
+                <li key={`${evidence.source}:${evidence.sourceValue}:${index}`}>
+                  {describeJourneyEvidence(evidence)}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        {journey.phase === "ADMISSION" ? (
+          <p>Admission is based on recorded case-to-episode linkage.</p>
+        ) : null}
+        {recorded.length > 0 ? (
+          <section>
+            <h4>Recorded satisfied / not applicable facts</h4>
+            <SignalList signals={recorded} requirementLabels={requirementLabels} />
+          </section>
+        ) : null}
+      </details>
     </div>
   );
 }
