@@ -79,6 +79,15 @@ When a request is improved, rewrite in this compact structure:
 - Never claim completion without verification results.
 - Clearly separate passing checks from checks not run.
 - Label unknown/blocked checks as `[Unverified]` or `[Unknown]`.
+- **Coverage claims require provenance.** Any statement that a test, suite, browser surface,
+  workspace, viewport or E2E path "ran", "passed", "is covered" or "was not run" must name the
+  exact command or workflow step, the config/scope that command selects, and whether the evidence
+  came from local execution or CI. Before writing "not run", "covered" or "passed" in a truth
+  document, inspect the command, config and workflow that determine scope; an aggregate CI status
+  alone is insufficient evidence. A green umbrella check may run only one Playwright config, one
+  `testMatch`, one project or one subset of the app.
+- **Name the assertion, not the test title.** A test counts as coverage for a change only if it
+  would fail were the change reverted. Read the assertions before citing a test as evidence.
 
 ## Development and architecture notes
 
