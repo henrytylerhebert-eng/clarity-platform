@@ -189,8 +189,10 @@ clinical or legal rules.
 
 ### Open PRs and issues — CURRENT, VERIFIED (2026-09-18)
 
-**Open PRs: 0** as of 2026-09-20. (0 as of 2026-09-18 after Housekeeping Phase 2B; #127, #128
-and #129 landed 2026-09-19/20 and #126 was closed as superseded.)
+**Open PRs: 1** as of 2026-09-20 — **#136** (this change: longitudinal gap closure,
+reconciliation, IA-002 draft, ADR-0026). Landed the same day: **#134** (canon package, `6b1d91f`)
+and **#135** (conformance baseline, `44961b2`). (0 as of 2026-09-18 after Housekeeping Phase 2B;
+#127, #128 and #129 landed 2026-09-19/20 and #126 was closed as superseded.)
 
 Phase 2B landed #81, #89, #100, #102, #103, #104, #105 and closed #63, #73, #82, #88, #91,
 #92, #93, #94, #95 with per-PR evidence. **No branch was deleted for any closure** — each
