@@ -71,8 +71,8 @@ the evidence is local or CI — never inferred from a green aggregate check.
 
 | Claim | Source | Command / workflow step | Scope selector | Evidence |
 |---|---|---|---|---|
-| Root unit + integration passed | Local | `npm run verify` | root vitest configs (`tests/**`, `packages/**`) — excludes `app/**` | 565 unit / 295 integration |
-| App tests passed | Local + CI | `npm run test:app` | `app/**` | 215 tests (63 for this feature) |
+| Root unit + integration passed | Local; CI re-ran as one pass | Local: `npm run verify` (`vitest.unit.config.ts`, then `vitest.integration.config.ts` on an ephemeral database). CI: `npm test` (`vitest.config.ts`, single pass) | `tests/**`, `packages/**` — **excludes `app/**`** | 565 unit / 295 integration |
+| App tests passed | Local + CI | `npm run test:app` (= `npm --workspace app test` → `vitest run`) | Vitest default include under `app/`, with `exclude: ["node_modules", "dist", "smoke"]` (`app/vite.config.ts`) — in practice `app/src/**` only. **The Playwright specs in `app/smoke/` are excluded**, so this number contains no browser tests | 215 tests (63 for this feature) |
 | App build | Local + CI | `npm --workspace app run build` | `app/` | exit 0 |
 | OA Playwright passed | CI | `npm run test:oa-e2e` | `playwright.assurance.config.ts`, `testMatch: operating-assurance.spec.ts` | green on the merged head |
 | Crisis Ops smoke passed | Local only | default `playwright.config.ts` | `clarity-v01.spec.ts`, desktop + mobile | 20/20; no CI step runs it |
