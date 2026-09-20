@@ -11,6 +11,8 @@
  * itself expires on its own TTL or via logout.
  */
 
+import type { AccessCaseReadModel } from "@clarity/domain-contracts";
+
 export interface VerifiedPrincipal {
   userId: string;
   organizationId: string;
@@ -311,6 +313,11 @@ export async function apiAssuranceReview(input: {
     }),
   });
   return (await response.json()) as AssuranceReviewDecisionDto;
+}
+
+export async function apiAccessGetCase(caseKey: string): Promise<AccessCaseReadModel> {
+  const response = await request(`/api/access/cases/${encodeURIComponent(caseKey)}`, { token: true });
+  return (await response.json()) as AccessCaseReadModel;
 }
 
 /** Human-readable explanations for the API's uniform error codes. */
