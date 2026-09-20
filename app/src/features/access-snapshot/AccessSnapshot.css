@@ -1,7 +1,12 @@
-.access-snapshot {
-  padding: 1.5rem;
-  max-width: 1200px;
+ .access-snapshot {
+  max-width: 1180px;
   margin: 0 auto;
+}
+
+.snapshot-session {
+  margin: 0 0 1rem;
+  color: #667789;
+  font-size: 0.82rem;
 }
 
 .snapshot-header {
@@ -263,4 +268,122 @@
   color: #b45309;
   padding: 1rem;
   border-radius: 4px;
+}
+
+
+.case-lookup {
+  margin-bottom: 1rem;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.case-lookup summary {
+  cursor: pointer;
+  color: #174d58;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.case-lookup[open] {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid #dde5ea;
+  border-radius: 8px;
+  background: #f9fbfc;
+}
+
+.case-lookup .lookup-bar {
+  margin: 0.9rem 0 0;
+}
+
+.case-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid #d8e2e7;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.case-status-header h3 {
+  margin: 2px 0 7px;
+  font-size: 1.2rem;
+}
+
+.case-status-summary,
+.case-status-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.case-status-summary > span:first-child {
+  font-weight: 800;
+  color: #314153;
+}
+
+.case-status-actions {
+  justify-content: flex-end;
+}
+
+.snapshot-content {
+  margin-top: 1rem;
+}
+
+.source-details {
+  margin-top: 1.5rem;
+  padding: 0.9rem 1rem;
+  border-top: 1px solid #dde5ea;
+  color: #526173;
+}
+
+.source-details summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: #435267;
+}
+
+.source-details section {
+  margin-top: 1rem;
+}
+
+.source-details h4 {
+  margin: 0 0 0.5rem;
+  color: #314153;
+}
+
+.source-details ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.attention-summary,
+.candidate-work,
+.workstreams-panel,
+.prescreen-source {
+  box-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .case-status-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .case-status-actions {
+    justify-content: flex-start;
+  }
+
+  .phases-visual-rail {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .phase-node {
+    flex: 0 0 auto;
+  }
 }
