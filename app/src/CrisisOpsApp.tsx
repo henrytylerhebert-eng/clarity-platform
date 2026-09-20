@@ -628,27 +628,29 @@ export function App() {
           ))}
         </nav>
 
-        <div className="secondary-nav">
-          <span className="secondary-nav-label">{activeSection.label}</span>
-          <nav className="nav-list" aria-label={`${activeSection.label} workspaces`}>
-            {sectionWorkspaces.map((workspaceId) => {
-              const item = workspaceItems.find((candidate) => candidate.id === workspaceId);
-              if (!item) return null;
-              const Icon = item.icon;
-              return (
-                <button
-                  className={workspace === workspaceId ? "nav-item active" : "nav-item"}
-                  key={workspaceId}
-                  type="button"
-                  onClick={() => setWorkspace(workspaceId)}
-                >
-                  <Icon size={16} />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+        {sectionWorkspaces.length > 1 ? (
+          <div className="secondary-nav">
+            <span className="secondary-nav-label">{activeSection.label}</span>
+            <nav className="nav-list" aria-label={`${activeSection.label} workspaces`}>
+              {sectionWorkspaces.map((workspaceId) => {
+                const item = workspaceItems.find((candidate) => candidate.id === workspaceId);
+                if (!item) return null;
+                const Icon = item.icon;
+                return (
+                  <button
+                    className={workspace === workspaceId ? "nav-item active" : "nav-item"}
+                    key={workspaceId}
+                    type="button"
+                    onClick={() => setWorkspace(workspaceId)}
+                  >
+                    <Icon size={16} />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        ) : null}
 
         <div className="demo-view-control">
           <label>
