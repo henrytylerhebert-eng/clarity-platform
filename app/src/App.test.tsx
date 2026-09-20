@@ -6,6 +6,7 @@ import { CrisisOpsRoute } from "./App";
 import { AuthProvider } from "./domain/AuthContext";
 import { apiLogin } from "./domain/api";
 import { resetAppState } from "./domain/storage";
+import { roles } from "./domain/roles";
 
 vi.mock("./domain/api", async () => {
   const actual = await vi.importActual<typeof import("./domain/api")>("./domain/api");
@@ -210,5 +211,52 @@ describe("App smoke", () => {
     // Leaving Access restores the demo case chrome.
     await user.click(screen.getByRole("button", { name: /Case Queue/i }));
     expect(screen.getByRole("heading", { name: "Packet Ready Demo D" })).toBeInTheDocument();
+  });
+});
+
+/**
+ * Which demo personas expose the Access Snapshot workspace.
+ *
+ * These lists are deliberately hard-coded rather than derived from `roles`: an expectation
+ * computed from the same data it checks would move with the change and pass even if a grant
+ * were deleted. The exhaustiveness test below keeps them honest when a persona is added.
+ *
+ * Demo personas are NOT an authorization boundary — the API decides by the verified
+ * principal's roles (ACCESS_CASE_READ_POLICY). This covers navigation visibility only.
+ */
+const PERSONAS_WITH_ACCESS = ["all", "central", "clinician", "ur", "compliance", "executive"] as const;
+const PERSONAS_WITHOUT_ACCESS = ["field", "facility", "nurse"] as const;
+
+describe("Access Snapshot workspace visibility per demo persona", () => {
+  beforeEach(async () => {
+    await resetAppState();
+  });
+
+  it.each(PERSONAS_WITH_ACCESS)("persona %s can open the Access Snapshot workspace", async (persona) => {
+    const user = userEvent.setup();
+    render(<App />);
+    // The shell loads its seed state asynchronously; the role picker appears with it.
+    await user.selectOptions(await screen.findByRole("combobox"), persona);
+
+    const navButton = screen.getByRole("button", { name: "Access Snapshot" });
+    expect(navButton).toBeInTheDocument();
+
+    // The grant is only real if the workspace actually opens.
+    await user.click(navButton);
+    expect(await screen.findByRole("heading", { name: "Access Snapshot" })).toBeInTheDocument();
+  });
+
+  it.each(PERSONAS_WITHOUT_ACCESS)("persona %s is not offered the Access Snapshot workspace", async (persona) => {
+    const user = userEvent.setup();
+    render(<App />);
+    // The shell loads its seed state asynchronously; the role picker appears with it.
+    await user.selectOptions(await screen.findByRole("combobox"), persona);
+
+    expect(screen.queryByRole("button", { name: "Access Snapshot" })).not.toBeInTheDocument();
+  });
+
+  it("covers every persona, so adding one forces this test to be updated", () => {
+    const listed = [...PERSONAS_WITH_ACCESS, ...PERSONAS_WITHOUT_ACCESS].sort();
+    expect(roles.map((role) => role.id).sort()).toEqual(listed);
   });
 });
