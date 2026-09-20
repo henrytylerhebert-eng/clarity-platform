@@ -63,17 +63,13 @@ test('packet-ready case shows review gates and accepts mock routing updates', as
 test('command center shows lanes, clocks, and an escalated delay', async ({ page }) => {
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   await page.getByRole('button', { name: 'Command Center' }).click();
-  await expect(page.getByRole('heading', { name: 'Central Intake Command Center' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Intake overview' })).toBeVisible();
   await expect(page.getByText('Insurance verification (parallel lane)')).toBeVisible();
   await expect(page.getByText('Breached').first()).toBeVisible();
   await expect(page.getByText('Escalated')).toBeVisible();
   await expect(page.getByText('below 95% target').first()).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'POC Feature Map' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Product Roadmap Feedback Board' })).toBeVisible();
-  await expect(page.getByText('What it does:').first()).toBeVisible();
-  await expect(page.getByText('Problem solved:').first()).toBeVisible();
-  await expect(page.getByText('Correlated workflow:').first()).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'MVP 0.3' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'POC Feature Map' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Product Roadmap Feedback Board' })).toHaveCount(0);
 });
 
 test('bedboard flags the risky recommendation and requires an override reason', async ({ page }) => {
@@ -106,7 +102,7 @@ test('role switching scopes the grouped navigation to each stakeholder segment',
   await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveCount(0);
 
   await page.getByLabel('Demo view').selectOption('central');
-  await expect(page.getByRole('heading', { name: 'Central Intake Command Center' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Intake overview' })).toBeVisible();
 
   await page.getByLabel('Demo view').selectOption('all');
   await page.getByRole('button', { name: 'Intake', exact: true }).click();
