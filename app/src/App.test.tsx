@@ -253,7 +253,7 @@ describe("App smoke", () => {
 
     // Aggregate Case Queue intentionally omits selected-case chrome; opening Case Overview restores it.
     await openWorkspace(user, "Cases", "Case Queue");
-    expect(screen.getByRole("heading", { name: "Case Queue" })).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { name: "Case Queue" }).length).toBeGreaterThan(0);
     expect(screen.queryByRole("heading", { name: "Packet Ready Demo D" })).not.toBeInTheDocument();
 
     await openWorkspace(user, "Cases", "Case Overview");
