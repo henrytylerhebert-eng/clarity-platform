@@ -111,7 +111,7 @@ const caseScopedWorkspaces = new Set<WorkspaceId>([
 export function App() {
   const [state, setState] = useState<AppState | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState("case-004");
-  const [workspace, setWorkspace] = useState<WorkspaceId>("queue");
+  const [workspace, setWorkspace] = useState<WorkspaceId>("command");
   const [roleId, setRoleId] = useState<RoleId>("all");
   const [nowIso, setNowIso] = useState(() => new Date().toISOString());
   // Verified backend session, shared with every other application area via
@@ -572,7 +572,7 @@ export function App() {
     const reset = await resetAppState();
     setState(reset);
     setSelectedCaseId("case-004");
-    setWorkspace("queue");
+    setWorkspace("command");
   }
 
   const activeCase = selectedCase ?? state.cases[0];
