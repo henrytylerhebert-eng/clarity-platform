@@ -172,10 +172,10 @@ describe("App smoke", () => {
     render(<App />);
     expect((await screen.findAllByText("Packet Ready Demo D")).length).toBeGreaterThan(0);
 
-    await user.click(screen.getByText("Session & identity"));
+    await user.click(screen.getByText("Verified session — not signed in"));
     await user.type(screen.getByLabelText("Development assertion"), "syn-assert-api-physician-dev");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
-    expect(await screen.findByRole("button", { name: "Sign out" })).toBeInTheDocument();
+    expect((await screen.findAllByRole("button", { name: "Sign out" })).length).toBeGreaterThan(0);
     expect(apiLogin).toHaveBeenCalledExactlyOnceWith("syn-assert-api-physician-dev");
 
     await user.selectOptions(screen.getByRole("combobox"), "executive");
