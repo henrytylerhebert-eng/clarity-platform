@@ -2,7 +2,8 @@
 
 **Code:** `app/src/features/access-snapshot/` — `AccessSnapshot.tsx`, `accessPresentation.ts`, `AccessSnapshot.css`
 **Wiring:** `app/src/CrisisOpsApp.tsx` (workspace `access`), `app/src/domain/roles.ts`, `app/src/domain/api.ts` (`apiAccessGetCase`)
-**Tests:** `AccessSnapshot.test.tsx`, `accessPresentation.test.ts`, and one boundary test in `app/src/App.test.tsx`
+**Tests:** `AccessSnapshot.test.tsx`, `accessPresentation.test.ts`, and in `app/src/App.test.tsx` the
+parent-shell boundary test plus the per-persona visibility suite (10 tests)
 **Baseline:** branched from `origin/main` at `c00dabd` (2026-09-19), which contains Access Slice 4A.1
 (`GET /api/access/cases/:caseKey`, ADR-0024) and Slice 4B (`deriveAccessGuidance()`).
 
@@ -48,16 +49,18 @@ Every contract enum reaches the user as a translated label. The label maps in
 | Fail closed: a failed refresh removes the previous case | `fails closed: a failed refresh removes the previous case …` |
 | Refresh reloads the case on screen, not the edited field; no polling | `refreshes the case on screen even after the key field has been edited`; `loads once per explicit action and never polls` |
 | One session's case never shown to the next session | `AccessSnapshot — session isolation` (2) |
+| Every demo persona granted `access` can open the workspace, and no other persona is offered it | `App.test.tsx` › `Access Snapshot workspace visibility per demo persona` (10: 6 granted incl. `all`, 3 not granted, 1 exhaustiveness guard) |
 
 ## Evidence (run 2026-09-19 pre-merge, plus one post-merge run dated 2026-09-20)
 
 | Check | Result |
 |---|---|
 | `npm run verify` (lint, typecheck, `prisma validate`, unit, integration on a throwaway database) | exit 0 — unit 51 files / 565 tests; integration 34 files / 295 tests |
-| `npm run test:app` | exit 0 — 25 files / 215 tests (63 in `features/access-snapshot`, 1 in `App.test.tsx` for this feature) |
+| `npm run test:app` | exit 0 — 25 files / 215 tests (63 in `features/access-snapshot`, 1 in `App.test.tsx` for this feature). **Pre-#129 count**; the per-persona suite added 10, so the current total is 225 |
 | `npm --workspace app run build` | exit 0 |
 | Mutation check of the tests themselves | 6 distinct deliberate regressions in 7 runs (dropped session key; refresh uses the typed key; raw case status, run twice because the first run exposed a weak guard; raw prescreen status; raw suppression reason; stale case kept on error) — each failed the intended test; source restored byte-for-byte |
 | `npx playwright test --config app/playwright.config.ts smoke/clarity-v01.spec.ts` (2026-09-20, post-merge) | 20/20 passed, desktop + mobile projects. This is a **general shell regression check only** — it proves the nav and `roles.ts` change did not break existing persona scoping. It is **not** Access coverage: the suite never references `access`, so deleting the grant from all five personas would leave it green. No CI step runs this suite |
+| `npm run test:app` after the per-persona suite (2026-09-20, PR #129) | exit 0 — 25 files / 225 tests; the 10 new tests are mutation-verified (remove a grant, add a grant, add a persona) |
 | Live run: `npm run api:dev` + Vite against local `clarity_dev` | signed-out view; sign-in with the synthetic intake assertion; `SYN-API-CASE-0001` returned `200` and rendered; a nonexistent key returned `404` and rendered the non-revealing alert with the previous case removed; exactly one `ACCESS_CASE_VIEWED` audit row was written, none for the `404` |
 
 The mutation check found and fixed a weak guard in this suite's own raw-enum test:
@@ -72,11 +75,11 @@ the evidence is local or CI — never inferred from a green aggregate check.
 | Claim | Source | Command / workflow step | Scope selector | Evidence |
 |---|---|---|---|---|
 | Root unit + integration passed | Local; CI re-ran as one pass | Local: `npm run verify` (`vitest.unit.config.ts`, then `vitest.integration.config.ts` on an ephemeral database). CI: `npm test` (`vitest.config.ts`, single pass) | `tests/**`, `packages/**` — **excludes `app/**`** | 565 unit / 295 integration |
-| App tests passed | Local + CI | `npm run test:app` (= `npm --workspace app test` → `vitest run`) | Vitest default include under `app/`, with `exclude: ["node_modules", "dist", "smoke"]` (`app/vite.config.ts`) — in practice `app/src/**` only. **The Playwright specs in `app/smoke/` are excluded**, so this number contains no browser tests | 215 tests (63 for this feature) |
+| App tests passed | Local + CI | `npm run test:app` (= `npm --workspace app test` → `vitest run`) | Vitest default include under `app/`, with `exclude: ["node_modules", "dist", "smoke"]` (`app/vite.config.ts`) — in practice `app/src/**` only. **The Playwright specs in `app/smoke/` are excluded**, so this number contains no browser tests | 225 tests; **74 for this feature** — 63 in `features/access-snapshot`, plus 11 in `App.test.tsx` (1 parent-shell boundary + 10 per-persona). Each figure measured by running that path, not derived |
 | App build | Local + CI | `npm --workspace app run build` | `app/` | exit 0 |
 | OA Playwright passed | CI | `npm run test:oa-e2e` | `playwright.assurance.config.ts`, `testMatch: operating-assurance.spec.ts` | green on the merged head |
 | Crisis Ops smoke passed | Local only | default `playwright.config.ts` | `clarity-v01.spec.ts`, desktop + mobile | 20/20; no CI step runs it |
-| Access workspace reachable per persona | Local + CI | `npm run test:app` | `App.test.tsx` boundary test, `central` persona only | 1 of the 5 granted personas |
+| Access workspace reachable per persona | Local + CI | `npm run test:app` | `App.test.tsx` › `Access Snapshot workspace visibility per demo persona` | all 9 personas: 6 granted (incl. `all`) asserted to open it, 3 asserted not to see it, plus an exhaustiveness guard against the real `roles` export |
 | Access-specific E2E | — | — | none exists | **Not covered** |
 
 ## Honest gaps
@@ -102,13 +105,12 @@ the evidence is local or CI — never inferred from a green aggregate check.
   own `@media (max-width: 768px)` single-column layout is still unverified at runtime. Keyboard
   navigation and screen-reader behaviour were not reviewed beyond the semantics the markup uses
   (regions, lists, `aria-current`, `role="alert"`).
-- **Four of the five persona grants are untested.** `roles.ts` grants `access` to `central`,
-  `clinician`, `ur`, `compliance` and `executive`. Only `central` is asserted anywhere (the
-  `App.test.tsx` boundary test selects it and opens the workspace); removing the grant from the
-  other four would not fail any test. `roles.test.ts` checks structural invariants only.
-  Demo personas are not an authorization boundary — the API decides by the verified principal's
-  roles (`ACCESS_CASE_READ_POLICY`) — so this is a navigation-visibility gap, not a security one.
-  PR #129 is open to close it; this bullet and the provenance row above must be updated when it lands.
+- Persona grants are now covered (PR #129): all nine demo personas are asserted — the six granted
+  `access` (including `all`, which inherits it via `allWorkspaceIds`) open the workspace, the three
+  others are not offered it, and an exhaustiveness guard fails when a persona is added. Expectations
+  are hard-coded rather than derived from `roles`, so deleting a grant fails the suite; verified by
+  four mutations. This is navigation visibility only — demo personas are **not** an authorization
+  boundary, since the API decides by the verified principal's roles (`ACCESS_CASE_READ_POLICY`).
 - `graphify update .` was not run: from a worktree it rewrites the tracked, absolute-path-keyed
   manifest (issue #40).
 - Pre-existing, not from this change: 15 `no-explicit-any` lint warnings in
