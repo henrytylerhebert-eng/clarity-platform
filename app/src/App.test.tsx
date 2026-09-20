@@ -162,7 +162,6 @@ describe("App smoke", () => {
 
     await user.selectOptions(screen.getByRole("combobox"), "executive");
     await user.click(screen.getByRole("button", { name: "More" }));
-    await user.click(screen.getByRole("button", { name: "More" }));
     await user.click(screen.getByRole("button", { name: "IOP Reconciliation" }));
     expect(await screen.findByRole("heading", { name: "Attendance reconciliation review" })).toBeInTheDocument();
     expect(screen.getByText(/does not determine clinical compliance or billing eligibility/)).toBeInTheDocument();
@@ -180,6 +179,7 @@ describe("App smoke", () => {
     expect(apiLogin).toHaveBeenCalledExactlyOnceWith("syn-assert-api-physician-dev");
 
     await user.selectOptions(screen.getByRole("combobox"), "executive");
+    await user.click(screen.getByRole("button", { name: "More" }));
     await user.click(screen.getByRole("button", { name: "IOP Reconciliation" }));
 
     const signedInNotice = await screen.findByText(/Signed in as/);
