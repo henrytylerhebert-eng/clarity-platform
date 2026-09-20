@@ -44,7 +44,7 @@ Every contract enum reaches the user as a translated label. The label maps in
 | Satisfied / not-applicable kept out of attention; empty list is not a clearance | `keeps satisfied and not-applicable signals out …`; `does not present an empty attention list as a clearance` |
 | A blocked workstream does not make the journey blocked | `does not call the whole journey blocked because one workstream is` |
 | Next work non-binding, no assignment implied, suppression explained | `labels every candidate as non-binding …`; `explains suppressed work in plain language` |
-| Prescreen NONE / SELECTED / AMBIGUOUS; packet evidence three states; per-target readiness | `AccessSnapshot — Prescreen source state` (5) |
+| Prescreen NONE / SELECTED / AMBIGUOUS; packet evidence three states; per-target readiness | `AccessSnapshot — Intake status` (5) |
 | 403 / 404 / unreachable messages (real `describeApiError`); 404 non-revealing | `AccessSnapshot — errors` (3) |
 | Fail closed: a failed refresh removes the previous case | `fails closed: a failed refresh removes the previous case …` |
 | Refresh reloads the case on screen, not the edited field; no polling | `refreshes the case on screen even after the key field has been edited`; `loads once per explicit action and never polls` |
