@@ -93,14 +93,19 @@ Operations (partly) · Learning & Practice · Evidence · Controlled Knowledge �
 **Projects only (10):** Crisis Ops · Work · History · Explore · Flow · Ask Clarity · Learn ·
 Guide · Collaborate · Longitudinal.
 
-## P0 gaps this Atlas exposes
+## P0 gaps this Atlas exposes — dependency-reconciled
+
+The dependency map in [P0_PRODUCT_GAP_RESOLUTION_v0.1.md](P0_PRODUCT_GAP_RESOLUTION_v0.1.md)
+reconciles these rows into six primary root gaps plus one cross-cutting truth-state contract, with
+downstream design/release gaps. A P0 label here does not mean the corresponding production
+implementation must exist before an Experience Simulator can be designed.
 
 | # | Gap | Why it is P0 |
 |---|---|---|
-| 1 | **Episode/UR has no application** | A whole bounded context with no user-facing home; its objects surface only through RevOps and Assurance |
-| 2 | **Controlled Knowledge is governed-in-schema, consumed-in-prototype** | Versioned, approval-bearing rule sets driving Louisiana e-PEC logic behind an unauthenticated role picker |
-| 3 | **Correction/supersession absent for longitudinal** | A shared capability everywhere else; missing exactly where IA-002 wants to persist |
-| 4 | **Assignment/ownership is the only true `ABSENT`** | Work, attention and handoff all presuppose it |
-| 5 | **Authorization is `PARTIAL` while the authority grammar is `CANON_ONLY`** | The model the product is designed around is unimplemented |
-| 6 | **Flow is blocked on governed cross-Case query** | Cases, Queue and Flow all need it; nothing provides it |
-| 7 | **Case-context navigation does not survive a route change** `NEW 2026-09-20` | Found by the Tree 4 reconciliation (PR #139). `selectedCaseId` is component state, so leaving Crisis Ops for `/assurance` or `/rev-ops` resets the Case. **Four of six unmet Tree 4 acceptance requirements collapse into this one capability.** A navigation concern — must not be solved by persisting Case selection into governed storage |
+| 1 | **Episode/UR has no application** | Downstream target workspace gap; designable in the simulator once authority and query contracts are known |
+| 2 | **Controlled Knowledge is governed-in-schema, consumed-in-prototype** | Root governance decision; approval/effective-version semantics must settle before simulator design |
+| 3 | **Correction/supersession absent for longitudinal** | External-decision root; #136 OD-A/B/C/D remain untouched and blocking |
+| 4 | **Assignment/ownership is the only true `ABSENT`** | Root semantic gap; Work, attention, handoff, and supervisor flows depend on it |
+| 5 | **Authorization is `PARTIAL` while the authority grammar is `CANON_ONLY`** | External-decision root; the simulator needs the authority matrix before modeling action states |
+| 6 | **Flow is blocked on governed cross-Case query** | Root projection contract; production query implementation is not required to design a mock target |
+| 7 | **Case-context navigation does not survive a route change** `NEW 2026-09-20` | Root navigation contract; resolves F3-b, F5-b, F6-b, and participates in F4 without persisting Case context into governed storage |

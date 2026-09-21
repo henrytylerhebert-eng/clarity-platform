@@ -46,8 +46,8 @@ depth. Every column it leaves blank (`stale`, `superseded`) is a column no surfa
 | stale source | Assurance (`STALE_SOURCE`) only | **P1** |
 | superseded | Assurance, RevOps, IOP, L&P | partial |
 | external wait | Access Snapshot (~) | **P1** |
-| session expiry / scope change | Tree 4 F4, F6 — **target-only at browser/product layer** | **P0** |
-| unknown commit result | nowhere | **P0** |
+| session expiry / scope change | Tree 4 F4, F6 — target behavior can be designed with mocked auth/scope state; production flow absent | **Downstream P0** |
+| unknown commit result | nowhere; target reconciliation semantics are designable | **Downstream P0** |
 | reconciliation required | IOP only | P2 |
 
 ## Scenario coverage
@@ -99,29 +99,37 @@ permission loss · external source outage · multiple destination attempts · co
 transition · discharge with unknown follow-up · second episode for the same person.
 
 **18 of the 20 scenario families in Master Tree v1.0 §U have zero coverage.** The two with partial
-coverage are the straight referral path (smoke) and the Day 1→39 fixture (unit).
+coverage are the straight referral path (smoke) and the Day 1→39 fixture (unit). This is a
+coverage-planning gap, not a blanket simulator blocker; the first simulator should select and label
+its scenario subset.
 
 ## P0 blockers before an Experience Simulator is worth building
+
+The dependency map reduces the apparent P0 list to root contracts that must be resolved before
+simulator design. Downstream workspace and scenario gaps may be designed with synthetic/mock target
+state after those contracts are settled.
 
 1. ~~**The Tree 4 proof flows are not automated**~~ **PARTIALLY CLOSED 2026-09-20.** F1 is
    automated; F3 and F5 are automated to their executable boundary; **F2, F4 and F6 remain
    `TARGET_ONLY` at the browser/product layer and cannot be automated without fabricating
    surfaces or expiry behavior.** The simulator's primary
    content is now *classified* rather than merely unverified.
-2. **Session expiry and scope change are untested** (F4, F6) and are the two failure modes most
-   likely to corrupt a demo.
-3. **`unknown commit result` is handled nowhere** — the state most likely to produce a false
-   success.
-4. **18 of 20 scenario families have no coverage** — a scenario simulator with nothing to simulate.
-5. **The Day 1→39 scenario has no renderer.**
-6. **Jobs with no home** (UR, supervisor review, knowledge stewardship) would appear in a Screen
-   Atlas as blanks, not as screens.
+2. **Authority, ownership, truth-state, cross-Case query, and CaseContext contracts** must be
+   resolved before detailed simulator design.
+3. **Session expiry, scope change, and unknown commit result** are target failure states that can
+   be modeled with mock providers; their production implementations remain separate gates.
+4. **18 of 20 scenario families have no coverage** — prioritize a declared subset rather than
+   treating the aggregate count as an architecture blocker.
+5. **The Day 1→39 scenario has no renderer** — a simulator design gap, not a production prerequisite
+   for the simulator.
+6. **Jobs with no home** (UR, supervisor review, knowledge stewardship) are target workspace gaps;
+   discharge/transition remains blocked on external longitudinal decisions.
 
 ## Recommendation
 
-Do **not** build the simulator from these Atlases yet. The Platform Atlas exposes six P0 topology
-gaps and this one exposes six P0 coverage gaps — twelve unexplained layers, which is precisely the
-"discovering a missing product layer halfway through" failure the Atlas pass exists to prevent.
+Do **not** build detailed simulator interactions until the root semantic and topology contracts are
+resolved. The Platform and Screen Atlases expose downstream gaps that can then be represented as
+explicit target designs; they are not twelve independent implementation mandates.
 
 The cheapest next step that shrinks the list: **keep executable Tree 4 boundaries and separate
 shell recovery gated in CI while implementing the missing F2/F4/F6 surfaces and flows.** That is

@@ -47,14 +47,20 @@ ownership. No row may be read as proving an authority model.
 
 ## Jobs with no home — the Atlas's main finding
 
+These are not automatically simulator blockers. The dependency map classifies them as target
+workspace designs unless their authority or longitudinal semantics remain undecided.
+
 1. **Utilization review.** A fully implemented bounded context with **no workspace**. A UR nurse
-   cannot do UR work in Clarity today.
+   cannot do UR work in Clarity today; the target workspace can be designed over synthetic data.
 2. **Supervisor review of recognition/coaching.** The service models `HUMAN_REVIEW` candidates and
    a `CONTEST` → `RESOLVE_CONTEST` path; there is no surface for the supervisor who must resolve it.
+   The target queue is designable once ownership and authority are settled.
 3. **Knowledge stewardship.** `RuleSet` has `approvedBy` / `approvedAt`; no one can approve a rule
-   set through any surface.
+   set through any surface. The workspace is downstream of the controlled-knowledge lifecycle decision.
 4. **Discharge planning / transition.** Contract-only; no job, no workspace, no objects persisted.
+   Its simulator design remains blocked on longitudinal authority decisions in #136.
 5. **Partner participation.** Referral is one-directional; receiving facilities have no seat.
+   A separate partner application can be designed with synthetic constrained access.
 
 ## Acceptance evidence for the Work representation `UPDATED 2026-09-20`
 
