@@ -60,9 +60,10 @@ ownership. No row may be read as proving an authority model.
 
 The Tree 4 Acceptance Reconciliation (PR #139,
 [contract](../acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md)) classified the six proof flows:
-**1 `EXECUTABLE_NOW`, 3 `PARTIALLY_EXECUTABLE`, 2 `TARGET_ONLY`.** F1 is automated end to end;
-F3, F5 and F6 are automated to their executable boundary; **F2 and F4 have no test because their
-surfaces do not exist** — no multi-Case Review workspace, no facility/scope switcher.
+**1 `EXECUTABLE_NOW`, 2 `PARTIALLY_EXECUTABLE`, 3 `TARGET_ONLY`.** F1 is automated end to end;
+F3 and F5 are automated to their executable boundary; **F2, F4 and F6 have no browser/product
+test** because the required workspace, scope switcher, and expiry/re-authentication flow do not
+exist. Backend session-expiry rejection is recorded separately and does not promote F6.
 
 This adds a sixth job with no home, and it is a navigation capability rather than a workspace:
 **Case-context navigation that survives a route change.** Four of the six unmet Tree 4

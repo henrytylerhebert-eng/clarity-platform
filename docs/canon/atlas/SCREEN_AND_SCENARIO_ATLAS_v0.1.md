@@ -27,7 +27,7 @@ State legend: **✓** handled and tested · **~** handled, untested · **·** no
 | **Custody Ledger** | local `[P]` | ~ | · | · | · | · | · | · | · | · | · | unit |
 | **Training & SOPs** | local `[P]` | ~ | · | · | · | · | · | · | · | · | · | smoke |
 | **Learning & Practice components** | `learning-practice-service` `[R]` | ~ | · | ~ | ~ | · | · | · | ✓ | · | · | unit |
-| **Tree 4 acceptance flows** | shell + routes `[P][R]` | ✓ | n/a | n/a | n/a | · | · | · | · | ✓ | ✓ | **8 browser tests, CI-gated** |
+| **Tree 4 acceptance flows** | shell + routes `[P][R]` | ✓ | n/a | n/a | n/a | · | · | · | · | ✓ | ✓ | **10 browser executions, CI-gated** |
 | **Mock Admit / Product Studio** | local `[P]` dev-only | ~ | · | · | · | · | · | · | · | · | · | unit |
 | **History / Explore / Flow / Ask Clarity / Guide / Collaborate** | — `[K]` | · | · | · | · | · | · | · | · | · | · | none |
 
@@ -46,7 +46,7 @@ depth. Every column it leaves blank (`stale`, `superseded`) is a column no surfa
 | stale source | Assurance (`STALE_SOURCE`) only | **P1** |
 | superseded | Assurance, RevOps, IOP, L&P | partial |
 | external wait | Access Snapshot (~) | **P1** |
-| session expiry / scope change | Tree 4 F4, F6 — **not automated** | **P0** |
+| session expiry / scope change | Tree 4 F4, F6 — **target-only at browser/product layer** | **P0** |
 | unknown commit result | nowhere | **P0** |
 | reconciliation required | IOP only | P2 |
 
@@ -57,7 +57,9 @@ depth. Every column it leaves blank (`stale`, `superseded`) is a column no surfa
 **UPDATED 2026-09-20** by the Tree 4 Acceptance Reconciliation (PR #139) —
 [TREE_4_ACCEPTANCE_CONTRACT_v0.1.md](../acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md).
 The recommendation to "automate F1–F6" was revised before implementing it: **only one flow is
-fully executable, and two cannot be automated at all.**
+fully executable, two are partially executable, and three remain target-only.** Shell recovery
+is recorded separately as `SHELL-RECOVERY-01` because unknown-route recovery does not exercise
+session expiry.
 
 | | Flow | Status vs current `main` | Automated? |
 |---|---|---|---|
@@ -65,14 +67,15 @@ fully executable, and two cannot be automated at all.**
 | F2 | Clinical Review → complete → return | **`TARGET_ONLY`** — no multi-Case Review workspace exists | **No, and must not be** |
 | F3 | Case → Assurance Finding → return | `PARTIALLY_EXECUTABLE` — area nav only | **Partial** |
 | F4 | Case → facility change → invalidated → new scope | **`TARGET_ONLY`** — no facility/scope switcher exists | **No, and must not be** |
-| F5 | Case → RevOps → remembered Crisis Ops context | `PARTIALLY_EXECUTABLE` — deep link only | **Partial** |
-| F6 | Session expired → sign in → revalidated context | `PARTIALLY_EXECUTABLE` — no expiry handler exists | **Partial** |
+| F5 | Case → RevOps → remembered Crisis Ops context | `PARTIALLY_EXECUTABLE` — shell navigation works; Case is not restored | **Partial** |
+| F6 | Session expired → sign in → revalidated context | **`TARGET_ONLY`** at the browser/product layer — backend expiry evidence is separate | **No F6 browser test** |
 
 **Four of the six unmet requirements reduce to one missing capability: Case-context navigation
-that survives a route change.** A navigation concern, not persistence.
+that survives a route change.** A navigation concern, not persistence. F6 also remains blocked on
+frontend expiry detection and re-authentication/revalidation wiring.
 
-`app/smoke/tree4-acceptance.spec.ts` now covers F1 fully and the executable portion of F3, F5 and
-F6 — 4 tests × desktop + mobile. The existing smoke suite **is now gated in CI** as
+`app/smoke/tree4-acceptance.spec.ts` now covers F1 fully, the executable portion of F3 and F5,
+and separate shell recovery — 5 tests × desktop + mobile. The existing smoke suite **is now gated in CI** as
 *"Shell smoke E2E"*, and the default Playwright config was corrected: it had been selecting
 `operating-assurance.spec.ts` too (**26 tests, not 20**), three of which need an API server that
 config never starts.
@@ -101,8 +104,9 @@ coverage are the straight referral path (smoke) and the Day 1→39 fixture (unit
 ## P0 blockers before an Experience Simulator is worth building
 
 1. ~~**The Tree 4 proof flows are not automated**~~ **PARTIALLY CLOSED 2026-09-20.** F1 is
-   automated; F3, F5 and F6 are automated to their executable boundary; **F2 and F4 remain
-   `TARGET_ONLY` and cannot be automated without fabricating surfaces.** The simulator's primary
+   automated; F3 and F5 are automated to their executable boundary; **F2, F4 and F6 remain
+   `TARGET_ONLY` at the browser/product layer and cannot be automated without fabricating
+   surfaces or expiry behavior.** The simulator's primary
    content is now *classified* rather than merely unverified.
 2. **Session expiry and scope change are untested** (F4, F6) and are the two failure modes most
    likely to corrupt a demo.
@@ -119,7 +123,7 @@ Do **not** build the simulator from these Atlases yet. The Platform Atlas expose
 gaps and this one exposes six P0 coverage gaps — twelve unexplained layers, which is precisely the
 "discovering a missing product layer halfway through" failure the Atlas pass exists to prevent.
 
-The cheapest next step that shrinks the list: **automate Tree 4's F1–F6 and gate the existing
-browser suite in CI.** That is test and tooling work under IA-001 §10, requires no new
-authorization, and converts the only cross-module acceptance spec Clarity has from prose into
-evidence.
+The cheapest next step that shrinks the list: **keep executable Tree 4 boundaries and separate
+shell recovery gated in CI while implementing the missing F2/F4/F6 surfaces and flows.** That is
+test and tooling work under IA-001 §10, requires no new authorization, and converts the only
+cross-module acceptance spec Clarity has from prose into bounded evidence.
