@@ -1,29 +1,30 @@
 # ADR-0026: Persist the longitudinal decision spine — authority policy and the two append-only clinical decisions
 
-**Status:** **Proposed — NOT RATIFIABLE AS WRITTEN.** Blocked by the 2026-09-20 owner-level
-review (`docs/canon/review/OWNER_DECISION_PACKET_v0.1.md`) pending owner decisions OD-A, OD-B and
-OD-C.
+**Status:** **Proposed — NOT IN FORCE.** OD-A, OD-B, OD-C, and OD-D are ratified as amended in the
+owner decision packet, but this ADR is not separately ratified and its persistence gates remain
+closed.
 
-> ## BLOCKED — 2026-09-20
+> ## AMENDED — 2026-09-20 owner decisions; implementation remains blocked
 >
 > Re-tested as a persistence boundary rather than as a document, **Slice A is not the smallest
 > coherent first slice and none of its three objects is independently persistable today.**
 >
-> - `LongitudinalAuthorityPolicy` — approval, delegation and revocation are unresolved, and each
->   changes its columns. It carries `effectiveAt` but **no recorded time**, and has no revocation
->   or approval chain. Creating it "seeded read-only" defers writes, not the question of what the
->   record must carry.
+> - `LongitudinalAuthorityPolicy` — OD-A requires administrative drafting plus named qualified
+>   clinical approval with preserved approver, evidence, scope, version, approval time and
+>   effective interval. OD-B excludes delegated/emergency grants from the initial contract. Draft
+>   and pending-approval policies are unusable; absent effective approval fails closed.
 > - `LevelOfCareRecommendation` — depends on the LOC vocabulary, which the review found
 >   **incomplete for continuity** and which must bar `UNKNOWN` as a clinical recommendation.
 >   Moves to a later Slice A.2.
 > - `ClinicalDischargeReadinessDecision` — **nearly independent**, and the best candidate for a
->   genuine first slice. Still blocked on OD-C (supersede vs invalidate an improperly authorized
->   decision), which determines whether it needs an invalidation state.
+>   genuine first slice. OD-C now requires `SUPERSEDED`, `AUTHORITY_UNRESOLVED`, and
+>   `AUTHORITY_DEFECT_CONFIRMED` semantics, preserved history, projection exclusion, and an
+>   independently authorized replacement.
 >
-> **Amendment if ratified later:** narrow Slice A to `ClinicalDischargeReadinessDecision` plus the
-> minimum authority record it requires, and move `LevelOfCareRecommendation` to Slice A.2 behind
-> the LOC vocabulary amendment. Until OD-A/OD-B/OD-C are answered, the honest conclusion is that
-> **no persistence slice is ready.**
+> **Implementation status:** narrow Slice A to `ClinicalDischargeReadinessDecision` plus the
+> minimum authority record it requires, and move `LevelOfCareRecommendation` behind the amended
+> LOC/continuity vocabulary. The owner decisions resolve semantics but do not authorize a schema,
+> migration, repository, command, API, or UI. **No persistence slice is ready.**
 **Date:** 2026-09-20
 **Scope:** Slice A of IA-002. `LongitudinalAuthorityPolicy`, `LevelOfCareRecommendation`,
 `ClinicalDischargeReadinessDecision`.
@@ -72,9 +73,13 @@ Org-scoped, optionally facility-scoped, keyed by `action`
 fail closed. Hard-coding a qualified role would have Clarity asserting a licensure rule it has no
 authority to assert.
 
-**Created read-only in this slice.** Who may *write* the policy that decides who may decide is a
-meta-authority question this reconciliation could not settle from repository evidence. The table
-is seeded and readable; no API may write it until the owner settles that question.
+**Target lifecycle, not implementation authorization.** An authorized administrative actor may
+draft or revise a policy. It becomes usable only after approval by a named, qualified clinical
+approving authority recognized under applicable organization/facility policy. Approval preserves
+approver identity, approval evidence, organization/facility scope, covered actions, policy
+version, approval time, and effective interval. `DRAFT` and `PENDING_APPROVAL` policies cannot
+authorize decisions. Clarity supplies no default policy and does not infer authority from role,
+title, administrator status, assignment, operational responsibility, or visibility.
 
 ### 2. `LevelOfCareRecommendation` — append-only clinical decision
 
@@ -97,10 +102,14 @@ derived.
 
 ### 4. Effective-time authority evaluation
 
-A decision is authorized against the policy effective **at the decision's own effective time**,
-never the policy in force today. The authorizing `policyRef` is stored, so the authority basis is
-reconstructible after the policy changes. A decision later found to rest on an invalid policy is
-**superseded with a reason, not retroactively voided**.
+A decision is authorized against the approved policy effective **at the decision's own effective
+time**, never the policy in force today. The authorizing `policyRef` is stored, so the authority
+basis is reconstructible after policy changes. A valid later change is `SUPERSEDED`; formally
+unresolved authority is `AUTHORITY_UNRESOLVED`; confirmed defective authority is
+`AUTHORITY_DEFECT_CONFIRMED`. The latter two remain historical/auditable but cannot support
+current authoritative projections. A replacement is independently authorized and is not
+automatically backdated. Downstream actions are not inferred invalid from an upstream authority
+defect. Delegated/emergency authority is not modeled or evaluated in this initial contract.
 
 ### 5. Preconditions — this ADR does not take effect until all are green
 

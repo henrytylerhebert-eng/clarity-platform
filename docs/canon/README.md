@@ -76,13 +76,12 @@ These documents are **dated artifacts**. They are landed verbatim, not edited to
   `tests/data/longitudinal-day1-day39.ts`, `tests/unit/longitudinal-contracts.test.ts`, and
   `docs/architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md`. IA-001's §2 matrix, §5
   unlock conditions, and §10 HELD/PROHIBITED lists remain in force unchanged.
-- **The open-gap register is no longer open, but two gaps did not survive review.** All ten
-  LONG-GAP questions were closed or bounded on 2026-09-20; re-testing the same day moved
-  **LONG-GAP-03 and LONG-GAP-08 to NOT YET RATIFIABLE**, and 04, 05, 06 and 10 to ratifiable only
-  with amendment. The register preserves the questions verbatim; the decisions live in
-  `gap-closure/` and the amendments in `review/`.
-- **The persistence gate is still closed.** IA-002 exists only as a **DRAFT** awaiting owner
-  ratification; until it is ratified, IA-001's HELD list governs unchanged. Until it is, no
+- **The open-gap register records owner resolution separately from implementation readiness.**
+  OD-A through OD-D are now ratified as amended; the register preserves the questions verbatim,
+  while implementation gates, executable protections, and external clinical/legal validation
+  remain open in `gap-closure/`, `reconciliation/`, and `IMPLEMENTATION_AUTHORIZATION_IA-002.md`.
+- **The persistence gate is still closed.** IA-002 remains **DRAFT / NOT IN FORCE**; IA-001's
+  HELD list governs unchanged. No
   Prisma change, migration, longitudinal write repository, command service, mutating API,
   actual-discharge command, persistence-backed longitudinal UI mutation, or AI command
   execution is authorized — regardless of what any design document depicts.

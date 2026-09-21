@@ -12,9 +12,10 @@ governs and the persistence boundary remains closed.
 >
 > Four defects, found by re-testing this draft rather than defending it:
 >
-> 1. **§1 condition 2 is overstated.** "Open longitudinal gaps resolved or explicitly bounded —
->    MET" rested on the blanket claim that no bound blocks persistence. Re-tested per gap,
->    **LONG-GAP-03 and LONG-GAP-08 fail.** Condition 2 is **NOT MET**.
+> 1. **§1 condition 2 is not implementation-ready.** OD-A through OD-D are now owner-resolved as
+>    amended, but the executable protections, remaining gap-08 source-coverage work, external
+>    clinical/legal validation, and slice-specific gates are not complete. Condition 2 does not
+>    authorize persistence.
 > 2. **The precondition list is incomplete.** C-7 … C-10 below were missing, two of them fixing
 >    defects in merged code.
 > 3. **C-1 and C-3 are insufficient as specified.** C-1 does not bar `UNKNOWN` from a clinical
@@ -37,7 +38,7 @@ IA-001 §5 names four conditions for unlocking persistence.
 | Condition | Status | Evidence |
 |---|---|---|
 | 1. Longitudinal Vertical Slice Contract v0.1 completed | **MET** | Merged as `4307093` (PR #133): contracts, event payloads, authority contracts, projection functions, state machines, Day 1→39 fixture, acceptance tests, schema map |
-| 2. Open longitudinal gaps resolved or explicitly bounded | ~~MET~~ **NOT MET** | Re-tested 2026-09-20: LONG-GAP-03 and LONG-GAP-08 are **NOT YET RATIFIABLE**; 04, 05, 06 and 10 are ratifiable only with amendment |
+| 2. Open longitudinal gaps resolved or explicitly bounded | **OWNER-RESOLVED, IMPLEMENTATION-GATED** | OD-A through OD-D are ratified as amended; remaining executable protections, external validation, and slice gates remain required |
 | 3. Current → target schema reconciliation | **MET** | [Reconciliation v0.1](reconciliation/CURRENT_TARGET_LONGITUDINAL_SCHEMA_RECONCILIATION_v0.1.md) — 9 proposed with all eight §5.3 facts, 7 refused |
 | 4. ADR approval per persistence boundary | **PARTIAL** | ADR-0026 drafted for Slice A only. Slices B and C get their own ADRs when reached |
 
@@ -90,7 +91,7 @@ All of these are contract, fixture, test and tooling work — **already authoriz
 | Area | Status | Authorization |
 |---|---|---|
 | C-1 … C-6 preconditions | **AUTHORIZED (under IA-001 §10)** | Proceed now |
-| **Slice A** — `LongitudinalAuthorityPolicy`, `LevelOfCareRecommendation`, `ClinicalDischargeReadinessDecision` | ~~AUTHORIZED ON CONDITIONS~~ **NOT AUTHORIZED** | Rests on LONG-GAP-03, which fails re-testing. Blocked on owner decisions OD-A, OD-B, OD-C |
+| **Slice A** — `LongitudinalAuthorityPolicy`, `LevelOfCareRecommendation`, `ClinicalDischargeReadinessDecision` | **NOT AUTHORIZED** | Owner decisions are resolved, but C-1/C-5/C-6/C-7/C-8/C-9/C-10, L2/L3 proofs, external validation, and separate ADR ratification remain required |
 | **Slice B** — `DischargePlan` + version, `CareTransition`, `DestinationAttempt`, `TransitionBarrier`, `BarrierCategory` | **NOT AUTHORIZED YET** | Requires C-2, Slice A complete and verified, and its own ADR |
 | **Slice C** — `ActualDischargeFact`, `ContinuityEvent`, `ContinuitySource`, `ContinuitySourceCoverage` | **NOT AUTHORIZED YET** | Requires C-3, Slices A and B complete and verified, and its own ADR |
 | Mutating longitudinal APIs | **PER SLICE** | Only for objects whose slice is authorized and whose command contract is ratified |
@@ -116,13 +117,14 @@ A slice is complete only when all of the following are true for **each** object 
 7. `npm run verify` green, with counts reported.
 8. The rollback plan in the reconciliation is accurate, including where it is **lossy**.
 
-## 6. The one open item
+## 6. Remaining external and implementation gates
 
-**Who may write a `LongitudinalAuthorityPolicy`?** The policy decides who may make clinical
-decisions, so writing it is a meta-authority act, and the reconciliation could not settle it from
-repository evidence. Until the owner settles it, the policy table may be created and **seeded
-read-only**; it must not be writable through any API. Slice A may otherwise proceed, because
-decisions fail closed without a policy.
+OD-A through OD-D are owner-resolved product semantics. They do not establish the exact approving
+authority, approver count, credentialing/privileging, drafter/approver separation, emergency or
+delegated clinical policy, revocation behavior, or the legal effect of a defective-authority
+finding. Those remain external governance questions. Implementation is also unauthorized until
+the preconditions and slice gates in this document are actually satisfied; no policy table is
+writable merely because the semantics are now documented.
 
 ## 7. Honesty statement
 
@@ -177,15 +179,19 @@ Documentary evidence is not sufficient at any gate. Each is a test that runs in 
 
 # 11. AMENDED — owner decisions that gate any persistence
 
-- **OD-A** — what must be true for a `LongitudinalAuthorityPolicy` to take effect: A1
-  administrative only / **A2 administrative write + named clinical approver (recommended)** / A3
-  out-of-band document of record. A2 adds approval columns and a `PENDING_APPROVAL` state.
-- **OD-B** — does delegated or emergency authority exist? If yes it is a separate time-bounded
-  grant table.
-- **OD-C** — is an improperly authorized decision **superseded** (retained in the chain, still
-  supporting projections) or **invalidated** (retained but excluded from projections)?
-- **OD-D** — does continuity's next-level-of-care extend `LevelOfCare` or get a separate
-  `CareSettingOrService` vocabulary with a crosswalk? *(gates Slice C, not Slice A)*
+Owner decisions now recorded:
+
+- **OD-A — A2, amended:** administrative drafting plus named qualified clinical approval;
+  approval provenance, scope, version, time and interval preserved; draft/pending unusable;
+  absent effective approval fails closed; no default policy.
+- **OD-B — B1, amended:** no delegated or emergency longitudinal authority is created, inferred,
+  or evaluated in the initial contract; care, evidence capture, escalation, and non-decision
+  operations remain available.
+- **OD-C — C3, amended:** `SUPERSEDED`, `AUTHORITY_UNRESOLVED`, and
+  `AUTHORITY_DEFECT_CONFIRMED`; preserved history; current projection exclusion; independent,
+  non-backdated replacement; no downstream invalidity inference.
+- **OD-D — D3, amended:** distinct `LevelOfCare`, `CareSetting`, `ServiceType`, and
+  `CareDestination`; no universal taxonomy or implicit crosswalk.
 
 OD-A, OD-B and OD-C gate **all** persistence, because they change the shape of the first object
 any slice would need.

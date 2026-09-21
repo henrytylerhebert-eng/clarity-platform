@@ -2,7 +2,7 @@
 
 **Scope:** Longitudinal pre-schema questions only  
 **Status (as written, 2026-09-20 package):** OPEN  
-**Status (current):** PARTIALLY RESOLVED — 03 and 08 are NOT YET RATIFIABLE; see below  
+**Status (current):** OWNER-RESOLVED AS TO OD-A–OD-D; IMPLEMENTATION AND EXTERNAL VALIDATION REMAIN GATED
 **Count:** 10  
 
 > **STATUS UPDATE — 2026-09-20.** All ten questions below have been **closed or explicitly
@@ -27,8 +27,8 @@
 |---|---|---|---|
 | LONG-GAP-01 | OPEN | DischargePlan cardinality | Does each inpatient Episode have one logical DischargePlan with revisions, or can concurrent independent plans exist? |
 | LONG-GAP-02 | OPEN | Destination-attempt identity | Does each CareTransition need separate destination-attempt records? |
-| LONG-GAP-03 | OPEN | Clinical discharge-readiness authority | Which facility-configured roles may record or supersede clinical discharge readiness? |
-| LONG-GAP-04 | OPEN | Canonical LOC registry | What canonical level-of-care registry/crosswalk should span inpatient, residential, PHP, IOP, outpatient, post-acute, and other applicable settings? |
+| LONG-GAP-03 | OWNER-RESOLVED / IMPLEMENTATION-GATED | Clinical discharge-readiness authority | Which facility-configured roles may record or supersede clinical discharge readiness? |
+| LONG-GAP-04 | OWNER-RESOLVED / IMPLEMENTATION-GATED | LOC, setting, service, and destination vocabulary | How do four distinct concepts span inpatient, residential, PHP, IOP, outpatient, post-acute, and other applicable settings? |
 | LONG-GAP-05 | OPEN | Barrier taxonomy | What barrier taxonomy supports operations and trending without becoming a blame taxonomy? |
 | LONG-GAP-06 | OPEN | Core vs configurable longitudinal observations | Which recovery/function and environment/support concepts are core platform semantics versus configurable assessment fields? |
 | LONG-GAP-07 | OPEN | Actual discharge command contract | What exact command, source, disposition, and correction contract governs actual discharge? |

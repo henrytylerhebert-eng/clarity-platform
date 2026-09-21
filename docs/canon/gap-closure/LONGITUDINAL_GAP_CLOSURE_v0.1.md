@@ -37,12 +37,17 @@ the set. Tested per gap, two of the four failed.
 
 ## Summary
 
+**Current owner status:** OD-A through OD-D are ratified as amended. The pre-ratification review
+snapshot below is preserved for provenance; the owner amendments later in this document govern
+where it conflicts. Implementation, persistence, and external clinical/legal validation remain
+gated.
+
 | Gap | Topic | Decision | Status |
 |---|---|---|---|
 | 01 | DischargePlan cardinality | One logical plan per Episode, append-only versions | **LOCKED** |
 | 02 | Destination-attempt identity | Separate append-only attempt records | **LOCKED** |
-| 03 | Clinical readiness authority | Facility-configured policy; no hard-coded role | ~~BOUNDED~~ → **NOT YET RATIFIABLE** |
-| 04 | Canonical LOC registry | Reuse the existing `LevelOfCare` enum; fix contract drift | **LOCKED, AMENDED** — enum insufficient for continuity |
+| 03 | Clinical readiness authority | Approved effective policy with administrative drafting and named qualified clinical approval; fail closed | **OWNER-RESOLVED, IMPLEMENTATION-GATED** |
+| 04 | Canonical LOC registry | Reuse `LevelOfCare` for LOC; separate setting, service, and destination concepts | **OWNER-RESOLVED, AMENDED** |
 | 05 | Barrier taxonomy | Configurable category + locked non-blame invariant | **BOUNDED, AMENDED** — anti-blame moved into structure |
 | 06 | Core vs configurable observations | ~~Dependency rule~~ → **semantic-necessity rule** | **BOUNDED, AMENDED** — rule replaced |
 | 07 | Actual-discharge command contract | Full command shape locked; disposition vocabulary bounded | **LOCKED** (shape) |
@@ -225,13 +230,26 @@ worse than it looks: a default is a rule, and a facility that never reviews it h
 inherited Clarity's clinical judgment. (b) is honest but requires the policy to exist before the
 first decision can be recorded — which is the correct fail-closed behavior.
 
-**6. Selected decision.** **Authority is facility-configured. Clarity supplies no default.**
-Recording or superseding a clinical discharge-readiness decision requires a
-`LongitudinalAuthorityPolicy` for `RECORD_CLINICAL_DISCHARGE_READINESS` that is effective at the
-decision's effective time and names at least one role the actor holds. **Absent policy fails
-closed** — the decision cannot be recorded. Every decision stores the `policyRef` that authorized
-it, so the authority basis is reconstructible at any later date even after the policy changes.
-**BOUNDED.**
+**6. Selected decision — OD-A, ratified as amended.** An authorized administrative actor may
+create or revise a draft `LongitudinalAuthorityPolicy`, but drafting/configuration authority does
+not establish clinical approval authority. A policy is usable only after approval by a named,
+qualified clinical approving authority recognized under applicable organization/facility policy.
+`DRAFT` and `PENDING_APPROVAL` policies cannot authorize a longitudinal decision.
+
+Approval preserves the approver, approval time, approval evidence/source reference,
+organization/facility scope, covered actions, policy version, and effective time or interval.
+Authority is evaluated against the policy effective at the decision's effective time and the
+decision retains the exact `policyRef`. No effective approved policy means authority is not
+established and recording the governed decision fails closed. Clarity supplies no default policy
+and does not infer authority from platform role, job title, administrator status, assignment,
+operational responsibility, or visibility alone.
+
+OD-B further establishes that the initial contract does not create, infer, or evaluate delegated
+or emergency longitudinal authority. Failure of authority blocks only the governed decision;
+care, stabilization, emergency clinical activity, evidence capture, escalation, and otherwise
+permitted operations remain available. Out-of-band decisions may be preserved by source and
+epistemic class without being promoted to authorized Clarity decisions. **OWNER-RESOLVED;
+IMPLEMENTATION-GATED.**
 
 **7. Rejected alternatives.** (a) rejected — Clarity would be asserting licensure. (c) rejected —
 a default is an unreviewed rule that becomes invisible clinical policy.
@@ -239,9 +257,11 @@ a default is an unreviewed rule that becomes invisible clinical policy.
 **8. Classification.** Authority is **configuration** (a governed policy record). The decision is
 an append-only **decision** entity. Neither is derived.
 
-**9. Authority owner.** The facility's medical staff / clinical leadership, expressed as a
-governed policy record. Who may edit that policy is itself an authority question and must be
-answered before the policy is writable — flagged for the reconciliation.
+**9. Authority owner.** The facility's medical staff / clinical leadership recognizes the
+qualified approving authority under applicable organization/facility policy. An authorized
+administrative actor may draft or revise the policy. Exact approver qualifications, approver
+count, credentialing/privileging, and whether drafter and approver may be the same person remain
+external governance questions.
 
 **10. Provenance / time.** The decision stores `decidedByActorId`, `decidedByRoleCode`,
 `decidedAt`, `effectiveAt`, `recordedAt`, `evidenceRefs`, `criteriaRefs` — all already present in
@@ -249,19 +269,26 @@ answered before the policy is writable — flagged for the reconciliation.
 themselves versioned by `effectiveAt`; evaluation uses the policy effective at the decision's
 effective time, never the policy in force today.
 
-**11. Correction / supersession.** Append-only with `supersedesDecisionId` (already contracted).
-A superseding decision requires authority under the policy effective at **its own** effective
-time. A decision recorded under a policy later found invalid is **not** retroactively void — it is
-superseded with a reason, preserving history (Constitution §2).
+**11. Correction / authority defect.** A valid decision later changed is `SUPERSEDED`. If its
+authority becomes formally disputed or unresolved, it is `AUTHORITY_UNRESOLVED`: preserved but
+excluded from current authoritative projections pending review. If authority is confirmed
+defective, it is `AUTHORITY_DEFECT_CONFIRMED`: preserved for History, provenance, audit, and
+review but remains excluded from current authoritative projections. A replacement is a new,
+independently authorized decision with its own actor, `policyRef`, effective time, and recorded
+time; it is not automatically backdated. Downstream actions are not inferred invalid solely from
+the upstream authority finding.
 
-**12. Persistence consequence.** `ClinicalDischargeReadinessDecision` (append-only) +
-`LongitudinalAuthorityPolicy` (versioned configuration). The bound does **not** affect either
-stored shape, so persistence may proceed on this BOUNDED decision.
+**12. Persistence consequence.** The target contract requires policy approval provenance and
+decision authority-status/projection semantics. This is a target shape only; no persistence is
+authorized by this document or by the owner decision.
 
-**13. Required acceptance invariants.** (i) no policy → recording fails closed; (ii) an actor
-without a named role is denied; (iii) the stored `policyRef` reproduces the authority decision
-later; (iv) no role is hard-coded anywhere in the path; (v) evaluation uses effective-time policy,
-not current policy.
+**13. Required acceptance invariants.** (i) no approved effective policy → recording fails
+closed; (ii) draft/pending policies cannot authorize; (iii) approval provenance and exact
+`policyRef` are preserved; (iv) no role/title/admin/visibility inference establishes authority;
+(v) evaluation uses effective-time policy; (vi) unresolved or confirmed defective authority
+cannot support current authoritative projections; (vii) history remains reconstructible; (viii)
+replacement is independently authorized and not automatically backdated; (ix) downstream action
+validity is not inferred from an upstream authority defect.
 
 **14. Impact on the existing contract.** Additive: `policyRef` on the decision schema. The
 evaluator is unchanged.
@@ -295,12 +322,14 @@ data.
 **3. Workflow evidence.** The listed settings match how Louisiana behavioral-health placement
 actually steps down: inpatient psychiatric → residential or PHP → IOP → outpatient, with detox
 and substance-use residential as parallel tracks and medical admission with psychiatric consult
-as a distinct disposition. The existing enum is a credible operational spine. Its `UNKNOWN`
-member is correct and should be kept — it lets a source say "level not established" without
-guessing, satisfying LSR-17.
+as a distinct disposition. The existing enum is a credible operational spine for `LevelOfCare`.
+Its `UNKNOWN` member may represent an unestablished source value, but must not be rendered as a
+clinical recommendation. Continuity also needs separate `CareSetting`, `ServiceType`, and
+`CareDestination` concepts.
 
-**4. Candidate interpretations.** (a) Adopt the existing `LevelOfCare` enum as the canonical
-registry. (b) Build a new longitudinal-specific registry. (c) Keep the open string and defer.
+**4. Candidate interpretations.** (a) Adopt the existing `LevelOfCare` enum and keep all
+continuity dimensions in it. (b) Build a combined `CareSettingOrService` vocabulary. (c) Use
+four distinct concepts: `LevelOfCare`, `CareSetting`, `ServiceType`, and `CareDestination`.
 
 **5. Contradictions / tradeoffs.** (b) violates the Developer Handoff's existing-owner rule —
 find the current owner and extend before creating — and would give Clarity two LOC vocabularies
@@ -309,16 +338,24 @@ predictable result: an unconstrained string collects private spellings within we
 (a) is that the enum may need members for post-acute settings; that is an extension, not a
 reason to fork.
 
-**6. Selected decision.** **The existing `LevelOfCare` enum is the canonical registry.** All five
-LOC dimensions — clinical recommendation, payer authorization, availability, patient preference,
-actual — draw from it. Extending it follows the existing enum-sync discipline: add to
-`prisma/schema.prisma`, mirror in `LEVELS_OF_CARE`, and the sync test enforces the pair.
-**The merged slice's drift is a defect to correct**: `recommendedLevelCode` must become
-`z.enum(LEVELS_OF_CARE)` and the fixture must use `INPATIENT_PSYCHIATRIC` and
-`INTENSIVE_OUTPATIENT`. **LOCKED.**
+**6. Selected decision — OD-D, ratified as amended.** `LevelOfCare` remains the canonical
+clinical-intensity/treatment-level concept, including independent recommended, payer-authorized,
+available, patient-preferred, and actual dimensions. It is not extended to absorb setting or
+service. The continuity model uses four distinct concepts: `LevelOfCare`, `CareSetting`,
+`ServiceType`, and `CareDestination`. `CareDestination` represents the intended or actual
+relationship and may reference a setting, service, provider, facility, program, location,
+acceptance state, provenance, effective time, and optional related LOC.
 
-**7. Rejected alternatives.** (b) rejected — existing-owner rule; creates a permanent crosswalk.
-(c) rejected — the drift already happened; leaving it open guarantees more.
+The dimensions remain independent: clinical recommendation, payer authorization, availability,
+patient preference, setting, service, provider/program, placement acceptance, and actual care
+received. A transition may contain any combination, including unknown or not-applicable values.
+An explicitly governed descriptive crosswalk may be added later but does not silently establish
+clinical recommendation, authorization, acceptance, preference, or actual care. **OWNER-RESOLVED,
+IMPLEMENTATION-GATED.**
+
+**7. Rejected alternatives.** A combined setting/service vocabulary is rejected because it still
+collapses independently meaningful concepts. A universal taxonomy or implicit crosswalk is also
+rejected; organization-specific vocabularies and mappings remain separately governed.
 
 **8. Classification.** A controlled **vocabulary** (configuration-grade reference data expressed
 as an enum), not an entity. Crosswalks to external payer or regulatory vocabularies are separate
@@ -339,9 +376,11 @@ already contracted).
 gain a typed column rather than free text, which is a strictly better persistence position.
 
 **13. Required acceptance invariants.** (i) an out-of-registry LOC code is rejected at the
-contract boundary; (ii) the enum-sync test covers every LOC-typed longitudinal field;
-(iii) `UNKNOWN` is never rendered as a clinical recommendation; (iv) the five dimensions remain
-independently valued (already proven by the merged disagreement test).
+contract boundary; (ii) enum synchronization covers LOC-typed fields; (iii) `UNKNOWN` is never
+rendered as a clinical recommendation; (iv) setting, service, destination, provider/program,
+acceptance, authorization, preference, and actual care remain independently representable; (v)
+no dimension is inferred from another without an explicitly governed, labelled derivation; (vi)
+unknown and not-applicable values are not converted into artificial completeness.
 
 **14. Impact on the existing contract.** **Breaking, and a correction to merged work.**
 `recommendedLevelCode`, `currentActualLevelOfCareCode` and the profile's `levelCode` fields move
@@ -861,21 +900,16 @@ relationships, provenance, authority, correction behavior or lifecycle?*
 | 06 | No effect on Slice A; affects Slices B and C if a core readiness component is added | **PASSES for Slice A only** |
 | 08 | Three coverage states cannot carry the eight required distinctions; needs per-event-type scoping, freshness and ingestion outcome | **FAILS** |
 
-## A-1 — LONG-GAP-03 → NOT YET RATIFIABLE
+## A-1 — LONG-GAP-03 → OWNER-RESOLVED, IMPLEMENTATION-GATED
 
-"Facility-configured" conflated nine layers. Five are unresolved: authority to configure the
-mapping, authority to approve a change to it, delegated/emergency authority, revocation, and
-correction of an improperly authorized decision. Four of the five change the schema.
-`LongitudinalAuthorityPolicy` is the right boundary for the role mapping and the **wrong** boundary
-for approval, delegation and revocation — those are one or two further objects the reconciliation
-did not propose. **"Seeded read-only" is not sufficient**: it defers writes, not the question of
-what the record must carry.
+"Facility-configured" originally conflated nine layers. OD-A, OD-B, and OD-C are now ratified as
+amended. The initial contract uses administrative drafting plus named qualified clinical approval;
+does not model delegated/emergency grants; and uses `SUPERSEDED`, `AUTHORITY_UNRESOLVED`, and
+`AUTHORITY_DEFECT_CONFIRMED` with fail-closed current projections. Exact approver qualification,
+credentialing, privileging, revocation, and downstream legal effect remain external or later-
+governed questions. **The implementation and persistence gates remain closed.**
 
-Owner decisions required: **OD-A** (what makes a policy effective — A1 administrative / **A2
-administrative + named clinical approver, recommended** / A3 out-of-band), **OD-B** (does delegated
-or emergency authority exist), **OD-C** (supersede or invalidate an improperly authorized decision).
-
-## A-2 — LONG-GAP-04 → LOCKED, AMENDED
+## A-2 — LONG-GAP-04 → OWNER-RESOLVED, AMENDED
 
 Adoption of the existing `LevelOfCare` enum stands for the five in-episode dimensions and is
 proven sufficient there. It is **not** sufficient for continuity: `NEXT_LEVEL_OF_CARE_STARTED` must
@@ -885,8 +919,18 @@ which are members. Recording those as `OUTPATIENT` or `UNKNOWN` would be false. 
 conflates level of care, setting and service type, so extending it deepens a existing ontology
 problem. Additionally, **`UNKNOWN` is not a permitted `clinicalRecommendation` value** — a
 recommendation of "unknown" is not a recommendation; it is appropriate only for `actual` and
-`availability`. Owner decision **OD-D**: extend `LevelOfCare`, or introduce a separate
-`CareSettingOrService` vocabulary with a crosswalk.
+`availability`. Owner decision **OD-D**, ratified as amended, keeps `LevelOfCare` distinct and
+introduces four separate concepts: `LevelOfCare`, `CareSetting`, `ServiceType`, and
+`CareDestination`. No universal taxonomy or implicit crosswalk is created. Unknown and
+not-applicable values remain valid, and descriptive organization-specific mappings cannot infer
+clinical recommendation, authorization, acceptance, preference, or actual care. **Implementation
+and persistence remain gated.**
+
+## A-6 — Owner decisions do not authorize implementation
+
+OD-A through OD-D resolve product semantics only. They do not ratify IA-002, ADR-0026, a schema,
+migration, command, API, or production clinical/legal policy. The remaining preconditions and
+external validation gates continue to govern any future implementation.
 
 ## A-3 — LONG-GAP-05 → BOUNDED, AMENDED
 

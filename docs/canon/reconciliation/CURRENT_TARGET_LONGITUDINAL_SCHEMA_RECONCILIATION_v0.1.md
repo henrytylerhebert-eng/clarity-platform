@@ -15,15 +15,16 @@ authorization owner, migration effect, and rollback plan.
 > [review/OWNER_DECISION_PACKET_v0.1.md](../review/OWNER_DECISION_PACKET_v0.1.md) re-tested the
 > proposals. **Two are reshaped and one conclusion is withdrawn.**
 >
-> - **P-10 `LongitudinalAuthorityPolicy` is not one object.** Approval of a policy change,
->   delegated/emergency authority and revocation each need shape this proposal does not carry, and
->   two of them are separate objects. "Seeded read-only" is **not** sufficient — it defers writes,
->   not the question of what the record must carry. Blocked on owner decisions OD-A, OD-B, OD-C.
+> - **P-10 `LongitudinalAuthorityPolicy` is a governed approved-policy record.** OD-A is ratified
+>   as administrative drafting plus named qualified clinical approval; OD-B excludes delegated and
+>   emergency grants from the initial contract; and OD-C requires explicit unresolved and confirmed-
+>   defect semantics. The approval provenance and authority-status fields remain target shape only;
+>   implementation is not authorized.
 > - **P-9 continuity is materially reshaped.** Coverage must be declared per
 >   **(source × event type × window)** with a freshness stamp and an ingestion outcome, yielding
 >   six derived source conditions — not one completeness value. See review §6.
-> - **P-6 `LevelOfCareRecommendation`** must bar `UNKNOWN` as a clinical recommendation, and the
->   adopted enum is **incomplete for continuity's next-level-of-care** (OD-D).
+> - **P-6 `LevelOfCareRecommendation`** must bar `UNKNOWN` as a clinical recommendation. OD-D
+>   keeps `LevelOfCare` distinct from `CareSetting`, `ServiceType`, and `CareDestination`.
 > - **P-4 `TransitionBarrier`** gains a platform-owned `BarrierConditionKind` reference, and P-5
 >   `BarrierCategory` gains a nullable `parentCategoryId`, so blame cannot enter through labels or
 >   hierarchy. No projection may group or rank by party.
@@ -188,6 +189,23 @@ should be conditioned on all five.
 - **Rollback plan.** Drop the table. The enum is untouched (it predates this work), so no existing
   capability regresses.
 
+## Continuity vocabulary amendment — OD-D
+
+Continuity does not persist or expose one combined `CareSettingOrService` vocabulary. The target
+semantics use four distinct concepts:
+
+- `LevelOfCare`: clinical intensity or treatment level;
+- `CareSetting`: environment or setting;
+- `ServiceType`: service or program delivered;
+- `CareDestination`: intended or actual destination relationship, optionally referencing setting,
+  service, provider, facility, program, location, acceptance, provenance, effective time, and
+  related LOC.
+
+Recommended LOC, payer authorization, availability, patient preference, setting, service,
+provider/program, placement acceptance, and actual care received remain independently knowable.
+Unknown and not-applicable values are valid. Any organization-specific crosswalk is descriptive or
+explicitly governed and cannot silently infer another dimension.
+
 ## P-7 — `ClinicalDischargeReadinessDecision`
 
 - **Current owner.** None.
@@ -197,12 +215,18 @@ should be conditioned on all five.
   never a computed boolean. This is the single most important non-derivation in the model —
   deriving it would have Clarity making a clinical determination.
 - **Tenant boundary.** `organizationId`; child of `Episode`.
-- **Correction / supersession.** Append-only with `supersedesDecisionId`. A superseding decision
-  requires authority under the policy effective at **its own** effective time. A decision made
-  under a policy later found invalid is superseded with a reason, **never retroactively voided**.
-- **Authorization owner.** Facility medical staff, expressed as a `LongitudinalAuthorityPolicy`
-  (P-10). **Who may edit that policy is itself unanswered** and must be settled before the policy
-  is writable — the one genuinely open item in this reconciliation.
+- **Correction / authority status.** A valid later change is `SUPERSEDED`. A formally disputed
+  authority basis is `AUTHORITY_UNRESOLVED`, and confirmed defective authority is
+  `AUTHORITY_DEFECT_CONFIRMED`; both remain preserved but are excluded from current authoritative
+  projections. A replacement is a new independently authorized decision with its own actor,
+  `policyRef`, effective time, and recorded time, and is not automatically backdated. Downstream
+  action validity is not inferred from an upstream authority defect.
+- **Authorization owner.** An authorized administrative actor may draft or revise the policy;
+  only a named, qualified clinical approving authority recognized under applicable
+  organization/facility policy may approve it. Exact approver qualification, count,
+  credentialing/privileging, and drafter/approver separation remain external governance
+  questions. The policy must preserve approval identity/evidence, scope, version, approval time,
+  effective interval, and covered actions.
 - **Migration effect.** One new table, plus a `policyRef` column recording the authorizing policy
   so the authority basis is reconstructible after the policy changes.
 - **Rollback plan.** Drop the table. Lossy — clinical decision history.
@@ -260,12 +284,11 @@ should be conditioned on all five.
 - **Why derivation is insufficient.** Authority is **declared**, not computed. Deriving it from
   role names would be Clarity asserting a licensure rule (Constitution §3).
 - **Tenant boundary.** `organizationId`, optionally `facilityId`.
-- **Correction / supersession.** Versioned by `effectiveAt`. Evaluation uses the policy effective
-  at the *decision's* effective time, never the current policy. Policies are never deleted.
-- **Authorization owner.** **Unresolved — the one genuinely open item.** Who may write the policy
-  that decides who may decide is a meta-authority question. Candidate: `ORGANIZATION_ADMIN` with a
-  mandatory audit event and a named clinical approver. **IA-002 must settle this before the policy
-  table is writable**; until then it may be seeded read-only.
+- **Lifecycle and evaluation.** Draft or pending-approval policies are not usable. An approved
+  policy is evaluated by effective interval at the decision's effective time, never by the policy
+  in force today; the decision stores the exact `policyRef`. Policies are not silently deleted.
+  Delegated/emergency grants are not created or evaluated in the initial contract, and no default
+  policy exists. An absent effective approved policy fails closed.
 - **Migration effect.** One configuration table. Blocks P-7 and P-8, which fail closed without it.
 - **Rollback plan.** Drop; P-7 and P-8 fail closed and become unwritable. Safe.
 

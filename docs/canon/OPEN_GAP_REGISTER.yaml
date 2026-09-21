@@ -1,7 +1,7 @@
 register: Clarity Open-Gap Register
 version: '0.1'
 scope: Longitudinal pre-schema questions
-status: PARTIALLY_RESOLVED_TWO_NOT_YET_RATIFIABLE
+status: OWNER_RESOLVED_OD_A_THROUGH_OD_D_IMPLEMENTATION_GATED
 resolved_by: docs/canon/gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md
 resolved_on: 2026-09-20
 amended_by: docs/canon/review/OWNER_DECISION_PACKET_v0.1.md
@@ -21,12 +21,12 @@ gaps:
   topic: Destination-attempt identity
   question: Does each CareTransition need separate destination-attempt records?
 - id: LONG-GAP-03
-  status: NOT_YET_RATIFIABLE
+  status: OWNER_RESOLVED_IMPLEMENTATION_GATED
   topic: Clinical discharge-readiness authority
   question: Which facility-configured roles may record or supersede clinical discharge
     readiness?
 - id: LONG-GAP-04
-  status: LOCKED
+  status: OWNER_RESOLVED_IMPLEMENTATION_GATED
   topic: Canonical LOC registry
   question: What canonical level-of-care registry/crosswalk should span inpatient,
     residential, PHP, IOP, outpatient, post-acute, and other applicable settings?

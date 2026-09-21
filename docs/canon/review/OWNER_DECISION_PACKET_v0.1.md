@@ -9,8 +9,79 @@ governed UI touched.
 
 ## Headline
 
-**IA-002 is NOT ratifiable as written. ADR-0026 is ratifiable only with amendment. The
-persistence boundary stays closed.**
+**Owner decisions OD-A through OD-D are now ratified as amended. IA-002 remains DRAFT / NOT IN
+FORCE, ADR-0026 remains Proposed, and the persistence boundary stays closed.**
+
+## Owner-ratification amendment — 2026-09-20
+
+The following decisions supersede the unresolved alternatives in this packet. They resolve
+product semantics only; they do not constitute clinical, legal, credentialing, privileging,
+facility-policy, implementation, or persistence approval.
+
+### OD-A — policy activation: A2, ratified as amended
+
+An authorized administrative actor may create or revise a `LongitudinalAuthorityPolicy` draft.
+Drafting/configuration authority is not clinical approval authority. A policy is usable for
+longitudinal authority evaluation only after approval by a named, qualified clinical approving
+authority recognized by the applicable organization/facility policy. Clarity must not hard-code a
+universal job title, license, or platform role as sufficient approval authority.
+
+Approval preserves the approver identity, approval time, approval evidence/source reference,
+organization/facility scope, covered actions, policy version, and effective time or interval.
+`DRAFT` and `PENDING_APPROVAL` policies cannot authorize a decision. Authority is evaluated
+against the policy effective at the decision's effective time, and the decision retains the exact
+`policyRef`. No effective approved policy means authority is not established and the decision
+fails closed. Clarity supplies no default policy and does not infer authority from role, title,
+administrator status, or visibility alone.
+
+The exact qualifying approver, number of approvers, credentialing/privileging, and whether the
+drafter may also approve remain external organization/facility policy questions.
+
+### OD-B — no delegated or emergency longitudinal authority in the initial contract
+
+Clarity does not create, infer, or evaluate delegated or emergency authority grants. Urgency,
+emergency status, assignment, operational responsibility, platform role, job title,
+administrator status, or visibility does not establish longitudinal clinical decision authority.
+Failure of authority blocks only recording the governed longitudinal decision; it does not block
+care, stabilization, emergency clinical activity, evidence capture, escalation, or otherwise
+permitted operations. Out-of-band decisions may be preserved in their proper source/epistemic
+class without being promoted to authorized Clarity decisions. A future capability would require
+a separate governed contract; no such schema is created here.
+
+### OD-C — unresolved/quarantine first, then supersede or invalidate
+
+These are distinct semantic cases:
+
+1. A valid decision later changed is `SUPERSEDED`.
+2. A formally disputed or unresolved authority basis is `AUTHORITY_UNRESOLVED`; the record is
+   preserved and immediately excluded from current authoritative projections pending review.
+3. Confirmed defective authority is `AUTHORITY_DEFECT_CONFIRMED`; the record remains available
+   for History, provenance, audit, and review but cannot support current authoritative
+   projections.
+
+History preserves what was recorded, effective and recorded times, actor, `policyRef`, evidence,
+authority status known at the time, downstream activity, the challenge time, and resolution.
+Current projections use the latest governed authority determination. A replacement is a new,
+independently authorized decision with its own actor, policy reference, effective time, and
+recorded time; it is not automatically backdated. Clarity does not infer that downstream
+clinical, legal, payer, operational, or transition actions are invalid merely because an
+upstream decision later had defective authority.
+
+### OD-D — four distinct continuity concepts
+
+Continuity does not use a combined `CareSettingOrService` vocabulary. The concepts are:
+
+- `LevelOfCare` — clinical intensity or treatment level;
+- `CareSetting` — environment or setting;
+- `ServiceType` — service or program delivered;
+- `CareDestination` — intended or actual destination relationship, which may reference setting,
+  service, provider, facility, program, location, acceptance, provenance, effective time, and
+  optional related level of care.
+
+Clinical recommendation, payer authorization, availability, patient preference, setting,
+service, provider/program, placement acceptance, and actual care received remain independently
+knowable. Unknown and not-applicable values are valid. A descriptive organization-specific
+crosswalk may be governed later, but it does not silently establish another dimension.
 
 The blanket claim *"none of the four bounds blocks persistence"* **does not survive independent
 re-testing.** Two of the four bounds can force a schema change. That claim is withdrawn and the
@@ -67,6 +138,12 @@ predecessor") and makes `DATA_QUALITY_STATES` decorative in the longitudinal pat
 right; the implementation does not yet enforce them.
 
 ---
+
+## Historical pre-ratification analysis
+
+The following sections preserve the adversarial evidence as it existed before OD-A through OD-D
+were ratified. Their provisional verdicts and option tables are historical evidence, not the
+current owner decision. The owner-ratification amendment above governs where they conflict.
 
 ## 1. Independent re-test of the four BOUNDED gaps
 
@@ -562,12 +639,12 @@ vocabulary amendment.
 | Reconciliation P-1 … P-10 | **RATIFIABLE WITH AMENDMENT** | P-9 reshaped per §6; P-10 reshaped per §2 |
 | "None of the four bounds blocks persistence" | **WITHDRAWN** | Replaced by a per-gap table |
 
-### Can IA-002 be ratified as written?
+### Historical pre-ratification conclusion for IA-002
 
 **No.** Preconditions incomplete (C-7 … C-10 missing); C-1 and C-3 insufficient as specified;
 Slice A rests on a gap that fails re-testing; the three-gate sequencing in §8 is absent.
 
-### Can ADR-0026 be ratified as written?
+### Historical pre-ratification conclusion for ADR-0026
 
 **No.** Its three objects are not independently persistable. Ratifiable only if narrowed, and even
 narrowed it waits on OD-A.
@@ -576,15 +653,14 @@ narrowed it waits on OD-A.
 
 **No.** It stays closed. IA-001 continues to govern.
 
-### Smallest remaining owner decisions
+### Historical owner-decision request, now resolved as amended
 
-1. **OD-A** — what must be true for a `LongitudinalAuthorityPolicy` to take effect (A1 / **A2
-   recommended** / A3).
-2. **OD-B** — does delegated or emergency authority exist?
-3. **OD-C** — is an improperly authorized decision superseded, or invalidated and excluded from
-   projections?
-4. **OD-D** — does continuity's next-level-of-care extend `LevelOfCare`, or get a separate
-   `CareSettingOrService` vocabulary with a crosswalk?
+1. **OD-A** — ratified as amended: administrative drafting plus named qualified clinical approval.
+2. **OD-B** — ratified as amended: no delegated or emergency longitudinal authority in the initial
+   contract.
+3. **OD-C** — ratified as amended: unresolved/quarantine first, then supersede or confirmed defect.
+4. **OD-D** — ratified as amended: separate `LevelOfCare`, `CareSetting`, `ServiceType`, and
+   `CareDestination` concepts.
 
 OD-A, OD-B and OD-C gate any persistence. OD-D gates Slice C and the LOC amendment.
 

@@ -147,7 +147,10 @@ PHI, clinical or legal approval.
 **4 BOUNDED** (03 readiness authority, 05 barrier taxonomy, 06 core-vs-configurable observations,
 08 continuity evidence sources). A BOUNDED gap fixes shape, invariants and failure mode; what
 remains needs clinical licensing (OD-3), counsel (OD-2) or a real integration contract (OD-5).
-**None of the four bounds blocks persistence.**
+**The blanket claim that none of the four bounds blocks persistence is withdrawn.** OD-A through
+OD-D are now owner-resolved as product semantics, but IA-002 remains DRAFT / NOT IN FORCE and
+the persistence boundary remains closed pending executable protections, external validation, and
+slice-specific gates.
 
 Two findings from that pass matter beyond their own gaps:
 
@@ -178,30 +181,35 @@ tripwire) — **all five already authorized under IA-001 §10 and none requiring
 ADR-0026 (Slice A — authority policy plus the two append-only clinical decisions) is **Proposed**.
 ADRs for Slices B and C are not drafted and their numbers are not allocated.
 
-**One item genuinely open:** who may *write* a `LongitudinalAuthorityPolicy`. Writing the policy
-that decides who may make clinical decisions is a meta-authority act the reconciliation could not
-settle from repository evidence. Until the owner settles it the policy table may be seeded
-read-only.
+**Owner decisions OD-A through OD-D are recorded as amended.** Administrative drafting, named
+qualified clinical approval, no initial delegated/emergency authority, defective-authority
+projection exclusion, and the four distinct continuity concepts are now the controlling product
+semantics. Exact approver qualifications, credentialing/privileging, approver count,
+drafter/approver separation, revocation, external clinical/legal effect, and implementation
+authorization remain separately gated.
 
 **AMENDED the same day by an owner-level adversarial review** —
 [docs/canon/review/OWNER_DECISION_PACKET_v0.1.md](docs/canon/review/OWNER_DECISION_PACKET_v0.1.md),
 reviewing PR #136 at `fc1a706`. The review re-tested the four BOUNDED gaps **independently** rather
 than accepting the blanket statement above:
 
-- **The claim "none of the four bounds blocks persistence" is WITHDRAWN.** **LONG-GAP-03 and
-  LONG-GAP-08 fail** — each can force a schema change — and are now **NOT YET RATIFIABLE**.
-  LONG-GAP-04, 05, 06 and 10 are ratifiable **only with amendment**. 01, 02, 07 and 09 stand.
+- **The claim "none of the four bounds blocks persistence" is WITHDRAWN.** OD-A through OD-D
+  are now owner-resolved as amended, but LONG-GAP-03 remains implementation-gated and LONG-GAP-08
+  retains its executable source-coverage gate. 01, 02, 07 and 09 stand; 04 is amended to preserve
+  four distinct continuity concepts.
 - **Two defects were found in merged contract code (#133)**, both confirmed by executed probes
   (since deleted): `deriveTransitionReadiness([])` returns **`READY`** from no evidence at all
   (violates LSR-10 and Verification Matrix row 19); and `qualityState` is read by **no**
   projection, so a `SUPERSEDED`/`REJECTED`/`QUARANTINED` continuity event still reports as
   `OBSERVED`. Both are invisible to the current tests, which only exercise fully-populated
   happy paths.
-- **IA-002 is NOT ratifiable as written** and **ADR-0026 is BLOCKED.** No persistence slice is
-  authorized; the persistence boundary **stays closed** under IA-001.
-- **Four owner decisions gate everything:** OD-A (what makes a `LongitudinalAuthorityPolicy`
-  effective), OD-B (does delegated/emergency authority exist), OD-C (supersede or invalidate an
-  improperly authorized decision), OD-D (continuity's next-level-of-care vocabulary).
+- **IA-002 remains DRAFT / NOT IN FORCE** and **ADR-0026 remains Proposed.** No persistence slice
+  is authorized; the persistence boundary **stays closed** under IA-001.
+- **Four owner decisions are recorded as amended:** OD-A (administrative drafting plus named
+  qualified clinical approval), OD-B (no initial delegated/emergency longitudinal authority),
+  OD-C (unresolved/confirmed-defect projection exclusion), and OD-D (distinct `LevelOfCare`,
+  `CareSetting`, `ServiceType`, and `CareDestination`). They resolve product semantics, not
+  implementation or external clinical/legal validation.
 
 **Next authorized work: Slice 0.5 — executable protection of the locked semantics** (preconditions
 C-1, C-5 … C-10). Entirely within IA-001 §10, needs no new authorization, no Prisma.
