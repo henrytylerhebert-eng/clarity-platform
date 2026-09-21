@@ -64,6 +64,15 @@ jobs:
       - name: App build
         run: npm --workspace app run build
 
+      - name: Shell smoke E2E (general Work/prototype browser regression)
+        # app/playwright.config.ts — desktop + mobile, vite only, no API server.
+        # Proves the prototype shell still renders and navigates. It does NOT
+        # prove governed behavior, authorization, or the Tree 4 F1-F6 flows
+        # beyond what app/smoke/tree4-acceptance.spec.ts explicitly asserts.
+        # Kept separate from the Operating Assurance config below on purpose:
+        # they prove different things and need different servers.
+        run: npm --workspace app run smoke
+
       - name: Operating Assurance replay E2E
         run: npm run test:oa-e2e
 
