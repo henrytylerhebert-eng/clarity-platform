@@ -27,6 +27,7 @@ State legend: **✓** handled and tested · **~** handled, untested · **·** no
 | **Custody Ledger** | local `[P]` | ~ | · | · | · | · | · | · | · | · | · | unit |
 | **Training & SOPs** | local `[P]` | ~ | · | · | · | · | · | · | · | · | · | smoke |
 | **Learning & Practice components** | `learning-practice-service` `[R]` | ~ | · | ~ | ~ | · | · | · | ✓ | · | · | unit |
+| **Tree 4 acceptance flows** | shell + routes `[P][R]` | ✓ | n/a | n/a | n/a | · | · | · | · | ✓ | ✓ | **8 browser tests, CI-gated** |
 | **Mock Admit / Product Studio** | local `[P]` dev-only | ~ | · | · | · | · | · | · | · | · | · | unit |
 | **History / Explore / Flow / Ask Clarity / Guide / Collaborate** | — `[K]` | · | · | · | · | · | · | · | · | · | · | none |
 
@@ -53,14 +54,28 @@ depth. Every column it leaves blank (`stale`, `superseded`) is a column no surfa
 
 ### Tree 4 proof flows — the only cross-module acceptance specification
 
-| | Flow | Automated? |
-|---|---|---|
-| F1 | Cases → Case → Clinical → back | **No** |
-| F2 | Clinical Review → complete → return | **No** |
-| F3 | Case → Assurance Finding → return | **No** |
-| F4 | Case → facility change → invalidated → new scope | **No** |
-| F5 | Case → RevOps → remembered Crisis Ops context | **No** |
-| F6 | Session expired → sign in → revalidated context | **No** |
+**UPDATED 2026-09-20** by the Tree 4 Acceptance Reconciliation (PR #139) —
+[TREE_4_ACCEPTANCE_CONTRACT_v0.1.md](../acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md).
+The recommendation to "automate F1–F6" was revised before implementing it: **only one flow is
+fully executable, and two cannot be automated at all.**
+
+| | Flow | Status vs current `main` | Automated? |
+|---|---|---|---|
+| F1 | Cases → Case → Clinical → back | `EXECUTABLE_NOW` *(prototype surfaces only)* | **Yes** — proves prototype round trip |
+| F2 | Clinical Review → complete → return | **`TARGET_ONLY`** — no multi-Case Review workspace exists | **No, and must not be** |
+| F3 | Case → Assurance Finding → return | `PARTIALLY_EXECUTABLE` — area nav only | **Partial** |
+| F4 | Case → facility change → invalidated → new scope | **`TARGET_ONLY`** — no facility/scope switcher exists | **No, and must not be** |
+| F5 | Case → RevOps → remembered Crisis Ops context | `PARTIALLY_EXECUTABLE` — deep link only | **Partial** |
+| F6 | Session expired → sign in → revalidated context | `PARTIALLY_EXECUTABLE` — no expiry handler exists | **Partial** |
+
+**Four of the six unmet requirements reduce to one missing capability: Case-context navigation
+that survives a route change.** A navigation concern, not persistence.
+
+`app/smoke/tree4-acceptance.spec.ts` now covers F1 fully and the executable portion of F3, F5 and
+F6 — 4 tests × desktop + mobile. The existing smoke suite **is now gated in CI** as
+*"Shell smoke E2E"*, and the default Playwright config was corrected: it had been selecting
+`operating-assurance.spec.ts` too (**26 tests, not 20**), three of which need an API server that
+config never starts.
 
 `app/src/router.test.tsx` covers deep links, back/forward, session continuity and tenant/role
 preservation in jsdom — adjacent to F5/F6 but not equal to them. `app/smoke/clarity-v01.spec.ts`
@@ -85,7 +100,10 @@ coverage are the straight referral path (smoke) and the Day 1→39 fixture (unit
 
 ## P0 blockers before an Experience Simulator is worth building
 
-1. **The Tree 4 proof flows are not automated** — the simulator's primary content is unverified.
+1. ~~**The Tree 4 proof flows are not automated**~~ **PARTIALLY CLOSED 2026-09-20.** F1 is
+   automated; F3, F5 and F6 are automated to their executable boundary; **F2 and F4 remain
+   `TARGET_ONLY` and cannot be automated without fabricating surfaces.** The simulator's primary
+   content is now *classified* rather than merely unverified.
 2. **Session expiry and scope change are untested** (F4, F6) and are the two failure modes most
    likely to corrupt a demo.
 3. **`unknown commit result` is handled nowhere** — the state most likely to produce a false

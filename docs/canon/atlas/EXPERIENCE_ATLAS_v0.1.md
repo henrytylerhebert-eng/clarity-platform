@@ -56,6 +56,18 @@ ownership. No row may be read as proving an authority model.
 4. **Discharge planning / transition.** Contract-only; no job, no workspace, no objects persisted.
 5. **Partner participation.** Referral is one-directional; receiving facilities have no seat.
 
+## Acceptance evidence for the Work representation `UPDATED 2026-09-20`
+
+The Tree 4 Acceptance Reconciliation (PR #139,
+[contract](../acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md)) classified the six proof flows:
+**1 `EXECUTABLE_NOW`, 3 `PARTIALLY_EXECUTABLE`, 2 `TARGET_ONLY`.** F1 is automated end to end;
+F3, F5 and F6 are automated to their executable boundary; **F2 and F4 have no test because their
+surfaces do not exist** — no multi-Case Review workspace, no facility/scope switcher.
+
+This adds a sixth job with no home, and it is a navigation capability rather than a workspace:
+**Case-context navigation that survives a route change.** Four of the six unmet Tree 4
+requirements reduce to it.
+
 ## Handoff chains that exist end-to-end today
 
 Only one: **referral → prescreen → (qualified review) → legal → placement**, and it is

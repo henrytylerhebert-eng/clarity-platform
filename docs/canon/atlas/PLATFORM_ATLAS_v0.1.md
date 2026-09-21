@@ -103,3 +103,4 @@ Guide · Collaborate · Longitudinal.
 | 4 | **Assignment/ownership is the only true `ABSENT`** | Work, attention and handoff all presuppose it |
 | 5 | **Authorization is `PARTIAL` while the authority grammar is `CANON_ONLY`** | The model the product is designed around is unimplemented |
 | 6 | **Flow is blocked on governed cross-Case query** | Cases, Queue and Flow all need it; nothing provides it |
+| 7 | **Case-context navigation does not survive a route change** `NEW 2026-09-20` | Found by the Tree 4 reconciliation (PR #139). `selectedCaseId` is component state, so leaving Crisis Ops for `/assurance` or `/rev-ops` resets the Case. **Four of six unmet Tree 4 acceptance requirements collapse into this one capability.** A navigation concern — must not be solved by persisting Case selection into governed storage |

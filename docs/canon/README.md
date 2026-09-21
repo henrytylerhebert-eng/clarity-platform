@@ -49,6 +49,7 @@ authority, decision, or workflow object merely because it makes implementation e
 | — | [atlas/PLATFORM_ATLAS_v0.1.md](atlas/PLATFORM_ATLAS_v0.1.md) | Platform → applications → contexts → capabilities → layers → representations |
 | — | [atlas/EXPERIENCE_ATLAS_v0.1.md](atlas/EXPERIENCE_ATLAS_v0.1.md) | Role → job → workspace → object → view → action → handoff |
 | — | [atlas/SCREEN_AND_SCENARIO_ATLAS_v0.1.md](atlas/SCREEN_AND_SCENARIO_ATLAS_v0.1.md) | Surface × uncertainty-state × scenario coverage |
+| — | [acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md](acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md) | **F1–F6 classified** against current `main`; current vs prototype vs target acceptance |
 | — | [WHOLE_PRODUCT_SPEC.md](WHOLE_PRODUCT_SPEC.md) | The consolidated product specification |
 | — | [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) | Ask Clarity: Query / Trace now, Command later |
 | — | [CANON_RECONSTRUCTION_PASS_01_v0.1.md](CANON_RECONSTRUCTION_PASS_01_v0.1.md) | Source reconstruction pass behind the lock |
