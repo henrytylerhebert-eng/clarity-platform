@@ -28,10 +28,25 @@ A target-only flow stays a **named unmet acceptance requirement** until the prod
 | **F2** | Review a queue of Cases awaiting clinical review, complete one, return | **none** — no multi-Case Clinical Review workspace exists | — | **Absent** | none | The entire entry surface. Tree 5 leaves "Review" conditional and it was never admitted | **TARGET_ONLY** | — (no test written) |
 | **F3** | From a Case, inspect an assurance finding, return to that Case | `/` ↔ `/assurance` area navigation | Crisis Ops local; Assurance governed API | **Mixed** | router test covers area navigation in jsdom | Case → *specific finding* link; return to *the originating* Case | **PARTIALLY_EXECUTABLE** | Area round trip only |
 | **F4** | Change facility scope and see the Case invalidated, landing in the new scope's queue | **none** — no facility/scope switcher anywhere in `app/src` | — | **Absent** | none | The entire trigger. Scope is principal-derived with no UI to change it | **TARGET_ONLY** | — (no test written) |
-| **F5** | Leave a Case for Revenue Operations and come back to the same Case | `/` ↔ `/rev-ops` | RevOps governed API; Crisis Ops local | **Mixed** | router test covers navigation + tenant/role preservation | **"Remembered Case context."** `selectedCaseId` is `useState("case-004")` with no persistence, so the route change unmounts it | **PARTIALLY_EXECUTABLE** | Deep-link round trip only |
-| **F6** | Recover from an expired session and resume the same Case | `SignInForm`, `AuthProvider`, invalid-route redirect | `AuthSession` governed | **Mixed** | router test keeps one session across areas | **Expiry detection** (`AuthContext` has login/logout, no 401/expiry handler) and **Case-context revalidation** | **PARTIALLY_EXECUTABLE** | Shell recovery from an unknown route only |
+| **F5** | Leave a Case for Revenue Operations and come back to the same Case | `/` ↔ `/rev-ops` | RevOps governed API; Crisis Ops local | **Mixed** | browser test selects `Adult Demo A`, uses the Clarity shell control to enter RevOps, returns with the shell control, and records that the selected Case is not restored | **"Remembered Case context."** `selectedCaseId` is `useState("case-004")` with no persistence, so the route change unmounts it | **PARTIALLY_EXECUTABLE** | Cross-application shell navigation works; F5-b remains unmet |
+| **F6** | Recover from an expired session and resume the same Case | `AuthProvider`, `SignInForm`, `AuthSession` API | `AuthSession` governed for server evidence; frontend expiry flow absent | **Mixed** | `tests/integration/authentication.test.ts` proves clock-advanced server expiry rejection; no browser/product expiry test exists | **Frontend expiry detection, sign-in after detected expiry as an expiry flow, and Case-context revalidation** | **TARGET_ONLY** | Backend session expiry evidence only; no F6 browser/product acceptance |
 
-**Result: 1 EXECUTABLE_NOW, 3 PARTIALLY_EXECUTABLE, 2 TARGET_ONLY, 0 STALE_OR_INVALID.**
+**Result: 1 EXECUTABLE_NOW, 2 PARTIALLY_EXECUTABLE, 3 TARGET_ONLY, 0 STALE_OR_INVALID.**
+
+## Separate shell-routing acceptance
+
+| ID | Requirement | Evidence | Boundary |
+|---|---|---|---|
+| **SHELL-RECOVERY-01** | An unknown route redirects to `/` and renders a usable Case Queue | `app/smoke/tree4-acceptance.spec.ts` browser test | Shell recovery only; this does not exercise session expiry, 401 handling, sign-in, or Case-context revalidation |
+
+### F6 evidence by layer
+
+| Layer | Evidence | F6 implication |
+|---|---|---|
+| Server session expiry | `tests/integration/authentication.test.ts` advances the injected clock past the 8-hour TTL and proves `AuthenticationFailedError`; the HTTP/API layer maps authentication failure to `401` in `tests/integration/api-service.test.ts` | Server expiry rejection exists and is separately verified |
+| Frontend expiry detection | `app/src/domain/AuthContext.tsx` exposes login/logout state but has no `401` or expiry handler | **ABSENT** |
+| Sign-in after detected expiry | `SignInForm` supports explicit sign-in, but no expiry-triggered transition into it exists | **ABSENT as an expiry flow** |
+| Case-context revalidation | No browser/product flow revalidates the previously selected Case after re-authentication | **ABSENT** |
 
 ## Amendments to the Tree 4 contract
 
@@ -51,7 +66,8 @@ need amending rather than preserving because Tree 4 once said so:
   context" is a navigation concern, not a persistence concern — and must not be implemented by
   persisting a Case selection into governed storage.
 
-**F1, F4 and F6 stand as written.** F4 and F6 are unmet, not invalid.
+**F1 and F4 stand as written.** F4 is unmet, not invalid. F6 is amended to keep the
+server-side expiry evidence separate from the unmet browser/product acceptance requirement.
 
 ## What the existing smoke suite proves — and does not
 
@@ -90,8 +106,8 @@ governed/prototype boundary, the regression it would catch, and the maturity it 
 |---|---|---|---|
 | `F1 [prototype]` | F1 full | `PROTOTYPE` | Workspace round trip breaks, or the Case selected on the way in is not the Case marked `.selected-row` on return |
 | `F3 [partial]` | F3 area half | `PARTIAL` | Crisis Ops ↔ Assurance navigation breaks |
-| `F5 [partial]` | F5 navigation half | `PARTIAL` | `/rev-ops` deep link or return to a usable Cases surface breaks |
-| `F6 [partial]` | F6 recovery half | `PARTIAL` | An unknown route dead-ends instead of recovering |
+| `F5 [partial]` | F5 shell-navigation half | `PARTIAL` | Clarity shell navigation to RevOps or back to usable Crisis Ops breaks; current Case non-restoration is recorded |
+| `SHELL-RECOVERY-01 [prototype]` | Shell recovery | `PROTOTYPE` | An unknown route dead-ends instead of recovering |
 
 **No test exists for F2 or F4**, and none may be written until their surfaces exist.
 
@@ -112,8 +128,8 @@ selection into governed storage.
 
 ## Honesty statement
 
-This slice added no product behavior. One Playwright config exclusion, one CI step, four browser
+This slice added no product behavior. One Playwright config exclusion, one CI step, five browser
 tests over behavior that already existed, and this contract. Nothing here ratifies IA-002,
 ADR-0026, OD-A, OD-B, OD-C or OD-D; the persistence boundary is unchanged. A green CI run proves
-the prototype shell behaves and four partial flows navigate — it proves nothing about governed
+the prototype shell behaves and two partial flows navigate — it proves nothing about governed
 behavior, authorization or production readiness.

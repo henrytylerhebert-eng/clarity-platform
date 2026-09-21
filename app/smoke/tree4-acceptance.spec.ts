@@ -76,32 +76,51 @@ test('F3 [partial]: Crisis Ops → Operating Assurance → back is navigable', a
 /**
  * F5 — Case → Revenue Operations → remembered Crisis Ops Case context
  * Status       PARTIALLY_EXECUTABLE
- * Executable   deep link to /rev-ops and return to Crisis Ops
+ * Executable   shell navigation from a selected Case to Revenue Operations and back
  * NOT covered  "remembered Case context". selectedCaseId is useState("case-004")
  *              in CrisisOpsApp with no persistence, so the route change unmounts
- *              it and the Case resets. This test deliberately asserts the shell
- *              returns to a usable Cases surface and does NOT assert the prior
- *              Case is restored — asserting that today would require inventing
- *              persistence the product has not earned.
+ *              it and the Case resets. The test explicitly records that the
+ *              originally selected Case is not restored today — asserting
+ *              restoration would require inventing persistence the product has
+ *              not earned.
  */
-test('F5 [partial]: Crisis Ops ↔ Revenue Operations deep link round trip', async ({ page }) => {
-  await page.goto('/rev-ops');
-  await expect(page).toHaveURL(/\/rev-ops$/);
-
-  await page.goto('/');
+test('F5 [partial]: selected Crisis Ops Case → Revenue Operations → Crisis Ops shell navigation', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Case Queue' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Adult Demo A' }).click();
+  await expect(page.getByRole('heading', { name: 'Case Overview' })).toBeVisible();
+
+  // On the narrow prototype viewport the legacy floating Assurance button
+  // overlaps the shell row. Keyboard activation still uses the real accessible
+  // shell link and keeps the route assertion as the navigation regression gate.
+  const revenueOperationsLink = page.getByRole('link', { name: 'Revenue Operations' });
+  await revenueOperationsLink.focus();
+  await revenueOperationsLink.press('Enter');
+  await expect(page).toHaveURL(/\/rev-ops$/);
+  await expect(page.getByRole('heading', { name: 'Revenue Operations' })).toBeVisible();
+
+  const crisisOpsLink = page.getByRole('link', { name: 'Crisis Ops' });
+  await crisisOpsLink.focus();
+  await crisisOpsLink.press('Enter');
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { name: 'Case Queue' })).toBeVisible();
+
+  // Evidence for F5-b: selectedCaseId is local component state and is not
+  // restored after the route change. The unmet continuity requirement remains
+  // in the contract; this assertion documents today's observed boundary.
+  await expect(page.locator('tr.selected-row')).not.toContainText('Adult Demo A');
 });
 
 /**
  * F6 — Session expired → sign in → revalidated Case context
- * Status       PARTIALLY_EXECUTABLE
- * Executable   an invalid route resolves to a usable Crisis Ops surface rather
- *              than a dead end — the shell-recovery half of the flow.
- * NOT covered  session EXPIRY detection (AuthContext has login/logout but no 401
- *              or expiry handler) and Case-context revalidation after re-auth.
- *              Both stay TARGET_ONLY.
+ * Status       TARGET_ONLY at the product/browser layer
+ * Backend      server-side session expiry is proven separately by the auth
+ *              integration tests; that is not browser evidence for this flow.
+ * NOT covered  frontend expiry detection, sign-in after detected expiry as an
+ *              expiry flow, and Case-context revalidation after re-auth. No
+ *              expiry behavior is fabricated here.
  */
-test('F6 [partial]: an unknown route recovers to a usable shell, not a dead end', async ({
+test('SHELL-RECOVERY-01 [prototype]: an unknown route recovers to a usable shell', async ({
   page,
 }) => {
   await page.goto('/no-such-place');
