@@ -38,6 +38,19 @@ A target-only flow stays a **named unmet acceptance requirement** until the prod
 | ID | Requirement | Evidence | Boundary |
 |---|---|---|---|
 | **SHELL-RECOVERY-01** | An unknown route redirects to `/` and renders a usable Case Queue | `app/smoke/tree4-acceptance.spec.ts` browser test | Shell recovery only; this does not exercise session expiry, 401 handling, sign-in, or Case-context revalidation |
+| **SHELL-MOBILE-01** | The ClarityShell area nav must be operable by pointer at mobile width | **FAILING — open defect, confirmed on `main` 2026-09-20** | At 390×844 the fixed-position "Operating Assurance" button in `CrisisOpsRoute` (`position: fixed, right 18, top 14`) overlaps the shell area nav and **intercepts its pointer events**. A throwaway probe clicking `link "Revenue Operations"` passes on desktop and fails on mobile with `<button class="secondary-button"> intercepts pointer events`. **A mobile user cannot tap between applications.** Not repaired here: this is an evidence slice |
+
+> ### Caveat on F5's mobile evidence — read before citing it
+>
+> `F5 [partial]` passes on **both** projects, but its mobile pass is obtained by **keyboard
+> activation** (`.focus()` + `.press('Enter')`) rather than a click, precisely because a click is
+> intercepted. That is a legitimate way to keep the navigation regression gate green on the
+> accessible path — and it means **F5's green mobile run is not evidence that mobile
+> cross-application navigation works.** It does not. `SHELL-MOBILE-01` is the requirement that
+> tracks it, and it is failing.
+>
+> This is the "green test over broken behavior" pattern the acceptance classes exist to prevent,
+> caught here by the classes working as intended.
 
 ### F6 evidence by layer
 
