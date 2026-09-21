@@ -1,16 +1,34 @@
 # Clarity Open-Gap Register v0.1
 
 **Scope:** Longitudinal pre-schema questions only  
-**Status:** OPEN  
+**Status (as written, 2026-09-20 package):** OPEN  
+**Status (current):** OWNER-RESOLVED AS TO OD-A–OD-D; IMPLEMENTATION AND EXTERNAL VALIDATION REMAIN GATED
 **Count:** 10  
+
+> **STATUS UPDATE — 2026-09-20.** All ten questions below have been **closed or explicitly
+> bounded** by
+> [gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md](gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md):
+> **6 LOCKED** (01, 02, 04, 07, 09, 10) and **4 BOUNDED** (03, 05, 06, 08). A BOUNDED gap is not
+> an open question — its shape, invariants and failure mode are fixed, and what remains is a
+> value list or authority assignment that only clinical licensing (OD-3), counsel (OD-2) or a
+> real integration contract (OD-5) can supply. **Do not re-open a question below without the
+> documented contradicting evidence required by the admission rule at the end of this file.**
+> The questions are preserved verbatim as the dated artifact they are.
+>
+> **AMENDED 2026-09-20 by the owner-level review**
+> ([review/OWNER_DECISION_PACKET_v0.1.md](review/OWNER_DECISION_PACKET_v0.1.md)): re-testing each
+> bound independently moved **LONG-GAP-03 and LONG-GAP-08 to NOT YET RATIFIABLE** — each can force
+> a schema change — and moved 04, 05, 06 and 10 to ratifiable only with amendment. The claim that
+> no bound blocks persistence is **withdrawn**. LONG-GAP-01, 02, 07 and 09 stand as written.
+
 **Freeze rule:** These are the only recognized longitudinal pre-schema questions for this pass. Do not add new semantic questions unless reconciliation exposes a documented contradiction or missing semantic requirement.
 
 | Gap ID | Status | Topic | Question |
 |---|---|---|---|
 | LONG-GAP-01 | OPEN | DischargePlan cardinality | Does each inpatient Episode have one logical DischargePlan with revisions, or can concurrent independent plans exist? |
 | LONG-GAP-02 | OPEN | Destination-attempt identity | Does each CareTransition need separate destination-attempt records? |
-| LONG-GAP-03 | OPEN | Clinical discharge-readiness authority | Which facility-configured roles may record or supersede clinical discharge readiness? |
-| LONG-GAP-04 | OPEN | Canonical LOC registry | What canonical level-of-care registry/crosswalk should span inpatient, residential, PHP, IOP, outpatient, post-acute, and other applicable settings? |
+| LONG-GAP-03 | OWNER-RESOLVED / IMPLEMENTATION-GATED | Clinical discharge-readiness authority | Which facility-configured roles may record or supersede clinical discharge readiness? |
+| LONG-GAP-04 | OWNER-RESOLVED / IMPLEMENTATION-GATED | LOC, setting, service, and destination vocabulary | How do four distinct concepts span inpatient, residential, PHP, IOP, outpatient, post-acute, and other applicable settings? |
 | LONG-GAP-05 | OPEN | Barrier taxonomy | What barrier taxonomy supports operations and trending without becoming a blame taxonomy? |
 | LONG-GAP-06 | OPEN | Core vs configurable longitudinal observations | Which recovery/function and environment/support concepts are core platform semantics versus configurable assessment fields? |
 | LONG-GAP-07 | OPEN | Actual discharge command contract | What exact command, source, disposition, and correction contract governs actual discharge? |

@@ -40,7 +40,9 @@ authority, decision, or workflow object merely because it makes implementation e
 | 11 | [../architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md](../architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md) | The executable contract for that model (already merged) |
 | 12 | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Slice 0 → Slice 11 |
 | 13 | [MIGRATION_DEPRECATION_PLAN.md](MIGRATION_DEPRECATION_PLAN.md) | Keep / extend / derive / migrate / deprecate / remove-later |
-| 14 | [IMPLEMENTATION_AUTHORIZATION_IA-001.md](IMPLEMENTATION_AUTHORIZATION_IA-001.md) | **The gate.** What may be built now and what is held |
+| 14 | [IMPLEMENTATION_AUTHORIZATION_IA-001.md](IMPLEMENTATION_AUTHORIZATION_IA-001.md) | **The gate in force.** What may be built now and what is held |
+| 14b | [IMPLEMENTATION_AUTHORIZATION_IA-002.md](IMPLEMENTATION_AUTHORIZATION_IA-002.md) | **DRAFT, not in force.** Proposed three-slice opening of the persistence boundary |
+| 14c | [reconciliation/CURRENT_TARGET_LONGITUDINAL_SCHEMA_RECONCILIATION_v0.1.md](reconciliation/CURRENT_TARGET_LONGITUDINAL_SCHEMA_RECONCILIATION_v0.1.md) | 9 objects proposed, 7 refused, per IA-001 §5.3 |
 | 15 | [VERIFICATION_MATRIX.md](VERIFICATION_MATRIX.md) | Invariant → proof target → automated evidence |
 | 16 | [SHIP_ACCEPTANCE.md](SHIP_ACCEPTANCE.md) | What "shippable" means (it does **not** mean PHI-ready) |
 | 17 | [DEVELOPER_HANDOFF.md](DEVELOPER_HANDOFF.md) | Read order and classification rules for a developer or agent |
@@ -52,6 +54,9 @@ authority, decision, or workflow object merely because it makes implementation e
 | — | [acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md](acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md) | **F1–F6 classified** against current `main`; current vs prototype vs target acceptance |
 | — | [WHOLE_PRODUCT_SPEC.md](WHOLE_PRODUCT_SPEC.md) | The consolidated product specification |
 | — | [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) | Ask Clarity: Query / Trace now, Command later |
+| — | [conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md](conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md) | **Which invariants are actually enforced** — 9 ENFORCED / 6 PARTIAL / 2 MISSING / 4 N/A |
+| — | [gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md](gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md) | **LONG-GAP-01 → 10 decisions**, with the 2026-09-20 amendment record appended |
+| — | [review/OWNER_DECISION_PACKET_v0.1.md](review/OWNER_DECISION_PACKET_v0.1.md) | **Read this before ratifying anything.** Adversarial review: 2 gaps fail re-testing, 2 defects found in merged code, IA-002 and ADR-0026 not ratifiable as written |
 | — | [CANON_RECONSTRUCTION_PASS_01_v0.1.md](CANON_RECONSTRUCTION_PASS_01_v0.1.md) | Source reconstruction pass behind the lock |
 | — | [FIGMA_PATTERN_GAP_ANALYSIS_v0.1.md](FIGMA_PATTERN_GAP_ANALYSIS_v0.1.md) | UI pattern gap analysis |
 
@@ -71,7 +76,12 @@ These documents are **dated artifacts**. They are landed verbatim, not edited to
   `tests/data/longitudinal-day1-day39.ts`, `tests/unit/longitudinal-contracts.test.ts`, and
   `docs/architecture/LONGITUDINAL_VERTICAL_SLICE_CONTRACT_v0.1.md`. IA-001's §2 matrix, §5
   unlock conditions, and §10 HELD/PROHIBITED lists remain in force unchanged.
-- **The persistence gate is still closed.** IA-002 has **not** been issued. Until it is, no
+- **The open-gap register records owner resolution separately from implementation readiness.**
+  OD-A through OD-D are now ratified as amended; the register preserves the questions verbatim,
+  while implementation gates, executable protections, and external clinical/legal validation
+  remain open in `gap-closure/`, `reconciliation/`, and `IMPLEMENTATION_AUTHORIZATION_IA-002.md`.
+- **The persistence gate is still closed.** IA-002 remains **DRAFT / NOT IN FORCE**; IA-001's
+  HELD list governs unchanged. No
   Prisma change, migration, longitudinal write repository, command service, mutating API,
   actual-discharge command, persistence-backed longitudinal UI mutation, or AI command
   execution is authorized — regardless of what any design document depicts.

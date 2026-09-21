@@ -1,58 +1,62 @@
 register: Clarity Open-Gap Register
 version: '0.1'
 scope: Longitudinal pre-schema questions
-status: OPEN
+status: OWNER_RESOLVED_OD_A_THROUGH_OD_D_IMPLEMENTATION_GATED
+resolved_by: docs/canon/gap-closure/LONGITUDINAL_GAP_CLOSURE_v0.1.md
+resolved_on: 2026-09-20
+amended_by: docs/canon/review/OWNER_DECISION_PACKET_v0.1.md
+amended_on: 2026-09-20
 recognized_gap_count: 10
 new_gap_policy: Do not add new semantic questions unless reconciliation exposes a
   documented contradiction, repo conflict, missing workflow/authority requirement,
   provenance conflict, or non-derivable projection.
 gaps:
 - id: LONG-GAP-01
-  status: OPEN
+  status: LOCKED
   topic: DischargePlan cardinality
   question: Does each inpatient Episode have one logical DischargePlan with revisions,
     or can concurrent independent plans exist?
 - id: LONG-GAP-02
-  status: OPEN
+  status: LOCKED
   topic: Destination-attempt identity
   question: Does each CareTransition need separate destination-attempt records?
 - id: LONG-GAP-03
-  status: OPEN
+  status: OWNER_RESOLVED_IMPLEMENTATION_GATED
   topic: Clinical discharge-readiness authority
   question: Which facility-configured roles may record or supersede clinical discharge
     readiness?
 - id: LONG-GAP-04
-  status: OPEN
+  status: OWNER_RESOLVED_IMPLEMENTATION_GATED
   topic: Canonical LOC registry
   question: What canonical level-of-care registry/crosswalk should span inpatient,
     residential, PHP, IOP, outpatient, post-acute, and other applicable settings?
 - id: LONG-GAP-05
-  status: OPEN
+  status: BOUNDED
   topic: Barrier taxonomy
   question: What barrier taxonomy supports operations and trending without becoming
     a blame taxonomy?
 - id: LONG-GAP-06
-  status: OPEN
+  status: BOUNDED
   topic: Core vs configurable longitudinal observations
   question: Which recovery/function and environment/support concepts are core platform
     semantics versus configurable assessment fields?
 - id: LONG-GAP-07
-  status: OPEN
+  status: LOCKED
   topic: Actual discharge command contract
   question: What exact command, source, disposition, and correction contract governs
     actual discharge?
 - id: LONG-GAP-08
-  status: OPEN
+  status: NOT_YET_RATIFIABLE
   topic: Continuity evidence sources
   question: Which sources can establish follow-up, medication events, next level of
     care, ED use, and readmission?
 - id: LONG-GAP-09
-  status: OPEN
+  status: LOCKED
   topic: DISCHARGED to CLOSED operational boundary
   question: What operational work remains allowed between existing Episode states
     DISCHARGED and CLOSED?
 - id: LONG-GAP-10
-  status: OPEN
+  status: LOCKED
   topic: Projection without parent aggregate
   question: Can the first longitudinal projection be reliably derived from PatientToken
     + BehavioralHealthCase + CaseEpisodeLink + Episode, avoiding a new parent aggregate?
