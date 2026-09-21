@@ -46,6 +46,12 @@ authority, decision, or workflow object merely because it makes implementation e
 | 15 | [VERIFICATION_MATRIX.md](VERIFICATION_MATRIX.md) | Invariant → proof target → automated evidence |
 | 16 | [SHIP_ACCEPTANCE.md](SHIP_ACCEPTANCE.md) | What "shippable" means (it does **not** mean PHI-ready) |
 | 17 | [DEVELOPER_HANDOFF.md](DEVELOPER_HANDOFF.md) | Read order and classification rules for a developer or agent |
+| — | [reconstruction/CLARITY_MASTER_TREE_v2.1.md](reconstruction/CLARITY_MASTER_TREE_v2.1.md) | **The reconciled product tree** — two-axis evidence/maturity + domain topology classification |
+| — | [reconstruction/CLARITY_WHOLE_PRODUCT_RECONSTRUCTION_v0.1.md](reconstruction/CLARITY_WHOLE_PRODUCT_RECONSTRUCTION_v0.1.md) | Repository-grounded completeness audit behind that tree |
+| — | [atlas/PLATFORM_ATLAS_v0.1.md](atlas/PLATFORM_ATLAS_v0.1.md) | Platform → applications → contexts → capabilities → layers → representations |
+| — | [atlas/EXPERIENCE_ATLAS_v0.1.md](atlas/EXPERIENCE_ATLAS_v0.1.md) | Role → job → workspace → object → view → action → handoff |
+| — | [atlas/SCREEN_AND_SCENARIO_ATLAS_v0.1.md](atlas/SCREEN_AND_SCENARIO_ATLAS_v0.1.md) | Surface × uncertainty-state × scenario coverage |
+| — | [acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md](acceptance/TREE_4_ACCEPTANCE_CONTRACT_v0.1.md) | **F1–F6 classified** against current `main`; current vs prototype vs target acceptance |
 | — | [WHOLE_PRODUCT_SPEC.md](WHOLE_PRODUCT_SPEC.md) | The consolidated product specification |
 | — | [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) | Ask Clarity: Query / Trace now, Command later |
 | — | [conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md](conformance/VERIFICATION_MATRIX_CONFORMANCE_BASELINE_v0.1.md) | **Which invariants are actually enforced** — 9 ENFORCED / 6 PARTIAL / 2 MISSING / 4 N/A |
